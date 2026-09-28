@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v3.0.4
+
+- English: The display name is now "Heatpump Flow Card by Lutarym" with spaces. Repository, card type, element name and file name keep their hyphens and are unchanged, so no dashboard needs editing.
+- Deutsch: Der angezeigte Name lautet jetzt "Heatpump Flow Card by Lutarym" mit Leerzeichen. Repository, Kartentyp, Elementname und Dateiname behalten ihre Bindestriche und bleiben unverändert, es muss also kein Dashboard angepasst werden.
+- Français : le nom affiché est désormais « Heatpump Flow Card by Lutarym » avec des espaces. Le dépôt, le type de carte, le nom de l'élément et le nom du fichier conservent leurs tirets et restent inchangés, aucun tableau de bord n'est donc à modifier.
+- 日本語：表示名をスペース区切りの「Heatpump Flow Card by Lutarym」に変更しました。リポジトリ、カードタイプ、要素名、ファイル名はハイフンのまま変更していないため、ダッシュボードの修正は不要です。
+
 ## v3.0.3
 
 - English: Renamed to Heatpump-Flow-Card-by-Lutarym. Repository, card type, element and file are now called heatpump-flow-card-by-lutarym. **Breaking change:** change `type: custom:lutarym-heatpump-card` to `type: custom:heatpump-flow-card-by-lutarym` in your dashboards.

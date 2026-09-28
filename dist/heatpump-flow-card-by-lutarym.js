@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "3.0.3";
+const CARD_VERSION = "3.0.4";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
