@@ -1,5 +1,5 @@
 /**
- * Heatpump-Flow-Card-by-Lutarym (heatpump-flow-card-by-lutarym)
+ * Heatpump Flow Card by Lutarym (heatpump-flow-card-by-lutarym)
  * https://github.com/Lutarym/Heatpump-Flow-Card-by-Lutarym
  *
  * Copyright (C) 2026 Lutarym (Stephan Fröbe)
@@ -5500,7 +5500,7 @@ customElements.define("heatpump-flow-card-by-lutarym-editor", LutarymHeatpumpCar
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: "heatpump-flow-card-by-lutarym",
-  name: "Heatpump-Flow-Card-by-Lutarym",
+  name: "Heatpump Flow Card by Lutarym",
   description:
     "Animated plant diagram with two heating circuits, pumps, tanks, heat curve, SG Ready and flow animation.",
   preview: true,
@@ -5508,7 +5508,7 @@ window.customCards.push({
 });
 
 console.info(
-  `%c HEATPUMP FLOW BY LUTARYM %c ${CARD_VERSION} `,
+  `%c HEATPUMP FLOW CARD BY LUTARYM %c ${CARD_VERSION} `,
   "background:#0D131B;color:#E0762E;font-weight:600;padding:2px 6px;border-radius:3px 0 0 3px",
   "background:#E0762E;color:#0D131B;font-weight:600;padding:2px 6px;border-radius:0 3px 3px 0"
 );

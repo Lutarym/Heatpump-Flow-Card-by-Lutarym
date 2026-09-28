@@ -1,4 +1,4 @@
-# Heatpump-Flow-Card-by-Lutarym
+# Heatpump Flow Card by Lutarym
 
 [English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · **日本語**
 
