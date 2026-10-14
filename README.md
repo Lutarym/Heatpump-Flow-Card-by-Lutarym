@@ -140,6 +140,8 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | **Heating buffer** | | |
 | `buffer_delta` | Buffer hysteresis | TOP113 |
 | `buffer_target` | Buffer target temperature | TOP7, flow target |
+| `cop_heating_measured` | COP heating, measured | HeishaMon by Lutarym, preferred, external power meter |
+| `cop_heating` | COP heating, calculated | HeishaMon by Lutarym, fallback if measured is unknown |
 | `room_heater` | Heating element, heating | TOP59 |
 | `room_heater_switch` | Switch heating element, heating | SetRoomHeaterState, switch |
 | **Circuit 1** | | |
@@ -161,6 +163,8 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `dhw_temp` | Hot water temperature | TOP10 |
 | `dhw_heat_delta` | Hot water hysteresis | TOP22 |
 | `dhw_setpoint` | Hot water target | TOP9, number |
+| `cop_dhw_measured` | COP hot water, measured | HeishaMon by Lutarym, preferred, external power meter |
+| `cop_dhw` | COP hot water, calculated | HeishaMon by Lutarym, fallback if measured is unknown |
 | `dhw_heater` | Heating element, hot water | TOP58 |
 | `dhw_force` | Boost once | SetForceDHW, switch |
 | `dhw_force_state` | Boost running | TOP2 |

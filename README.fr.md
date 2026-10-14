@@ -140,6 +140,8 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | **Ballon tampon** | | |
 | `buffer_delta` | Hystérésis du ballon tampon | TOP113 |
 | `buffer_target` | Température cible du ballon tampon | TOP7, consigne départ |
+| `cop_heating_measured` | COP chauffage, mesuré | HeishaMon by Lutarym, prioritaire, compteur externe |
+| `cop_heating` | COP chauffage, calculé | HeishaMon by Lutarym, secours si la mesure est inconnue |
 | `room_heater` | Appoint électrique chauffage | TOP59 |
 | `room_heater_switch` | Commande appoint chauffage | SetRoomHeaterState, switch |
 | **Circuit 1** | | |
@@ -161,6 +163,8 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `dhw_temp` | Température de l'eau chaude | TOP10 |
 | `dhw_heat_delta` | Hystérésis de l'eau chaude | TOP22 |
 | `dhw_setpoint` | Consigne eau chaude | TOP9, number |
+| `cop_dhw_measured` | COP eau chaude, mesuré | HeishaMon by Lutarym, prioritaire, compteur externe |
+| `cop_dhw` | COP eau chaude, calculé | HeishaMon by Lutarym, secours si la mesure est inconnue |
 | `dhw_heater` | Appoint électrique eau chaude | TOP58 |
 | `dhw_force` | Chauffe unique | SetForceDHW, switch |
 | `dhw_force_state` | Chauffe en cours | TOP2 |

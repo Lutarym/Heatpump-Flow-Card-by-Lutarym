@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "3.0.4";
+const CARD_VERSION = "3.0.5";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -326,6 +326,8 @@ const TEXTE = {
   fld_buffer_delta: { de: "Puffer Hysterese", en: "Buffer hysteresis", fr: "Hystérésis du ballon tampon", ja: "バッファーのヒステリシス" },
   fld_buffer_target: { de: "Puffer Zieltemperatur", en: "Buffer target temperature", fr: "Température cible du ballon tampon", ja: "バッファー目標温度" },
   fld_room_heater: { de: "Heizstab Heizung", en: "Heating element, heating", fr: "Appoint électrique chauffage", ja: "暖房用ヒーター" },
+  fld_cop_heating_measured: { de: "COP Heizen gemessen", en: "COP heating, measured", fr: "COP chauffage, mesuré", ja: "COP 暖房（実測）" },
+  fld_cop_heating: { de: "COP Heizen berechnet", en: "COP heating, calculated", fr: "COP chauffage, calculé", ja: "COP 暖房（算出）" },
   fld_room_heater_switch: { de: "Heizstab Heizung schalten", en: "Switch heating element, heating", fr: "Commande appoint chauffage", ja: "暖房用ヒーターの入切" },
   fld_zones_state: { de: "Aktivierte Zonen", en: "Active zones", fr: "Zones actives", ja: "有効なゾーン" },
   fld_zones_select: { de: "Zonen umschalten", en: "Switch zones", fr: "Changer de zones", ja: "ゾーン切替" },
@@ -350,6 +352,8 @@ const TEXTE = {
   fld_sterilization_state: { de: "Legionellenschutz läuft", en: "Legionella cycle running", fr: "Cycle légionelles en cours", ja: "レジオネラ運転中" },
   fld_dhw_heater_switch: { de: "Heizstab Warmwasser schalten", en: "Switch heating element, hot water", fr: "Commande appoint eau chaude", ja: "給湯用ヒーターの入切" },
   fld_circulation_pump: { de: "Zirkulationspumpe läuft", en: "Circulation pump running", fr: "Pompe de circulation en marche", ja: "循環ポンプ運転中" },
+  fld_cop_dhw_measured: { de: "COP Warmwasser gemessen", en: "COP hot water, measured", fr: "COP eau chaude, mesuré", ja: "COP 給湯（実測）" },
+  fld_cop_dhw: { de: "COP Warmwasser berechnet", en: "COP hot water, calculated", fr: "COP eau chaude, calculé", ja: "COP 給湯（算出）" },
   fld_circ_switch: { de: "Zirkulation Schalter (klickbar)", en: "Circulation switch (clickable)", fr: "Interrupteur de circulation (cliquable)", ja: "循環スイッチ（クリック可）" },
   fld_mode_select: { de: "Betriebsart umschalten", en: "Switch operating mode", fr: "Changer de mode", ja: "運転モード切替" },
   // Gruppen der Entitaetsfelder
@@ -372,6 +376,9 @@ const TEXTE = {
   hnw_5: { de: "Shelly oder eigener Schalter", en: "Shelly or own switch", fr: "Shelly ou interrupteur propre", ja: "Shellyまたは独自スイッチ" },
   hnw_6: { de: "Switch zum Ein/Ausschalten der Zirkulation", en: "switch to turn circulation on and off", fr: "interrupteur pour la circulation", ja: "循環の入切スイッチ" },
   hnw_7: { de: "SetHeatpump oder TOP0", en: "SetHeatpump or TOP0", fr: "SetHeatpump ou TOP0", ja: "SetHeatpump または TOP0" },
+  hnw_8: { de: "bevorzugt, externer Strommesser", en: "preferred, external power meter", fr: "prioritaire, compteur externe", ja: "優先、外部電力計" },
+  hnw_9: { de: "Ersatz, wenn gemessen unbekannt", en: "fallback if measured is unknown", fr: "secours si la mesure est inconnue", ja: "実測値が不明な場合の代替" },
+  s_cop: { de: "COP {v}", en: "COP {v}", fr: "COP {v}", ja: "COP {v}" },
   // Auswahl- und Zustandswerte
   w_0: { de: "Nur Heizen", en: "Heat only", fr: "Chauffage seul", ja: "暖房のみ" },
   w_1: { de: "Nur Kühlen", en: "Cool only", fr: "Refroidissement seul", ja: "冷房のみ" },
@@ -447,7 +454,7 @@ const TEXTE = {
 
 /** Zuordnung deutscher Gruppen und Hinweise zu Sprachschluesseln. */
 const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9" };
-const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7" };
+const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "bevorzugt, externer Strommesser": "hnw_8", "Ersatz, wenn gemessen unbekannt": "hnw_9" };
 
 /** Setzt Werte in Platzhalter wie {n} ein. */
 function tf(text, werte) {
@@ -772,6 +779,19 @@ const COMMAND_TO_FIELD = {
   setbuffer: "buffer_switch",
 };
 
+/**
+ * Leistungszahlen aus HeishaMon by Lutarym. Die Integration liefert je
+ * Betriebsart einen berechneten und einen gemessenen Wert. Gemessen
+ * nutzt einen externen Strommesser und ist genauer.
+ */
+const COP_TO_FIELD = {
+  cop_heating_measured: "cop_heating_measured",
+  cop_heating: "cop_heating",
+  cop_dhw_measured: "cop_dhw_measured",
+  cop_dhw: "cop_dhw",
+};
+const COP_MUSTER = /_(cop_(?:heating|dhw)(?:_measured)?)$/;
+
 const FIELD_DOMAIN = {
   hk1_setpoint: ["number", "input_number"],
   hk2_setpoint: ["number", "input_number"],
@@ -800,7 +820,7 @@ function detectIntegration(hass, profil) {
   if (!hass) return result;
 
   const assign = (key, entityId) => {
-    const field = TOPIC_TO_FIELD[key] || COMMAND_TO_FIELD[key];
+    const field = TOPIC_TO_FIELD[key] || COMMAND_TO_FIELD[key] || COP_TO_FIELD[key];
     if (!field || !entityId) return;
     const allowed = FIELD_DOMAIN[field];
     if (allowed && !allowed.includes(entityId.split(".")[0])) return;
@@ -825,6 +845,7 @@ function detectIntegration(hass, profil) {
       hits++;
       if (entry.device_id) deviceIds.add(entry.device_id);
       const key =
+        (entityId.match(COP_MUSTER) || [])[1] ||
         entry.translation_key ||
         (entityId.match(/_(top\d+)$/) || [])[1] ||
         (entityId.match(/heishamon_(set\w+)$/) || [])[1] ||
@@ -842,6 +863,10 @@ function detectIntegration(hass, profil) {
 
   let hits = 0;
   Object.keys(hass.states || {}).forEach((entityId) => {
+    if (/^sensor\.heishamon_/.test(entityId)) {
+      const c = entityId.match(COP_MUSTER);
+      if (c) assign(c[1], entityId);
+    }
     const m = entityId.match(
       /^(?:sensor|number|switch|select)\.heishamon_((?:top\d+)|(?:set\w+))$/
     );
@@ -938,6 +963,8 @@ const ENTITY_FIELDS = [
   { key: "curve2_o_low", label: "HK2 Heizkurve Außen unten", group: "Heizkurve", hint: "TOP85" },
   { key: "buffer_delta", label: "Puffer Hysterese", group: "Heizungspuffer", hint: "TOP113" },
   { key: "buffer_target", label: "Puffer Zieltemperatur", group: "Heizungspuffer", hint: "TOP7, Soll Vorlauf" },
+  { key: "cop_heating_measured", label: "COP Heizen gemessen", group: "Heizungspuffer", hint: "HeishaMon by Lutarym, bevorzugt, externer Strommesser" },
+  { key: "cop_heating", label: "COP Heizen berechnet", group: "Heizungspuffer", hint: "HeishaMon by Lutarym, Ersatz, wenn gemessen unbekannt" },
   { key: "room_heater", label: "Heizstab Heizung", group: "Heizungspuffer", hint: "TOP59" },
   { key: "room_heater_switch", label: "Heizstab Heizung schalten", group: "Heizungspuffer", hint: "SetRoomHeaterState, switch" },
 
@@ -959,6 +986,8 @@ const ENTITY_FIELDS = [
   { key: "dhw_temp", label: "Warmwasser Isttemperatur", group: "Warmwasser", hint: "TOP10" },
   { key: "dhw_heat_delta", label: "Warmwasser Hysterese", group: "Warmwasser", hint: "TOP22" },
   { key: "dhw_setpoint", label: "Warmwasser Sollwert", group: "Warmwasser", hint: "TOP9, number" },
+  { key: "cop_dhw_measured", label: "COP Warmwasser gemessen", group: "Warmwasser", hint: "HeishaMon by Lutarym, bevorzugt, externer Strommesser" },
+  { key: "cop_dhw", label: "COP Warmwasser berechnet", group: "Warmwasser", hint: "HeishaMon by Lutarym, Ersatz, wenn gemessen unbekannt" },
   { key: "dhw_heater", label: "Heizstab Warmwasser", group: "Warmwasser", hint: "TOP58" },
   { key: "dhw_force", label: "Einmalig aufheizen", group: "Warmwasser", hint: "SetForceDHW, switch" },
   { key: "dhw_force_state", label: "Aufheizen läuft", group: "Warmwasser", hint: "TOP2" },
@@ -1107,6 +1136,7 @@ class LutarymHeatpumpCard extends HTMLElement {
       dhw_heater_switch: "off", room_heater_switch: "off", buffer_switch: "on",
       power_state: "on", hk1_switch: "on", hk2_switch: "off",
       operating_mode: 4,
+      cop_heating_measured: 4.3, cop_heating: 4.6, cop_dhw_measured: 3.1, cop_dhw: 3.4,
     };
     const states = {};
     Object.keys(werte).forEach((feld) => {
@@ -1190,6 +1220,16 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (!this._demo) return null;
     const eintrag = this._demo.states[`demo.${feld}`];
     return eintrag ? eintrag.state : null;
+  }
+
+  /**
+   * Leistungszahl mit Vorrang fuer den gemessenen Wert. Ist er unbekannt
+   * oder nicht verfuegbar, gilt der berechnete.
+   */
+  _cop(hass, basis) {
+    const gemessen = numState(hass, this._e(`${basis}_measured`));
+    if (gemessen !== null) return gemessen;
+    return numState(hass, this._e(basis));
   }
 
   _e(key) {
@@ -2569,9 +2609,10 @@ class LutarymHeatpumpCard extends HTMLElement {
             <text class="cap" x="${UM}" y="${y1 + 27}" text-anchor="middle"
                   dominant-baseline="middle">${escapeHtml(this._config[labelKey])}</text>
           </g>
-          <text class="value-l"  id="${name}-v"  x="${UM}" y="${y1 + h / 2 + 24}" text-anchor="middle">--</text>
-          <text class="value-sp" id="${name}-sp" x="${UM}" y="${y1 + h / 2 + 48}" text-anchor="middle"></text>
-          <text class="value-sp" id="${name}-delta" x="${UM}" y="${y1 + h / 2 + 72}" text-anchor="middle"></text>
+          <text class="value-l"  id="${name}-v"  x="${UM}" y="${y1 + h / 2 + 12}" text-anchor="middle">--</text>
+          <text class="value-sp" id="${name}-sp" x="${UM}" y="${y1 + h / 2 + 36}" text-anchor="middle"></text>
+          <text class="value-sp" id="${name}-delta" x="${UM}" y="${y1 + h / 2 + 60}" text-anchor="middle"></text>
+          <text class="value-cop" id="${name}-cop" x="${UM}" y="${y1 + h / 2 + 84}" text-anchor="middle"></text>
           ${badges || ""}
         </g>`;
     };
@@ -3633,6 +3674,7 @@ ${this._defs()}
         <text class="value-l" id="buf-v" x="${L.X_BUF_C}" y="460" text-anchor="middle">--</text>
         <text class="value-sp" id="buf-sp" x="${L.X_BUF_C}" y="488" text-anchor="middle"></text>
         <text class="value-sp" id="buf-delta" x="${L.X_BUF_C}" y="512" text-anchor="middle"></text>
+        <text class="value-cop" id="buf-cop" x="${L.X_BUF_C}" y="536" text-anchor="middle"></text>
         <g id="roomheater-badge" class="badge" transform="translate(${L.X_BUF_C} 604)">
           <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
@@ -3723,9 +3765,10 @@ ${this._defs()}
         <rect x="1448" y="298" width="154" height="334" rx="28" fill="url(#dhwFill)"/>
         <g clip-path="url(#dhwClip)">${this._bubbles("dhw-bubbles", 1448, 298, 154, 334)}</g>
         <rect x="1448" y="298" width="154" height="334" rx="28" fill="url(#glass)"/>
-        <text class="value-l" id="dhw-v" x="${L.X_DHW_C}" y="440" text-anchor="middle">--</text>
-        <text class="value-sp" id="dhw-sp" x="${L.X_DHW_C}" y="468" text-anchor="middle"></text>
-        <text class="value-sp" id="dhw-delta" x="${L.X_DHW_C}" y="492" text-anchor="middle"></text>
+        <text class="value-l" id="dhw-v" x="${L.X_DHW_C}" y="430" text-anchor="middle">--</text>
+        <text class="value-sp" id="dhw-sp" x="${L.X_DHW_C}" y="458" text-anchor="middle"></text>
+        <text class="value-sp" id="dhw-delta" x="${L.X_DHW_C}" y="482" text-anchor="middle"></text>
+        <text class="value-cop" id="dhw-cop" x="${L.X_DHW_C}" y="505" text-anchor="middle"></text>
         <g id="dhwforce-badge" class="badge" transform="translate(${L.X_DHW_C} 536)">
           <rect x="${-abzeichenBreite("Aufheizen") / 2}" y="-15" width="${abzeichenBreite("Aufheizen")}" height="30" rx="15"
                 fill="#08243A" stroke="#3B9BE0" stroke-width="1.5"/>
@@ -4125,6 +4168,8 @@ ${this._defs()}
         : tf(this._t("s_laedt_ab"), { v: fmt(bufSp - Math.abs(bDelta), 0) })
     );
     void wwLaeuft;
+    const copH = this._cop(hass, "cop_heating");
+    set("buf-cop", copH === null ? "" : tf(this._t("s_cop"), { v: fmt(copH, 1) }));
     abzeichen("roomheater-badge", isOn(hass, this._e("room_heater")) === true);
 
     const dhwSp = numState(hass, this._e("dhw_setpoint"));
@@ -4132,6 +4177,8 @@ ${this._defs()}
     paint("dhw-bottom", col(dhw === null ? null : dhw - 6));
     set("dhw-v", dhw === null ? "--" : `${fmt(dhw)} °C`);
     set("dhw-sp", dhwSp === null ? "" : tf(this._t("s_ziel"), { v: fmt(dhwSp, 0) }));
+    const copW = this._cop(hass, "cop_dhw");
+    set("dhw-cop", copW === null ? "" : tf(this._t("s_cop"), { v: fmt(copW, 1) }));
     // TOP22 ist negativ und sagt, wie weit das Warmwasser unter den
     // Sollwert fallen darf. Angezeigt wird daraus die Temperatur, ab
     // der nachgeladen wird, das ist die eigentlich nuetzliche Angabe.
@@ -4637,6 +4684,12 @@ ${this._defs()}
       }
       .hinweis-s { fill: #6B7A90; font-size: 11px; }
       .value-sp { fill: rgba(255,255,255,0.85); font-size: 17px; }
+      /* Weiss mit dunklem Rand wie die Temperatur, damit der Wert auf
+         jeder Speicherfarbe lesbar bleibt. */
+      .value-cop {
+        fill: #FFFFFF; font-size: 17px; font-weight: 700;
+        paint-order: stroke; stroke: rgba(0,0,0,0.5); stroke-width: 4px;
+      }
       /* Aufsteigende Blasen. Je waermer der Speicher, desto mehr
          davon werden sichtbar geschaltet. */
       .bubble {

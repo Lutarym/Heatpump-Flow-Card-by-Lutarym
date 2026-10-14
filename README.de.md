@@ -140,6 +140,8 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | **Heizungspuffer** | | |
 | `buffer_delta` | Puffer Hysterese | TOP113 |
 | `buffer_target` | Puffer Zieltemperatur | TOP7, Soll Vorlauf |
+| `cop_heating_measured` | COP Heizen gemessen | HeishaMon by Lutarym, bevorzugt, externer Strommesser |
+| `cop_heating` | COP Heizen berechnet | HeishaMon by Lutarym, Ersatz, wenn gemessen unbekannt |
 | `room_heater` | Heizstab Heizung | TOP59 |
 | `room_heater_switch` | Heizstab Heizung schalten | SetRoomHeaterState, switch |
 | **Heizkreis 1** | | |
@@ -161,6 +163,8 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `dhw_temp` | Warmwasser Isttemperatur | TOP10 |
 | `dhw_heat_delta` | Warmwasser Hysterese | TOP22 |
 | `dhw_setpoint` | Warmwasser Sollwert | TOP9, number |
+| `cop_dhw_measured` | COP Warmwasser gemessen | HeishaMon by Lutarym, bevorzugt, externer Strommesser |
+| `cop_dhw` | COP Warmwasser berechnet | HeishaMon by Lutarym, Ersatz, wenn gemessen unbekannt |
 | `dhw_heater` | Heizstab Warmwasser | TOP58 |
 | `dhw_force` | Einmalig aufheizen | SetForceDHW, switch |
 | `dhw_force_state` | Aufheizen läuft | TOP2 |

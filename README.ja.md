@@ -140,6 +140,8 @@ entities:
 | **暖房バッファー** | | |
 | `buffer_delta` | バッファーのヒステリシス | TOP113 |
 | `buffer_target` | バッファー目標温度 | TOP7, 往き目標 |
+| `cop_heating_measured` | COP 暖房（実測） | HeishaMon by Lutarym、優先、外部電力計 |
+| `cop_heating` | COP 暖房（算出） | HeishaMon by Lutarym、実測値が不明な場合の代替 |
 | `room_heater` | 暖房用ヒーター | TOP59 |
 | `room_heater_switch` | 暖房用ヒーターの入切 | SetRoomHeaterState, switch |
 | **回路1** | | |
@@ -161,6 +163,8 @@ entities:
 | `dhw_temp` | 給湯温度 | TOP10 |
 | `dhw_heat_delta` | 給湯のヒステリシス | TOP22 |
 | `dhw_setpoint` | 給湯設定温度 | TOP9, number |
+| `cop_dhw_measured` | COP 給湯（実測） | HeishaMon by Lutarym、優先、外部電力計 |
+| `cop_dhw` | COP 給湯（算出） | HeishaMon by Lutarym、実測値が不明な場合の代替 |
 | `dhw_heater` | 給湯用ヒーター | TOP58 |
 | `dhw_force` | 一回だけ加熱 | SetForceDHW, switch |
 | `dhw_force_state` | 加熱中 | TOP2 |

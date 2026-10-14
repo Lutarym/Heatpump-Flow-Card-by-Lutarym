@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v3.0.5
+
+- English: The heating buffer now shows the heating COP and the hot water tank the hot water COP from HeishaMon by Lutarym. The measured value (external power meter) is preferred; if it is unknown or unavailable, the calculated value is used. Both entities are detected automatically and can be set in the editor.
+- Deutsch: Der Heizungspuffer zeigt jetzt den COP Heizen und der Warmwasserspeicher den COP Warmwasser aus HeishaMon by Lutarym. Bevorzugt wird der gemessene Wert (externer Strommesser); ist er unbekannt oder nicht verfügbar, wird der berechnete genommen. Beide Entitäten werden automatisch erkannt und lassen sich im Editor eintragen.
+- Français : le ballon tampon affiche désormais le COP chauffage et le ballon d'eau chaude le COP eau chaude de HeishaMon by Lutarym. La valeur mesurée (compteur externe) est prioritaire ; si elle est inconnue ou indisponible, la valeur calculée est utilisée. Les deux entités sont détectées automatiquement et peuvent être saisies dans l'éditeur.
+- 日本語：HeishaMon by Lutarym の COP を表示するようにしました。バッファータンクに暖房 COP、給湯タンクに給湯 COP を表示します。実測値（外部電力計）を優先し、不明または利用不可の場合は算出値を使用します。どちらのエンティティも自動検出され、エディターで設定できます。
+
 ## v3.0.4
 
 - English: The display name is now "Heatpump Flow Card by Lutarym" with spaces. Repository, card type, element name and file name keep their hyphens and are unchanged, so no dashboard needs editing.
