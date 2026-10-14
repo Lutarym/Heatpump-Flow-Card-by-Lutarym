@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "3.0.5";
+const CARD_VERSION = "3.0.6";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -378,7 +378,7 @@ const TEXTE = {
   hnw_7: { de: "SetHeatpump oder TOP0", en: "SetHeatpump or TOP0", fr: "SetHeatpump ou TOP0", ja: "SetHeatpump または TOP0" },
   hnw_8: { de: "bevorzugt, externer Strommesser", en: "preferred, external power meter", fr: "prioritaire, compteur externe", ja: "優先、外部電力計" },
   hnw_9: { de: "Ersatz, wenn gemessen unbekannt", en: "fallback if measured is unknown", fr: "secours si la mesure est inconnue", ja: "実測値が不明な場合の代替" },
-  s_cop: { de: "COP {v}", en: "COP {v}", fr: "COP {v}", ja: "COP {v}" },
+  s_cop: { de: "Ø COP heute {v}", en: "Ø COP today {v}", fr: "Ø COP jour {v}", ja: "本日 Ø COP {v}" },
   // Auswahl- und Zustandswerte
   w_0: { de: "Nur Heizen", en: "Heat only", fr: "Chauffage seul", ja: "暖房のみ" },
   w_1: { de: "Nur Kühlen", en: "Cool only", fr: "Refroidissement seul", ja: "冷房のみ" },
@@ -712,6 +712,34 @@ function escapeHtml(text) {
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
+}
+
+/**
+ * Zeitgewichteter Mittelwert einer Verlaufsreihe zwischen start und ende.
+ * Nur Zahlen groesser 0 zaehlen. Ohne gueltige Zeit ergibt sich null.
+ */
+function copMittel(reihe, start, ende) {
+  const punkte = reihe
+    .map((pkt) => {
+      const roh = pkt.s !== undefined ? pkt.s : pkt.state;
+      let t = pkt.lu !== undefined ? pkt.lu * 1000 : Date.parse(pkt.last_updated || pkt.last_changed);
+      if (Number.isNaN(t) || t < start) t = start;
+      return { t, v: parseFloat(roh) };
+    })
+    .sort((a, b) => a.t - b.t);
+  let summe = 0;
+  let dauer = 0;
+  for (let i = 0; i < punkte.length; i++) {
+    const von = punkte[i].t;
+    const bis = i + 1 < punkte.length ? punkte[i + 1].t : ende;
+    const dt = bis - von;
+    const v = punkte[i].v;
+    if (dt > 0 && !Number.isNaN(v) && v > 0) {
+      summe += v * dt;
+      dauer += dt;
+    }
+  }
+  return dauer > 0 ? summe / dauer : null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -1223,13 +1251,79 @@ class LutarymHeatpumpCard extends HTMLElement {
   }
 
   /**
-   * Leistungszahl mit Vorrang fuer den gemessenen Wert. Ist er unbekannt
-   * oder nicht verfuegbar, gilt der berechnete.
+   * Tagesdurchschnitt der Leistungszahl seit Mitternacht.
+   * Vorrang hat der gemessene Wert. Liefert er heute keinen Durchschnitt,
+   * gilt der berechnete. Im Demomodus gibt es keine Historie, dort wird
+   * der aktuelle Wert gezeigt.
    */
   _cop(hass, basis) {
-    const gemessen = numState(hass, this._e(`${basis}_measured`));
-    if (gemessen !== null) return gemessen;
-    return numState(hass, this._e(basis));
+    const ids = [this._e(`${basis}_measured`), this._e(basis)];
+    if (this._config && this._config.demo) {
+      for (const id of ids) {
+        const v = numState(hass, id);
+        if (v !== null && v > 0) return v;
+      }
+      return null;
+    }
+    this._ladeCopTag();
+    const tag = this._copTag || {};
+    for (const id of ids) {
+      if (id && typeof tag[id] === "number") return tag[id];
+    }
+    return null;
+  }
+
+  /**
+   * Holt den Verlauf aller vier Leistungszahlen ab Mitternacht und bildet
+   * je Entitaet den zeitgewichteten Mittelwert. Jeder Wert zaehlt so lange,
+   * wie er galt. Unbekannt, nicht verfuegbar und Werte bis 0 bleiben
+   * draussen, das sind Zeiten ohne Verdichterbetrieb.
+   * Abgefragt wird hoechstens alle fuenf Minuten und sofort nach
+   * Tageswechsel.
+   */
+  async _ladeCopTag() {
+    const q = this._quelle;
+    if (!q || typeof q.callWS !== "function" || this._copLaeuft) return;
+    const ids = ["cop_heating_measured", "cop_heating", "cop_dhw_measured", "cop_dhw"]
+      .map((k) => this._e(k))
+      .filter(Boolean);
+    if (!ids.length) return;
+    const jetzt = Date.now();
+    const d = new Date(jetzt);
+    const mitternacht = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const schluessel = ids.join("|");
+    if (
+      this._copTagStart === mitternacht &&
+      this._copTagIds === schluessel &&
+      this._copTagZeit &&
+      jetzt - this._copTagZeit < 300000
+    ) return;
+    this._copLaeuft = true;
+    this._copTagZeit = jetzt;
+    try {
+      const antwort = await q.callWS({
+        type: "history/history_during_period",
+        start_time: new Date(mitternacht).toISOString(),
+        end_time: new Date(jetzt).toISOString(),
+        entity_ids: ids,
+        include_start_time_state: true,
+        significant_changes_only: false,
+        minimal_response: true,
+        no_attributes: true,
+      });
+      const ergebnis = {};
+      ids.forEach((id) => {
+        ergebnis[id] = copMittel((antwort && antwort[id]) || [], mitternacht, jetzt);
+      });
+      this._copTag = ergebnis;
+      this._copTagStart = mitternacht;
+      this._copTagIds = schluessel;
+      this._update();
+    } catch (err) {
+      // Keine Historie verfuegbar, die Zeile bleibt leer.
+    } finally {
+      this._copLaeuft = false;
+    }
   }
 
   _e(key) {

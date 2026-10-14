@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v3.0.6
+
+- English: The COP in the buffer and hot water tank is now the average of the current day since midnight, weighted by time. Unknown values and values up to 0 (compressor off) are ignored. The measured value is preferred; if it has no value today, the calculated one is used. Updated every five minutes.
+- Deutsch: Der COP im Puffer und im Warmwasserspeicher ist jetzt der Durchschnitt des aktuellen Tages seit Mitternacht, nach Zeit gewichtet. Unbekannte Werte und Werte bis 0 (Verdichter aus) zählen nicht. Bevorzugt wird der gemessene Wert; hat er heute keinen Wert, gilt der berechnete. Aktualisierung alle fünf Minuten.
+- Français : le COP du ballon tampon et du ballon d'eau chaude est désormais la moyenne de la journée en cours depuis minuit, pondérée dans le temps. Les valeurs inconnues et celles jusqu'à 0 (compresseur arrêté) sont ignorées. La valeur mesurée est prioritaire ; sans valeur aujourd'hui, la valeur calculée est utilisée. Mise à jour toutes les cinq minutes.
+- 日本語：バッファーと給湯タンクの COP を、当日 0 時からの時間加重平均に変更しました。不明な値と 0 以下の値（圧縮機停止）は除外します。実測値を優先し、当日の値がない場合は算出値を使用します。5 分ごとに更新します。
+
 ## v3.0.5
 
 - English: The heating buffer now shows the heating COP and the hot water tank the hot water COP from HeishaMon by Lutarym. The measured value (external power meter) is preferred; if it is unknown or unavailable, the calculated value is used. Both entities are detected automatically and can be set in the editor.
