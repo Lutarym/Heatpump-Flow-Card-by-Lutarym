@@ -12,7 +12,7 @@ Panasonic Aquarea ヒートポンプを HeishaMon 経由で接続し、動くシ
 - 三方弁、ポンプ、圧縮機、バッファーの実際の配管動作に従う流れのアニメーション
 - タンク、放熱器、配管の温度による色分け
 - 回路1と回路2の暖房曲線を専用ウィンドウに表示。目盛り、運転点、調整可能な基準点つき
-- ヒートポンプの扉：右下のボタンで前面が扉のように左へ開き、その奥に詳細設定（暖房の外気温限界、温度差、レジオネラ対策、ポンプ、静音モード）があります。「適用」で変更を送信し、扉が閉じます
+- ヒートポンプの扉：右下のボタンで前面が扉のように左へ開き、その奥に詳細設定（休暇、週間スケジュール、スマート給湯、暖房の外気温限界、温度差、レジオネラ対策、ポンプ、静音モード、異常リセット、運転時間と起動回数）があります。「適用」で変更を送信し、扉が閉じます
 - 過去24時間の使用量グラフ。暖房、給湯、待機で色分けし、その下に SG Ready の履歴
 - 暖房バッファーのないシステムに対応。TOP99 で自動検出、または手動設定
 - 横長と縦長のレイアウト
@@ -188,6 +188,14 @@ entities:
 | `pump_flow_mode` | ポンプ制御 | SetPumpFlowrateMode, select |
 | `pump_max_duty` | ポンプ最大出力 | TOP95, number |
 | `quiet_priority` | 静音モード優先 | SetQuietModePriority, select |
+| `holiday_mode` | 休暇モード | SetHolidayMode, switch |
+| `main_schedule` | 週間スケジュール | SetMainSchedule, switch |
+| `smart_dhw` | スマート給湯 | SetSmartDHW, select |
+| `fault_reset` | 異常リセット | SetReset, button |
+| `operating_hours` | 運転時間 | TOP11 |
+| `compressor_starts` | 圧縮機起動回数 | TOP12 |
+| `room_heater_hours` | 暖房ヒーター運転時間 | TOP90 |
+| `dhw_heater_hours` | 給湯ヒーター運転時間 | TOP91 |
 
 ## 言語
 

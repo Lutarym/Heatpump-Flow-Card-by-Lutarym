@@ -12,7 +12,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Flow animation that follows the real hydraulics: diverter valve, pumps, compressor and buffer
 - Temperature colouring of tanks, radiators and pipes
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
-- Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (heating limits, spread, legionella protection, pump, quiet mode); changes are sent with “Apply” and the door closes
+- Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, fault reset, operating hours and starts); changes are sent with “Apply” and the door closes
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
 - Landscape and portrait layout
@@ -188,6 +188,14 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `pump_flow_mode` | Pump control | SetPumpFlowrateMode, select |
 | `pump_max_duty` | Max. pump duty | TOP95, number |
 | `quiet_priority` | Quiet mode priority | SetQuietModePriority, select |
+| `holiday_mode` | Holiday mode | SetHolidayMode, switch |
+| `main_schedule` | Weekly schedule | SetMainSchedule, switch |
+| `smart_dhw` | Smart DHW | SetSmartDHW, select |
+| `fault_reset` | Reset fault | SetReset, button |
+| `operating_hours` | Operating hours | TOP11 |
+| `compressor_starts` | Compressor starts | TOP12 |
+| `room_heater_hours` | Heater hours, heating | TOP90 |
+| `dhw_heater_hours` | Heater hours, hot water | TOP91 |
 
 ## Languages
 

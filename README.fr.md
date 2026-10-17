@@ -12,7 +12,7 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 - Animation du débit qui suit l'hydraulique réelle : vanne trois voies, pompes, compresseur et ballon tampon
 - Coloration selon la température des ballons, radiateurs et tuyaux
 - Courbe de chauffe des circuits 1 et 2 dans une fenêtre dédiée, avec échelle, point de fonctionnement et points réglables
-- Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (limites de chauffage, écart, anti-légionelles, pompe, mode silencieux) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
+- Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (vacances, programme hebdomadaire, Smart DHW, limites de chauffage, écart, anti-légionelles, pompe, mode silencieux, acquittement des défauts, heures et démarrages) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
 - Graphique de consommation sur 24 heures, coloré selon chauffage, eau chaude et veille, avec l'historique SG Ready en dessous
 - Installations sans ballon tampon, détectées automatiquement via TOP99 ou réglées manuellement
 - Disposition paysage et portrait
@@ -188,6 +188,14 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `pump_flow_mode` | Régulation de pompe | SetPumpFlowrateMode, select |
 | `pump_max_duty` | Puissance max. pompe | TOP95, number |
 | `quiet_priority` | Priorité mode silencieux | SetQuietModePriority, select |
+| `holiday_mode` | Mode vacances | SetHolidayMode, switch |
+| `main_schedule` | Programme hebdomadaire | SetMainSchedule, switch |
+| `smart_dhw` | Smart DHW eau chaude | SetSmartDHW, select |
+| `fault_reset` | Acquitter le défaut | SetReset, button |
+| `operating_hours` | Heures de fonctionnement | TOP11 |
+| `compressor_starts` | Démarrages du compresseur | TOP12 |
+| `room_heater_hours` | Heures appoint chauffage | TOP90 |
+| `dhw_heater_hours` | Heures appoint eau chaude | TOP91 |
 
 ## Langues
 

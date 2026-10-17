@@ -408,6 +408,30 @@ const TEXTE = {
   k_quiet_priority: { de: "Vorrang", en: "Priority", fr: "Priorité", ja: "優先" },
   t_legionellen: { de: "Legionellenschutz", en: "Legionella protection", fr: "Anti-légionelles", ja: "レジオネラ対策" },
   t_leise: { de: "Leisemodus", en: "Quiet mode", fr: "Mode silencieux", ja: "静音モード" },
+  fld_holiday_mode: { de: "Urlaubsmodus", en: "Holiday mode", fr: "Mode vacances", ja: "休暇モード" },
+  fld_main_schedule: { de: "Wochenprogramm", en: "Weekly schedule", fr: "Programme hebdomadaire", ja: "週間スケジュール" },
+  fld_smart_dhw: { de: "Smart DHW Warmwasser", en: "Smart DHW", fr: "Smart DHW eau chaude", ja: "スマート給湯" },
+  fld_fault_reset: { de: "Störung quittieren", en: "Reset fault", fr: "Acquitter le défaut", ja: "異常リセット" },
+  fld_operating_hours: { de: "Betriebsstunden", en: "Operating hours", fr: "Heures de fonctionnement", ja: "運転時間" },
+  fld_compressor_starts: { de: "Verdichterstarts", en: "Compressor starts", fr: "Démarrages du compresseur", ja: "圧縮機起動回数" },
+  fld_room_heater_hours: { de: "Heizstab Heizen Betriebsstunden", en: "Heater hours, heating", fr: "Heures appoint chauffage", ja: "暖房ヒーター運転時間" },
+  fld_dhw_heater_hours: { de: "Heizstab Warmwasser Betriebsstunden", en: "Heater hours, hot water", fr: "Heures appoint eau chaude", ja: "給湯ヒーター運転時間" },
+  k_holiday_mode: { de: "Urlaub", en: "Holiday", fr: "Vacances", ja: "休暇" },
+  k_main_schedule: { de: "Wochenprogramm", en: "Weekly schedule", fr: "Programme hebdo", ja: "週間スケジュール" },
+  k_smart_dhw: { de: "Smart DHW", en: "Smart DHW", fr: "Smart DHW", ja: "スマート給湯" },
+  k_fault_reset: { de: "Fehler", en: "Error", fr: "Erreur", ja: "エラー" },
+  k_operating_hours: { de: "Betriebsstunden", en: "Operating hours", fr: "Heures", ja: "運転時間" },
+  k_compressor_starts: { de: "Verdichterstarts", en: "Compressor starts", fr: "Démarrages", ja: "起動回数" },
+  k_room_heater_hours: { de: "Heizstab Heizen", en: "Heater, heating", fr: "Appoint chauffage", ja: "暖房ヒーター" },
+  k_dhw_heater_hours: { de: "Heizstab Warmwasser", en: "Heater, hot water", fr: "Appoint eau chaude", ja: "給湯ヒーター" },
+  o_aus: { de: "Aus", en: "Off", fr: "Arrêt", ja: "オフ" },
+  o_ein: { de: "Ein", en: "On", fr: "Marche", ja: "オン" },
+  o_variabel: { de: "Variabel", en: "Variable", fr: "Variable", ja: "可変" },
+  o_standard: { de: "Standard", en: "Standard", fr: "Standard", ja: "標準" },
+  t_quittieren: { de: "Quittieren", en: "Reset", fr: "Acquitter", ja: "リセット" },
+  t_betrieb: { de: "Betrieb", en: "Operation", fr: "Fonctionnement", ja: "運転" },
+  t_stoerung: { de: "Störung", en: "Fault", fr: "Défaut", ja: "異常" },
+  t_info: { de: "Info", en: "Info", fr: "Infos", ja: "情報" },
   t_oeffnen: { de: "Erweiterte Einstellungen öffnen", en: "Open advanced settings", fr: "Ouvrir les réglages avancés", ja: "詳細設定を開く" },
   t_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "暖房" },
   t_warmwasser: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "給湯" },
@@ -822,6 +846,10 @@ const TOPIC_TO_FIELD = {
   top70: "steril_temp",
   top71: "steril_time",
   top95: "pump_max_duty",
+  top11: "operating_hours",
+  top12: "compressor_starts",
+  top90: "room_heater_hours",
+  top91: "dhw_heater_hours",
   top61: "heater_external",
   top46: "buffer_temp",
   top94: "zones_state",
@@ -856,6 +884,10 @@ const COMMAND_TO_FIELD = {
   setheatingcontrol: "heating_control",
   setpumpflowratemode: "pump_flow_mode",
   setquietmodepriority: "quiet_priority",
+  setholidaymode: "holiday_mode",
+  setmainschedule: "main_schedule",
+  setsmartdhw: "smart_dhw",
+  setreset: "fault_reset",
 };
 
 /**
@@ -889,6 +921,10 @@ const FIELD_DOMAIN = {
   heating_control: ["select", "input_select"],
   pump_flow_mode: ["select", "input_select"],
   quiet_priority: ["select", "input_select"],
+  holiday_mode: ["switch", "input_boolean"],
+  main_schedule: ["switch", "input_boolean"],
+  smart_dhw: ["select", "input_select"],
+  fault_reset: ["button", "input_button"],
   circulation_pump: ["switch", "input_boolean", "binary_sensor", "sensor"],
   circ_switch: ["switch", "input_boolean"],
   sg_k1: ["switch", "input_boolean", "binary_sensor", "sensor"],
@@ -992,6 +1028,9 @@ const PROFILE = [
  * haben Vorrang. Auswahlwerte laut Doku: 0 und 1.
  */
 const TUER_FELDER = [
+  { abschnitt: "t_betrieb", key: "holiday_mode", schalter: true },
+  { abschnitt: "t_betrieb", key: "main_schedule", schalter: true },
+  { abschnitt: "t_betrieb", key: "smart_dhw", auswahl: ["o_variabel", "o_standard"] },
   { abschnitt: "t_heizen", key: "heating_off_temp", min: 5, max: 35, step: 1, einheit: "°C" },
   { abschnitt: "t_heizen", key: "heater_on_temp", min: -15, max: 20, step: 1, einheit: "°C" },
   { abschnitt: "t_heizen", key: "heat_delta", min: 1, max: 15, step: 1, einheit: "K" },
@@ -1001,6 +1040,11 @@ const TUER_FELDER = [
   { abschnitt: "t_pumpe", key: "pump_flow_mode", auswahl: ["o_spreizung", "o_max_leistung"] },
   { abschnitt: "t_pumpe", key: "pump_max_duty", min: 64, max: 254, step: 1, einheit: "" },
   { abschnitt: "t_leise", key: "quiet_priority", auswahl: ["o_lautstaerke", "o_leistung"] },
+  { abschnitt: "t_stoerung", key: "fault_reset", knopf: true },
+  { abschnitt: "t_info", key: "operating_hours", info: true, einheit: "h" },
+  { abschnitt: "t_info", key: "compressor_starts", info: true, einheit: "" },
+  { abschnitt: "t_info", key: "room_heater_hours", info: true, einheit: "h" },
+  { abschnitt: "t_info", key: "dhw_heater_hours", info: true, einheit: "h" },
 ];
 
 function defaultEntityMap() {
@@ -1105,6 +1149,14 @@ const ENTITY_FIELDS = [
   { key: "pump_flow_mode", label: "Pumpenregelung", group: "Erweiterte Einstellungen", hint: "SetPumpFlowrateMode, select" },
   { key: "pump_max_duty", label: "Max. Pumpenleistung", group: "Erweiterte Einstellungen", hint: "TOP95, number" },
   { key: "quiet_priority", label: "Leisemodus Vorrang", group: "Erweiterte Einstellungen", hint: "SetQuietModePriority, select" },
+  { key: "holiday_mode", label: "Urlaubsmodus", group: "Erweiterte Einstellungen", hint: "SetHolidayMode, switch" },
+  { key: "main_schedule", label: "Wochenprogramm", group: "Erweiterte Einstellungen", hint: "SetMainSchedule, switch" },
+  { key: "smart_dhw", label: "Smart DHW Warmwasser", group: "Erweiterte Einstellungen", hint: "SetSmartDHW, select" },
+  { key: "fault_reset", label: "Störung quittieren", group: "Erweiterte Einstellungen", hint: "SetReset, button" },
+  { key: "operating_hours", label: "Betriebsstunden", group: "Erweiterte Einstellungen", hint: "TOP11" },
+  { key: "compressor_starts", label: "Verdichterstarts", group: "Erweiterte Einstellungen", hint: "TOP12" },
+  { key: "room_heater_hours", label: "Heizstab Heizen Betriebsstunden", group: "Erweiterte Einstellungen", hint: "TOP90" },
+  { key: "dhw_heater_hours", label: "Heizstab Warmwasser Betriebsstunden", group: "Erweiterte Einstellungen", hint: "TOP91" },
 ];
 
 const DEFAULT_CONFIG = {
@@ -1246,6 +1298,8 @@ class LutarymHeatpumpCard extends HTMLElement {
       power_state: "on", hk1_switch: "on", hk2_switch: "off",
       operating_mode: 4,
       cop_heating: 4.3, cop_dhw: 3.1, heater_internal: 0, heater_external: 0,
+      operating_hours: 1462, compressor_starts: 2381, room_heater_hours: 3, dhw_heater_hours: 11,
+      holiday_mode: "off", main_schedule: "off", fault_reset: "unknown",
       heating_off_temp: 18, heater_on_temp: -8, heat_delta: 5, steril_temp: 65, steril_time: 10, pump_max_duty: 160,
     };
     const states = {};
@@ -1264,7 +1318,7 @@ class LutarymHeatpumpCard extends HTMLElement {
       state: "mode_0",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3"] },
     };
-    ["heating_control", "pump_flow_mode", "quiet_priority"].forEach((feld) => {
+    ["heating_control", "pump_flow_mode", "quiet_priority", "smart_dhw"].forEach((feld) => {
       states[`demo.${feld}`] = { state: "mode_0", attributes: { options: ["mode_0", "mode_1"] } };
     });
     states["demo.quiet_mode"] = {
@@ -2224,12 +2278,28 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (links + breite > k.width - 4) links = Math.max(4, k.width - 4 - breite);
     if (oben + hoehe > k.height - 4) oben = Math.max(4, k.height - 4 - hoehe);
     hoehe = Math.min(hoehe, k.height - 8);
+    panel.classList.remove("zwei");
     Object.assign(panel.style, {
       left: `${links}px`,
       top: `${oben}px`,
       width: `${breite}px`,
       height: `${hoehe}px`,
     });
+    // Reicht die Hoehe nicht, wird das Feld breiter und zeigt zwei oder
+    // drei Spalten, statt einen Rollbalken zu brauchen. Jede Spalte
+    // bleibt mindestens 230 Pixel breit.
+    const liste = sr.getElementById("tuer-liste");
+    panel.style.removeProperty("--spalten");
+    for (let spalten = 2; spalten <= 3; spalten++) {
+      if (!liste || liste.scrollHeight <= liste.clientHeight + 1) break;
+      const breiteN = Math.max(breite, 230 * spalten + 16 * (spalten - 1) + 20);
+      if (breiteN > k.width - 8) break;
+      let l = links;
+      if (l + breiteN > k.width - 4) l = Math.max(4, k.width - 4 - breiteN);
+      panel.classList.add("zwei");
+      panel.style.setProperty("--spalten", String(spalten));
+      Object.assign(panel.style, { left: `${l}px`, width: `${breiteN}px` });
+    }
   }
 
   /** Baut die Zeilen aus dem aktuellen Stand der Entitaeten. */
@@ -2243,15 +2313,45 @@ class LutarymHeatpumpCard extends HTMLElement {
     let abschnitt = "";
     let html = "";
     felder.forEach((f, i) => {
+      // Jeder Abschnitt ist ein eigener Block, damit er bei zwei Spalten
+      // nicht auseinanderbricht.
       if (f.abschnitt !== abschnitt) {
+        if (abschnitt) html += "</div>";
         abschnitt = f.abschnitt;
-        html += `<div class="lhc-tuer-abschnitt">${escapeHtml(this._t(abschnitt))}</div>`;
+        html += `<div class="lhc-tuer-gruppe"><div class="lhc-tuer-abschnitt">${escapeHtml(this._t(abschnitt))}</div>`;
       }
       // Kurze Beschriftung, der Abschnitt nennt den Zusammenhang. Der
       // volle Name steht im Tooltip und im Editor.
       const titel = escapeHtml(this._t(`k_${f.key}`));
       const lang = escapeHtml(feldText(f, this._sp()));
       const bereich = f.id.split(".")[0];
+      if (f.info) {
+        html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${titel}</span>
+          <div class="lhc-tuer-stell"><output id="tuer-z${i}">--</output></div></div>`;
+        return;
+      }
+      if (f.knopf) {
+        const kann = demo || bereich === "button" || bereich === "input_button";
+        // Daneben der aktuelle Fehlercode aus TOP44, damit klar ist, was
+        // quittiert wird.
+        const code = rawState(q, this._e("error"));
+        html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${titel}${
+          code && code !== "unknown" && code !== "unavailable" ? ` <em>${escapeHtml(code)}</em>` : ""
+        }</span>
+          <div class="lhc-tuer-seg" id="tuer-z${i}"><button type="button" data-i="${i}" data-o="press"
+            ${kann ? "" : "disabled"}>${escapeHtml(this._t("t_quittieren"))}</button></div></div>`;
+        return;
+      }
+      if (f.schalter) {
+        const kann = demo || bereich === "switch" || bereich === "input_boolean";
+        const knoepfe = [["off", "o_aus"], ["on", "o_ein"]]
+          .map(([o, t]) => `<button type="button" data-i="${i}" data-o="${o}"
+              ${kann ? "" : "disabled"}>${escapeHtml(this._t(t))}</button>`)
+          .join("");
+        html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${titel}</span>
+          <div class="lhc-tuer-seg" id="tuer-z${i}">${knoepfe}</div></div>`;
+        return;
+      }
       if (f.auswahl) {
         const st = q.states[f.id];
         const optionen = (st.attributes && st.attributes.options) || [];
@@ -2280,6 +2380,7 @@ class LutarymHeatpumpCard extends HTMLElement {
           </div></div>`;
       }
     });
+    if (abschnitt) html += "</div>";
     liste.innerHTML = html;
     this._tuerListe = felder;
     liste.querySelectorAll("button[data-r]").forEach((b) =>
@@ -2306,7 +2407,8 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (neu) return neu.wert;
     const st = this._quelle.states[f.id];
     if (!st) return null;
-    if (f.auswahl) return st.state;
+    if (f.auswahl || f.schalter) return st.state;
+    if (f.knopf) return null;
     const ist = parseFloat(st.state);
     if (Number.isNaN(ist)) return null;
     const gehalten = this._gehaltenerWert(f.id, ist);
@@ -2319,7 +2421,18 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (!f || !el) return;
     const geaendert = Boolean(this._tuerNeu && this._tuerNeu[f.id]);
     const wert = this._tuerWert(f);
-    if (f.auswahl) {
+    if (f.knopf) {
+      el.querySelectorAll("button").forEach((b) => {
+        b.classList.toggle("aktiv", geaendert);
+        b.classList.toggle("geaendert", geaendert);
+      });
+      return;
+    }
+    if (f.info) {
+      el.textContent = wert === null ? "--" : `${fmt(wert, 0)}${f.einheit ? ` ${f.einheit}` : ""}`;
+      return;
+    }
+    if (f.auswahl || f.schalter) {
       el.querySelectorAll("button").forEach((b) => {
         const aktiv = b.dataset.o === wert;
         b.classList.toggle("aktiv", aktiv);
@@ -2349,6 +2462,13 @@ class LutarymHeatpumpCard extends HTMLElement {
   _tuerWaehle(i, option) {
     const f = this._tuerListe && this._tuerListe[i];
     if (!f) return;
+    if (f.knopf) {
+      // Zweiter Klick nimmt das Quittieren wieder zurueck.
+      if (this._tuerNeu && this._tuerNeu[f.id]) delete this._tuerNeu[f.id];
+      else this._tuerNeu[f.id] = { wert: "press", art: "knopf" };
+      this._tuerZeige(i);
+      return;
+    }
     this._tuerMerke(f, option);
     this._tuerZeige(i);
   }
@@ -2359,7 +2479,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     delete this._tuerNeu[f.id];
     const alt = this._tuerWert(f);
     if (wert === alt) return;
-    this._tuerNeu[f.id] = { wert, auswahl: Boolean(f.auswahl) };
+    this._tuerNeu[f.id] = { wert, art: f.auswahl ? "auswahl" : f.schalter ? "schalter" : "zahl" };
   }
 
   /** Sendet alle vorgemerkten Aenderungen und schliesst die Tuer. */
@@ -2369,8 +2489,12 @@ class LutarymHeatpumpCard extends HTMLElement {
     Object.keys(neu).forEach((id) => {
       const e = neu[id];
       const bereich = id.split(".")[0];
-      if (e.auswahl) {
+      if (e.art === "auswahl") {
         q.callService(bereich, "select_option", { entity_id: id, option: e.wert });
+      } else if (e.art === "schalter") {
+        q.callService(bereich, e.wert === "on" ? "turn_on" : "turn_off", { entity_id: id });
+      } else if (e.art === "knopf") {
+        q.callService(bereich, "press", { entity_id: id });
       } else {
         this._halte(id, e.wert);
         q.callService(bereich, "set_value", { entity_id: id, value: e.wert });
@@ -5544,6 +5668,9 @@ ${this._defs()}
         flex: 1; min-height: 0; overflow-y: auto;
         display: flex; flex-direction: column; gap: 3px;
       }
+      .lhc-tuer-gruppe { display: flex; flex-direction: column; gap: 3px; break-inside: avoid; }
+      .lhc-tuer.zwei .lhc-tuer-liste { display: block; column-count: var(--spalten, 2); column-gap: 16px; }
+      .lhc-tuer.zwei .lhc-tuer-gruppe { margin-bottom: 4px; }
       .lhc-tuer-abschnitt {
         font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
         color: var(--muted); margin-top: 5px;
