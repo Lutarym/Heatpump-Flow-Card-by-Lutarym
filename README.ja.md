@@ -12,6 +12,7 @@ Panasonic Aquarea ヒートポンプを HeishaMon 経由で接続し、動くシ
 - 三方弁、ポンプ、圧縮機、バッファーの実際の配管動作に従う流れのアニメーション
 - タンク、放熱器、配管の温度による色分け
 - 回路1と回路2の暖房曲線を専用ウィンドウに表示。目盛り、運転点、調整可能な基準点つき
+- ヒートポンプの扉：右下のボタンで前面が扉のように左へ開き、その奥に詳細設定（暖房の外気温限界、温度差、レジオネラ対策、ポンプ、静音モード）があります。「適用」で変更を送信し、扉が閉じます
 - 過去24時間の使用量グラフ。暖房、給湯、待機で色分けし、その下に SG Ready の履歴
 - 暖房バッファーのないシステムに対応。TOP99 で自動検出、または手動設定
 - 横長と縦長のレイアウト
@@ -78,6 +79,8 @@ entities:
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
 | `show_history` | `true` | 使用量グラフを表示 |
+| `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
+| `show_reload` | `true` | バッファーと給湯に「再加熱 …」の行を表示 |
 | `history_width` | `450` | 使用量グラフの幅、250〜700 |
 | `card_width` | `0` | 幅（ピクセル）、0 で自動 |
 | `card_height` | `0` | 高さ（ピクセル）、0 で自動 |
@@ -175,6 +178,16 @@ entities:
 | `circ_switch` | 循環スイッチ（クリック可） | 循環の入切スイッチ |
 | **制御** | | |
 | `mode_select` | 運転モード切替 | SetOperationMode, select |
+| **詳細設定** | | |
+| `heating_off_temp` | 暖房停止 外気温 | TOP77, number |
+| `heater_on_temp` | ヒーター開始 外気温 | TOP78, number |
+| `heat_delta` | 暖房温度差 (ΔT) | TOP23, number |
+| `heating_control` | 暖房制御 | SetHeatingControl, select |
+| `steril_temp` | レジオネラ対策温度 | TOP70, number |
+| `steril_time` | レジオネラ対策保持時間 | TOP71, number |
+| `pump_flow_mode` | ポンプ制御 | SetPumpFlowrateMode, select |
+| `pump_max_duty` | ポンプ最大出力 | TOP95, number |
+| `quiet_priority` | 静音モード優先 | SetQuietModePriority, select |
 
 ## 言語
 

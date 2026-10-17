@@ -12,6 +12,7 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 - Animation du débit qui suit l'hydraulique réelle : vanne trois voies, pompes, compresseur et ballon tampon
 - Coloration selon la température des ballons, radiateurs et tuyaux
 - Courbe de chauffe des circuits 1 et 2 dans une fenêtre dédiée, avec échelle, point de fonctionnement et points réglables
+- Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (limites de chauffage, écart, anti-légionelles, pompe, mode silencieux) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
 - Graphique de consommation sur 24 heures, coloré selon chauffage, eau chaude et veille, avec l'historique SG Ready en dessous
 - Installations sans ballon tampon, détectées automatiquement via TOP99 ou réglées manuellement
 - Disposition paysage et portrait
@@ -78,6 +79,8 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `buffer_present` | `auto` | Ballon tampon : `auto` via TOP99, `true` ou `false` |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
 | `show_history` | `true` | Afficher le graphique de consommation |
+| `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |
+| `show_reload` | `true` | Afficher la ligne « Recharge à … » dans le ballon tampon et l'eau chaude |
 | `history_width` | `450` | Largeur du graphique, 250 à 700 |
 | `card_width` | `0` | Largeur en pixels, 0 = automatique |
 | `card_height` | `0` | Hauteur en pixels, 0 = automatique |
@@ -175,6 +178,16 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `circ_switch` | Interrupteur de circulation (cliquable) | interrupteur pour la circulation |
 | **Commande** | | |
 | `mode_select` | Changer de mode | SetOperationMode, select |
+| **Réglages avancés** | | |
+| `heating_off_temp` | Arrêt chauffage au-dessus de | TOP77, number |
+| `heater_on_temp` | Appoint actif en dessous de | TOP78, number |
+| `heat_delta` | Écart chauffage (ΔT) | TOP23, number |
+| `heating_control` | Régulation | SetHeatingControl, select |
+| `steril_temp` | Température anti-légionelles | TOP70, number |
+| `steril_time` | Durée anti-légionelles | TOP71, number |
+| `pump_flow_mode` | Régulation de pompe | SetPumpFlowrateMode, select |
+| `pump_max_duty` | Puissance max. pompe | TOP95, number |
+| `quiet_priority` | Priorité mode silencieux | SetQuietModePriority, select |
 
 ## Langues
 

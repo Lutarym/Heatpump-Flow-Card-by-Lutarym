@@ -12,6 +12,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Flow animation that follows the real hydraulics: diverter valve, pumps, compressor and buffer
 - Temperature colouring of tanks, radiators and pipes
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
+- Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (heating limits, spread, legionella protection, pump, quiet mode); changes are sent with “Apply” and the door closes
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
 - Landscape and portrait layout
@@ -78,6 +79,8 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `buffer_present` | `auto` | Heating buffer: `auto` from TOP99, `true` or `false` |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
 | `show_history` | `true` | Show the energy chart |
+| `show_target` | `true` | Show the “Target …” line in buffer and hot water |
+| `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |
 | `card_width` | `0` | Width in pixels, 0 is automatic |
 | `card_height` | `0` | Height in pixels, 0 is automatic |
@@ -175,6 +178,16 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `circ_switch` | Circulation switch (clickable) | switch to turn circulation on and off |
 | **Control** | | |
 | `mode_select` | Switch operating mode | SetOperationMode, select |
+| **Advanced settings** | | |
+| `heating_off_temp` | Heating off above outdoor temp. | TOP77, number |
+| `heater_on_temp` | Heater on below outdoor temp. | TOP78, number |
+| `heat_delta` | Heating spread (ΔT) | TOP23, number |
+| `heating_control` | Heating control | SetHeatingControl, select |
+| `steril_temp` | Legionella temperature | TOP70, number |
+| `steril_time` | Legionella hold time | TOP71, number |
+| `pump_flow_mode` | Pump control | SetPumpFlowrateMode, select |
+| `pump_max_duty` | Max. pump duty | TOP95, number |
+| `quiet_priority` | Quiet mode priority | SetQuietModePriority, select |
 
 ## Languages
 

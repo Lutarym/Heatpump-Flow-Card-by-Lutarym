@@ -12,6 +12,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Fließanimation, die der tatsächlichen Hydraulik folgt: Umschaltventil, Pumpen, Verdichter und Puffer
 - Temperaturabhängige Einfärbung von Speichern, Heizkörpern und Leitungen
 - Heizkurve für Heizkreis 1 und 2 in einem eigenen Fenster, mit Skala, Betriebspunkt und einstellbaren Eckwerten
+- Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
 - Verbrauchsverlauf der letzten 24 Stunden, gefärbt nach Heizung, Warmwasser und Standby, darunter der SG-Ready-Verlauf
 - Anlagen ohne Heizungspuffer, automatisch erkannt über TOP99 oder fest einstellbar
 - Quer- und Hochformat
@@ -78,6 +79,8 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
 | `show_history` | `true` | Verbrauchsverlauf anzeigen |
+| `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
+| `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
 | `history_width` | `450` | Breite des Verbrauchsverlaufs, 250 bis 700 |
 | `card_width` | `0` | Breite in Pixeln, 0 ist automatisch |
 | `card_height` | `0` | Höhe in Pixeln, 0 ist automatisch |
@@ -175,6 +178,16 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `circ_switch` | Zirkulation Schalter (klickbar) | Switch zum Ein/Ausschalten der Zirkulation |
 | **Steuerung** | | |
 | `mode_select` | Betriebsart umschalten | SetOperationMode, select |
+| **Erweiterte Einstellungen** | | |
+| `heating_off_temp` | Heizen aus ab Außentemperatur | TOP77, number |
+| `heater_on_temp` | Heizstab ein unter Außentemperatur | TOP78, number |
+| `heat_delta` | Spreizung Heizen | TOP23, number |
+| `heating_control` | Regelung | SetHeatingControl, select |
+| `steril_temp` | Legionellen Temperatur | TOP70, number |
+| `steril_time` | Legionellen Haltezeit | TOP71, number |
+| `pump_flow_mode` | Pumpenregelung | SetPumpFlowrateMode, select |
+| `pump_max_duty` | Max. Pumpenleistung | TOP95, number |
+| `quiet_priority` | Leisemodus Vorrang | SetQuietModePriority, select |
 
 ## Sprachen
 

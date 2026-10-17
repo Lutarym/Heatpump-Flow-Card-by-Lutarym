@@ -2,6 +2,20 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v3.5.0
+
+- English: Door in the heat pump. A button at the bottom right of the heat pump opens its front like a door to the left. Behind it are advanced settings not shown elsewhere in the card: heating off above outdoor temperature (TOP77), heater on below outdoor temperature (TOP78), heating spread (TOP23), heating control, legionella temperature and hold time (TOP70, TOP71), pump control, max. pump duty (TOP95) and quiet mode priority. Changes are only sent with "Apply", then the door closes; "Cancel" discards them. Ranges follow the entity, otherwise the HeishaMon documentation. Entities are detected automatically; the button only appears if at least one exists.
+- Deutsch: Tür in der Wärmepumpe. Ein Knopf unten rechts klappt die Front der Wärmepumpe wie eine Tür nach links auf. Dahinter liegen erweiterte Einstellungen, die die Karte sonst nicht zeigt: Heizen aus ab Außentemperatur (TOP77), Heizstab ein unter Außentemperatur (TOP78), Spreizung Heizen (TOP23), Regelung, Legionellen Temperatur und Haltezeit (TOP70, TOP71), Pumpenregelung, max. Pumpenleistung (TOP95) und Vorrang im Leisemodus. Änderungen werden erst mit „Übernehmen“ gesendet, danach schließt sich die Tür; „Abbrechen“ verwirft sie. Die Bereiche kommen von der Entität, sonst aus der HeishaMon-Dokumentation. Die Entitäten werden automatisch erkannt, der Knopf erscheint nur, wenn mindestens eine vorhanden ist.
+- Français : porte dans la pompe à chaleur. Un bouton en bas à droite ouvre la façade comme une porte vers la gauche. Derrière se trouvent des réglages avancés absents du reste de la carte : arrêt du chauffage au-dessus d'une température extérieure (TOP77), appoint actif en dessous (TOP78), écart de chauffage (TOP23), régulation, température et durée anti-légionelles (TOP70, TOP71), régulation de pompe, puissance max. de pompe (TOP95) et priorité du mode silencieux. Les modifications ne sont envoyées qu'avec « Appliquer », puis la porte se referme ; « Annuler » les abandonne. Les plages viennent de l'entité, sinon de la documentation HeishaMon. Les entités sont détectées automatiquement ; le bouton n'apparaît que si au moins une existe.
+- 日本語：ヒートポンプの扉。ヒートポンプ右下のボタンで前面が扉のように左へ開きます。奥にはカードの他の場所にない詳細設定があります：暖房停止外気温（TOP77）、ヒーター開始外気温（TOP78）、暖房温度差（TOP23）、暖房制御、レジオネラ対策の温度と保持時間（TOP70、TOP71）、ポンプ制御、ポンプ最大出力（TOP95）、静音モード優先。変更は「適用」で初めて送信され、扉が閉じます。「キャンセル」で破棄します。範囲はエンティティの値、なければ HeishaMon のドキュメントに従います。エンティティは自動検出され、少なくとも 1 つある場合のみボタンを表示します。
+
+## v3.0.8
+
+- English: New options `show_target` and `show_reload` (editor, section "Display"): hide the "Target …" and "Reloads at …" lines in the buffer and hot water tank. The remaining lines move up.
+- Deutsch: Neue Optionen `show_target` und `show_reload` (Editor, Abschnitt „Darstellung“): Die Zeilen „Ziel …“ und „Lädt ab …“ im Puffer und im Warmwasserspeicher lassen sich ausblenden. Die übrigen Zeilen rücken nach oben.
+- Français : nouvelles options `show_target` et `show_reload` (éditeur, section « Affichage ») : les lignes « Cible … » et « Recharge à … » du ballon tampon et du ballon d'eau chaude peuvent être masquées. Les lignes restantes remontent.
+- 日本語：新しいオプション `show_target` と `show_reload`（エディターの「表示」）：バッファーと給湯タンクの「目標 …」と「再加熱 …」の行を非表示にできます。残りの行は上に詰めて表示します。
+
 ## v3.0.7
 
 - English: Heating circuit target in heat curve mode (TOP76 = 0): the dialog now sets the curve shift from −5 to +5 K and shows the resulting water target. Previously it showed the water temperature and sent values like 37 that the heat pump only accepts as a shift. Direct mode is unchanged. The "Heater" badge now shows when a heater is actually running (TOP60 internal, TOP61 external), in the tank the three-way valve currently serves; TOP58/TOP59 only mean the heater is allowed, and the buttons now say "allow/block". COP: the separate "measured" entities are gone, the source is chosen in the integration under "COP source". "Show history" is now translated.

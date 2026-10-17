@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "3.0.7";
+const CARD_VERSION = "3.5.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -242,6 +242,10 @@ const TEXTE = {
   e_l_energy_h: { de: "leer lassen, dann wählt die Karte selbst", en: "leave empty to let the card choose", fr: "laisser vide pour un choix automatique", ja: "空欄ならカードが自動で選択" },
   e_demo: { de: "Demomodus", en: "Demo mode", fr: "Mode démo", ja: "デモモード" },
   e_demo_h: { de: "erfundene Werte zum Ausprobieren, die Anlage bleibt unberührt", en: "sample values for trying out, the system is not touched", fr: "valeurs fictives pour essayer, l'installation n'est pas modifiée", ja: "試用のための仮の値、機器には影響しません" },
+  e_ziel_zeigen: { de: "Ziel im Puffer und Warmwasser", en: "Target in buffer and hot water", fr: "Cible dans le ballon tampon et l'eau chaude", ja: "バッファーと給湯の目標" },
+  e_ziel_zeigen_h: { de: "Zeile „Ziel …“ anzeigen", en: "show the “Target …” line", fr: "afficher la ligne « Cible … »", ja: "「目標 …」の行を表示" },
+  e_laedt_zeigen: { de: "Lädt ab im Puffer und Warmwasser", en: "Reload temperature in buffer and hot water", fr: "Recharge dans le ballon tampon et l'eau chaude", ja: "バッファーと給湯の再加熱温度" },
+  e_laedt_zeigen_h: { de: "Zeile „Lädt ab …“ anzeigen", en: "show the “Reloads at …” line", fr: "afficher la ligne « Recharge à … »", ja: "「再加熱 …」の行を表示" },
   e_verlauf: { de: "Verbrauchsverlauf", en: "Energy chart", fr: "Graphique de consommation", ja: "使用量グラフ" },
   e_verlauf_h: { de: "Diagramm der letzten 24 Stunden anzeigen", en: "show the chart of the past 24 hours", fr: "afficher le graphique des dernières 24 heures", ja: "過去24時間のグラフを表示" },
   e_anz_hk: { de: "Anzahl Heizkreise", en: "Number of circuits", fr: "Nombre de circuits", ja: "回路数" },
@@ -377,6 +381,40 @@ const TEXTE = {
   hnw_6: { de: "Switch zum Ein/Ausschalten der Zirkulation", en: "switch to turn circulation on and off", fr: "interrupteur pour la circulation", ja: "循環の入切スイッチ" },
   hnw_7: { de: "SetHeatpump oder TOP0", en: "SetHeatpump or TOP0", fr: "SetHeatpump ou TOP0", ja: "SetHeatpump または TOP0" },
   hnw_8: { de: "Quelle in der Integration unter COP Quelle wählbar", en: "source selectable in the integration under COP source", fr: "source réglable dans l'intégration sous Source COP", ja: "ソースは統合の COP ソースで選択" },
+  grp_10: { de: "Erweiterte Einstellungen", en: "Advanced settings", fr: "Réglages avancés", ja: "詳細設定" },
+  fld_heating_off_temp: { de: "Heizen aus ab Außentemperatur", en: "Heating off above outdoor temp.", fr: "Arrêt chauffage au-dessus de", ja: "暖房停止 外気温" },
+  fld_heater_on_temp: { de: "Heizstab ein unter Außentemperatur", en: "Heater on below outdoor temp.", fr: "Appoint actif en dessous de", ja: "ヒーター開始 外気温" },
+  fld_heat_delta: { de: "Spreizung Heizen", en: "Heating spread (ΔT)", fr: "Écart chauffage (ΔT)", ja: "暖房温度差 (ΔT)" },
+  fld_heating_control: { de: "Regelung", en: "Heating control", fr: "Régulation", ja: "暖房制御" },
+  fld_steril_temp: { de: "Legionellen Temperatur", en: "Legionella temperature", fr: "Température anti-légionelles", ja: "レジオネラ対策温度" },
+  fld_steril_time: { de: "Legionellen Haltezeit", en: "Legionella hold time", fr: "Durée anti-légionelles", ja: "レジオネラ対策保持時間" },
+  fld_pump_flow_mode: { de: "Pumpenregelung", en: "Pump control", fr: "Régulation de pompe", ja: "ポンプ制御" },
+  fld_pump_max_duty: { de: "Max. Pumpenleistung", en: "Max. pump duty", fr: "Puissance max. pompe", ja: "ポンプ最大出力" },
+  fld_quiet_priority: { de: "Leisemodus Vorrang", en: "Quiet mode priority", fr: "Priorité mode silencieux", ja: "静音モード優先" },
+  o_komfort: { de: "Komfort", en: "Comfort", fr: "Confort", ja: "快適" },
+  o_effizienz: { de: "Effizienz", en: "Efficiency", fr: "Efficacité", ja: "効率" },
+  o_spreizung: { de: "Spreizung", en: "Spread", fr: "Écart", ja: "温度差" },
+  o_max_leistung: { de: "Max. Leistung", en: "Max. duty", fr: "Puissance max.", ja: "最大出力" },
+  o_lautstaerke: { de: "Lautstärke", en: "Sound", fr: "Son", ja: "静音" },
+  o_leistung: { de: "Leistung", en: "Capacity", fr: "Puissance", ja: "能力" },
+  k_heating_off_temp: { de: "Heizen aus ab", en: "Heating off above", fr: "Arrêt au-dessus de", ja: "暖房停止" },
+  k_heater_on_temp: { de: "Heizstab unter", en: "Heater below", fr: "Appoint sous", ja: "ヒーター開始" },
+  k_heat_delta: { de: "Spreizung", en: "Spread", fr: "Écart", ja: "温度差" },
+  k_heating_control: { de: "Regelung", en: "Control", fr: "Régulation", ja: "制御" },
+  k_steril_temp: { de: "Temperatur", en: "Temperature", fr: "Température", ja: "温度" },
+  k_steril_time: { de: "Haltezeit", en: "Hold time", fr: "Durée", ja: "保持時間" },
+  k_pump_flow_mode: { de: "Regelung", en: "Control", fr: "Régulation", ja: "制御" },
+  k_pump_max_duty: { de: "Max. Leistung", en: "Max. duty", fr: "Puissance max.", ja: "最大出力" },
+  k_quiet_priority: { de: "Vorrang", en: "Priority", fr: "Priorité", ja: "優先" },
+  t_legionellen: { de: "Legionellenschutz", en: "Legionella protection", fr: "Anti-légionelles", ja: "レジオネラ対策" },
+  t_leise: { de: "Leisemodus", en: "Quiet mode", fr: "Mode silencieux", ja: "静音モード" },
+  t_oeffnen: { de: "Erweiterte Einstellungen öffnen", en: "Open advanced settings", fr: "Ouvrir les réglages avancés", ja: "詳細設定を開く" },
+  t_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "暖房" },
+  t_warmwasser: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "給湯" },
+  t_pumpe: { de: "Pumpe", en: "Pump", fr: "Pompe", ja: "ポンプ" },
+  t_uebernehmen: { de: "Übernehmen", en: "Apply", fr: "Appliquer", ja: "適用" },
+  t_abbrechen: { de: "Abbrechen", en: "Cancel", fr: "Annuler", ja: "キャンセル" },
+  t_nur_lesbar: { de: "nur lesbar", en: "read only", fr: "lecture seule", ja: "読み取り専用" },
   s_versch: { de: "Verschiebung der Heizkurve", en: "Heat curve shift", fr: "Décalage de la courbe", ja: "暖房曲線のシフト" },
   r_verlauf_zeigen: { de: "Verlauf anzeigen", en: "Show history", fr: "Afficher l'historique", ja: "履歴を表示" },
   s_cop: { de: "Ø COP heute {v}", en: "Ø COP today {v}", fr: "Ø COP jour {v}", ja: "本日 Ø COP {v}" },
@@ -455,7 +493,7 @@ const TEXTE = {
 };
 
 /** Zuordnung deutscher Gruppen und Hinweise zu Sprachschluesseln. */
-const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9" };
+const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9", "Erweiterte Einstellungen": "grp_10" };
 const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle wählbar": "hnw_8" };
 
 /** Setzt Werte in Platzhalter wie {n} ein. */
@@ -778,6 +816,12 @@ const TOPIC_TO_FIELD = {
   top20: "three_way_valve",
   top59: "room_heater",
   top60: "heater_internal",
+  top77: "heating_off_temp",
+  top78: "heater_on_temp",
+  top23: "heat_delta",
+  top70: "steril_temp",
+  top71: "steril_time",
+  top95: "pump_max_duty",
   top61: "heater_external",
   top46: "buffer_temp",
   top94: "zones_state",
@@ -809,6 +853,9 @@ const COMMAND_TO_FIELD = {
   setquietmode: "quiet_mode",
   setzones: "zones_select",
   setbuffer: "buffer_switch",
+  setheatingcontrol: "heating_control",
+  setpumpflowratemode: "pump_flow_mode",
+  setquietmodepriority: "quiet_priority",
 };
 
 /**
@@ -839,6 +886,9 @@ const FIELD_DOMAIN = {
   quiet_mode: ["select", "input_select"],
   zones_select: ["select", "input_select"],
   buffer_switch: ["switch", "input_boolean"],
+  heating_control: ["select", "input_select"],
+  pump_flow_mode: ["select", "input_select"],
+  quiet_priority: ["select", "input_select"],
   circulation_pump: ["switch", "input_boolean", "binary_sensor", "sensor"],
   circ_switch: ["switch", "input_boolean"],
   sg_k1: ["switch", "input_boolean", "binary_sensor", "sensor"],
@@ -936,6 +986,23 @@ const PROFILE = [
   { id: "stiebel", name: "Stiebel Eltron, in Vorbereitung", fertig: false },
 ];
 
+/**
+ * Einstellungen hinter der Tuer der Waermepumpe. Bereiche laut
+ * HeishaMon MQTT-Topics.md, gemeldete min, max und step der Entitaet
+ * haben Vorrang. Auswahlwerte laut Doku: 0 und 1.
+ */
+const TUER_FELDER = [
+  { abschnitt: "t_heizen", key: "heating_off_temp", min: 5, max: 35, step: 1, einheit: "°C" },
+  { abschnitt: "t_heizen", key: "heater_on_temp", min: -15, max: 20, step: 1, einheit: "°C" },
+  { abschnitt: "t_heizen", key: "heat_delta", min: 1, max: 15, step: 1, einheit: "K" },
+  { abschnitt: "t_heizen", key: "heating_control", auswahl: ["o_komfort", "o_effizienz"] },
+  { abschnitt: "t_legionellen", key: "steril_temp", min: 55, max: 75, step: 1, einheit: "°C" },
+  { abschnitt: "t_legionellen", key: "steril_time", min: 5, max: 60, step: 5, einheit: "min" },
+  { abschnitt: "t_pumpe", key: "pump_flow_mode", auswahl: ["o_spreizung", "o_max_leistung"] },
+  { abschnitt: "t_pumpe", key: "pump_max_duty", min: 64, max: 254, step: 1, einheit: "" },
+  { abschnitt: "t_leise", key: "quiet_priority", auswahl: ["o_lautstaerke", "o_leistung"] },
+];
+
 function defaultEntityMap() {
   const map = {};
   Object.keys(TOPIC_TO_FIELD).forEach((topic) => {
@@ -1028,6 +1095,16 @@ const ENTITY_FIELDS = [
   { key: "circ_switch", label: "Zirkulation Schalter (klickbar)", group: "Warmwasser", hint: "Switch zum Ein/Ausschalten der Zirkulation" },
 
   { key: "mode_select", label: "Betriebsart umschalten", group: "Steuerung", hint: "SetOperationMode, select" },
+
+  { key: "heating_off_temp", label: "Heizen aus ab Außentemperatur", group: "Erweiterte Einstellungen", hint: "TOP77, number" },
+  { key: "heater_on_temp", label: "Heizstab ein unter Außentemperatur", group: "Erweiterte Einstellungen", hint: "TOP78, number" },
+  { key: "heat_delta", label: "Spreizung Heizen", group: "Erweiterte Einstellungen", hint: "TOP23, number" },
+  { key: "heating_control", label: "Regelung", group: "Erweiterte Einstellungen", hint: "SetHeatingControl, select" },
+  { key: "steril_temp", label: "Legionellen Temperatur", group: "Erweiterte Einstellungen", hint: "TOP70, number" },
+  { key: "steril_time", label: "Legionellen Haltezeit", group: "Erweiterte Einstellungen", hint: "TOP71, number" },
+  { key: "pump_flow_mode", label: "Pumpenregelung", group: "Erweiterte Einstellungen", hint: "SetPumpFlowrateMode, select" },
+  { key: "pump_max_duty", label: "Max. Pumpenleistung", group: "Erweiterte Einstellungen", hint: "TOP95, number" },
+  { key: "quiet_priority", label: "Leisemodus Vorrang", group: "Erweiterte Einstellungen", hint: "SetQuietModePriority, select" },
 ];
 
 const DEFAULT_CONFIG = {
@@ -1041,6 +1118,8 @@ const DEFAULT_CONFIG = {
   profil: "heishamon_lutarym",
   language: "auto",
   show_history: true,
+  show_target: true,
+  show_reload: true,
   buffer_present: "auto",
   circulation_present: "auto",
   history_width: 450,
@@ -1167,6 +1246,7 @@ class LutarymHeatpumpCard extends HTMLElement {
       power_state: "on", hk1_switch: "on", hk2_switch: "off",
       operating_mode: 4,
       cop_heating: 4.3, cop_dhw: 3.1, heater_internal: 0, heater_external: 0,
+      heating_off_temp: 18, heater_on_temp: -8, heat_delta: 5, steril_temp: 65, steril_time: 10, pump_max_duty: 160,
     };
     const states = {};
     Object.keys(werte).forEach((feld) => {
@@ -1184,6 +1264,9 @@ class LutarymHeatpumpCard extends HTMLElement {
       state: "mode_0",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3"] },
     };
+    ["heating_control", "pump_flow_mode", "quiet_priority"].forEach((feld) => {
+      states[`demo.${feld}`] = { state: "mode_0", attributes: { options: ["mode_0", "mode_1"] } };
+    });
     states["demo.quiet_mode"] = {
       state: "mode_2",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3"] },
@@ -1592,6 +1675,14 @@ class LutarymHeatpumpCard extends HTMLElement {
         <div class="lhc-scene">${this._svg()}</div>
 
         ${this._kurveDialogMarkup()}
+        <div class="lhc-tuer" id="tuer-panel" hidden>
+          <div class="lhc-tuer-kopf">${escapeHtml(gruppenText("Erweiterte Einstellungen", this._sp()))}</div>
+          <div class="lhc-tuer-liste" id="tuer-liste"></div>
+          <div class="lhc-tuer-fuss">
+            <button type="button" class="lhc-tuer-knopf" id="tuer-abbrechen">${escapeHtml(this._t("t_abbrechen"))}</button>
+            <button type="button" class="lhc-tuer-knopf primaer" id="tuer-ok">${escapeHtml(this._t("t_uebernehmen"))}</button>
+          </div>
+        </div>
         <div class="lhc-dialog" id="dialog" hidden>
           <div class="lhc-dialog-box" role="dialog" aria-modal="true">
             <div class="lhc-dialog-head">
@@ -1624,6 +1715,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     this._buildDemo();
     this._buildDialog();
     this._buildKlicks();
+    this._buildTuer();
     this._startAnimationLoop();
   }
 
@@ -1974,6 +2066,317 @@ class LutarymHeatpumpCard extends HTMLElement {
       // Klick auf den Hintergrund schliesst, Klick im Kasten nicht.
       if (ev.target && ev.target.id === "dialog") this._schliesseDialog();
     });
+  }
+
+  /* -------------------- Tuer der Waermepumpe -------------------- */
+
+  /**
+   * Knopf unten rechts in der Waermepumpe. Die Front klappt nach links
+   * auf, dahinter liegen Einstellungen, die in der Karte sonst nicht zu
+   * sehen sind. Aenderungen werden erst mit "Uebernehmen" gesendet.
+   */
+  _buildTuer() {
+    const sr = this.shadowRoot;
+    const knopf = sr.getElementById("tuer-knopf");
+    if (knopf) {
+      const auf = (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+        this._oeffneTuer();
+      };
+      knopf.addEventListener("click", auf);
+      knopf.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") auf(ev);
+      });
+    }
+    const ab = sr.getElementById("tuer-abbrechen");
+    const ok = sr.getElementById("tuer-ok");
+    if (ab) ab.addEventListener("click", () => this._schliesseTuer());
+    if (ok) ok.addEventListener("click", () => this._tuerUebernehmen());
+  }
+
+  /** Einstellungen, zu denen es eine Entitaet gibt. */
+  _tuerFelder() {
+    const q = this._quelle;
+    if (!q) return [];
+    return TUER_FELDER.map((f) => ({ ...f, id: this._e(f.key) })).filter(
+      (f) => f.id && q.states[f.id]
+    );
+  }
+
+  _oeffneTuer() {
+    const sr = this.shadowRoot;
+    const karte = sr.querySelector("ha-card");
+    const panel = sr.getElementById("tuer-panel");
+    if (!karte || !panel) return;
+    if (karte.classList.contains("tuer-offen")) return;
+    this._tuerNeu = {};
+    this._tuerZeilen();
+    const blatt = this._tuerBlatt();
+    karte.classList.add("tuer-offen");
+    karte.classList.remove("tuer-zu");
+    panel.hidden = false;
+    this._tuerLage();
+    // Erst zeichnen, dann drehen, sonst springt die Tuer ohne Uebergang.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (blatt) blatt.classList.add("auf");
+        panel.classList.add("sichtbar");
+      })
+    );
+  }
+
+  _schliesseTuer() {
+    const sr = this.shadowRoot;
+    const karte = sr.querySelector("ha-card");
+    const panel = sr.getElementById("tuer-panel");
+    if (!karte || !panel) return;
+    if (!karte.classList.contains("tuer-offen")) return;
+    panel.classList.remove("sichtbar");
+    this._tuerNeu = {};
+    karte.classList.remove("tuer-offen");
+    // Die Originalgrafik bleibt verborgen, bis die Tuer ganz zu ist.
+    karte.classList.add("tuer-zu");
+    const blatt = this.shadowRoot.getElementById("tuer-blatt");
+    const fertig = () => {
+      if (karte.classList.contains("tuer-offen")) return;
+      karte.classList.remove("tuer-zu");
+      if (blatt) blatt.remove();
+      panel.hidden = true;
+    };
+    if (blatt) {
+      blatt.classList.remove("auf");
+      blatt.addEventListener("transitionend", fertig, { once: true });
+      // Falls kein Uebergangsende kommt, etwa bei ausgeschalteten Effekten.
+      setTimeout(fertig, 900);
+    } else {
+      fertig();
+    }
+  }
+
+  /**
+   * Legt eine Kopie der Front als eigene Ebene genau ueber die
+   * Waermepumpe. Die Kopie ist unbewegt und ohne Weichzeichner, damit
+   * das Drehen fluessig bleibt.
+   */
+  _tuerBlatt() {
+    const sr = this.shadowRoot;
+    const karte = sr.querySelector("ha-card");
+    const gruppe = sr.getElementById("unit-group");
+    const innen = sr.getElementById("unit-innen");
+    const svg = gruppe && gruppe.ownerSVGElement;
+    if (!karte || !gruppe || !innen || !svg) return null;
+    const alt = sr.getElementById("tuer-blatt");
+    if (alt) alt.remove();
+    const rahmen = innen.querySelector("rect");
+    const x = Number(rahmen.getAttribute("x"));
+    const y = Number(rahmen.getAttribute("y"));
+    const w = Number(rahmen.getAttribute("width"));
+    const h = Number(rahmen.getAttribute("height"));
+    const k = karte.getBoundingClientRect();
+    const r = rahmen.getBoundingClientRect();
+    const kopie = gruppe.cloneNode(true);
+    kopie.removeAttribute("class");
+    kopie.querySelectorAll("[id]").forEach((n) => {
+      // Der Weichzeichner kostet bei jedem Bild Rechenzeit.
+      if (n.id === "unit-glow") n.remove();
+      else n.removeAttribute("id");
+    });
+    kopie.removeAttribute("id");
+    const blatt = document.createElement("div");
+    blatt.className = "lhc-tuer-blatt";
+    blatt.id = "tuer-blatt";
+    Object.assign(blatt.style, {
+      left: `${r.left - k.left}px`,
+      top: `${r.top - k.top}px`,
+      width: `${r.width}px`,
+      height: `${r.height}px`,
+    });
+    const ns = "http://www.w3.org/2000/svg";
+    const bild = document.createElementNS(ns, "svg");
+    bild.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+    bild.setAttribute("preserveAspectRatio", "none");
+    bild.appendChild(kopie);
+    blatt.appendChild(bild);
+    karte.appendChild(blatt);
+    return blatt;
+  }
+
+  /**
+   * Legt das Feld genau ueber den Innenraum der Waermepumpe. Ist die
+   * Karte klein, wird es breiter und hoeher als der Innenraum, damit die
+   * Bedienelemente lesbar bleiben, und bleibt innerhalb der Karte.
+   */
+  _tuerLage() {
+    const sr = this.shadowRoot;
+    const karte = sr.querySelector("ha-card");
+    const innen = sr.getElementById("unit-innen");
+    const panel = sr.getElementById("tuer-panel");
+    if (!karte || !innen || !panel) return;
+    const k = karte.getBoundingClientRect();
+    const r = innen.getBoundingClientRect();
+    let links = r.left - k.left;
+    let oben = r.top - k.top;
+    // Ab 230 Pixel passt alles in den Innenraum, darunter wird das Feld
+    // breiter als die Waermepumpe.
+    let breite = r.width >= 230 ? r.width : 260;
+    let hoehe = Math.max(r.height, Math.min(440, k.height - 8));
+    if (links + breite > k.width - 4) links = Math.max(4, k.width - 4 - breite);
+    if (oben + hoehe > k.height - 4) oben = Math.max(4, k.height - 4 - hoehe);
+    hoehe = Math.min(hoehe, k.height - 8);
+    Object.assign(panel.style, {
+      left: `${links}px`,
+      top: `${oben}px`,
+      width: `${breite}px`,
+      height: `${hoehe}px`,
+    });
+  }
+
+  /** Baut die Zeilen aus dem aktuellen Stand der Entitaeten. */
+  _tuerZeilen() {
+    const sr = this.shadowRoot;
+    const liste = sr.getElementById("tuer-liste");
+    if (!liste) return;
+    const q = this._quelle;
+    const demo = Boolean(this._config.demo);
+    const felder = this._tuerFelder();
+    let abschnitt = "";
+    let html = "";
+    felder.forEach((f, i) => {
+      if (f.abschnitt !== abschnitt) {
+        abschnitt = f.abschnitt;
+        html += `<div class="lhc-tuer-abschnitt">${escapeHtml(this._t(abschnitt))}</div>`;
+      }
+      // Kurze Beschriftung, der Abschnitt nennt den Zusammenhang. Der
+      // volle Name steht im Tooltip und im Editor.
+      const titel = escapeHtml(this._t(`k_${f.key}`));
+      const lang = escapeHtml(feldText(f, this._sp()));
+      const bereich = f.id.split(".")[0];
+      if (f.auswahl) {
+        const st = q.states[f.id];
+        const optionen = (st.attributes && st.attributes.options) || [];
+        const kann = demo || bereich === "select" || bereich === "input_select";
+        const intern =
+          optionen.length === f.auswahl.length &&
+          optionen.every((o, n) => o === `mode_${n}`);
+        const knoepfe = optionen
+          .map((o, n) => {
+            const text = intern ? this._t(f.auswahl[n]) : o;
+            return `<button type="button" data-i="${i}" data-o="${escapeHtml(o)}"
+              ${kann ? "" : "disabled"}>${escapeHtml(text)}</button>`;
+          })
+          .join("");
+        html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${titel}</span>
+          <div class="lhc-tuer-seg" id="tuer-z${i}">${knoepfe}</div></div>`;
+      } else {
+        const kann = demo || stellbar(f.id);
+        html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${titel}${
+          kann ? "" : `<em> (${escapeHtml(this._t("t_nur_lesbar"))})</em>`
+        }</span>
+          <div class="lhc-tuer-stell">
+            ${kann ? `<button type="button" class="lhc-step klein" data-i="${i}" data-r="-1">&minus;</button>` : ""}
+            <output id="tuer-z${i}">--</output>
+            ${kann ? `<button type="button" class="lhc-step klein" data-i="${i}" data-r="1">+</button>` : ""}
+          </div></div>`;
+      }
+    });
+    liste.innerHTML = html;
+    this._tuerListe = felder;
+    liste.querySelectorAll("button[data-r]").forEach((b) =>
+      b.addEventListener("click", () =>
+        this._tuerStelle(Number(b.dataset.i), Number(b.dataset.r))
+      )
+    );
+    liste.querySelectorAll("button[data-o]").forEach((b) =>
+      b.addEventListener("click", () => this._tuerWaehle(Number(b.dataset.i), b.dataset.o))
+    );
+    felder.forEach((f, i) => this._tuerZeige(i));
+  }
+
+  /** Grenzen einer Zahl, gemeldete Werte der Entitaet haben Vorrang. */
+  _tuerGrenzen(f) {
+    const a = (this._quelle.states[f.id] || {}).attributes || {};
+    const zahl = (w, ersatz) => (Number.isFinite(Number(w)) && w !== null && w !== "" ? Number(w) : ersatz);
+    return { min: zahl(a.min, f.min), max: zahl(a.max, f.max), step: zahl(a.step, f.step) || 1 };
+  }
+
+  /** Aktueller Wert einer Zeile, geaendert oder aus Home Assistant. */
+  _tuerWert(f) {
+    const neu = this._tuerNeu && this._tuerNeu[f.id];
+    if (neu) return neu.wert;
+    const st = this._quelle.states[f.id];
+    if (!st) return null;
+    if (f.auswahl) return st.state;
+    const ist = parseFloat(st.state);
+    if (Number.isNaN(ist)) return null;
+    const gehalten = this._gehaltenerWert(f.id, ist);
+    return gehalten !== null ? gehalten : ist;
+  }
+
+  _tuerZeige(i) {
+    const f = this._tuerListe && this._tuerListe[i];
+    const el = this.shadowRoot.getElementById(`tuer-z${i}`);
+    if (!f || !el) return;
+    const geaendert = Boolean(this._tuerNeu && this._tuerNeu[f.id]);
+    const wert = this._tuerWert(f);
+    if (f.auswahl) {
+      el.querySelectorAll("button").forEach((b) => {
+        const aktiv = b.dataset.o === wert;
+        b.classList.toggle("aktiv", aktiv);
+        b.classList.toggle("geaendert", aktiv && geaendert);
+      });
+      return;
+    }
+    const g = this._tuerGrenzen(f);
+    const stellen = g.step < 1 ? 1 : 0;
+    el.textContent =
+      wert === null ? "--" : `${fmt(wert, stellen)}${f.einheit ? ` ${f.einheit}` : ""}`;
+    el.classList.toggle("geaendert", geaendert);
+  }
+
+  _tuerStelle(i, richtung) {
+    const f = this._tuerListe && this._tuerListe[i];
+    if (!f) return;
+    const jetzt = this._tuerWert(f);
+    if (jetzt === null) return;
+    const g = this._tuerGrenzen(f);
+    const neu = clamp(Math.round((jetzt + richtung * g.step) * 100) / 100, g.min, g.max);
+    if (neu === jetzt) return;
+    this._tuerMerke(f, neu);
+    this._tuerZeige(i);
+  }
+
+  _tuerWaehle(i, option) {
+    const f = this._tuerListe && this._tuerListe[i];
+    if (!f) return;
+    this._tuerMerke(f, option);
+    this._tuerZeige(i);
+  }
+
+  /** Merkt eine Aenderung vor. Zurueck auf den alten Wert hebt sie auf. */
+  _tuerMerke(f, wert) {
+    if (!this._tuerNeu) this._tuerNeu = {};
+    delete this._tuerNeu[f.id];
+    const alt = this._tuerWert(f);
+    if (wert === alt) return;
+    this._tuerNeu[f.id] = { wert, auswahl: Boolean(f.auswahl) };
+  }
+
+  /** Sendet alle vorgemerkten Aenderungen und schliesst die Tuer. */
+  _tuerUebernehmen() {
+    const q = this._quelle;
+    const neu = this._tuerNeu || {};
+    Object.keys(neu).forEach((id) => {
+      const e = neu[id];
+      const bereich = id.split(".")[0];
+      if (e.auswahl) {
+        q.callService(bereich, "select_option", { entity_id: id, option: e.wert });
+      } else {
+        this._halte(id, e.wert);
+        q.callService(bereich, "set_value", { entity_id: id, value: e.wert });
+      }
+    });
+    this._schliesseTuer();
   }
 
   /** Macht Speicher und Heizkörper anklickbar. */
@@ -2509,6 +2912,35 @@ class LutarymHeatpumpCard extends HTMLElement {
     sr.getElementById("dlg-value").textContent = this._dlgText(zeigen);
   }
 
+  /**
+   * Blendet in Puffer und Warmwasser die Zeilen "Ziel" und "Laedt ab"
+   * nach der Konfiguration aus. Die verbleibenden Zeilen ruecken nach
+   * oben, damit keine Luecke entsteht. Abstand und Startpunkt kommen aus
+   * der gezeichneten Grafik, das gilt fuer Quer- und Hochformat.
+   */
+  _speicherZeilen(name) {
+    const zeilen = [
+      { el: this._animEl(`${name}-sp`), zeigen: this._config.show_target !== false },
+      { el: this._animEl(`${name}-delta`), zeigen: this._config.show_reload !== false },
+      { el: this._animEl(`${name}-cop`), zeigen: true },
+    ];
+    if (zeilen.some((z) => !z.el)) return;
+    zeilen.forEach((z) => {
+      if (z.el.dataset.y0 === undefined) z.el.dataset.y0 = z.el.getAttribute("y");
+    });
+    const start = Number(zeilen[0].el.dataset.y0);
+    const abstand = Number(zeilen[1].el.dataset.y0) - start;
+    let i = 0;
+    zeilen.forEach((z) => {
+      if (!z.zeigen) {
+        z.el.textContent = "";
+        return;
+      }
+      z.el.setAttribute("y", String(start + i * abstand));
+      i++;
+    });
+  }
+
   /** Wert im Stellfenster mit Einheit. Eine Verschiebung mit Vorzeichen. */
   _dlgText(v) {
     if (v === null || v === undefined || Number.isNaN(v)) return "--";
@@ -2599,6 +3031,11 @@ class LutarymHeatpumpCard extends HTMLElement {
         : this._fan("fan1", 190, 400, 120);
 
     const kopf = `
+      <!-- Innenraum hinter der Tuer -->
+      <g id="unit-innen">
+        <rect x="40" y="40" width="300" height="640" rx="16" fill="#080C12" stroke="#33415A" stroke-width="2"/>
+        <rect x="56" y="56" width="268" height="608" rx="10" fill="none" stroke="#1C2533" stroke-width="1.5"/>
+      </g>
       <g class="unit" id="unit-group">
         <rect id="unit-glow" x="40" y="40" width="300" height="640" rx="16"
               fill="none" stroke="#22C55E" stroke-width="10" opacity="0"
@@ -2613,6 +3050,16 @@ class LutarymHeatpumpCard extends HTMLElement {
         <text class="unit-label"   x="273" y="122" text-anchor="middle">${this._t("verdichter")}</text>
         <text class="unit-value-s" id="comp-v" x="273" y="148" text-anchor="middle">--</text>
         ${fans}
+        <g id="tuer-knopf" class="tuer-knopf" transform="translate(312 652)" role="button" tabindex="0">
+          <title>${this._t("t_oeffnen")}</title>
+          <circle r="17" fill="#0D1219" stroke="#55657F" stroke-width="1.5"/>
+          <g stroke="#98A6BA" stroke-width="1.8" stroke-linecap="round">
+            <path d="M-7 -6 H7 M-7 0 H7 M-7 6 H7"/>
+          </g>
+          <circle cx="-3" cy="-6" r="2.4" fill="#E0762E"/>
+          <circle cx="3" cy="0" r="2.4" fill="#E0762E"/>
+          <circle cx="-1" cy="6" r="2.4" fill="#E0762E"/>
+        </g>
       </g>`;
 
     /* ---------------- Kopf: Kennzahlen ---------------- */
@@ -3628,6 +4075,11 @@ ${this._defs()}
       <path class="flowdots" id="dots-dhw" d="M${L.X_DHW_C - VX} ${F} V ${T}"/>
       <path class="flowdots" id="dots-dhw2" d="M${L.X_DHW_C - VX} ${B} V ${R}"/>
 
+      <!-- Innenraum hinter der Tuer -->
+      <g id="unit-innen">
+        <rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" fill="#080C12" stroke="#33415A" stroke-width="2"/>
+        <rect x="56" y="${L.UNIT_TOP + 16}" width="268" height="608" rx="10" fill="none" stroke="#1C2533" stroke-width="1.5"/>
+      </g>
       <!-- Außengerät -->
       <g class="unit" id="unit-group">
         <rect id="unit-glow" x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16"
@@ -3700,6 +4152,16 @@ ${this._defs()}
 
         ${fans}
 
+        <g id="tuer-knopf" class="tuer-knopf" transform="translate(312 ${L.UNIT_TOP + 612})" role="button" tabindex="0">
+          <title>${this._t("t_oeffnen")}</title>
+          <circle r="17" fill="#0D1219" stroke="#55657F" stroke-width="1.5"/>
+          <g stroke="#98A6BA" stroke-width="1.8" stroke-linecap="round">
+            <path d="M-7 -6 H7 M-7 0 H7 M-7 6 H7"/>
+          </g>
+          <circle cx="-3" cy="-6" r="2.4" fill="#E0762E"/>
+          <circle cx="3" cy="0" r="2.4" fill="#E0762E"/>
+          <circle cx="-1" cy="6" r="2.4" fill="#E0762E"/>
+        </g>
       </g>
 
       ${(() => {
@@ -4322,6 +4784,10 @@ ${this._defs()}
         : tf(this._t("s_laedt_ab"), { v: fmt(dhwSp - Math.abs(wDelta), 0) })
     );
     abzeichen("dhwheater-badge", heizstabLaeuft && wwLaeuft);
+    const tuerKnopf = this._animEl("tuer-knopf");
+    if (tuerKnopf) tuerKnopf.style.display = this._tuerFelder().length ? "" : "none";
+    this._speicherZeilen("buf");
+    this._speicherZeilen("dhw");
     // TOP2 meldet das einmalige Aufheizen, TOP69 den Legionellenschutz.
     abzeichen("dhwforce-badge", isOn(hass, this._e("dhw_force_state")) === true);
     abzeichen("sterilization-badge", isOn(hass, this._e("sterilization_state")) === true);
@@ -5047,6 +5513,71 @@ ${this._defs()}
         min-width: 58px; text-align: right; font-size: 13px; font-weight: 700;
         font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #E8EDF4;
       }
+      /* Die Tuer ist eine eigene Ebene ueber der Waermepumpe. Gedreht wird
+         nur diese Ebene, das uebernimmt die Grafikkarte. Die SVG-Gruppe
+         selbst bleibt unbewegt und ist waehrenddessen ausgeblendet. */
+      .tuer-zu #unit-group, .tuer-offen #unit-group { visibility: hidden; }
+      .lhc-tuer-blatt {
+        position: absolute; z-index: 3; pointer-events: none;
+        transform-origin: 0% 50%; will-change: transform;
+        backface-visibility: hidden; -webkit-backface-visibility: hidden;
+        transform: perspective(1400px) rotateY(0deg);
+        transition: transform 700ms cubic-bezier(0.45, 0.05, 0.2, 1);
+      }
+      .lhc-tuer-blatt.auf { transform: perspective(1400px) rotateY(-100deg); }
+      .lhc-tuer-blatt svg { display: block; width: 100%; height: 100%; overflow: visible; }
+      .tuer-knopf { cursor: pointer; outline: none; }
+      .tuer-knopf:hover > circle:first-of-type,
+      .tuer-knopf:focus-visible > circle:first-of-type { stroke: #E0762E; }
+      .lhc-tuer {
+        position: absolute; z-index: 4; box-sizing: border-box;
+        display: flex; flex-direction: column; gap: 6px; padding: 10px 10px;
+        background: #080C12; border: 1px solid #33415A; border-radius: 14px;
+        color: var(--ink); opacity: 0; transition: opacity 260ms ease 520ms;
+      }
+      .lhc-tuer[hidden] { display: none; }
+      .lhc-tuer.sichtbar { opacity: 1; }
+      /* Beim Schliessen sofort ausblenden, dann klappt die Tuer zu. */
+      .lhc-tuer:not(.sichtbar) { transition-delay: 0ms; }
+      .lhc-tuer-kopf { font-size: 14px; font-weight: 600; text-align: center; color: #E8EDF4; }
+      .lhc-tuer-liste {
+        flex: 1; min-height: 0; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 3px;
+      }
+      .lhc-tuer-abschnitt {
+        font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+        color: var(--muted); margin-top: 5px;
+      }
+      .lhc-tuer-zeile {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 6px; font-size: 12.5px; line-height: 1.2; min-height: 28px;
+      }
+      .lhc-tuer-zeile > span { flex: 1; min-width: 0; }
+      .lhc-tuer-zeile.spalte { flex-direction: column; align-items: stretch; gap: 4px; }
+      .lhc-tuer-zeile.spalte .lhc-tuer-seg button { flex: 1; }
+      .lhc-tuer-zeile em { color: var(--muted); font-style: normal; font-size: 11px; }
+      .lhc-tuer-stell { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+      .lhc-tuer-stell output {
+        min-width: 50px; text-align: center; font-size: 13px; white-space: nowrap;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+      .lhc-tuer-stell output.geaendert, .lhc-tuer-seg button.geaendert { color: #E0762E; font-weight: 700; }
+      .lhc-tuer-seg {
+        display: flex; flex: 0 0 auto; border: 1px solid var(--line);
+        border-radius: 8px; overflow: hidden;
+      }
+      .lhc-tuer-seg button {
+        background: transparent; color: var(--muted); border: 0;
+        padding: 5px 6px; font-size: 11.5px; cursor: pointer; white-space: nowrap;
+      }
+      .lhc-tuer-seg button.aktiv { background: #26303F; color: #E8EDF4; }
+      .lhc-tuer-seg button:disabled { cursor: default; }
+      .lhc-tuer-fuss { display: flex; gap: 8px; }
+      .lhc-tuer-knopf {
+        flex: 1; padding: 8px; border-radius: 9px; border: 1px solid var(--line);
+        background: #131A24; color: #E8EDF4; font-size: 13px; cursor: pointer;
+      }
+      .lhc-tuer-knopf.primaer { background: #E0762E; border-color: #E0762E; color: #0D131B; font-weight: 600; }
       .lhc-step.klein {
         width: 26px; height: 26px; padding: 0; font-size: 15px; line-height: 1;
       }
@@ -5301,6 +5832,14 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
             </select>
           </label>
           <label class="ed-row ed-check">
+            <input type="checkbox" id="opt-ziel">
+            <span>${this._t("e_ziel_zeigen")}<em>${this._t("e_ziel_zeigen_h")}</em></span>
+          </label>
+          <label class="ed-row ed-check">
+            <input type="checkbox" id="opt-laedt">
+            <span>${this._t("e_laedt_zeigen")}<em>${this._t("e_laedt_zeigen_h")}</em></span>
+          </label>
+          <label class="ed-row ed-check">
             <input type="checkbox" id="opt-verlauf">
             <span>${this._t("e_verlauf")}<em>${this._t("e_verlauf_h")}</em></span>
           </label>
@@ -5370,6 +5909,8 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-animate", (el) => put({ animate: el.checked }));
     bind("opt-demo", (el) => put({ demo: el.checked }));
     bind("opt-verlauf", (el) => put({ show_history: el.checked }));
+    bind("opt-ziel", (el) => put({ show_target: el.checked }));
+    bind("opt-laedt", (el) => put({ show_reload: el.checked }));
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
 
@@ -5598,6 +6139,8 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     check("opt-animate", this._config.animate);
     check("opt-demo", this._config.demo === true);
     check("opt-verlauf", this._config.show_history !== false);
+    check("opt-ziel", this._config.show_target !== false);
+    check("opt-laedt", this._config.show_reload !== false);
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
 
