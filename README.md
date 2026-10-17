@@ -124,6 +124,8 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `pump_flow` | Flow rate | TOP1 |
 | `three_way_valve` | Three-way diverter valve | TOP20 |
 | `water_pressure` | Water pressure | TOP115 |
+| `heater_internal` | Internal heater running | TOP60 |
+| `heater_external` | External heater running | TOP61 |
 | **Heating buffer** | | |
 | `buffer_temp` | Buffer temperature | TOP46 |
 | `buffer_installed` | Buffer installed | TOP99 |
@@ -140,10 +142,9 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | **Heating buffer** | | |
 | `buffer_delta` | Buffer hysteresis | TOP113 |
 | `buffer_target` | Buffer target temperature | TOP7, flow target |
-| `cop_heating_measured` | COP heating, measured | HeishaMon by Lutarym, preferred, external power meter |
-| `cop_heating` | COP heating, calculated | HeishaMon by Lutarym, fallback if measured is unknown |
-| `room_heater` | Heating element, heating | TOP59 |
-| `room_heater_switch` | Switch heating element, heating | SetRoomHeaterState, switch |
+| `cop_heating` | COP heating | HeishaMon by Lutarym, source selectable in the integration under COP source |
+| `room_heater` | Heating element, heating: allowed | TOP59 |
+| `room_heater_switch` | Allow heating element, heating | SetRoomHeaterState, switch |
 | **Circuit 1** | | |
 | `zones_state` | Active zones | TOP94, applies to both |
 | `zones_select` | Switch zones | SetZones, applies to both |
@@ -163,14 +164,13 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `dhw_temp` | Hot water temperature | TOP10 |
 | `dhw_heat_delta` | Hot water hysteresis | TOP22 |
 | `dhw_setpoint` | Hot water target | TOP9, number |
-| `cop_dhw_measured` | COP hot water, measured | HeishaMon by Lutarym, preferred, external power meter |
-| `cop_dhw` | COP hot water, calculated | HeishaMon by Lutarym, fallback if measured is unknown |
-| `dhw_heater` | Heating element, hot water | TOP58 |
+| `cop_dhw` | COP hot water | HeishaMon by Lutarym, source selectable in the integration under COP source |
+| `dhw_heater` | Heating element, hot water: allowed | TOP58 |
 | `dhw_force` | Boost once | SetForceDHW, switch |
 | `dhw_force_state` | Boost running | TOP2 |
 | `force_sterilization` | Start legionella cycle | SetForceSterilization, switch |
 | `sterilization_state` | Legionella cycle running | TOP69 |
-| `dhw_heater_switch` | Switch heating element, hot water | SetDHWHeaterState, switch |
+| `dhw_heater_switch` | Allow heating element, hot water | SetDHWHeaterState, switch |
 | `circulation_pump` | Circulation pump running | Shelly or own switch |
 | `circ_switch` | Circulation switch (clickable) | switch to turn circulation on and off |
 | **Control** | | |

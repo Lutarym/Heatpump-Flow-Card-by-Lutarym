@@ -124,6 +124,8 @@ entities:
 | `pump_flow` | 流量 | TOP1 |
 | `three_way_valve` | 三方弁 | TOP20 |
 | `water_pressure` | 水圧 | TOP115 |
+| `heater_internal` | 内部ヒーター運転中 | TOP60 |
+| `heater_external` | 外部ヒーター運転中 | TOP61 |
 | **暖房バッファー** | | |
 | `buffer_temp` | バッファー温度 | TOP46 |
 | `buffer_installed` | バッファーあり | TOP99 |
@@ -140,10 +142,9 @@ entities:
 | **暖房バッファー** | | |
 | `buffer_delta` | バッファーのヒステリシス | TOP113 |
 | `buffer_target` | バッファー目標温度 | TOP7, 往き目標 |
-| `cop_heating_measured` | COP 暖房（実測） | HeishaMon by Lutarym、優先、外部電力計 |
-| `cop_heating` | COP 暖房（算出） | HeishaMon by Lutarym、実測値が不明な場合の代替 |
-| `room_heater` | 暖房用ヒーター | TOP59 |
-| `room_heater_switch` | 暖房用ヒーターの入切 | SetRoomHeaterState, switch |
+| `cop_heating` | COP 暖房 | HeishaMon by Lutarym、ソースは統合の COP ソースで選択 |
+| `room_heater` | 暖房ヒーター許可 | TOP59 |
+| `room_heater_switch` | 暖房ヒーター許可の切替 | SetRoomHeaterState, switch |
 | **回路1** | | |
 | `zones_state` | 有効なゾーン | TOP94, 両方に適用 |
 | `zones_select` | ゾーン切替 | SetZones, 両方に適用 |
@@ -163,14 +164,13 @@ entities:
 | `dhw_temp` | 給湯温度 | TOP10 |
 | `dhw_heat_delta` | 給湯のヒステリシス | TOP22 |
 | `dhw_setpoint` | 給湯設定温度 | TOP9, number |
-| `cop_dhw_measured` | COP 給湯（実測） | HeishaMon by Lutarym、優先、外部電力計 |
-| `cop_dhw` | COP 給湯（算出） | HeishaMon by Lutarym、実測値が不明な場合の代替 |
-| `dhw_heater` | 給湯用ヒーター | TOP58 |
+| `cop_dhw` | COP 給湯 | HeishaMon by Lutarym、ソースは統合の COP ソースで選択 |
+| `dhw_heater` | 給湯ヒーター許可 | TOP58 |
 | `dhw_force` | 一回だけ加熱 | SetForceDHW, switch |
 | `dhw_force_state` | 加熱中 | TOP2 |
 | `force_sterilization` | レジオネラ運転を開始 | SetForceSterilization, switch |
 | `sterilization_state` | レジオネラ運転中 | TOP69 |
-| `dhw_heater_switch` | 給湯用ヒーターの入切 | SetDHWHeaterState, switch |
+| `dhw_heater_switch` | 給湯ヒーター許可の切替 | SetDHWHeaterState, switch |
 | `circulation_pump` | 循環ポンプ運転中 | Shellyまたは独自スイッチ |
 | `circ_switch` | 循環スイッチ（クリック可） | 循環の入切スイッチ |
 | **制御** | | |

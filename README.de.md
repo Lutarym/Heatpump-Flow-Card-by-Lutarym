@@ -124,6 +124,8 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `pump_flow` | Durchflussmenge | TOP1 |
 | `three_way_valve` | 3-Wege-Umschaltventil | TOP20 |
 | `water_pressure` | Wasserdruck | TOP115 |
+| `heater_internal` | Heizstab intern läuft | TOP60 |
+| `heater_external` | Heizstab extern läuft | TOP61 |
 | **Heizungspuffer** | | |
 | `buffer_temp` | Puffertemperatur | TOP46 |
 | `buffer_installed` | Puffer vorhanden | TOP99 |
@@ -140,10 +142,9 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | **Heizungspuffer** | | |
 | `buffer_delta` | Puffer Hysterese | TOP113 |
 | `buffer_target` | Puffer Zieltemperatur | TOP7, Soll Vorlauf |
-| `cop_heating_measured` | COP Heizen gemessen | HeishaMon by Lutarym, bevorzugt, externer Strommesser |
-| `cop_heating` | COP Heizen berechnet | HeishaMon by Lutarym, Ersatz, wenn gemessen unbekannt |
-| `room_heater` | Heizstab Heizung | TOP59 |
-| `room_heater_switch` | Heizstab Heizung schalten | SetRoomHeaterState, switch |
+| `cop_heating` | COP Heizen | HeishaMon by Lutarym, Quelle in der Integration unter COP Quelle wählbar |
+| `room_heater` | Heizstab Heizung freigegeben | TOP59 |
+| `room_heater_switch` | Heizstab Heizung freigeben | SetRoomHeaterState, switch |
 | **Heizkreis 1** | | |
 | `zones_state` | Aktivierte Zonen | TOP94, gilt für beide |
 | `zones_select` | Zonen umschalten | SetZones, gilt für beide |
@@ -163,14 +164,13 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `dhw_temp` | Warmwasser Isttemperatur | TOP10 |
 | `dhw_heat_delta` | Warmwasser Hysterese | TOP22 |
 | `dhw_setpoint` | Warmwasser Sollwert | TOP9, number |
-| `cop_dhw_measured` | COP Warmwasser gemessen | HeishaMon by Lutarym, bevorzugt, externer Strommesser |
-| `cop_dhw` | COP Warmwasser berechnet | HeishaMon by Lutarym, Ersatz, wenn gemessen unbekannt |
-| `dhw_heater` | Heizstab Warmwasser | TOP58 |
+| `cop_dhw` | COP Warmwasser | HeishaMon by Lutarym, Quelle in der Integration unter COP Quelle wählbar |
+| `dhw_heater` | Heizstab Warmwasser freigegeben | TOP58 |
 | `dhw_force` | Einmalig aufheizen | SetForceDHW, switch |
 | `dhw_force_state` | Aufheizen läuft | TOP2 |
 | `force_sterilization` | Legionellenschutz starten | SetForceSterilization, switch |
 | `sterilization_state` | Legionellenschutz läuft | TOP69 |
-| `dhw_heater_switch` | Heizstab Warmwasser schalten | SetDHWHeaterState, switch |
+| `dhw_heater_switch` | Heizstab Warmwasser freigeben | SetDHWHeaterState, switch |
 | `circulation_pump` | Zirkulationspumpe läuft | Shelly oder eigener Schalter |
 | `circ_switch` | Zirkulation Schalter (klickbar) | Switch zum Ein/Ausschalten der Zirkulation |
 | **Steuerung** | | |

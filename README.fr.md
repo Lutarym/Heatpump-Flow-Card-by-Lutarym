@@ -124,6 +124,8 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `pump_flow` | Débit | TOP1 |
 | `three_way_valve` | Vanne trois voies | TOP20 |
 | `water_pressure` | Pression d'eau | TOP115 |
+| `heater_internal` | Appoint interne en marche | TOP60 |
+| `heater_external` | Appoint externe en marche | TOP61 |
 | **Ballon tampon** | | |
 | `buffer_temp` | Température du ballon tampon | TOP46 |
 | `buffer_installed` | Ballon tampon présent | TOP99 |
@@ -140,10 +142,9 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | **Ballon tampon** | | |
 | `buffer_delta` | Hystérésis du ballon tampon | TOP113 |
 | `buffer_target` | Température cible du ballon tampon | TOP7, consigne départ |
-| `cop_heating_measured` | COP chauffage, mesuré | HeishaMon by Lutarym, prioritaire, compteur externe |
-| `cop_heating` | COP chauffage, calculé | HeishaMon by Lutarym, secours si la mesure est inconnue |
-| `room_heater` | Appoint électrique chauffage | TOP59 |
-| `room_heater_switch` | Commande appoint chauffage | SetRoomHeaterState, switch |
+| `cop_heating` | COP chauffage | HeishaMon by Lutarym, source réglable dans l'intégration sous Source COP |
+| `room_heater` | Appoint chauffage autorisé | TOP59 |
+| `room_heater_switch` | Autoriser l'appoint chauffage | SetRoomHeaterState, switch |
 | **Circuit 1** | | |
 | `zones_state` | Zones actives | TOP94, vaut pour les deux |
 | `zones_select` | Changer de zones | SetZones, vaut pour les deux |
@@ -163,14 +164,13 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `dhw_temp` | Température de l'eau chaude | TOP10 |
 | `dhw_heat_delta` | Hystérésis de l'eau chaude | TOP22 |
 | `dhw_setpoint` | Consigne eau chaude | TOP9, number |
-| `cop_dhw_measured` | COP eau chaude, mesuré | HeishaMon by Lutarym, prioritaire, compteur externe |
-| `cop_dhw` | COP eau chaude, calculé | HeishaMon by Lutarym, secours si la mesure est inconnue |
-| `dhw_heater` | Appoint électrique eau chaude | TOP58 |
+| `cop_dhw` | COP eau chaude | HeishaMon by Lutarym, source réglable dans l'intégration sous Source COP |
+| `dhw_heater` | Appoint eau chaude autorisé | TOP58 |
 | `dhw_force` | Chauffe unique | SetForceDHW, switch |
 | `dhw_force_state` | Chauffe en cours | TOP2 |
 | `force_sterilization` | Démarrer le cycle légionelles | SetForceSterilization, switch |
 | `sterilization_state` | Cycle légionelles en cours | TOP69 |
-| `dhw_heater_switch` | Commande appoint eau chaude | SetDHWHeaterState, switch |
+| `dhw_heater_switch` | Autoriser l'appoint eau chaude | SetDHWHeaterState, switch |
 | `circulation_pump` | Pompe de circulation en marche | Shelly ou interrupteur propre |
 | `circ_switch` | Interrupteur de circulation (cliquable) | interrupteur pour la circulation |
 | **Commande** | | |
