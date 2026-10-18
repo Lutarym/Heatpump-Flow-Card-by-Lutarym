@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.3.1";
+const CARD_VERSION = "4.3.2";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -472,8 +472,10 @@ const TEXTE = {
   j_gesamt: { de: "Gesamt", en: "Total", fr: "Total", ja: "合計" },
   j_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "暖房" },
   j_ww: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "給湯" },
-  j_k12: { de: "12 Monate", en: "12 months", fr: "12 mois", ja: "12 か月" },
-  j_kjahr: { de: "Seit 1. Jan.", en: "Since 1 Jan", fr: "Depuis 1er janv.", ja: "1月1日から" },
+  j_kwaerme: { de: "Wärme", en: "Heat", fr: "Chaleur", ja: "熱量" },
+  j_kstrom: { de: "Strom", en: "Electricity", fr: "Électricité", ja: "電力" },
+  j_kjaz: { de: "JAZ", en: "SPF", fr: "SPF", ja: "SPF" },
+  j_unter: { de: "Seit 1. Januar, Wärme und Strom in kWh", en: "Since 1 January, heat and electricity in kWh", fr: "Depuis le 1er janvier, chaleur et électricité en kWh", ja: "1 月 1 日から、熱量と電力は kWh" },
   k_jaz_jahr: { de: "Seit 1. Januar", en: "Since 1 January", fr: "Depuis le 1er janvier", ja: "1 月 1 日から" },
   j_seit: { de: "Daten erst seit {v}", en: "data only since {v}", fr: "données depuis le {v} seulement", ja: "{v} 以降のデータのみ" },
   j_titel: { de: "Wärme {w} kWh geteilt durch Strom {s} kWh", en: "Heat {w} kWh divided by electricity {s} kWh", fr: "Chaleur {w} kWh divisée par électricité {s} kWh", ja: "熱 {w} kWh ÷ 電力 {s} kWh" },
@@ -2947,7 +2949,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     return { heizen, ww };
   }
 
-  /** Holt die Tageswerte der letzten zwoelf Monate aus der Langzeitstatistik. */
+  /** Holt die Tageswerte seit dem 1. Januar aus der Langzeitstatistik. */
   async _ladeJaz() {
     const quellen = this._jazQuellen();
     if (!quellen || quellen.demo) return;
@@ -2959,7 +2961,6 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (this._jazSchluessel === schluessel && this._jazZeit && jetzt - this._jazZeit < 3600000) return;
     this._jazLaeuft = true;
     const heute = new Date(jetzt);
-    const start12 = new Date(heute.getFullYear() - 1, heute.getMonth(), heute.getDate()).getTime();
     const startJahr = new Date(heute.getFullYear(), 0, 1).getTime();
     // Nur ganze Stunden, die laufende Stunde fehlt in der Statistik noch.
     const ende = Math.floor(jetzt / 3600000) * 3600000;
@@ -2971,7 +2972,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     try {
       const antwort = await q.callWS({
         type: "recorder/statistics_during_period",
-        start_time: new Date(start12).toISOString(),
+        start_time: new Date(startJahr).toISOString(),
         end_time: new Date(ende).toISOString(),
         statistic_ids: ids,
         period: "day",
@@ -3013,12 +3014,11 @@ class LutarymHeatpumpCard extends HTMLElement {
         if (e <= 0) return null;
         return { jaz: w / e, waerme: w, strom: e, erster: tageListe[0], ab };
       };
-      const ergebnis = {};
-      [["12", start12], ["jahr", startJahr]].forEach(([z, ab]) => {
-        ergebnis[`${z}_gesamt`] = rechne(["heizen", "ww"], ab);
-        ergebnis[`${z}_heizen`] = rechne(["heizen"], ab);
-        ergebnis[`${z}_ww`] = rechne(["ww"], ab);
-      });
+      const ergebnis = {
+        gesamt: rechne(["heizen", "ww"], startJahr),
+        heizen: rechne(["heizen"], startJahr),
+        ww: rechne(["ww"], startJahr),
+      };
       this._jaz = ergebnis;
       this._jazSchluessel = schluessel;
       this._jazZeit = jetzt;
@@ -3033,21 +3033,30 @@ class LutarymHeatpumpCard extends HTMLElement {
 
   /** Fuellt die JAZ-Tabelle hinter der Tuer. */
   _jazZeige(f, el, seit) {
-    const demo = { "12_heizen": 4.3, jahr_heizen: 4.6, "12_ww": 2.9, jahr_ww: 3.0, "12_gesamt": 3.9, jahr_gesamt: 4.2 };
+    // Erfundene Werte fuer den Demomodus, in sich stimmig.
+    const demo = {
+      heizen: { waerme: 17600, strom: 4000 },
+      ww: { waerme: 3900, strom: 1000 },
+      gesamt: { waerme: 21500, strom: 5000 },
+    };
+    let ganz;
+    try {
+      ganz = new Intl.NumberFormat(this._sp(), { maximumFractionDigits: 0 });
+    } catch (err) {
+      ganz = { format: (v) => fmt(v, 0) };
+    }
     let frueh = null;
     el.querySelectorAll("output[data-jaz]").forEach((o) => {
-      const k = o.dataset.jaz;
-      if (this._config.demo) {
-        o.textContent = fmt(demo[k], 1);
-        o.title = "";
+      const r = this._config.demo ? demo[o.dataset.jaz] : this._jaz && this._jaz[o.dataset.jaz];
+      if (!r) {
+        o.textContent = "--";
         return;
       }
-      const r = this._jaz && this._jaz[k];
-      o.textContent = r ? fmt(r.jaz, 1) : "--";
-      o.title = r ? tf(this._t("j_titel"), { w: fmt(r.waerme, 0), s: fmt(r.strom, 0) }) : "";
-      // Reicht die Statistik nicht bis zum Anfang des Zeitraums zurueck,
-      // steht unter der Tabelle, ab wann gerechnet wurde.
-      if (r && r.erster - r.ab > 86400000 && (frueh === null || r.erster < frueh)) frueh = r.erster;
+      const w = o.dataset.w;
+      o.textContent = w === "jaz" ? fmt(r.waerme / r.strom, 1) : ganz.format(r[w]);
+      // Reicht die Statistik nicht bis zum 1. Januar zurueck, steht unter
+      // der Tabelle, ab wann gerechnet wurde.
+      if (r.erster && r.erster - r.ab > 86400000 && (frueh === null || r.erster < frueh)) frueh = r.erster;
     });
     if (seit) {
       seit.textContent =
@@ -3244,16 +3253,18 @@ class LutarymHeatpumpCard extends HTMLElement {
         const arten = ["heizen", "ww"].filter((k) => quellen[k]);
         if (arten.length === 2) arten.push("gesamt");
         const zellen = arten
-          .map(
-            (k) => `<span class="jaz-art${k === "gesamt" ? " jaz-gesamt" : ""}">${escapeHtml(this._t(`j_${k}`))}</span>
-              <output class="${k === "gesamt" ? "jaz-gesamt" : ""}" data-jaz="12_${k}">--</output>
-              <output class="${k === "gesamt" ? "jaz-gesamt" : ""}" data-jaz="jahr_${k}">--</output>`
-          )
+          .map((k) => {
+            const kl = k === "gesamt" ? "jaz-gesamt" : "";
+            return `<span class="jaz-art ${kl}">${escapeHtml(this._t(`j_${k}`))}</span>
+              <output class="${kl}" data-jaz="${k}" data-w="waerme">--</output>
+              <output class="${kl}" data-jaz="${k}" data-w="strom">--</output>
+              <output class="${kl} jaz-wert" data-jaz="${k}" data-w="jaz">--</output>`;
+          })
           .join("");
         html += `<div class="lhc-jaz" id="tuer-z${i}">
-            <span></span><span class="jaz-kopf">${escapeHtml(this._t("j_k12"))}</span><span class="jaz-kopf">${escapeHtml(this._t("j_kjahr"))}</span>
+            <span></span><span class="jaz-kopf">${escapeHtml(this._t("j_kwaerme"))}</span><span class="jaz-kopf">${escapeHtml(this._t("j_kstrom"))}</span><span class="jaz-kopf">${escapeHtml(this._t("j_kjaz"))}</span>
             ${zellen}
-          </div><em class="jaz-seit" id="tuer-s${i}"></em>`;
+          </div><em class="jaz-seit">${escapeHtml(this._t("j_unter"))}</em><em class="jaz-seit" id="tuer-s${i}"></em>`;
         return;
       }
       if (f.info) {
@@ -6702,12 +6713,14 @@ ${this._defs()}
       .lhc-tuer-zeile em { color: var(--muted); font-style: normal; font-size: 11px; }
       .lhc-tuer-gruppe em.jaz-seit { display: block; color: var(--muted); font-style: normal; font-size: 11px; margin: 2px 0 4px; }
       .lhc-jaz {
-        display: grid; grid-template-columns: 1fr auto auto; column-gap: 14px; row-gap: 6px;
-        align-items: baseline; font-size: 13px; padding: 4px 12px 2px 0;
+        display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; column-gap: 10px; row-gap: 6px;
+        align-items: baseline; font-size: 12px; padding: 4px 12px 2px 0;
       }
+      .lhc-jaz .jaz-wert { color: #E8EDF4; }
       .lhc-jaz .jaz-kopf { color: var(--muted); font-size: 11px; text-align: right; white-space: nowrap; }
+      .lhc-jaz .jaz-art { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lhc-jaz output {
-        text-align: right; min-width: 44px; white-space: nowrap;
+        text-align: right; min-width: 0; white-space: nowrap;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
       }
       .lhc-jaz .jaz-gesamt { font-weight: 700; border-top: 1px solid #33415A; padding-top: 5px; }

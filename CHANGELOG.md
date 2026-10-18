@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.3.2
+
+- English: JAZ table behind the door: the "12 months" column is replaced by heat and electricity in kWh since 1 January. Each row (heating, hot water, total) now shows heat, electricity and the resulting JAZ, so it is visible why the total is weighted by the amounts and is not the simple mean of heating and hot water.
+- Deutsch: JAZ-Tabelle hinter der Tür: Die Spalte „12 Monate“ ist ersetzt durch Wärme und Strom in kWh seit 1. Januar. Jede Zeile (Heizen, Warmwasser, Gesamt) zeigt jetzt Wärme, Strom und die daraus berechnete JAZ. So ist sichtbar, warum Gesamt nach den Mengen gewichtet ist und nicht der einfache Mittelwert aus Heizen und Warmwasser.
+- Français : tableau JAZ derrière la porte : la colonne « 12 mois » est remplacée par la chaleur et l'électricité en kWh depuis le 1er janvier. Chaque ligne (chauffage, eau chaude, total) affiche la chaleur, l'électricité et le JAZ qui en résulte, ce qui montre pourquoi le total est pondéré par les quantités et n'est pas la simple moyenne du chauffage et de l'eau chaude.
+- 日本語：扉の奥の JAZ 表：「12 か月」の列を、1 月 1 日からの熱量と電力（kWh）に置き換えました。各行（暖房・給湯・合計）に熱量・電力・算出した JAZ を表示し、合計が暖房と給湯の単純平均ではなく量で重み付けされる理由が分かるようにしました。
+
 ## v4.3.1
 
 - English: The seasonal performance factor (JAZ) behind the door is now a small table: rows heating, hot water and total (bold, below a line), columns "12 months" and "Since 1 Jan". The note "data only since …" appears once below the table.
