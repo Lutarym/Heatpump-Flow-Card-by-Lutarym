@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v3.7.2
+
+- English: Temperature differences are now shown in °C instead of K (kelvin): heating curve shift in the setpoint dialog (for example +3 °C), heating spread behind the door, values with the unit K in the value dialog, and all ranges and texts in the help window. A difference of 1 K is exactly 1 °C. The help entry "Kelvin (K)" is now called "Temperature difference" and explains that Panasonic manuals and Home Assistant often write K for it.
+- Deutsch: Temperaturunterschiede stehen jetzt in °C statt in K (Kelvin): die Verschiebung der Heizkurve im Sollwert-Dialog (zum Beispiel +3 °C), die Spreizung hinter der Tür, Werte mit der Einheit K im Wertefenster sowie alle Bereiche und Texte im Hilfefenster. Ein Unterschied von 1 K ist genau 1 °C. Der Hilfeeintrag „Kelvin (K)“ heißt jetzt „Temperaturunterschied“ und erklärt, dass Panasonic-Anleitungen und Home Assistant dafür oft K schreiben.
+- Français : les écarts de température s'affichent désormais en °C au lieu de K (kelvin) : décalage de la courbe dans la fenêtre de consigne (par exemple +3 °C), écart de chauffage derrière la porte, valeurs en K dans la fenêtre des valeurs, et toutes les plages et textes de la fenêtre d'aide. Un écart de 1 K vaut exactement 1 °C. L'entrée d'aide « Kelvin (K) » s'appelle désormais « Écart de température » et explique que les notices Panasonic et Home Assistant écrivent souvent K.
+- 日本語：温度差を K（ケルビン）ではなく °C で表示するようにしました：設定値ダイアログの暖房曲線シフト（例：+3 °C）、扉の奥の暖房温度差、値ウィンドウの単位 K の値、ヘルプ画面のすべての範囲と説明文。1 K の差はちょうど 1 °C です。ヘルプ項目「ケルビン（K）」は「温度差」に改め、Panasonic の説明書や Home Assistant ではよく K と書かれることを説明しています。
+
 ## v3.7.1
 
 - English: Help window: every entry now shows its TOP value or command together with the full Home Assistant entity ID (for example `sensor.heishamon_…_top9`, `number.heishamon_…_top9`). A click copies the ID. The search also finds entity IDs. If no matching entity exists, the entry says so. Translations completed: the demo bar (demo mode, standby, valve), "Consumption today", "max" in the history and the label of the setpoint slider were still in German.
