@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "3.7.2";
+const CARD_VERSION = "4.0.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -245,6 +245,10 @@ const TEXTE = {
   e_ziel_zeigen: { de: "Ziel im Puffer und Warmwasser", en: "Target in buffer and hot water", fr: "Cible dans le ballon tampon et l'eau chaude", ja: "バッファーと給湯の目標" },
   e_ziel_zeigen_h: { de: "Zeile „Ziel …“ anzeigen", en: "show the “Target …” line", fr: "afficher la ligne « Cible … »", ja: "「目標 …」の行を表示" },
   e_laedt_zeigen: { de: "Lädt ab im Puffer und Warmwasser", en: "Reload temperature in buffer and hot water", fr: "Recharge dans le ballon tampon et l'eau chaude", ja: "バッファーと給湯の再加熱温度" },
+  e_hilfe_zeigen: { de: "Knopf „?“ für die Hilfe", en: "“?” button for help", fr: "Bouton « ? » pour l'aide", ja: "ヘルプの「?」ボタン" },
+  e_hilfe_zeigen_h: { de: "unten rechts in der Karte anzeigen", en: "show at the bottom right of the card", fr: "afficher en bas à droite de la carte", ja: "カード右下に表示" },
+  e_tuer_zeigen: { de: "Knopf für erweiterte Einstellungen", en: "Button for advanced settings", fr: "Bouton des réglages avancés", ja: "詳細設定のボタン" },
+  e_tuer_zeigen_h: { de: "unten rechts an der Wärmepumpe anzeigen", en: "show at the bottom right of the heat pump", fr: "afficher en bas à droite de la pompe à chaleur", ja: "ヒートポンプ右下に表示" },
   e_laedt_zeigen_h: { de: "Zeile „Lädt ab …“ anzeigen", en: "show the “Reloads at …” line", fr: "afficher la ligne « Recharge à … »", ja: "「再加熱 …」の行を表示" },
   e_verlauf: { de: "Verbrauchsverlauf", en: "Energy chart", fr: "Graphique de consommation", ja: "使用量グラフ" },
   e_verlauf_h: { de: "Diagramm der letzten 24 Stunden anzeigen", en: "show the chart of the past 24 hours", fr: "afficher le graphique des dernières 24 heures", ja: "過去24時間のグラフを表示" },
@@ -431,6 +435,15 @@ const TEXTE = {
   t_quittieren: { de: "Quittieren", en: "Reset", fr: "Acquitter", ja: "リセット" },
   t_betrieb: { de: "Betrieb", en: "Operation", fr: "Fonctionnement", ja: "運転" },
   t_stoerung: { de: "Störung", en: "Fault", fr: "Défaut", ja: "異常" },
+  t_jaz: { de: "Jahresarbeitszahl (JAZ)", en: "Seasonal performance (SPF)", fr: "Coefficient annuel (SPF)", ja: "年間性能係数（SPF）" },
+  k_jaz_12: { de: "Letzte 12 Monate", en: "Last 12 months", fr: "12 derniers mois", ja: "直近 12 か月" },
+  k_jaz_jahr: { de: "Seit 1. Januar", en: "Since 1 January", fr: "Depuis le 1er janvier", ja: "1 月 1 日から" },
+  j_seit: { de: "Daten erst seit {v}", en: "data only since {v}", fr: "données depuis le {v} seulement", ja: "{v} 以降のデータのみ" },
+  j_titel: { de: "Wärme {w} kWh geteilt durch Strom {s} kWh", en: "Heat {w} kWh divided by electricity {s} kWh", fr: "Chaleur {w} kWh divisée par électricité {s} kWh", ja: "熱 {w} kWh ÷ 電力 {s} kWh" },
+  e_jaz_quelle: { de: "Strom für die JAZ", en: "Electricity for the SPF", fr: "Électricité pour le SPF", ja: "SPF の電力" },
+  e_jaz_quelle_h: { de: "Die Wärme kommt immer von HeishaMon", en: "Heat always comes from HeishaMon", fr: "La chaleur vient toujours de HeishaMon", ja: "熱量は常に HeishaMon から取得" },
+  o_jaz_heishamon: { de: "HeishaMon (nur Wärmepumpe)", en: "HeishaMon (heat pump only)", fr: "HeishaMon (pompe à chaleur seule)", ja: "HeishaMon（ヒートポンプのみ）" },
+  o_jaz_zaehler: { de: "Eigener Stromzähler (Shelly PM)", en: "Own power meter (Shelly PM)", fr: "Compteur propre (Shelly PM)", ja: "独自の電力計（Shelly PM）" },
   t_info: { de: "Info", en: "Info", fr: "Infos", ja: "情報" },
   h_knopf: { de: "Hilfe zu allen Werten", en: "Help for all values", fr: "Aide sur toutes les valeurs", ja: "すべての値のヘルプ" },
   h_titel: { de: "Was bedeutet welcher Wert?", en: "What does each value mean?", fr: "Que signifie chaque valeur ?", ja: "各値の意味" },
@@ -1068,7 +1081,8 @@ const TUER_FELDER = [
   { abschnitt: "t_pumpe", key: "pump_flow_mode", auswahl: ["o_spreizung", "o_max_leistung"] },
   { abschnitt: "t_pumpe", key: "pump_max_duty", min: 64, max: 254, step: 1, einheit: "" },
   { abschnitt: "t_leise", key: "quiet_priority", auswahl: ["o_lautstaerke", "o_leistung"] },
-  { abschnitt: "t_stoerung", key: "fault_reset", knopf: true },
+  { abschnitt: "t_jaz", key: "jaz_12", jaz: "12" },
+  { abschnitt: "t_jaz", key: "jaz_jahr", jaz: "jahr" },
   { abschnitt: "t_info", key: "operating_hours", info: true, einheit: "h" },
   { abschnitt: "t_info", key: "compressor_starts", info: true, einheit: "" },
   { abschnitt: "t_info", key: "room_heater_hours", info: true, einheit: "h" },
@@ -1180,7 +1194,6 @@ const ENTITY_FIELDS = [
   { key: "holiday_mode", label: "Urlaubsmodus", group: "Erweiterte Einstellungen", hint: "SetHolidayMode, switch" },
   { key: "main_schedule", label: "Wochenprogramm", group: "Erweiterte Einstellungen", hint: "SetMainSchedule, switch" },
   { key: "smart_dhw", label: "Smart DHW Warmwasser", group: "Erweiterte Einstellungen", hint: "SetSmartDHW, select" },
-  { key: "fault_reset", label: "Störung quittieren", group: "Erweiterte Einstellungen", hint: "SetReset, button" },
   { key: "operating_hours", label: "Betriebsstunden", group: "Erweiterte Einstellungen", hint: "TOP11" },
   { key: "compressor_starts", label: "Verdichterstarts", group: "Erweiterte Einstellungen", hint: "TOP12" },
   { key: "room_heater_hours", label: "Heizstab Heizen Betriebsstunden", group: "Erweiterte Einstellungen", hint: "TOP90" },
@@ -1200,6 +1213,9 @@ const DEFAULT_CONFIG = {
   show_history: true,
   show_target: true,
   show_reload: true,
+  show_help: true,
+  show_door: true,
+  jaz_source: "heishamon",
   buffer_present: "auto",
   circulation_present: "auto",
   history_width: 450,
@@ -2429,13 +2445,157 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (ok) ok.addEventListener("click", () => this._tuerUebernehmen());
   }
 
+  /* -------------------- Jahresarbeitszahl -------------------- */
+
+  /**
+   * Entitaeten fuer die JAZ. Waerme und Strom kommen von HeishaMon:
+   * Heizen plus Warmwasser, Kuehlen zaehlt nicht mit. Meldet die
+   * Waermepumpe den Zusatzblock (XTOP), sind TOP15/16/40/41 laut
+   * HeishaMon ungueltig, dann gelten XTOP3/5 und XTOP0/2.
+   * Mit eigenem Zaehler kommt der Strom aus dem Energiezaehler
+   * (Langzeitstatistik "change") oder, falls es den nicht gibt, aus der
+   * aktuellen Leistungsaufnahme.
+   */
+  _jazQuellen() {
+    if (this._config && this._config.demo) return { demo: true };
+    const q = this._hass;
+    if (!q || !q.states) return null;
+    const index = this._hilfeEntitaeten();
+    const sensor = (k) => (index[k] || []).find((id) => id.startsWith("sensor."));
+    const xtop = sensor("xtop3") && sensor("xtop0");
+    const waerme = (xtop ? [sensor("xtop3"), sensor("xtop5")] : [sensor("top15"), sensor("top40")]).filter(Boolean);
+    if (!waerme.length) return null;
+    let strom = [];
+    let art = "mean";
+    if (this._config.jaz_source === "zaehler") {
+      const zaehler = this._e("energy_today");
+      const leistung = this._e("power_now");
+      if (zaehler && q.states[zaehler]) {
+        strom = [zaehler];
+        art = "change";
+      } else if (leistung && q.states[leistung]) {
+        strom = [leistung];
+      }
+    } else {
+      strom = (xtop ? [sensor("xtop0"), sensor("xtop2")] : [sensor("top16"), sensor("top41")]).filter(Boolean);
+    }
+    if (!strom.length) return null;
+    return { waerme, strom, art };
+  }
+
+  /** Holt die Tageswerte der letzten zwoelf Monate aus der Langzeitstatistik. */
+  async _ladeJaz() {
+    const quellen = this._jazQuellen();
+    if (!quellen || quellen.demo) return;
+    const q = this._hass;
+    if (typeof q.callWS !== "function" || this._jazLaeuft) return;
+    const schluessel = JSON.stringify(quellen);
+    const jetzt = Date.now();
+    // Hoechstens einmal je Stunde neu rechnen.
+    if (this._jazSchluessel === schluessel && this._jazZeit && jetzt - this._jazZeit < 3600000) return;
+    this._jazLaeuft = true;
+    const heute = new Date(jetzt);
+    const start12 = new Date(heute.getFullYear() - 1, heute.getMonth(), heute.getDate()).getTime();
+    const startJahr = new Date(heute.getFullYear(), 0, 1).getTime();
+    // Nur ganze Stunden, die laufende Stunde fehlt in der Statistik noch.
+    const ende = Math.floor(jetzt / 3600000) * 3600000;
+    const zeit = (w) => (typeof w === "number" ? w : Date.parse(w));
+    const abfrage = (ids, typ) =>
+      q.callWS({
+        type: "recorder/statistics_during_period",
+        start_time: new Date(start12).toISOString(),
+        end_time: new Date(ende).toISOString(),
+        statistic_ids: ids,
+        period: "day",
+        types: [typ],
+      });
+    // Energie je Tag in kWh. Leistung: Mittelwert in W mal Stunden.
+    const tage = (antwort, ids, typ) => {
+      const summe = new Map();
+      ids.forEach((id) => {
+        ((antwort && antwort[id]) || []).forEach((z) => {
+          const a = zeit(z.start);
+          if (!Number.isFinite(a)) return;
+          let kwh = null;
+          if (typ === "change") {
+            kwh = Number(z.change);
+          } else {
+            const b = Math.min(Number.isFinite(zeit(z.end)) ? zeit(z.end) : a + 86400000, ende);
+            const w = Number(z.mean);
+            // Negative Werte meldet HeishaMon als ungueltig, sie zaehlen nicht.
+            if (Number.isFinite(w)) kwh = (Math.max(w, 0) * (b - a)) / 3600000 / 1000;
+          }
+          if (kwh === null || !Number.isFinite(kwh)) return;
+          summe.set(a, (summe.get(a) || 0) + kwh);
+        });
+      });
+      return summe;
+    };
+    try {
+      const [aw, as] = await Promise.all([
+        abfrage(quellen.waerme, "mean"),
+        abfrage(quellen.strom, quellen.art),
+      ]);
+      const waerme = tage(aw, quellen.waerme, "mean");
+      const strom = tage(as, quellen.strom, quellen.art);
+      // Nur Tage, an denen beide Seiten Daten haben.
+      const gemeinsam = [...waerme.keys()].filter((t) => strom.has(t)).sort((a, b) => a - b);
+      const rechne = (ab) => {
+        const liste = gemeinsam.filter((t) => t >= ab);
+        if (!liste.length) return null;
+        let w = 0;
+        let e = 0;
+        liste.forEach((t) => {
+          w += waerme.get(t);
+          e += strom.get(t);
+        });
+        if (e <= 0) return null;
+        return { jaz: w / e, waerme: w, strom: e, erster: liste[0], ab };
+      };
+      this._jaz = { "12": rechne(start12), jahr: rechne(startJahr) };
+      this._jazSchluessel = schluessel;
+      this._jazZeit = jetzt;
+      if (this._tuerListe) this._tuerListe.forEach((f, i) => f.jaz && this._tuerZeige(i));
+    } catch (err) {
+      // Keine Langzeitstatistik, die Zeilen bleiben bei "--".
+      this._jaz = null;
+    } finally {
+      this._jazLaeuft = false;
+    }
+  }
+
+  /** Zeigt eine JAZ-Zeile hinter der Tuer. */
+  _jazZeige(f, el, seit) {
+    if (this._config.demo) {
+      el.textContent = fmt(f.jaz === "12" ? 3.9 : 4.2, 1);
+      if (seit) seit.textContent = "";
+      return;
+    }
+    const r = this._jaz && this._jaz[f.jaz];
+    el.textContent = r ? fmt(r.jaz, 1) : "--";
+    el.title = r
+      ? tf(this._t("j_titel"), { w: fmt(r.waerme, 0), s: fmt(r.strom, 0) })
+      : "";
+    if (seit) {
+      // Reicht die Statistik nicht bis zum Anfang des Zeitraums zurueck,
+      // steht dabei, ab wann gerechnet wurde.
+      const spaeter = r && r.erster - r.ab > 86400000;
+      seit.textContent = spaeter
+        ? tf(this._t("j_seit"), {
+            v: new Date(r.erster).toLocaleDateString(this._sp(), { day: "2-digit", month: "2-digit", year: "numeric" }),
+          })
+        : "";
+    }
+  }
+
   /** Einstellungen, zu denen es eine Entitaet gibt. */
   _tuerFelder() {
     const q = this._quelle;
     if (!q) return [];
-    return TUER_FELDER.map((f) => ({ ...f, id: this._e(f.key) })).filter(
-      (f) => f.id && q.states[f.id]
-    );
+    const jaz = this._jazQuellen();
+    return TUER_FELDER.map((f) =>
+      f.jaz ? { ...f, id: jaz ? `jaz.${f.key}` : "" } : { ...f, id: this._e(f.key) }
+    ).filter((f) => f.id && (f.jaz || q.states[f.id]));
   }
 
   _oeffneTuer() {
@@ -2446,6 +2606,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (karte.classList.contains("tuer-offen")) return;
     this._tuerNeu = {};
     this._tuerZeilen();
+    this._ladeJaz();
     const blatt = this._tuerBlatt();
     karte.classList.add("tuer-offen");
     karte.classList.remove("tuer-zu");
@@ -2605,6 +2766,11 @@ class LutarymHeatpumpCard extends HTMLElement {
       const titel = escapeHtml(this._t(`k_${f.key}`));
       const lang = escapeHtml(feldText(f, this._sp()));
       const bereich = f.id.split(".")[0];
+      if (f.jaz) {
+        html += `<div class="lhc-tuer-zeile"><span>${titel}<em class="jaz-seit" id="tuer-s${i}"></em></span>
+          <div class="lhc-tuer-stell"><output id="tuer-z${i}">--</output></div></div>`;
+        return;
+      }
       if (f.info) {
         html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${titel}</span>
           <div class="lhc-tuer-stell"><output id="tuer-z${i}">--</output></div></div>`;
@@ -2699,6 +2865,10 @@ class LutarymHeatpumpCard extends HTMLElement {
     const f = this._tuerListe && this._tuerListe[i];
     const el = this.shadowRoot.getElementById(`tuer-z${i}`);
     if (!f || !el) return;
+    if (f.jaz) {
+      this._jazZeige(f, el, this.shadowRoot.getElementById(`tuer-s${i}`));
+      return;
+    }
     const geaendert = Boolean(this._tuerNeu && this._tuerNeu[f.id]);
     const wert = this._tuerWert(f);
     if (f.knopf) {
@@ -5191,7 +5361,12 @@ ${this._defs()}
     );
     abzeichen("dhwheater-badge", heizstabLaeuft && wwLaeuft);
     const tuerKnopf = this._animEl("tuer-knopf");
-    if (tuerKnopf) tuerKnopf.style.display = this._tuerFelder().length ? "" : "none";
+    if (tuerKnopf) {
+      tuerKnopf.style.display =
+        this._config.show_door !== false && this._tuerFelder().length ? "" : "none";
+    }
+    const hilfeKnopf = this.shadowRoot.getElementById("hilfe-knopf");
+    if (hilfeKnopf) hilfeKnopf.style.display = this._config.show_help === false ? "none" : "";
     this._speicherZeilen("buf");
     this._speicherZeilen("dhw");
     // TOP2 meldet das einmalige Aufheizen, TOP69 den Legionellenschutz.
@@ -6044,6 +6219,7 @@ ${this._defs()}
       .lhc-tuer-zeile.spalte { flex-direction: column; align-items: stretch; gap: 4px; }
       .lhc-tuer-zeile.spalte .lhc-tuer-seg button { flex: 1; }
       .lhc-tuer-zeile em { color: var(--muted); font-style: normal; font-size: 11px; }
+      .lhc-tuer-zeile em.jaz-seit { display: block; }
       .lhc-tuer-stell { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
       .lhc-tuer-stell output {
         min-width: 50px; text-align: center; font-size: 13px; white-space: nowrap;
@@ -6328,6 +6504,21 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_laedt_zeigen")}<em>${this._t("e_laedt_zeigen_h")}</em></span>
           </label>
           <label class="ed-row ed-check">
+            <input type="checkbox" id="opt-hilfe">
+            <span>${this._t("e_hilfe_zeigen")}<em>${this._t("e_hilfe_zeigen_h")}</em></span>
+          </label>
+          <label class="ed-row ed-check">
+            <input type="checkbox" id="opt-tuer">
+            <span>${this._t("e_tuer_zeigen")}<em>${this._t("e_tuer_zeigen_h")}</em></span>
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_jaz_quelle")}<em>${this._t("e_jaz_quelle_h")}</em></span>
+            <select id="opt-jaz">
+              <option value="heishamon">${this._t("o_jaz_heishamon")}</option>
+              <option value="zaehler">${this._t("o_jaz_zaehler")}</option>
+            </select>
+          </label>
+          <label class="ed-row ed-check">
             <input type="checkbox" id="opt-verlauf">
             <span>${this._t("e_verlauf")}<em>${this._t("e_verlauf_h")}</em></span>
           </label>
@@ -6372,6 +6563,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     };
     bind("opt-fans", (el) => put({ fan_count: parseInt(el.value, 10) }));
     bind("opt-layout", (el) => put({ layout: el.value }));
+    bind("opt-jaz", (el) => put({ jaz_source: el.value }));
     bind("opt-breite", (el) => put({ card_width: parseInt(el.value, 10) || 0 }));
     bind("opt-hoehe", (el) => put({ card_height: parseInt(el.value, 10) || 0 }));
     bind("opt-rohr", (el) => put({ pipe_inner_mm: parseInt(el.value, 10) || 0 }));
@@ -6399,6 +6591,8 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-verlauf", (el) => put({ show_history: el.checked }));
     bind("opt-ziel", (el) => put({ show_target: el.checked }));
     bind("opt-laedt", (el) => put({ show_reload: el.checked }));
+    bind("opt-hilfe", (el) => put({ show_help: el.checked }));
+    bind("opt-tuer", (el) => put({ show_door: el.checked }));
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
 
@@ -6602,6 +6796,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     };
     put("opt-fans", String(this._config.fan_count));
     put("opt-layout", this._config.layout || "quer");
+    put("opt-jaz", this._config.jaz_source === "zaehler" ? "zaehler" : "heishamon");
     put("opt-breite", String(this._config.card_width || 0));
     put("opt-hoehe", String(this._config.card_height || 0));
     put("opt-rohr", String(this._config.pipe_inner_mm || 0));
@@ -6629,6 +6824,8 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     check("opt-verlauf", this._config.show_history !== false);
     check("opt-ziel", this._config.show_target !== false);
     check("opt-laedt", this._config.show_reload !== false);
+    check("opt-hilfe", this._config.show_help !== false);
+    check("opt-tuer", this._config.show_door !== false);
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
 

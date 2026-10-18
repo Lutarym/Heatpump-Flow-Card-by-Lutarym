@@ -12,7 +12,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Flow animation that follows the real hydraulics: diverter valve, pumps, compressor and buffer
 - Temperature colouring of tanks, radiators and pipes
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
-- Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, fault reset, operating hours and starts); changes are sent with “Apply” and the door closes
+- Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, seasonal performance factor (JAZ) for the last 12 months and since 1 January, operating hours and starts); changes are sent with “Apply” and the door closes
 - Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups; for every TOP value the full entity ID, copyable with one click
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
@@ -82,6 +82,9 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `show_history` | `true` | Show the energy chart |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
 | `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
+| `show_help` | `true` | Show the “?” help button at the bottom right of the card |
+| `show_door` | `true` | Show the advanced settings button at the bottom right of the heat pump |
+| `jaz_source` | `heishamon` | Electricity for the JAZ: `heishamon` (heat pump only, TOP16/TOP41 or XTOP0/XTOP2) or `zaehler` (energy meter of the card, e.g. Shelly PM). Heat always comes from HeishaMon |
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |
 | `card_width` | `0` | Width in pixels, 0 is automatic |
 | `card_height` | `0` | Height in pixels, 0 is automatic |
@@ -192,7 +195,6 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `holiday_mode` | Holiday mode | SetHolidayMode, switch |
 | `main_schedule` | Weekly schedule | SetMainSchedule, switch |
 | `smart_dhw` | Smart DHW | SetSmartDHW, select |
-| `fault_reset` | Reset fault | SetReset, button |
 | `operating_hours` | Operating hours | TOP11 |
 | `compressor_starts` | Compressor starts | TOP12 |
 | `room_heater_hours` | Heater hours, heating | TOP90 |

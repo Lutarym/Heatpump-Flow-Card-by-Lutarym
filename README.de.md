@@ -12,7 +12,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Fließanimation, die der tatsächlichen Hydraulik folgt: Umschaltventil, Pumpen, Verdichter und Puffer
 - Temperaturabhängige Einfärbung von Speichern, Heizkörpern und Leitungen
 - Heizkurve für Heizkreis 1 und 2 in einem eigenen Fenster, mit Skala, Betriebspunkt und einstellbaren Eckwerten
-- Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, Störung quittieren, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
+- Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, Jahresarbeitszahl (JAZ) der letzten 12 Monate und seit 1. Januar, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
 - Hilfefenster („?“ unten rechts): verständliche Erklärung aller Werte und Befehle, die HeishaMon lesen und schreiben kann, mit Suche und Gruppen; zu jedem TOP-Wert die vollständige Entität, per Klick kopierbar
 - Verbrauchsverlauf der letzten 24 Stunden, gefärbt nach Heizung, Warmwasser und Standby, darunter der SG-Ready-Verlauf
 - Anlagen ohne Heizungspuffer, automatisch erkannt über TOP99 oder fest einstellbar
@@ -82,6 +82,9 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `show_history` | `true` | Verbrauchsverlauf anzeigen |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
 | `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
+| `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen |
+| `show_door` | `true` | Knopf für die erweiterten Einstellungen unten rechts an der Wärmepumpe anzeigen |
+| `jaz_source` | `heishamon` | Strom für die JAZ: `heishamon` (nur Wärmepumpe, TOP16/TOP41 oder XTOP0/XTOP2) oder `zaehler` (Energiezähler der Karte, z. B. Shelly PM). Die Wärme kommt immer von HeishaMon |
 | `history_width` | `450` | Breite des Verbrauchsverlaufs, 250 bis 700 |
 | `card_width` | `0` | Breite in Pixeln, 0 ist automatisch |
 | `card_height` | `0` | Höhe in Pixeln, 0 ist automatisch |
@@ -192,7 +195,6 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `holiday_mode` | Urlaubsmodus | SetHolidayMode, switch |
 | `main_schedule` | Wochenprogramm | SetMainSchedule, switch |
 | `smart_dhw` | Smart DHW Warmwasser | SetSmartDHW, select |
-| `fault_reset` | Störung quittieren | SetReset, button |
 | `operating_hours` | Betriebsstunden | TOP11 |
 | `compressor_starts` | Verdichterstarts | TOP12 |
 | `room_heater_hours` | Heizstab Heizen Betriebsstunden | TOP90 |

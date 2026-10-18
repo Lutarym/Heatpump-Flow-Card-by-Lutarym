@@ -12,7 +12,7 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 - Animation du débit qui suit l'hydraulique réelle : vanne trois voies, pompes, compresseur et ballon tampon
 - Coloration selon la température des ballons, radiateurs et tuyaux
 - Courbe de chauffe des circuits 1 et 2 dans une fenêtre dédiée, avec échelle, point de fonctionnement et points réglables
-- Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (vacances, programme hebdomadaire, Smart DHW, limites de chauffage, écart, anti-légionelles, pompe, mode silencieux, acquittement des défauts, heures et démarrages) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
+- Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (vacances, programme hebdomadaire, Smart DHW, limites de chauffage, écart, anti-légionelles, pompe, mode silencieux, coefficient annuel (JAZ/SPF) des 12 derniers mois et depuis le 1er janvier, heures et démarrages) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
 - Fenêtre d'aide (« ? » en bas à droite) : explication simple de toutes les valeurs et commandes que HeishaMon peut lire et écrire, avec recherche et groupes ; pour chaque valeur TOP l'ID complet de l'entité, copiable d'un clic
 - Graphique de consommation sur 24 heures, coloré selon chauffage, eau chaude et veille, avec l'historique SG Ready en dessous
 - Installations sans ballon tampon, détectées automatiquement via TOP99 ou réglées manuellement
@@ -82,6 +82,9 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `show_history` | `true` | Afficher le graphique de consommation |
 | `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |
 | `show_reload` | `true` | Afficher la ligne « Recharge à … » dans le ballon tampon et l'eau chaude |
+| `show_help` | `true` | Afficher le bouton « ? » de l'aide en bas à droite de la carte |
+| `show_door` | `true` | Afficher le bouton des réglages avancés en bas à droite de la pompe à chaleur |
+| `jaz_source` | `heishamon` | Électricité pour le JAZ : `heishamon` (pompe seule, TOP16/TOP41 ou XTOP0/XTOP2) ou `zaehler` (compteur d'énergie de la carte, p. ex. Shelly PM). La chaleur vient toujours de HeishaMon |
 | `history_width` | `450` | Largeur du graphique, 250 à 700 |
 | `card_width` | `0` | Largeur en pixels, 0 = automatique |
 | `card_height` | `0` | Hauteur en pixels, 0 = automatique |
@@ -192,7 +195,6 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `holiday_mode` | Mode vacances | SetHolidayMode, switch |
 | `main_schedule` | Programme hebdomadaire | SetMainSchedule, switch |
 | `smart_dhw` | Smart DHW eau chaude | SetSmartDHW, select |
-| `fault_reset` | Acquitter le défaut | SetReset, button |
 | `operating_hours` | Heures de fonctionnement | TOP11 |
 | `compressor_starts` | Démarrages du compresseur | TOP12 |
 | `room_heater_hours` | Heures appoint chauffage | TOP90 |
