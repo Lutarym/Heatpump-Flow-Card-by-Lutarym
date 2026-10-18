@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.3.3
+
+- English: Help window on phones and tablets: the search field no longer receives the focus on opening, so the on-screen keyboard stays closed. Only devices with a mouse jump directly into the search; on touch devices the window itself gets the focus, Escape still closes it. Before, only the screen width was checked, so the keyboard opened on phones in landscape and on tablets.
+- Deutsch: Hilfefenster am Handy und Tablet: Das Suchfeld bekommt beim Öffnen nicht mehr den Fokus, die Bildschirmtastatur bleibt zu. Nur Geräte mit Maus springen direkt in die Suche; auf Touch-Geräten bekommt das Fenster selbst den Fokus, Escape schließt es weiterhin. Bisher wurde nur die Bildschirmbreite geprüft, deshalb ging die Tastatur am Handy im Querformat und am Tablet auf.
+- Français : fenêtre d'aide sur téléphone et tablette : le champ de recherche ne reçoit plus le focus à l'ouverture, le clavier virtuel reste fermé. Seuls les appareils avec souris vont directement dans la recherche ; sur les appareils tactiles, la fenêtre elle-même reçoit le focus et Échap la ferme toujours. Auparavant seule la largeur d'écran était vérifiée, d'où le clavier sur téléphone en paysage et sur tablette.
+- 日本語：スマートフォンとタブレットのヘルプ画面：開いたときに検索欄へフォーカスしなくなり、画面キーボードが開きません。マウスのある端末だけ検索欄に直接移動し、タッチ端末では画面自体にフォーカスし、Escape で閉じられます。従来は画面幅だけを見ていたため、横向きのスマートフォンやタブレットでキーボードが開いていました。
+
 ## v4.3.2
 
 - English: JAZ table behind the door: the "12 months" column is replaced by heat and electricity in kWh since 1 January. Each row (heating, hot water, total) now shows heat, electricity and the resulting JAZ, so it is visible why the total is weighted by the amounts and is not the simple mean of heating and hot water.

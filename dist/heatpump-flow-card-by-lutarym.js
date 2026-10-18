@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.3.2";
+const CARD_VERSION = "4.3.3";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -2227,7 +2227,7 @@ class LutarymHeatpumpCard extends HTMLElement {
         <button type="button" class="lhc-hilfe-knopf" id="hilfe-knopf"
                 title="${escapeHtml(this._t("h_knopf"))}" aria-label="${escapeHtml(this._t("h_knopf"))}">?</button>
         <div class="lhc-hilfe" id="hilfe" hidden>
-          <div class="lhc-hilfe-box" role="dialog" aria-modal="true" aria-labelledby="hilfe-titel">
+          <div class="lhc-hilfe-box" role="dialog" aria-modal="true" aria-labelledby="hilfe-titel" tabindex="-1">
             <div class="lhc-hilfe-kopf">
               <span id="hilfe-titel">${escapeHtml(this._t("h_titel"))}</span>
               <button type="button" class="lhc-dialog-close" id="hilfe-zu"
@@ -2678,10 +2678,16 @@ class LutarymHeatpumpCard extends HTMLElement {
     this._zeigeHilfe();
     fenster.hidden = false;
     const suche = sr.getElementById("hilfe-suche");
-    // Auf dem Handy wuerde die Tastatur sofort aufgehen, darum nur am
-    // grossen Bildschirm direkt ins Suchfeld.
-    if (suche && window.matchMedia && window.matchMedia("(min-width: 700px)").matches) {
+    // Ins Suchfeld nur mit Maus. Auf Handy und Tablet ginge sonst sofort
+    // die Tastatur auf, auch im Querformat oder auf grossen Geraeten.
+    // Dort bekommt das Fenster selbst den Fokus, damit Escape weiter geht.
+    const maus =
+      window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (suche && maus) {
       suche.focus();
+    } else {
+      const box = fenster.querySelector(".lhc-hilfe-box");
+      if (box) box.focus({ preventScroll: true });
     }
   }
 
@@ -6623,6 +6629,7 @@ ${this._defs()}
         border: 1px solid #55657F; background: #0D1219; color: #C3D0E0;
         font-size: 17px; font-weight: 700; line-height: 1; cursor: pointer;
       }
+      .lhc-hilfe-box:focus { outline: none; }
       .lhc-hilfe-knopf:hover, .lhc-hilfe-knopf:focus-visible { border-color: #E0762E; color: #E0762E; outline: none; }
       .lhc-hilfe {
         position: fixed; inset: 0; z-index: 100;
