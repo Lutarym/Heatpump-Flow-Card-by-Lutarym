@@ -8,7 +8,7 @@ Ein Profil ist eine kleine Textdatei im JSON-Format. Du kannst sie exportieren, 
 
 ## Wo du es findest
 
-Karte bearbeiten, ganz oben im Abschnitt **Integration**:
+Karte bearbeiten, Editor auf **Erweitert** stellen. Die Auswahl steht im Abschnitt **Integration**, die Knöpfe im Abschnitt **Import, Export und Anpassungen**:
 
 - **Herstellerprofil**: Auswahl des Profils
 - **Profil exportieren**: speichert das gewählte Profil als Datei im Download-Ordner
@@ -90,7 +90,7 @@ Gibst du eine neue `id`, entsteht stattdessen ein zusätzliches eigenes Profil.
 
 ## Wo das Profil gespeichert wird
 
-Importierte Profile stehen in der Konfiguration dieser Karte unter `profile_custom`. Sie gelten nur für diese Karte. Mit **Als Datei speichern** im Abschnitt Integration wird das Profil mitgespeichert, und mit **Aus Datei laden** in einer anderen Karte kommt es dort wieder an. Alternativ importierst du die Profildatei in jeder Karte einzeln.
+Importierte Profile stehen in der Konfiguration dieser Karte unter `profile_custom`. Sie gelten nur für diese Karte. Mit **Als Datei speichern** im Abschnitt Import, Export und Anpassungen wird das Profil mitgespeichert, und mit **Aus Datei laden** in einer anderen Karte kommt es dort wieder an. Alternativ importierst du die Profildatei in jeder Karte einzeln.
 
 ## Was ein Profil nicht ändert
 

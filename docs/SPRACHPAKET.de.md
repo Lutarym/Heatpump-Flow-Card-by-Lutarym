@@ -6,7 +6,7 @@ Mit einem Sprachpaket kannst du die Karte selbst in eine weitere Sprache überse
 
 ## Wo du es findest
 
-Karte bearbeiten, Abschnitt **Integration**, unter **Sprache**:
+Karte bearbeiten, Editor auf **Erweitert** stellen, Abschnitt **Import, Export und Anpassungen**, unter **Sprache**:
 
 - **Sprache exportieren**: speichert die gerade angezeigte Sprache als Datei im Download-Ordner
 - **Sprache importieren**: liest eine Sprachdatei ein und wählt die Sprache aus
@@ -71,7 +71,7 @@ Exportiere zum Beispiel Deutsch, ändere einzelne Texte und importiere die Datei
 
 ## Wo die Sprache gespeichert wird
 
-Importierte Sprachen stehen in der Konfiguration dieser Karte unter `language_custom` und gelten nur für diese Karte. Mit **Als Datei speichern** und **Aus Datei laden** im Abschnitt Integration lässt sich die ganze Konfiguration samt Sprache auf eine andere Karte übertragen. Steht die Sprache auf **Automatisch** und hat Home Assistant denselben Sprachcode, nimmt die Karte die eigene Sprache automatisch.
+Importierte Sprachen stehen in der Konfiguration dieser Karte unter `language_custom` und gelten nur für diese Karte. Mit **Als Datei speichern** und **Aus Datei laden** im Abschnitt Import, Export und Anpassungen lässt sich die ganze Konfiguration samt Sprache auf eine andere Karte übertragen. Steht die Sprache auf **Automatisch** und hat Home Assistant denselben Sprachcode, nimmt die Karte die eigene Sprache automatisch.
 
 Bei einer kompletten Übersetzung samt Hilfe wird die Konfiguration der Karte deutlich größer.
 

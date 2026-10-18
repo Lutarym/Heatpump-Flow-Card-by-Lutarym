@@ -6,7 +6,7 @@ With a language pack you can translate the card into another language yourself o
 
 ## Where to find it
 
-Edit the card, section **Integration**, below **Language**:
+Edit the card, switch the editor to **Advanced**, section **Import, export and customisation**, below **Language**:
 
 - **Export language**: saves the language currently shown as a file in your downloads folder
 - **Import language**: reads a language file and selects the language
@@ -73,7 +73,7 @@ The keys are German and must stay exactly as shown.
 
 ## Where the language is stored
 
-Imported languages are stored in the configuration of this card under `language_custom` and apply to this card only. **Save as file** and **Load from file** in the Integration section transfer the whole configuration including the language to another card. If the language is set to **Automatic** and Home Assistant uses the same language code, the card picks the own language automatically.
+Imported languages are stored in the configuration of this card under `language_custom` and apply to this card only. **Save as file** and **Load from file** in the section Import, export and customisation transfer the whole configuration including the language to another card. If the language is set to **Automatic** and Home Assistant uses the same language code, the card picks the own language automatically.
 
 A complete translation including the help makes the card configuration considerably larger.
 

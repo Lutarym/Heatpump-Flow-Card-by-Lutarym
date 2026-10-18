@@ -8,7 +8,7 @@ Un profil est un petit fichier texte au format JSON. Vous pouvez l'exporter, le 
 
 ## Où le trouver
 
-Modifier la carte, tout en haut dans la section **Intégration** :
+Modifier la carte et passer l'éditeur en **Avancé**. Le choix se trouve dans la section **Intégration**, les boutons dans la section **Import, export et personnalisation** :
 
 - **Profil du fabricant** : choix du profil
 - **Exporter le profil** : enregistre le profil choisi comme fichier dans le dossier des téléchargements
@@ -92,7 +92,7 @@ Avec une nouvelle `id`, un profil personnel supplémentaire est créé à la pla
 
 ## Où le profil est enregistré
 
-Les profils importés sont enregistrés dans la configuration de cette carte sous `profile_custom`. Ils ne valent que pour cette carte. **Enregistrer dans un fichier** dans la section Intégration inclut le profil, et **Charger un fichier** dans une autre carte l'y transfère. Sinon, importez le fichier de profil dans chaque carte.
+Les profils importés sont enregistrés dans la configuration de cette carte sous `profile_custom`. Ils ne valent que pour cette carte. **Enregistrer dans un fichier** dans la section Import, export et personnalisation inclut le profil, et **Charger un fichier** dans une autre carte l'y transfère. Sinon, importez le fichier de profil dans chaque carte.
 
 ## Ce qu'un profil ne change pas
 

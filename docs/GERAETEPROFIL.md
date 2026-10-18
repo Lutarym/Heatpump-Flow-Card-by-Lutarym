@@ -8,7 +8,7 @@ A profile is a small text file in JSON format. You can export it, change it with
 
 ## Where to find it
 
-Edit the card, at the top in the section **Integration**:
+Edit the card and switch the editor to **Advanced**. The selection is in the section **Integration**, the buttons in the section **Import, export and customisation**:
 
 - **Manufacturer profile**: selects the profile
 - **Export profile**: saves the selected profile as a file in your downloads folder
@@ -92,7 +92,7 @@ If you give a new `id`, an additional own profile is created instead.
 
 ## Where the profile is stored
 
-Imported profiles are stored in the configuration of this card under `profile_custom`. They apply to this card only. **Save as file** in the Integration section includes the profile, and **Load from file** in another card brings it there. Alternatively, import the profile file in each card.
+Imported profiles are stored in the configuration of this card under `profile_custom`. They apply to this card only. **Save as file** in the section Import, export and customisation includes the profile, and **Load from file** in another card brings it there. Alternatively, import the profile file in each card.
 
 ## What a profile does not change
 

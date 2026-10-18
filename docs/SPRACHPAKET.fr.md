@@ -6,7 +6,7 @@ Un pack de langue permet de traduire vous-même la carte dans une autre langue o
 
 ## Où le trouver
 
-Modifier la carte, section **Intégration**, sous **Langue** :
+Modifier la carte, passer l'éditeur en **Avancé**, section **Import, export et personnalisation**, sous **Langue** :
 
 - **Exporter la langue** : enregistre la langue affichée comme fichier dans le dossier des téléchargements
 - **Importer une langue** : lit un fichier de langue et sélectionne la langue
@@ -73,7 +73,7 @@ Les clés sont en allemand et doivent rester exactement ainsi.
 
 ## Où la langue est enregistrée
 
-Les langues importées sont enregistrées dans la configuration de cette carte sous `language_custom` et ne valent que pour cette carte. **Enregistrer dans un fichier** et **Charger un fichier** dans la section Intégration transfèrent toute la configuration, langue comprise, vers une autre carte. Si la langue est sur **Automatique** et que Home Assistant utilise le même code, la carte prend automatiquement la langue personnelle.
+Les langues importées sont enregistrées dans la configuration de cette carte sous `language_custom` et ne valent que pour cette carte. **Enregistrer dans un fichier** et **Charger un fichier** dans la section Import, export et personnalisation transfèrent toute la configuration, langue comprise, vers une autre carte. Si la langue est sur **Automatique** et que Home Assistant utilise le même code, la carte prend automatiquement la langue personnelle.
 
 Une traduction complète avec l'aide agrandit nettement la configuration de la carte.
 

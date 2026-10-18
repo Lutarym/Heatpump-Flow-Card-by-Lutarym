@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.5.0";
+const CARD_VERSION = "4.6.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -213,6 +213,24 @@ const TEXTE = {
   o_th_kontrast: { de: "Hoher Kontrast", en: "High contrast", fr: "Contraste élevé", ja: "ハイコントラスト" },
   o_th_nacht: { de: "Nacht (gedimmt)", en: "Night (dimmed)", fr: "Nuit (atténué)", ja: "夜間（減光）" },
   o_th_ha: { de: "Farben des Home-Assistant-Designs", en: "Colours of the Home Assistant theme", fr: "Couleurs du thème Home Assistant", ja: "Home Assistant テーマの色" },
+  e_modus: { de: "Editor", en: "Editor", fr: "Éditeur", ja: "エディター" },
+  e_modus_h: { de: "Einfach zeigt nur die wichtigsten Einstellungen", en: "Simple shows only the most important settings", fr: "Simple n'affiche que les réglages essentiels", ja: "シンプルは主な設定のみ表示" },
+  e_modus_einfach: { de: "Einfach", en: "Simple", fr: "Simple", ja: "シンプル" },
+  e_modus_erweitert: { de: "Erweitert", en: "Advanced", fr: "Avancé", ja: "詳細" },
+  e_entitaeten: { de: "Entitäten", en: "Entities", fr: "Entités", ja: "エンティティ" },
+  e_entitaeten_h: { de: "Welche Entität aus Home Assistant zu welchem Wert der Karte gehört", en: "Which Home Assistant entity belongs to which value of the card", fr: "Quelle entité de Home Assistant correspond à quelle valeur de la carte", ja: "どの Home Assistant エンティティがカードのどの値に対応するか" },
+  e_nur_fehlende: { de: "Nur fehlende anzeigen", en: "Show missing only", fr: "Afficher seulement les manquantes", ja: "未設定のみ表示" },
+  e_zugeordnet: { de: "{a} von {b} zugeordnet", en: "{a} of {b} assigned", fr: "{a} sur {b} attribuées", ja: "{b} 件中 {a} 件割り当て済み" },
+  e_alles_da: { de: "Alles zugeordnet, nichts fehlt.", en: "Everything assigned, nothing missing.", fr: "Tout est attribué, rien ne manque.", ja: "すべて割り当て済みです。" },
+  e_werkzeuge: { de: "Import, Export und Anpassungen", en: "Import, export and customisation", fr: "Import, export et personnalisation", ja: "インポート・エクスポートとカスタマイズ" },
+  e_werkzeuge_h: { de: "Konfiguration sichern, Geräteprofile und Sprachen", en: "Back up the configuration, device profiles and languages", fr: "Sauvegarder la configuration, profils d'appareil et langues", ja: "設定のバックアップ、デバイスプロファイル、言語" },
+  e_w_konfig: { de: "Konfiguration", en: "Configuration", fr: "Configuration", ja: "設定" },
+  e_w_profil: { de: "Geräteprofil", en: "Device profile", fr: "Profil d'appareil", ja: "デバイスプロファイル" },
+  e_w_sprache: { de: "Sprache", en: "Language", fr: "Langue", ja: "言語" },
+  f_ok: { de: "Gefunden", en: "Found", fr: "Trouvée", ja: "見つかりました" },
+  f_fehlt: { de: "Diese Entität gibt es in Home Assistant nicht", en: "This entity does not exist in Home Assistant", fr: "Cette entité n'existe pas dans Home Assistant", ja: "このエンティティは Home Assistant にありません" },
+  f_leer: { de: "Nicht zugeordnet", en: "Not assigned", fr: "Non attribuée", ja: "未割り当て" },
+  f_erklaerung: { de: "Erklärung anzeigen", en: "Show explanation", fr: "Afficher l'explication", ja: "説明を表示" },
   e_s_export: { de: "Sprache exportieren", en: "Export language", fr: "Exporter la langue", ja: "言語を書き出す" },
   e_s_import: { de: "Sprache importieren", en: "Import language", fr: "Importer une langue", ja: "言語を読み込む" },
   e_s_entfernen: { de: "Eigene Sprache entfernen", en: "Remove own language", fr: "Supprimer la langue personnelle", ja: "独自の言語を削除" },
@@ -6987,7 +7005,15 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     // Nur einmal aufbauen, sonst ueberschreibt der Abgleich die Eingabe.
-    if (!this._built) this._render();
+    if (!this._built) {
+      this._render();
+      return;
+    }
+    if (this.shadowRoot) {
+      this.shadowRoot.querySelectorAll(".ed-picker").forEach((p) => {
+        p.hass = hass;
+      });
+    }
   }
 
   _emit() {
@@ -7038,45 +7064,28 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
             <button type="button" id="btn-adopt" ${
               found.found ? "" : "disabled"
             }>${this._t("e_uebernehmen")}</button>
-            <button type="button" id="btn-default">${this._t("e_standardnamen")}</button>
-            <button type="button" id="btn-clear" class="is-quiet">${this._t("e_alle_leeren")}</button>
+            <button type="button" id="btn-default" class="nur-erweitert">${this._t("e_standardnamen")}</button>
+            <button type="button" id="btn-clear" class="is-quiet nur-erweitert">${this._t("e_alle_leeren")}</button>
+          </div>
+          <div class="ed-row ed-breit">
+            <span>${this._t("e_modus")}<em>${this._t("e_modus_h")}</em></span>
+            <div class="ed-seg" id="ed-modus">
+              <button type="button" data-modus="einfach">${this._t("e_modus_einfach")}</button>
+              <button type="button" data-modus="erweitert">${this._t("e_modus_erweitert")}</button>
+            </div>
           </div>
           <label class="ed-row ed-breit">
             <span>${this._t("e_sprache")}${this._sp() === "en" ? "" : " / Language"}<em>${this._t("e_sprache_h")}</em></span>
             <select id="opt-sprache">${this._sprachOptionen()}</select>
           </label>
-          <div class="ed-buttons">
-            <button type="button" id="btn-sprache-aus">${this._t("e_s_export")}</button>
-            <button type="button" id="btn-sprache-ein">${this._t("e_s_import")}</button>
-            <button type="button" id="btn-sprache-weg">${this._t("e_s_entfernen")}</button>
-          </div>
-          <input type="file" id="ed-sprache-datei" accept=".json,application/json" hidden>
-          <p class="ed-info" id="ed-sprache-hinweis"></p>
-          <label class="ed-row ed-breit">
+          <label class="ed-row ed-breit nur-erweitert">
             <span>${this._t("e_profil")}<em>${this._t("e_profil_h")}</em></span>
             <select id="opt-profil">${this._profilOptionen()}</select>
           </label>
-          <div class="ed-buttons">
-            <button type="button" id="btn-profil-aus">${this._t("e_p_export")}</button>
-            <button type="button" id="btn-profil-ein">${this._t("e_p_import")}</button>
-            <button type="button" id="btn-profil-weg">${this._t("e_p_entfernen")}</button>
-          </div>
-          <input type="file" id="ed-profil-datei" accept=".json,application/json" hidden>
-          <p class="ed-info" id="ed-profil-hinweis"></p>
-          <div class="ed-buttons">
-            <button type="button" id="btn-export">${this._t("e_feld_schreiben")}</button>
-            <button type="button" id="btn-import">${this._t("e_feld_einlesen")}</button>
-            <button type="button" id="btn-datei-aus">${this._t("e_datei_speichern")}</button>
-            <button type="button" id="btn-datei-ein">${this._t("e_datei_laden")}</button>
-          </div>
-          <input type="file" id="ed-datei" accept=".json,application/json" hidden>
-          <textarea id="ed-austausch" rows="4" spellcheck="false"
-                    placeholder="${this._t("r_platzhalter")}"></textarea>
-          <p class="ed-info" id="ed-austausch-hinweis"></p>
         </div>
 
-        <div class="ed-group">
-          <h3>${this._t("e_darstellung")}</h3>
+        <details class="ed-group ed-klapp" data-klapp="darstellung">
+          <summary><h3>${this._t("e_darstellung")}</h3></summary>
           <label class="ed-row">
             <span>${this._t("e_anz_luefter")}</span>
             <select id="opt-fans"><option value="1">${this._t("e_1luefter")}</option><option value="2">${this._t("e_2luefter")}</option></select>
@@ -7096,39 +7105,39 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
                 .join("")}
             </select>
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_breite")}<em>${this._t("e_pixel_auto")}</em></span>
             <input type="number" id="opt-breite" min="0" step="10">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_hoehe")}<em>${this._t("e_pixel_auto")}</em></span>
             <input type="number" id="opt-hoehe" min="0" step="10">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_rohr")}<em>${this._t("e_rohr_h")}</em></span>
             <input type="number" id="opt-rohr" min="0" max="80" step="1">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_mqtt")}<em>${this._t("e_mqtt_h")}</em></span>
             <input type="text" id="opt-mqtt" placeholder="panasonic_heat_pump">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_vbreite")}<em>${this._t("e_vbreite_h")}</em></span>
             <input type="number" id="opt-vbreite" min="250" max="700" step="10">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_kx_von")}<em>${this._t("e_kx_von_h")}</em></span>
             <input type="number" id="opt-kxmin" step="1">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_kx_bis")}<em>${this._t("e_kx_bis_h")}</em></span>
             <input type="number" id="opt-kxmax" step="1">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_ky_von")}<em>${this._t("e_ky_von_h")}</em></span>
             <input type="number" id="opt-kymin" step="1">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_ky_bis")}<em>${this._t("e_ky_bis_h")}</em></span>
             <input type="number" id="opt-kymax" step="1">
           </label>
@@ -7136,16 +7145,16 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_anz_hk")}</span>
             <select id="opt-hk"><option value="1">${this._t("e_1hk")}</option><option value="2">${this._t("e_2hk")}</option></select>
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_hs_kalt")}<em>${this._t("e_hs_kalt_h")}</em></span>
             <input type="number" id="opt-min">
           </label>
-          <label class="ed-row"><span>${this._t("e_hs_heiss")}<em>${this._t("e_grad")}</em></span><input type="number" id="opt-max"></label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert"><span>${this._t("e_hs_heiss")}<em>${this._t("e_grad")}</em></span><input type="number" id="opt-max"></label>
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_as_kalt")}<em>${this._t("e_as_kalt_h")}</em></span>
             <input type="number" id="opt-omin">
           </label>
-          <label class="ed-row"><span>${this._t("e_as_warm")}<em>${this._t("e_grad")}</em></span><input type="number" id="opt-omax"></label>
+          <label class="ed-row nur-erweitert"><span>${this._t("e_as_warm")}<em>${this._t("e_grad")}</em></span><input type="number" id="opt-omax"></label>
           <label class="ed-row">
             <span>${this._t("e_l_hk1")}<em>${this._t("e_l_hk_h")}</em></span>
             <input type="text" id="opt-lhk1">
@@ -7162,11 +7171,11 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_l_dhw")}<em>${this._t("e_frei")}</em></span>
             <input type="text" id="opt-ldhw">
           </label>
-          <label class="ed-row">
+          <label class="ed-row nur-erweitert">
             <span>${this._t("e_l_energy")}<em>${this._t("e_l_energy_h")}</em></span>
             <input type="text" id="opt-lenergy">
           </label>
-          <label class="ed-row ed-check">
+          <label class="ed-row ed-check nur-erweitert">
             <input type="checkbox" id="opt-eday">
             <span>${this._t("e_tagesverbrauch")}</span>
           </label>
@@ -7211,33 +7220,79 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
             <input type="checkbox" id="opt-verlauf">
             <span>${this._t("e_verlauf")}<em>${this._t("e_verlauf_h")}</em></span>
           </label>
-        </div>
+        </details>
 
-        ${groups
-          .map(
-            (g) => `
-          <div class="ed-group">
-            <h3>${escapeHtml(gruppenText(g.name, this._sp()))}</h3>
+        <div class="ed-block nur-erweitert">
+          <div class="ed-block-kopf">
+            <h3>${this._t("e_entitaeten")}<em>${this._t("e_entitaeten_h")}</em></h3>
+            <label class="ed-schalter"><input type="checkbox" id="ed-nur-fehlende"><span>${this._t("e_nur_fehlende")}</span></label>
+          </div>
+          <p class="ed-meldung" id="ed-alles-da" hidden>${this._t("e_alles_da")}</p>
+          ${groups
+            .map(
+              (g, gi) => `
+          <details class="ed-group ed-klapp" data-klapp="g${gi}" data-gruppe="${gi}">
+            <summary><h3>${escapeHtml(gruppenText(g.name, this._sp()))}</h3><span class="ed-zahl" id="ed-zahl-${gi}"></span></summary>
             ${g.fields
-              .map(
-                (f) => `
-              <label class="ed-row">
-                <span>${escapeHtml(feldText(f, this._sp()))}<em>${escapeHtml(hinweisText(f.hint, this._sp()))}</em></span>
-                <input type="text" list="lhc-entities" data-entity="${f.key}"
-                       placeholder="entity_id" autocomplete="off">
-              </label>`
-              )
+              .map((f) => {
+                const hilfe = this._feldHilfe(f);
+                return `
+              <div class="ed-row ed-feld" data-feld="${f.key}">
+                <span>${escapeHtml(feldText(f, this._sp()))}${
+                  hilfe
+                    ? ` <button type="button" class="ed-frage" data-frage="${f.key}" title="${escapeHtml(this._t("f_erklaerung"))}" aria-label="${escapeHtml(this._t("f_erklaerung"))}">?</button>`
+                    : ""
+                }<em>${escapeHtml(hinweisText(f.hint, this._sp()))}</em></span>
+                <div class="ed-wahl">
+                  <input type="text" list="lhc-entities" data-entity="${f.key}"
+                         placeholder="entity_id" autocomplete="off">
+                  <span class="ed-zustand" data-zustand="${f.key}"></span>
+                </div>
+                ${hilfe ? `<p class="ed-erklaerung" data-erklaerung="${f.key}" hidden>${escapeHtml(hilfe)}</p>` : ""}
+              </div>`;
+              })
               .join("")}
-          </div>`
-          )
-          .join("")}
+          </details>`
+            )
+            .join("")}
+          <p class="ed-note">${this._t("r_sg_hinweis")}</p>
+        </div>
 
         <datalist id="lhc-entities">${options}</datalist>
 
-        <p class="ed-note">${this._t("r_sg_hinweis")}</p>
+        <details class="ed-group ed-klapp nur-erweitert" data-klapp="werkzeuge">
+          <summary><h3>${this._t("e_werkzeuge")}<em>${this._t("e_werkzeuge_h")}</em></h3></summary>
+          <h4>${this._t("e_w_konfig")}</h4>
+          <div class="ed-buttons">
+            <button type="button" id="btn-datei-aus">${this._t("e_datei_speichern")}</button>
+            <button type="button" id="btn-datei-ein">${this._t("e_datei_laden")}</button>
+            <button type="button" id="btn-export">${this._t("e_feld_schreiben")}</button>
+            <button type="button" id="btn-import">${this._t("e_feld_einlesen")}</button>
+          </div>
+          <input type="file" id="ed-datei" accept=".json,application/json" hidden>
+          <textarea id="ed-austausch" rows="4" spellcheck="false"
+                    placeholder="${this._t("r_platzhalter")}"></textarea>
+          <p class="ed-meldung" id="ed-austausch-hinweis"></p>
+          <h4>${this._t("e_w_profil")}</h4>
+          <div class="ed-buttons">
+            <button type="button" id="btn-profil-aus">${this._t("e_p_export")}</button>
+            <button type="button" id="btn-profil-ein">${this._t("e_p_import")}</button>
+            <button type="button" id="btn-profil-weg">${this._t("e_p_entfernen")}</button>
+          </div>
+          <input type="file" id="ed-profil-datei" accept=".json,application/json" hidden>
+          <p class="ed-meldung" id="ed-profil-hinweis"></p>
+          <h4>${this._t("e_w_sprache")}</h4>
+          <div class="ed-buttons">
+            <button type="button" id="btn-sprache-aus">${this._t("e_s_export")}</button>
+            <button type="button" id="btn-sprache-ein">${this._t("e_s_import")}</button>
+            <button type="button" id="btn-sprache-weg">${this._t("e_s_entfernen")}</button>
+          </div>
+          <input type="file" id="ed-sprache-datei" accept=".json,application/json" hidden>
+          <p class="ed-meldung" id="ed-sprache-hinweis"></p>
+        </details>
 
         <p class="ed-info">
-          <strong>Lutarym Heatpump Card v${CARD_VERSION}</strong>
+          <strong>Heatpump Flow Card by Lutarym v${CARD_VERSION}</strong>
         </p>
       </div>
     `;
@@ -7474,11 +7529,203 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
         else delete entities[input.dataset.entity];
         this._config = { ...this._config, entities };
         this._emit();
+        this._zeigeEntitaetsZustand();
       });
     });
 
+    this._bindeEditorBedienung();
     this._built = true;
     this._syncValues();
+    this._entitaetsAuswahl();
+  }
+
+  /* -------------------- Editor-Bedienung -------------------- */
+
+  /** Gespeicherte Bedienzustaende des Editors, nur in diesem Browser. */
+  _merke(k, v) {
+    try {
+      if (v === undefined) return window.localStorage.getItem(`lhc-editor-${k}`);
+      window.localStorage.setItem(`lhc-editor-${k}`, v);
+    } catch (e) {
+      // Speicher nicht verfuegbar, dann eben nur fuer diese Sitzung.
+    }
+    return null;
+  }
+
+  _modus() {
+    if (!this._editorModus) this._editorModus = this._merke("modus") === "erweitert" ? "erweitert" : "einfach";
+    return this._editorModus;
+  }
+
+  /** Erklaerung aus der Hilfe zu einem Feld, ueber TOP-Wert oder Befehl. */
+  _feldHilfe(f) {
+    const hint = String(f.hint || "");
+    const tops = (hint.match(/\b(X?TOP\d+)\b/g) || []).map((x) => x.toUpperCase());
+    const befehle = (hint.match(/\bSet\w+\b/g) || []).map((x) => x.toLowerCase());
+    if (!tops.length && !befehle.length) return "";
+    const sp = this._sp();
+    for (const g of HILFE) {
+      for (let i = 0; i < g.e.length; i++) {
+        const e = g.e[i];
+        if ((e.l && tops.includes(e.l.toUpperCase())) || (e.s && befehle.includes(e.s.toLowerCase()))) {
+          return hilfeText(sp, `${g.id}.${i}.t`, e.t);
+        }
+      }
+    }
+    return "";
+  }
+
+  _bindeEditorBedienung() {
+    const sr = this.shadowRoot;
+    if (!this._offen) {
+      this._offen = new Set();
+      const gemerkt = this._merke("offen");
+      try {
+        // Beim ersten Mal ist die Darstellung offen, das ist im einfachen
+        // Modus der eigentliche Inhalt.
+        JSON.parse(gemerkt || '["darstellung"]').forEach((k) => this._offen.add(k));
+      } catch (e) {
+        this._offen.add("darstellung");
+      }
+    }
+    sr.querySelectorAll("details[data-klapp]").forEach((d) => {
+      d.open = this._offen.has(d.dataset.klapp);
+      d.addEventListener("toggle", () => {
+        if (d.open) this._offen.add(d.dataset.klapp);
+        else this._offen.delete(d.dataset.klapp);
+        this._merke("offen", JSON.stringify([...this._offen]));
+      });
+    });
+    sr.querySelectorAll("#ed-modus button").forEach((b) =>
+      b.addEventListener("click", () => {
+        this._editorModus = b.dataset.modus;
+        this._merke("modus", this._editorModus);
+        this._zeigeModus();
+      })
+    );
+    const filter = sr.getElementById("ed-nur-fehlende");
+    if (filter) {
+      filter.checked = this._nurFehlende === true;
+      filter.addEventListener("change", () => {
+        this._nurFehlende = filter.checked;
+        this._zeigeEntitaetsZustand();
+      });
+    }
+    sr.querySelectorAll("button[data-frage]").forEach((b) =>
+      b.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        const p = sr.querySelector(`[data-erklaerung="${b.dataset.frage}"]`);
+        if (p) p.hidden = !p.hidden;
+      })
+    );
+    this._zeigeModus();
+  }
+
+  _zeigeModus() {
+    const sr = this.shadowRoot;
+    const ed = sr.querySelector(".ed");
+    if (ed) ed.classList.toggle("einfach", this._modus() === "einfach");
+    sr.querySelectorAll("#ed-modus button").forEach((b) =>
+      b.classList.toggle("aktiv", b.dataset.modus === this._modus())
+    );
+  }
+
+  /** Haken, Warnung, Zaehler je Gruppe und der Filter "nur fehlende". */
+  _zeigeEntitaetsZustand() {
+    const sr = this.shadowRoot;
+    const ent = this._config.entities || {};
+    const states = (this._hass && this._hass.states) || {};
+    let sichtbarGesamt = 0;
+    sr.querySelectorAll("details[data-gruppe]").forEach((d) => {
+      let da = 0;
+      let alle = 0;
+      let sichtbar = 0;
+      d.querySelectorAll(".ed-feld").forEach((row) => {
+        const k = row.dataset.feld;
+        const v = ent[k] || "";
+        const ok = Boolean(v) && Boolean(states[v]);
+        const zustand = !v ? "leer" : ok ? "ok" : "fehlt";
+        alle++;
+        if (ok) da++;
+        const z = row.querySelector(".ed-zustand");
+        if (z) {
+          z.dataset.wert = zustand;
+          z.textContent = zustand === "ok" ? "✓" : zustand === "fehlt" ? "!" : "";
+          z.title = this._t(zustand === "ok" ? "f_ok" : zustand === "fehlt" ? "f_fehlt" : "f_leer");
+        }
+        const zeigen = !this._nurFehlende || zustand !== "ok";
+        row.hidden = !zeigen;
+        if (zeigen) sichtbar++;
+      });
+      const zahl = d.querySelector(".ed-zahl");
+      if (zahl) {
+        zahl.textContent = tf(this._t("e_zugeordnet"), { a: da, b: alle });
+        zahl.classList.toggle("voll", da === alle);
+      }
+      d.hidden = sichtbar === 0;
+      sichtbarGesamt += sichtbar;
+    });
+    const allesDa = sr.getElementById("ed-alles-da");
+    if (allesDa) allesDa.hidden = !(this._nurFehlende && sichtbarGesamt === 0);
+  }
+
+  /**
+   * Ersetzt die Textfelder durch das Auswahlfeld von Home Assistant, wenn
+   * es zur Verfuegung steht. Das Feld ist nicht offiziell dokumentiert,
+   * deshalb bleibt bei jedem Problem das Textfeld stehen.
+   */
+  async _entitaetsAuswahl() {
+    const name = "ha-entity-picker";
+    try {
+      if (!customElements.get(name) && typeof window.loadCardHelpers === "function") {
+        // Laedt die Editoren von Home Assistant und damit das Auswahlfeld.
+        const helfer = await window.loadCardHelpers();
+        const karte = await helfer.createCardElement({ type: "entities", entities: [] });
+        if (karte && karte.constructor && karte.constructor.getConfigElement) {
+          await karte.constructor.getConfigElement();
+        }
+      }
+      if (!customElements.get(name)) {
+        await Promise.race([
+          customElements.whenDefined(name),
+          new Promise((_, nein) => setTimeout(() => nein(new Error("zeit")), 3000)),
+        ]);
+      }
+    } catch (e) {
+      return;
+    }
+    if (!customElements.get(name) || !this.shadowRoot) return;
+    this.shadowRoot.querySelectorAll("input[data-entity]").forEach((input) => {
+      const key = input.dataset.entity;
+      const feld = ENTITY_FIELDS.find((f) => f.key === key);
+      let picker;
+      try {
+        picker = document.createElement(name);
+        picker.hass = this._hass;
+        picker.value = (this._config.entities || {})[key] || "";
+        const bereiche = feld && FIELD_DOMAIN[key];
+        picker.includeDomains = bereiche || [
+          "sensor", "number", "input_number", "binary_sensor", "switch",
+          "input_boolean", "select", "input_select", "button", "input_button",
+        ];
+        picker.allowCustomEntity = true;
+      } catch (e) {
+        return;
+      }
+      picker.dataset.entity = key;
+      picker.classList.add("ed-picker");
+      picker.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        const v = String((ev.detail && ev.detail.value) || "").trim();
+        const entities = { ...this._config.entities };
+        if (v) entities[key] = v;
+        else delete entities[key];
+        this._config = { ...this._config, entities };
+        this._emit();
+        this._zeigeEntitaetsZustand();
+      });
+      input.replaceWith(picker);
+    });
   }
 
   /** Auswahlliste der Sprachen: automatisch, eingebaute und eigene. */
@@ -7815,9 +8062,15 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     const imFokus = sr.activeElement;
     sr.querySelectorAll("[data-entity]").forEach((input) => {
       const v = (this._config.entities || {})[input.dataset.entity] || "";
+      if (input.classList.contains("ed-picker")) {
+        if (input.hass !== this._hass) input.hass = this._hass;
+        if (input.value !== v) input.value = v;
+        return;
+      }
       if (input !== imFokus && input.value !== v) input.value = v;
       input.classList.toggle("is-missing", Boolean(v) && !this._hass.states[v]);
     });
+    this._zeigeEntitaetsZustand();
   }
 
   _css() {
@@ -7879,10 +8132,70 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
       }
       #ed-austausch {
         width: 100%; box-sizing: border-box; margin-top: 8px; padding: 8px 10px;
-        border-radius: 10px; border: 1px solid var(--line);
-        background: #0D1219; color: var(--ink);
+        border-radius: 10px; border: 1px solid var(--divider-color, #3A4757);
+        background: var(--card-background-color, #12181F); color: var(--primary-text-color, #E8EDF4);
         font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
       }
+      .ed.einfach .nur-erweitert { display: none !important; }
+      details.ed-klapp > summary {
+        list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+      }
+      details.ed-klapp > summary::-webkit-details-marker { display: none; }
+      details.ed-klapp > summary::before {
+        content: ""; flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 2px;
+        border-right: 2px solid var(--secondary-text-color, #8A94A6);
+        border-bottom: 2px solid var(--secondary-text-color, #8A94A6);
+        transform: rotate(-45deg); transition: transform .15s;
+      }
+      details.ed-klapp[open] > summary::before { transform: rotate(45deg); }
+      details.ed-klapp > summary h3 { margin: 0; flex: 1; display: flex; flex-direction: column; }
+      details.ed-klapp[open] > summary { margin-bottom: 10px; }
+      h3 em, .ed-block-kopf em { font-style: normal; font-weight: 400; font-size: 11px; color: var(--secondary-text-color, #8A94A6); }
+      details.ed-group[hidden], .ed-feld[hidden] { display: none; }
+      .ed-zahl { font-size: 12px; color: #B07B2E; white-space: nowrap; }
+      .ed-zahl.voll { color: #3E8E5A; }
+      .ed-block { display: flex; flex-direction: column; gap: 10px; }
+      .ed-block-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      .ed-block-kopf h3 { margin: 0; display: flex; flex-direction: column; font-size: 14px; color: var(--primary-text-color, #E8EDF4); }
+      .ed-schalter { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--primary-text-color, #E8EDF4); cursor: pointer; }
+      h4 { margin: 14px 0 6px; font-size: 12px; font-weight: 600; color: var(--primary-text-color, #E8EDF4); }
+      .ed-wahl { display: flex; align-items: center; gap: 8px; min-width: 0; }
+      .ed-wahl > input, .ed-wahl > .ed-picker { flex: 1; min-width: 0; }
+      .ed-zustand {
+        flex: 0 0 22px; height: 22px; border-radius: 50%; display: inline-flex;
+        align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+      }
+      .ed-zustand[data-wert="ok"] { color: #3E8E5A; border: 1px solid #3E8E5A; }
+      .ed-zustand[data-wert="fehlt"] { color: #FFFFFF; background: #D6534A; }
+      .ed-zustand[data-wert="leer"] { border: 1px dashed var(--divider-color, #3A4757); }
+      .ed-frage {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 18px; height: 18px; margin-left: 4px; padding: 0; border-radius: 50%;
+        border: 1px solid var(--divider-color, #3A4757); background: transparent;
+        color: var(--secondary-text-color, #8A94A6); font-size: 11px; cursor: pointer; vertical-align: middle;
+      }
+      .ed-frage:hover { color: var(--primary-color, #03A9F4); border-color: var(--primary-color, #03A9F4); }
+      .ed-feld > span { display: block; }
+      .ed-feld > span em { display: block; }
+      .ed-erklaerung {
+        grid-column: 1 / -1; margin: 0; padding: 8px 10px; border-radius: 8px; font-size: 12px; line-height: 1.5;
+        background: rgba(127,127,127,0.08); color: var(--primary-text-color, #E8EDF4);
+      }
+      .ed-meldung { margin: 4px 0 0; font-size: 12px; color: var(--secondary-text-color, #8A94A6); }
+      .ed-meldung:empty { display: none; }
+      .ed-seg { display: inline-flex; border: 1px solid var(--divider-color, #3A4757); border-radius: 8px; overflow: hidden; }
+      .ed-seg button {
+        flex: 1; padding: 8px 14px; border: 0; background: transparent; cursor: pointer;
+        font-size: 13px; color: var(--secondary-text-color, #8A94A6);
+      }
+      .ed-seg button.aktiv { background: var(--primary-color, #03A9F4); color: #FFFFFF; }
+      .ed-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+      .ed-buttons button {
+        padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;
+        border: 1px solid var(--divider-color, #3A4757); background: transparent;
+        color: var(--primary-text-color, #E8EDF4);
+      }
+      .ed-buttons button:hover { border-color: var(--primary-color, #03A9F4); }
       /* Lange Auswahlnamen brauchen die ganze Breite. */
       .ed-row.ed-breit { grid-template-columns: 1fr; align-items: stretch; gap: 4px; }
       .ed-row select { width: 100%; min-width: 0; }
