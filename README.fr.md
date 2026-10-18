@@ -14,6 +14,7 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 - Courbe de chauffe des circuits 1 et 2 dans une fenêtre dédiée, avec échelle, point de fonctionnement et points réglables
 - Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (vacances, programme hebdomadaire, Smart DHW, limites de chauffage, écart, anti-légionelles, pompe, mode silencieux, coefficient annuel (JAZ/SPF) des 12 derniers mois et depuis le 1er janvier, heures et démarrages) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
 - Fenêtre d'aide (« ? » en bas à droite) : explication simple de toutes les valeurs et commandes que HeishaMon peut lire et écrire, avec recherche et groupes ; pour chaque valeur TOP l'ID complet de l'entité, copiable d'un clic
+- Profils d'appareil : exporter le profil Panasonic dans un fichier, l'adapter ou décrire un autre fabricant et l'importer de nouveau ; voir le [guide des profils](docs/GERAETEPROFIL.fr.md)
 - Graphique de consommation sur 24 heures, coloré selon chauffage, eau chaude et veille, avec l'historique SG Ready en dessous
 - Installations sans ballon tampon, détectées automatiquement via TOP99 ou réglées manuellement
 - Disposition paysage et portrait
@@ -85,6 +86,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `show_help` | `true` | Afficher le bouton « ? » de l'aide en bas à droite de la carte |
 | `show_door` | `true` | Afficher le bouton des réglages avancés en bas à droite de la pompe à chaleur |
 | `jaz_source` | `heishamon` | Électricité pour le JAZ : `heishamon` (pompe seule, TOP16/TOP41 ou XTOP0/XTOP2) ou `zaehler` (compteur d'énergie de la carte, p. ex. Shelly PM). La chaleur vient toujours de HeishaMon |
+| `profile_custom` | `[]` | Profils d'appareil importés (définis par l'éditeur, voir le [guide](docs/GERAETEPROFIL.fr.md)) |
 | `history_width` | `450` | Largeur du graphique, 250 à 700 |
 | `card_width` | `0` | Largeur en pixels, 0 = automatique |
 | `card_height` | `0` | Hauteur en pixels, 0 = automatique |

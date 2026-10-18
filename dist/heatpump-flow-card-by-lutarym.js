@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.0.0";
+const CARD_VERSION = "4.1.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -205,6 +205,22 @@ const TEXTE = {
   e_sprache: { de: "Sprache", en: "Language", fr: "Langue", ja: "言語" },
   e_sprache_h: { de: "automatisch folgt der Spracheinstellung von Home Assistant", en: "automatic follows the Home Assistant language", fr: "automatique suit la langue de Home Assistant", ja: "自動の場合はHome Assistantの言語に従います" },
   e_profil: { de: "Herstellerprofil", en: "Manufacturer profile", fr: "Profil du fabricant", ja: "メーカープロファイル" },
+  e_p_export: { de: "Profil exportieren", en: "Export profile", fr: "Exporter le profil", ja: "プロファイルを書き出す" },
+  e_p_import: { de: "Profil importieren", en: "Import profile", fr: "Importer un profil", ja: "プロファイルを読み込む" },
+  e_p_entfernen: { de: "Eigenes Profil entfernen", en: "Remove own profile", fr: "Supprimer le profil personnel", ja: "独自プロファイルを削除" },
+  o_p_eigen: { de: "(eigenes)", en: "(own)", fr: "(personnel)", ja: "（独自）" },
+  o_p_angepasst: { de: "(angepasst)", en: "(customised)", fr: "(modifié)", ja: "（カスタム）" },
+  m_p_export_ok: { de: "Profil „{n}“ wurde als Datei gespeichert und steht im Download-Ordner", en: "Profile “{n}” has been saved as a file in your downloads folder", fr: "Le profil « {n} » a été enregistré dans le dossier des téléchargements", ja: "プロファイル「{n}」をダウンロードフォルダに保存しました" },
+  m_p_import_ok: { de: "Profil „{n}“ importiert und ausgewählt, {z} Felder beschrieben", en: "Profile “{n}” imported and selected, {z} fields described", fr: "Profil « {n} » importé et sélectionné, {z} champs décrits", ja: "プロファイル「{n}」を読み込んで選択しました。記述された項目 {z} 件" },
+  m_p_gefunden: { de: "{z} davon in Home Assistant gefunden; mit „Aus Integration übernehmen“ zuordnen", en: "{z} of them found in Home Assistant; assign them with “Take over from integration”", fr: "{z} trouvés dans Home Assistant ; les attribuer avec « Reprendre de l'intégration »", ja: "Home Assistant で {z} 件見つかりました。「統合から取り込む」で割り当てます" },
+  m_p_unbekannt: { de: "unbekannte Felder ignoriert: {liste}", en: "unknown fields ignored: {liste}", fr: "champs inconnus ignorés : {liste}", ja: "不明な項目を無視しました：{liste}" },
+  m_p_format: { de: "Das ist keine Geräteprofil-Datei (format muss „lutarym-geraeteprofil“ sein).", en: "This is not a device profile file (format must be “lutarym-geraeteprofil”).", fr: "Ce n'est pas un fichier de profil (format doit être « lutarym-geraeteprofil »).", ja: "デバイスプロファイルのファイルではありません（format は「lutarym-geraeteprofil」である必要があります）。" },
+  m_p_version: { de: "Diese Profilversion wird nicht unterstützt (erwartet: version 1).", en: "This profile version is not supported (expected: version 1).", fr: "Cette version de profil n'est pas prise en charge (attendu : version 1).", ja: "このプロファイルのバージョンには対応していません（version 1 が必要です）。" },
+  m_p_id: { de: "Die Kennung (id) fehlt oder ist ungültig: 2 bis 40 Zeichen, nur a–z, 0–9, _ und -.", en: "The identifier (id) is missing or invalid: 2 to 40 characters, only a–z, 0–9, _ and -.", fr: "L'identifiant (id) manque ou n'est pas valide : 2 à 40 caractères, seulement a–z, 0–9, _ et -.", ja: "識別子（id）がないか無効です：2〜40 文字、a–z、0–9、_、- のみ。" },
+  m_p_felder: { de: "Das Profil beschreibt kein bekanntes Feld (felder).", en: "The profile does not describe any known field (felder).", fr: "Le profil ne décrit aucun champ connu (felder).", ja: "プロファイルに既知の項目（felder）がありません。" },
+  m_p_leer: { de: "Für dieses Profil gibt es noch keine Beschreibung.", en: "There is no description for this profile yet.", fr: "Ce profil n'a pas encore de description.", ja: "このプロファイルにはまだ記述がありません。" },
+  m_p_entfernt: { de: "Eigenes Profil entfernt.", en: "Own profile removed.", fr: "Profil personnel supprimé.", ja: "独自プロファイルを削除しました。" },
+  m_p_zurueck: { de: "Anpassung entfernt, das eingebaute Profil gilt wieder.", en: "Customisation removed, the built-in profile applies again.", fr: "Modification supprimée, le profil intégré s'applique de nouveau.", ja: "カスタムを削除し、内蔵プロファイルに戻しました。" },
   e_profil_h: { de: "legt fest, nach welchem Namensschema gesucht wird", en: "defines the entity naming scheme to search for", fr: "définit le schéma de nommage recherché", ja: "検索するエンティティ名の規則" },
   e_anordnung: { de: "Anordnung", en: "Layout", fr: "Disposition", ja: "レイアウト" },
   e_anordnung_h: { de: "quer oder hochkant", en: "landscape or portrait", fr: "paysage ou portrait", ja: "横長または縦長" },
@@ -281,6 +297,7 @@ const TEXTE = {
   e_vorhanden: { de: "Vorhanden", en: "Installed", fr: "Présent", ja: "あり" },
   e_nicht_vorhanden: { de: "Nicht vorhanden", en: "Not installed", fr: "Absent", ja: "なし" },
   // Meldungen
+  m_erkannt_p: { de: "Profil „{n}“: {a} Entitäten gefunden, {b} davon passen zu dieser Karte.", en: "Profile “{n}”: {a} entities found, {b} of them match this card.", fr: "Profil « {n} » : {a} entités trouvées, dont {b} correspondent à cette carte.", ja: "プロファイル「{n}」：{a} 件のエンティティのうち {b} 件がこのカードに対応します。" },
   m_erkannt: { de: "Heishamon by Lutarym erkannt. {a} Entitäten gefunden, {b} davon passen zu dieser Karte.", en: "Heishamon by Lutarym detected. {a} entities found, {b} of them match this card.", fr: "Heishamon by Lutarym détecté. {a} entités trouvées, dont {b} correspondent à cette carte.", ja: "Heishamon by Lutarym を検出しました。{a} 件のエンティティのうち {b} 件がこのカードに対応します。" },
   m_nicht_erkannt: { de: "Keine Entitäten der Integration gefunden. Du kannst die Standardnamen eintragen und danach anpassen.", en: "No entities of the integration found. You can fill in the default names and adjust them afterwards.", fr: "Aucune entité de l'intégration trouvée. Vous pouvez saisir les noms par défaut puis les ajuster.", ja: "統合のエンティティが見つかりません。標準名を入力してから調整できます。" },
   m_json: { de: "Das ist kein gültiges JSON. Bitte den exportierten Text einfügen.", en: "This is not valid JSON. Please paste the exported text.", fr: "Ce n'est pas un JSON valide. Veuillez coller le texte exporté.", ja: "有効なJSONではありません。書き出したテキストを貼り付けてください。" },
@@ -963,6 +980,8 @@ const FIELD_DOMAIN = {
 };
 
 function detectIntegration(hass, profil) {
+  // Eigenes oder angepasstes Geraeteprofil: allgemeine Erkennung.
+  if (profil && typeof profil === "object") return erkenneMitProfil(hass, profil);
   const result = { found: false, source: "keine", entities: {}, count: 0, devices: 0 };
   if (!hass) return result;
 
@@ -1052,6 +1071,199 @@ const PROFILE = [
   { id: "viessmann", name: "Viessmann, in Vorbereitung", fertig: false },
   { id: "stiebel", name: "Stiebel Eltron, in Vorbereitung", fertig: false },
 ];
+
+
+/* ------------------------------------------------------------------ *
+ *  Geraeteprofile zum Exportieren und Importieren
+ * ------------------------------------------------------------------ */
+const PROFIL_FORMAT = "lutarym-geraeteprofil";
+const PROFIL_VERSION = 1;
+
+/**
+ * Beschreibt ein eingebautes Profil im Austauschformat. Je Feld der Karte
+ * eine Liste von Suchregeln:
+ *  - mit Punkt ("sensor.vorlauf") genau diese Entitaet,
+ *  - mit Stern ("sensor.*_vorlauf") ein Muster ueber die Entity-ID,
+ *  - sonst ein Schluessel: translation_key der Integration oder das
+ *    Ende der Entity-ID nach einem Unterstrich ("top4" passt auf
+ *    "sensor.heishamon_top4").
+ */
+function eingebautesProfil(id) {
+  const pr = PROFILE.find((x) => x.id === id);
+  if (!pr || !pr.fertig) return null;
+  const mqtt = id === "heishamon";
+  const felder = {};
+  const bekannt = profilFeldnamen();
+  const dazu = (feld, regel) => {
+    if (!bekannt.includes(feld)) return;
+    if (!felder[feld]) felder[feld] = [];
+    if (!felder[feld].includes(regel)) felder[feld].push(regel);
+  };
+  [TOPIC_TO_FIELD, COMMAND_TO_FIELD].forEach((tabelle) =>
+    Object.keys(tabelle).forEach((k) => dazu(tabelle[k], mqtt ? `*.heishamon_${k}` : k))
+  );
+  Object.keys(COP_TO_FIELD).forEach((k) =>
+    dazu(COP_TO_FIELD[k], mqtt ? `sensor.heishamon*_${k}` : k)
+  );
+  return {
+    format: PROFIL_FORMAT,
+    version: PROFIL_VERSION,
+    id: pr.id,
+    name: pr.name,
+    hersteller: "Panasonic",
+    integration: mqtt ? "" : INTEGRATION_DOMAIN,
+    namensteil: "heishamon",
+    felder,
+  };
+}
+
+/**
+ * Felder, die ein Profil beschreiben darf: alle Felder des Editors und
+ * die Betriebsart (TOP4), die die Karte zusaetzlich liest.
+ */
+function profilFeldnamen() {
+  return ENTITY_FIELDS.map((f) => f.key).concat(["operating_mode"]);
+}
+
+/** Eigene Profile aus der Kartenkonfiguration. */
+function eigeneProfile(config) {
+  const liste = config && Array.isArray(config.profile_custom) ? config.profile_custom : [];
+  return liste.filter((p) => p && typeof p === "object" && typeof p.id === "string");
+}
+
+/** Eigenes Profil zur gewaehlten Kennung, sonst null. */
+function eigenesProfil(config) {
+  const id = config && config.profil;
+  return eigeneProfile(config).find((p) => p.id === id) || null;
+}
+
+/** Profil fuer die Erkennung: eigenes Objekt oder Kennung des eingebauten. */
+function profilFuer(config) {
+  return eigenesProfil(config) || (config && config.profil);
+}
+
+/**
+ * Prueft ein eingelesenes Profil. Unbekannte Felder werden gemeldet und
+ * verworfen, damit fremder Inhalt nichts kaputt macht.
+ */
+function pruefeProfil(roh) {
+  if (!roh || typeof roh !== "object" || Array.isArray(roh)) return { fehler: "m_p_format" };
+  if (roh.format !== PROFIL_FORMAT) return { fehler: "m_p_format" };
+  if (Number(roh.version) !== PROFIL_VERSION) return { fehler: "m_p_version" };
+  const id = String(roh.id || "").trim();
+  if (!/^[a-z0-9_-]{2,40}$/.test(id)) return { fehler: "m_p_id" };
+  if (!roh.felder || typeof roh.felder !== "object" || Array.isArray(roh.felder)) {
+    return { fehler: "m_p_felder" };
+  }
+  const bekannt = profilFeldnamen();
+  const felder = {};
+  const unbekannt = [];
+  Object.keys(roh.felder).forEach((feld) => {
+    if (!bekannt.includes(feld)) {
+      unbekannt.push(feld);
+      return;
+    }
+    const regeln = [].concat(roh.felder[feld])
+      .filter((r) => typeof r === "string" && r.trim())
+      .map((r) => r.trim());
+    if (regeln.length) felder[feld] = regeln;
+  });
+  if (!Object.keys(felder).length) return { fehler: "m_p_felder" };
+  const text = (w, max) => String(w === undefined || w === null ? "" : w).trim().slice(0, max);
+  return {
+    profil: {
+      format: PROFIL_FORMAT,
+      version: PROFIL_VERSION,
+      id,
+      name: text(roh.name, 80) || id,
+      hersteller: text(roh.hersteller, 60),
+      integration: text(roh.integration, 60),
+      namensteil: text(roh.namensteil, 60),
+      felder,
+    },
+    unbekannt,
+  };
+}
+
+/** Erkennung nach einem Profil im Austauschformat. */
+function erkenneMitProfil(hass, p) {
+  const result = { found: false, source: "keine", entities: {}, count: 0, devices: 0 };
+  if (!hass || !p || !p.felder) return result;
+  const regeln = [];
+  Object.keys(p.felder).forEach((feld) =>
+    [].concat(p.felder[feld]).forEach((w) => {
+      if (typeof w !== "string" || !w.trim()) return;
+      const r = { feld, w: w.trim(), klein: w.trim().toLowerCase() };
+      if (r.w.includes("*")) {
+        r.re = new RegExp(
+          "^" + r.w.split("*").map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$",
+          "i"
+        );
+      }
+      regeln.push(r);
+    })
+  );
+  const passt = (r, id, eintrag) => {
+    if (r.re) return r.re.test(id);
+    if (r.w.includes(".")) return id === r.w;
+    const klein = id.toLowerCase();
+    return (
+      Boolean(eintrag && eintrag.translation_key === r.w) ||
+      klein.endsWith(`_${r.klein}`) ||
+      klein.split(".")[1] === r.klein
+    );
+  };
+  const assign = (feld, entityId) => {
+    const allowed = FIELD_DOMAIN[feld];
+    if (allowed && !allowed.includes(entityId.split(".")[0])) return;
+    const bisher = result.entities[feld];
+    if (bisher && stellbar(bisher) && !stellbar(entityId)) return;
+    result.entities[feld] = entityId;
+  };
+  const pruefe = (id, eintrag) => {
+    let treffer = false;
+    regeln.forEach((r) => {
+      if (passt(r, id, eintrag)) {
+        assign(r.feld, id);
+        treffer = true;
+      }
+    });
+    return treffer;
+  };
+
+  const reg = hass.entities;
+  if (p.integration && reg && typeof reg === "object") {
+    const geraete = new Set();
+    let hits = 0;
+    Object.keys(reg).forEach((id) => {
+      const e = reg[id];
+      if (!e || e.platform !== p.integration) return;
+      hits++;
+      if (e.device_id) geraete.add(e.device_id);
+      pruefe(id, e);
+    });
+    if (hits > 0) {
+      result.found = true;
+      result.source = "register";
+      result.count = hits;
+      result.devices = geraete.size;
+      return result;
+    }
+  }
+  const teil = String(p.namensteil || "").toLowerCase();
+  let hits = 0;
+  Object.keys(hass.states || {}).forEach((id) => {
+    if (teil && !id.toLowerCase().includes(teil)) return;
+    if (pruefe(id, reg && reg[id])) hits++;
+  });
+  if (hits > 0) {
+    result.found = true;
+    result.source = "namensschema";
+    result.count = hits;
+    result.devices = 1;
+  }
+  return result;
+}
 
 /**
  * Erklaerungen zu allen Werten und Befehlen, die HeishaMon lesen und
@@ -1216,6 +1428,7 @@ const DEFAULT_CONFIG = {
   show_help: true,
   show_door: true,
   jaz_source: "heishamon",
+  profile_custom: [],
   buffer_present: "auto",
   circulation_present: "auto",
   history_width: 450,
@@ -1517,7 +1730,9 @@ class LutarymHeatpumpCard extends HTMLElement {
     const alias = { power_state: "power_switch", buffer_temp: "buffer_top" };
     const configured = eintraege[key] || eintraege[alias[key]];
     if (configured) return configured;
-    if (!this._auto) this._auto = detectIntegration(this._quelle).entities;
+    if (!this._auto) {
+      this._auto = detectIntegration(this._quelle, eigenesProfil(this._config) || undefined).entities;
+    }
     return this._auto[key] || "";
   }
 
@@ -6334,7 +6549,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
       .map((e) => `<option value="${e}">${escapeHtml(friendly(this._hass, e))}</option>`)
       .join("");
 
-    const found = detectIntegration(this._hass, this._config.profil);
+    const found = detectIntegration(this._hass, profilFuer(this._config));
 
     this.shadowRoot.innerHTML = `
       <style>${this._css()}</style>
@@ -6342,12 +6557,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
         <div class="ed-group ed-detect ${found.found ? "is-found" : "is-absent"}">
           <h3>${this._t("e_integration")}</h3>
           <p class="ed-status">${
-            found.found
-              ? tf(this._t("m_erkannt"), {
-                  a: found.count,
-                  b: Object.keys(found.entities).length,
-                })
-              : this._t("m_nicht_erkannt")
+            this._erkanntText(found)
           }</p>
           <div class="ed-actions">
             <button type="button" id="btn-adopt" ${
@@ -6368,13 +6578,15 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
           </label>
           <label class="ed-row ed-breit">
             <span>${this._t("e_profil")}<em>${this._t("e_profil_h")}</em></span>
-            <select id="opt-profil">
-              ${PROFILE.map(
-                (pr) =>
-                  `<option value="${pr.id}"${pr.fertig ? "" : " disabled"}>${escapeHtml(wertText(pr.name, this._sp()))}</option>`
-              ).join("")}
-            </select>
+            <select id="opt-profil">${this._profilOptionen()}</select>
           </label>
+          <div class="ed-buttons">
+            <button type="button" id="btn-profil-aus">${this._t("e_p_export")}</button>
+            <button type="button" id="btn-profil-ein">${this._t("e_p_import")}</button>
+            <button type="button" id="btn-profil-weg">${this._t("e_p_entfernen")}</button>
+          </div>
+          <input type="file" id="ed-profil-datei" accept=".json,application/json" hidden>
+          <p class="ed-info" id="ed-profil-hinweis"></p>
           <div class="ed-buttons">
             <button type="button" id="btn-export">${this._t("e_feld_schreiben")}</button>
             <button type="button" id="btn-import">${this._t("e_feld_einlesen")}</button>
@@ -6569,7 +6781,11 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-rohr", (el) => put({ pipe_inner_mm: parseInt(el.value, 10) || 0 }));
     bind("opt-mqtt", (el) => put({ mqtt_prefix: el.value.trim() || "panasonic_heat_pump" }));
     bind("opt-sprache", (el) => put({ language: el.value }));
-    bind("opt-profil", (el) => put({ profil: el.value }));
+    bind("opt-profil", (el) => {
+      put({ profil: el.value });
+      this._zeigeProfilKnoepfe();
+    });
+    this._bindeProfile();
     bind("opt-vbreite", (el) => put({ history_width: parseInt(el.value, 10) || 450 }));
     bind("opt-kxmin", (el) => put({ curve_x_min: parseInt(el.value, 10) }));
     bind("opt-kxmax", (el) => put({ curve_x_max: parseInt(el.value, 10) }));
@@ -6759,7 +6975,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     }
 
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
-      const f = detectIntegration(this._hass, this._config.profil);
+      const f = detectIntegration(this._hass, profilFuer(this._config));
       if (f.found) applyMap(f.entities, true);
     });
     this.shadowRoot
@@ -6784,6 +7000,153 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     this._syncValues();
   }
 
+  /** Auswahlliste der Profile: eingebaute, angepasste und eigene. */
+  _profilOptionen() {
+    const eigene = eigeneProfile(this._config);
+    const html = PROFILE.map((pr) => {
+      const ersetzt = eigene.find((p) => p.id === pr.id);
+      const name = ersetzt
+        ? `${ersetzt.name} ${this._t(pr.fertig ? "o_p_angepasst" : "o_p_eigen")}`
+        : wertText(pr.name, this._sp());
+      const aktiv = pr.fertig || ersetzt;
+      return `<option value="${pr.id}"${aktiv ? "" : " disabled"}>${escapeHtml(name)}</option>`;
+    });
+    eigene
+      .filter((p) => !PROFILE.some((pr) => pr.id === p.id))
+      .forEach((p) => {
+        html.push(`<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} ${escapeHtml(this._t("o_p_eigen"))}</option>`);
+      });
+    return html.join("");
+  }
+
+  /** Bedienung von Export, Import und Entfernen der Geraeteprofile. */
+  _bindeProfile() {
+    const sr = this.shadowRoot;
+    const sagen = (text) => {
+      const el = sr.getElementById("ed-profil-hinweis");
+      if (el) el.textContent = text;
+    };
+    const aktuell = () => this._config.profil || DEFAULT_CONFIG.profil;
+    const speichern = (liste, profilId) => {
+      this._config = { ...this._config, profile_custom: liste, profil: profilId };
+      this._emit();
+      const auswahl = sr.getElementById("opt-profil");
+      if (auswahl) {
+        auswahl.innerHTML = this._profilOptionen();
+        auswahl.value = profilId;
+      }
+      this._zeigeProfilKnoepfe();
+    };
+
+    const aus = sr.getElementById("btn-profil-aus");
+    if (aus) {
+      aus.addEventListener("click", () => {
+        const id = aktuell();
+        const daten = eigenesProfil(this._config) || eingebautesProfil(id);
+        if (!daten) {
+          sagen(this._t("m_p_leer"));
+          return;
+        }
+        const text = JSON.stringify(daten, null, 2);
+        try {
+          const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `geraeteprofil-${daten.id}.json`;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          sagen(tf(this._t("m_p_export_ok"), { n: daten.name }));
+        } catch (e) {
+          sagen(this._t("m_datei_fehler"));
+        }
+      });
+    }
+
+    const datei = sr.getElementById("ed-profil-datei");
+    const ein = sr.getElementById("btn-profil-ein");
+    if (ein && datei) {
+      ein.addEventListener("click", () => datei.click());
+      datei.addEventListener("change", () => {
+        const f = datei.files && datei.files[0];
+        if (!f) return;
+        const leser = new FileReader();
+        leser.onload = () => {
+          let roh;
+          try {
+            roh = JSON.parse(String(leser.result || ""));
+          } catch (e) {
+            sagen(this._t("m_json"));
+            return;
+          }
+          const ergebnis = pruefeProfil(roh);
+          if (ergebnis.fehler) {
+            sagen(this._t(ergebnis.fehler));
+            return;
+          }
+          const neu = ergebnis.profil;
+          const liste = eigeneProfile(this._config).filter((p) => p.id !== neu.id);
+          liste.push(neu);
+          speichern(liste, neu.id);
+          const erkannt = erkenneMitProfil(this._hass, neu);
+          const teile = [
+            tf(this._t("m_p_import_ok"), { n: neu.name, z: Object.keys(neu.felder).length }),
+            tf(this._t("m_p_gefunden"), { z: Object.keys(erkannt.entities).length }),
+          ];
+          if (ergebnis.unbekannt.length) {
+            teile.push(tf(this._t("m_p_unbekannt"), { liste: ergebnis.unbekannt.slice(0, 5).join(", ") }));
+          }
+          sagen(teile.join(". ") + ".");
+        };
+        leser.onerror = () => sagen(this._t("m_datei_lesen"));
+        leser.readAsText(f);
+        datei.value = "";
+      });
+    }
+
+    const weg = sr.getElementById("btn-profil-weg");
+    if (weg) {
+      weg.addEventListener("click", () => {
+        const id = aktuell();
+        const liste = eigeneProfile(this._config).filter((p) => p.id !== id);
+        const eingebaut = PROFILE.find((pr) => pr.id === id && pr.fertig);
+        speichern(liste, eingebaut ? id : DEFAULT_CONFIG.profil);
+        sagen(this._t(eingebaut ? "m_p_zurueck" : "m_p_entfernt"));
+      });
+    }
+    this._zeigeProfilKnoepfe();
+  }
+
+  /** Statuszeile der Erkennung, bei eigenem Profil mit dessen Namen. */
+  _erkanntText(found) {
+    if (!found.found) return this._t("m_nicht_erkannt");
+    const eigen = eigenesProfil(this._config);
+    const werte = { a: found.count, b: Object.keys(found.entities).length };
+    return eigen
+      ? tf(this._t("m_erkannt_p"), { ...werte, n: eigen.name })
+      : tf(this._t("m_erkannt"), werte);
+  }
+
+  /** "Entfernen" nur, wenn das gewaehlte Profil ein eigenes ist. */
+  _zeigeProfilKnoepfe() {
+    const sr = this.shadowRoot;
+    const weg = sr.getElementById("btn-profil-weg");
+    if (weg) weg.hidden = !eigenesProfil(this._config);
+    // Erkennung nach dem gewaehlten Profil neu anzeigen.
+    if (!this._hass) return;
+    const found = detectIntegration(this._hass, profilFuer(this._config));
+    const gruppe = sr.querySelector(".ed-detect");
+    if (gruppe) {
+      gruppe.classList.toggle("is-found", found.found);
+      gruppe.classList.toggle("is-absent", !found.found);
+    }
+    const status = sr.querySelector(".ed-detect .ed-status");
+    if (status) {
+      status.textContent = this._erkanntText(found);
+    }
+    const adopt = sr.getElementById("btn-adopt");
+    if (adopt) adopt.disabled = !found.found;
+  }
+
   _syncValues() {
     const sr = this.shadowRoot;
     const put = (id, value) => {
@@ -6802,7 +7165,10 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-rohr", String(this._config.pipe_inner_mm || 0));
     put("opt-mqtt", this._config.mqtt_prefix || "panasonic_heat_pump");
     put("opt-sprache", this._config.language || "auto");
+    const profilWahl = this.shadowRoot.getElementById("opt-profil");
+    if (profilWahl) profilWahl.innerHTML = this._profilOptionen();
     put("opt-profil", this._config.profil || "heishamon");
+    this._zeigeProfilKnoepfe();
     put("opt-vbreite", String(this._config.history_width || 450));
     put("opt-kxmin", String(this._config.curve_x_min));
     put("opt-kxmax", String(this._config.curve_x_max));
