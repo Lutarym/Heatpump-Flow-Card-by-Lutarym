@@ -12,7 +12,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Fließanimation, die der tatsächlichen Hydraulik folgt: Umschaltventil, Pumpen, Verdichter und Puffer
 - Temperaturabhängige Einfärbung von Speichern, Heizkörpern und Leitungen
 - Heizkurve für Heizkreis 1 und 2 in einem eigenen Fenster, mit Skala, Betriebspunkt und einstellbaren Eckwerten
-- Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, Jahresarbeitszahl (JAZ) der letzten 12 Monate und seit 1. Januar, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
+- Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, Jahresarbeitszahl (JAZ) gesamt, Heizen und Warmwasser, jeweils letzte 12 Monate und seit 1. Januar, aus den HeishaMon-Werten, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
 - Hilfefenster („?“ unten rechts): verständliche Erklärung aller Werte und Befehle, die HeishaMon lesen und schreiben kann, mit Suche und Gruppen; zu jedem TOP-Wert die vollständige Entität, per Klick kopierbar
 - Geräteprofile: das Panasonic-Profil als Datei exportieren, anpassen oder einen anderen Hersteller beschreiben und wieder importieren; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md)
 - Sprachpakete: eine Sprache als Datei exportieren, selbst übersetzen oder anpassen und wieder importieren; siehe [Anleitung Sprachpakete](docs/SPRACHPAKET.de.md)
@@ -86,7 +86,6 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
 | `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen |
 | `show_door` | `true` | Knopf für die erweiterten Einstellungen unten rechts an der Wärmepumpe anzeigen |
-| `jaz_source` | `heishamon` | Strom für die JAZ: `heishamon` (nur Wärmepumpe, TOP16/TOP41 oder XTOP0/XTOP2) oder `zaehler` (Energiezähler der Karte, z. B. Shelly PM). Die Wärme kommt immer von HeishaMon |
 | `profile_custom` | `[]` | Importierte Geräteprofile (setzt der Editor, siehe [Anleitung](docs/GERAETEPROFIL.de.md)) |
 | `language_custom` | `[]` | Importierte Sprachpakete (setzt der Editor, siehe [Anleitung](docs/SPRACHPAKET.de.md)) |
 | `history_width` | `450` | Breite des Verbrauchsverlaufs, 250 bis 700 |

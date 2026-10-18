@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.3.0
+
+- English: Seasonal performance factor (JAZ) behind the door now only uses HeishaMon values and is shown separately: total, heating (TOP15/TOP16) and hot water (TOP40/TOP41), each for the last 12 months and since 1 January (XTOP3/XTOP0 and XTOP5/XTOP2 if the heat pump sends the extra data block). The option `jaz_source` with an own power meter (Shelly PM) is removed, because a single meter cannot split electricity between heating and hot water. Rows without matching entities are hidden.
+- Deutsch: Die Jahresarbeitszahl (JAZ) hinter der Tür rechnet nur noch mit den Werten von HeishaMon und wird getrennt angezeigt: gesamt, Heizen (TOP15/TOP16) und Warmwasser (TOP40/TOP41), jeweils für die letzten 12 Monate und seit 1. Januar (XTOP3/XTOP0 und XTOP5/XTOP2, wenn die Wärmepumpe den Zusatzblock sendet). Die Option `jaz_source` mit eigenem Stromzähler (Shelly PM) entfällt, weil ein einzelner Zähler den Strom nicht nach Heizen und Warmwasser trennen kann. Zeilen ohne passende Entitäten werden ausgeblendet.
+- Français : le coefficient annuel (JAZ) derrière la porte n'utilise plus que les valeurs HeishaMon et s'affiche séparément : total, chauffage (TOP15/TOP16) et eau chaude (TOP40/TOP41), chacun sur les 12 derniers mois et depuis le 1er janvier (XTOP3/XTOP0 et XTOP5/XTOP2 si la pompe envoie le bloc supplémentaire). L'option `jaz_source` avec compteur propre (Shelly PM) est supprimée, car un seul compteur ne peut pas séparer l'électricité entre chauffage et eau chaude. Les lignes sans entités correspondantes sont masquées.
+- 日本語：扉の奥の年間性能係数（JAZ）は HeishaMon の値だけで計算し、合計・暖房（TOP15/TOP16）・給湯（TOP40/TOP41）を、それぞれ直近 12 か月と 1 月 1 日から個別に表示します（ヒートポンプが追加データブロックを送る場合は XTOP3/XTOP0 と XTOP5/XTOP2）。1 台の電力計では暖房と給湯の電力を分けられないため、独自の電力計（Shelly PM）を使うオプション `jaz_source` を廃止しました。該当するエンティティがない行は表示しません。
+
 ## v4.2.1
 
 - English: Code review. Fixed: the bubbles in buffer and hot water tank were always all visible, regardless of fill level, standstill or the option "animate"; now only the intended ones are shown. Faster: the card now only recalculates when one of its own entities, the language or the entity registry changes, instead of on every state change in Home Assistant; the search for the JAZ entities is cached (measured with 3,200 entities: about 2.1 ms down to about 0.35 ms per relevant update, unrelated updates are skipped). The animation pauses while the card is outside the visible area. Language packs: texts with angle brackets, straight double quotes or backticks are rejected, because texts are inserted as HTML; several cards with different own languages no longer overwrite each other. Unused variables removed.
