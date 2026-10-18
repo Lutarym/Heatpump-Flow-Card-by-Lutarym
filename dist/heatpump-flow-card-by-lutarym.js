@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "3.7.0";
+const CARD_VERSION = "3.7.1";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -439,6 +439,14 @@ const TEXTE = {
   h_lesen: { de: "Lesen", en: "Read", fr: "Lecture", ja: "読み取り" },
   h_schreiben: { de: "Schreiben", en: "Write", fr: "Écriture", ja: "書き込み" },
   h_anzahl: { de: "{n} Einträge", en: "{n} entries", fr: "{n} entrées", ja: "{n} 件" },
+  r_bereitschaft: { de: "Bereitschaft", en: "Standby", fr: "Veille", ja: "待機" },
+  s_verbrauch_heute: { de: "Verbrauch heute", en: "Consumption today", fr: "Consommation du jour", ja: "本日の消費電力量" },
+  s_max: { de: "max {v}", en: "max {v}", fr: "max {v}", ja: "最大 {v}" },
+  s_temperatur: { de: "Temperatur", en: "Temperature", fr: "Température", ja: "温度" },
+  h_kopieren: { de: "Klicken zum Kopieren", en: "Click to copy", fr: "Cliquer pour copier", ja: "クリックしてコピー" },
+  h_kopiert: { de: "Kopiert", en: "Copied", fr: "Copié", ja: "コピーしました" },
+  h_entitaet: { de: "Entität", en: "Entity", fr: "Entité", ja: "エンティティ" },
+  h_keine_entitaet: { de: "Keine passende Entität in Home Assistant gefunden", en: "No matching entity found in Home Assistant", fr: "Aucune entité correspondante trouvée dans Home Assistant", ja: "Home Assistant に該当するエンティティがありません" },
   h_anzahl1: { de: "1 Eintrag", en: "1 entry", fr: "1 entrée", ja: "1 件" },
   h_keine: { de: "Nichts gefunden. Anderes Suchwort versuchen.", en: "Nothing found. Try another search term.", fr: "Aucun résultat. Essayez un autre mot.", ja: "見つかりません。別の語で検索してください。" },
   h_quelle: { de: "Grundlage: HeishaMon-Dokumentation und Panasonic-Anleitung. Was dort nicht beschrieben ist, steht hier auch nicht.", en: "Based on: HeishaMon documentation and Panasonic manual. What is not described there is not stated here either.", fr: "Sources : documentation HeishaMon et notice Panasonic. Ce qui n'y est pas décrit n'est pas affirmé ici.", ja: "出典：HeishaMon の説明書と Panasonic の取扱説明書。そこに書かれていないことはここでも述べていません。" },
@@ -1785,7 +1793,7 @@ class LutarymHeatpumpCard extends HTMLElement {
               <div class="lhc-dialog-row">
                 <button type="button" class="lhc-step" id="dlg-minus" aria-label="${this._t("s_kleiner")}">&minus;</button>
                 <input class="lhc-slider" type="range" id="dlg-range"
-                       min="0" max="100" step="1" value="0" aria-label="Temperatur">
+                       min="0" max="100" step="1" value="0" aria-label="${this._t("s_temperatur")}">
                 <button type="button" class="lhc-step" id="dlg-plus" aria-label="${this._t("s_groesser")}">+</button>
               </div>
               <div class="lhc-ctl-scale">
@@ -1974,13 +1982,13 @@ class LutarymHeatpumpCard extends HTMLElement {
 
     host.innerHTML = `
       <div class="lhc-demo-kopf">
-        <span class="lhc-field-label">Demomodus</span>
+        <span class="lhc-field-label">${this._t("e_demo")}</span>
         <span class="lhc-demo-hinweis">${this._t("r_demo_hinweis")}</span>
       </div>
       <div class="lhc-demo-reihe">
         ${schalter.map(([feld, text], i) => `<button type="button" class="lhc-demo-knopf" id="demo-s${i}" data-feld="${feld}">${escapeHtml(wertText(text, this._sp()))}</button>`).join("")}
-        <button type="button" class="lhc-demo-knopf" id="demo-bereitschaft">Bereitschaft</button>
-        <button type="button" class="lhc-demo-knopf" id="demo-ventil">Ventil</button>
+        <button type="button" class="lhc-demo-knopf" id="demo-bereitschaft">${this._t("r_bereitschaft")}</button>
+        <button type="button" class="lhc-demo-knopf" id="demo-ventil">${this._t("umschaltventil")}</button>
         <button type="button" class="lhc-demo-knopf" id="demo-sg">SG Ready</button>
         <button type="button" class="lhc-demo-knopf" id="demo-stoerung">${this._t("r_stoerung")}</button>
         <button type="button" class="lhc-demo-knopf" id="demo-zurueck">${this._t("r_zurueck")}</button>
@@ -2186,6 +2194,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     const fenster = sr.getElementById("hilfe");
     if (!fenster) return;
     this._hilfeGruppe = this._hilfeGruppe || "";
+    this._hilfeIndex = this._hilfeEntitaeten();
     this._hilfeChips();
     this._zeigeHilfe();
     fenster.hidden = false;
@@ -2228,6 +2237,90 @@ class LutarymHeatpumpCard extends HTMLElement {
     );
   }
 
+  /**
+   * Sucht zu jeder Kennung (top9, setdhwtemp, xtop3, opt0, 1wire, s0) die
+   * Entitaeten in Home Assistant. Zuerst ueber die Registrierung von
+   * HeishaMon by Lutarym (translation_key), sonst ueber die Endung der
+   * Entity-ID, damit auch umbenannte oder per MQTT angelegte Entitaeten
+   * gefunden werden.
+   */
+  _hilfeEntitaeten() {
+    // Immer die echten Entitaeten, auch im Demomodus.
+    const q = this._hass || {};
+    const index = {};
+    const dazu = (schluessel, id) => {
+      if (!schluessel || !id) return;
+      const k = String(schluessel).toLowerCase();
+      if (!index[k]) index[k] = [];
+      if (!index[k].includes(id)) index[k].push(id);
+    };
+    const reg = q.entities || {};
+    Object.keys(reg).forEach((id) => {
+      const e = reg[id];
+      if (!e || e.platform !== INTEGRATION_DOMAIN) return;
+      if (e.translation_key) dazu(e.translation_key, id);
+      if (/_1wire_[^.]+$/.test(id)) dazu("1-wire", id);
+      if (/^s0_/.test(e.translation_key || "")) dazu("s0", id);
+    });
+    Object.keys(q.states || {}).forEach((id) => {
+      if (!/heishamon/i.test(id)) return;
+      const m = id.match(/[._]((?:x?top|opt)\d+|set[a-z0-9]+)$/i);
+      if (m) dazu(m[1], id);
+      if (/_1wire_[^.]+$/.test(id)) dazu("1-wire", id);
+      if (/_s0_\d+_(power|energy)$/.test(id)) dazu("s0", id);
+    });
+    // Sensoren zuerst, dann die stellbaren Entitaeten.
+    const reihe = ["sensor", "number", "switch", "select", "button"];
+    Object.values(index).forEach((liste) =>
+      liste.sort((a, b) => {
+        const ra = reihe.indexOf(a.split(".")[0]);
+        const rb = reihe.indexOf(b.split(".")[0]);
+        return (ra < 0 ? 9 : ra) - (rb < 0 ? 9 : rb) || a.localeCompare(b);
+      })
+    );
+    return index;
+  }
+
+  /** Entitaeten zu einem Hilfeeintrag. */
+  _hilfeIds(e) {
+    const index = this._hilfeIndex || {};
+    const ids = [];
+    [e.l, e.s].forEach((k) => {
+      if (!k || /^OT /.test(k)) return;
+      (index[String(k).toLowerCase()] || []).forEach((id) => {
+        if (!ids.includes(id)) ids.push(id);
+      });
+    });
+    return ids;
+  }
+
+  /** Kopiert Text, auch ohne gesicherte Verbindung (http im Heimnetz). */
+  async _kopiere(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (err) {
+      // weiter mit dem Ersatzweg
+    }
+    const feld = document.createElement("textarea");
+    feld.value = text;
+    feld.setAttribute("readonly", "");
+    feld.style.position = "fixed";
+    feld.style.opacity = "0";
+    document.body.appendChild(feld);
+    feld.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (err) {
+      ok = false;
+    }
+    feld.remove();
+    return ok;
+  }
+
   /** Liste nach Gruppe und Suchwort. */
   _zeigeHilfe() {
     const sr = this.shadowRoot;
@@ -2245,6 +2338,8 @@ class LutarymHeatpumpCard extends HTMLElement {
       .split(/\s+/)
       .filter(Boolean);
     const lesen = escapeHtml(this._t("h_lesen"));
+    const kopierTitel = escapeHtml(this._t("h_kopieren"));
+    const keineEntitaet = escapeHtml(this._t("h_keine_entitaet"));
     const schreiben = escapeHtml(this._t("h_schreiben"));
     let anzahl = 0;
     let html = "";
@@ -2253,7 +2348,7 @@ class LutarymHeatpumpCard extends HTMLElement {
       const treffer = g.e.filter((e) => {
         if (!woerter.length) return true;
         const text = norm(
-          [e.n[sp], e.t[sp], e.l, e.s, g.titel[sp]].join(" ")
+          [e.n[sp], e.t[sp], e.l, e.s, g.titel[sp]].concat(this._hilfeIds(e)).join(" ")
         );
         // Kennungen wie TOP9 nur als ganzes Wort, sonst faende TOP9
         // auch TOP90 bis TOP99.
@@ -2271,14 +2366,37 @@ class LutarymHeatpumpCard extends HTMLElement {
         if (e.l) marken.push(`<span class="marke lesen">${lesen} · ${escapeHtml(e.l)}</span>`);
         if (e.s) marken.push(`<span class="marke schreiben">${schreiben} · ${escapeHtml(e.s)}</span>`);
         if (e.b) marken.push(`<span class="marke bereich">${escapeHtml(e.b)}</span>`);
+        // Zu jeder Kennung die vollstaendige Entitaet, per Klick kopierbar.
+        let entitaeten = "";
+        if (e.l || e.s) {
+          const ids = this._hilfeIds(e);
+          entitaeten = ids.length
+            ? `<div class="entitaeten">${ids
+                .map(
+                  (id) => `<button type="button" class="entitaet" data-kopie="${escapeHtml(id)}"
+                    title="${kopierTitel}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h9a2 2 0 0 1 2 2v11h-2V5H8z"/><path d="M5 7h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zm0 2v11h9V9z"/></svg><span>${escapeHtml(id)}</span></button>`
+                )
+                .join("")}</div>`
+            : `<div class="entitaeten keine-entitaet">${keineEntitaet}</div>`;
+        }
         html += `<article>
           <div class="eintrag-kopf"><b>${escapeHtml(e.n[sp] || e.n.en)}</b>${marken.join("")}</div>
           <p>${escapeHtml(e.t[sp] || e.t.en)}</p>
+          ${entitaeten}
         </article>`;
       });
       html += "</section>";
     });
     liste.innerHTML = html || `<p class="keine">${escapeHtml(this._t("h_keine"))}</p>`;
+    liste.querySelectorAll("button[data-kopie]").forEach((b) =>
+      b.addEventListener("click", async () => {
+        const ok = await this._kopiere(b.dataset.kopie);
+        if (!ok) return;
+        b.classList.add("kopiert");
+        b.dataset.hinweis = this._t("h_kopiert");
+        setTimeout(() => b.classList.remove("kopiert"), 1500);
+      })
+    );
     liste.scrollTop = 0;
     const z = sr.getElementById("hilfe-anzahl");
     if (z) z.textContent = anzahl === 1 ? this._t("h_anzahl1") : tf(this._t("h_anzahl"), { n: anzahl });
@@ -4226,7 +4344,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     );
     // Werte kommen in Watt herein, angezeigt wird einheitlich Kilowatt.
     const inKW = hoechst >= 100 ? hoechst / 1000 : hoechst;
-    sr.getElementById("verlauf-max").textContent = `max ${fmt(inKW, 2)} kW`;
+    sr.getElementById("verlauf-max").textContent = tf(this._t("s_max"), { v: `${fmt(inKW, 2)} kW` });
     gruppe.setAttribute("opacity", "1");
   }
 
@@ -4968,7 +5086,7 @@ ${this._defs()}
       this._config.label_energy
         ? this._config.label_energy
         : tagesWert
-        ? "Verbrauch heute"
+        ? this._t("s_verbrauch_heute")
         : this._t("s_zaehler")
     );
 
@@ -5891,6 +6009,23 @@ ${this._defs()}
       .lhc-hilfe-liste .marke.bereich { background: #1C2533; color: #C3D0E0; }
       .lhc-hilfe-liste p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.5; color: #C9D3E0; }
       .lhc-hilfe-liste .keine { color: #98A6BA; text-align: center; margin-top: 30px; }
+      .lhc-hilfe-liste .entitaeten { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      .lhc-hilfe-liste .entitaet {
+        position: relative; display: inline-flex; align-items: center; gap: 6px;
+        max-width: 100%; padding: 4px 8px; border-radius: 7px; cursor: pointer;
+        border: 1px solid #33415A; background: #0D1219; color: #C3D0E0;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+      }
+      .lhc-hilfe-liste .entitaet span { overflow-wrap: anywhere; text-align: left; }
+      .lhc-hilfe-liste .entitaet svg { width: 13px; height: 13px; flex: 0 0 auto; fill: currentColor; opacity: 0.7; }
+      .lhc-hilfe-liste .entitaet:hover { border-color: #E0762E; color: #E8EDF4; }
+      .lhc-hilfe-liste .entitaet.kopiert { border-color: #46C07A; color: #46C07A; }
+      .lhc-hilfe-liste .entitaet.kopiert::after {
+        content: attr(data-hinweis); position: absolute; right: 6px; top: -22px;
+        background: #46C07A; color: #0D131B; font-family: inherit; font-size: 11px;
+        font-weight: 700; padding: 2px 6px; border-radius: 5px;
+      }
+      .lhc-hilfe-liste .keine-entitaet { font-size: 12px; color: #6B7A90; font-style: italic; }
       .lhc-hilfe-fuss { font-size: 11.5px; color: #7E8CA0; line-height: 1.4; }
       .lhc-tuer-gruppe { display: flex; flex-direction: column; gap: 3px; break-inside: avoid; }
       .lhc-tuer.zwei .lhc-tuer-liste { display: block; column-count: var(--spalten, 2); column-gap: 16px; }

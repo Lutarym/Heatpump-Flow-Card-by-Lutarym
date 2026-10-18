@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v3.7.1
+
+- English: Help window: every entry now shows its TOP value or command together with the full Home Assistant entity ID (for example `sensor.heishamon_…_top9`, `number.heishamon_…_top9`). A click copies the ID. The search also finds entity IDs. If no matching entity exists, the entry says so. Translations completed: the demo bar (demo mode, standby, valve), "Consumption today", "max" in the history and the label of the setpoint slider were still in German.
+- Deutsch: Hilfefenster: Jeder Eintrag zeigt jetzt neben dem TOP-Wert oder Befehl die vollständige Entität aus Home Assistant (zum Beispiel `sensor.heishamon_…_top9`, `number.heishamon_…_top9`). Ein Klick kopiert die Entität. Die Suche findet auch Entitäten. Gibt es keine passende Entität, steht das im Eintrag. Übersetzungen vervollständigt: Die Demoleiste (Demomodus, Bereitschaft, Ventil), „Verbrauch heute“, „max“ im Verlauf und die Beschriftung des Sollwertreglers waren noch deutsch.
+- Français : fenêtre d'aide : chaque entrée affiche désormais, à côté de la valeur TOP ou de la commande, l'ID complet de l'entité Home Assistant (par exemple `sensor.heishamon_…_top9`, `number.heishamon_…_top9`). Un clic copie l'ID. La recherche trouve aussi les entités. S'il n'existe aucune entité correspondante, l'entrée l'indique. Traductions complétées : la barre de démo (mode démo, veille, vanne), « Consommation du jour », « max » dans l'historique et le libellé du curseur de consigne étaient encore en allemand.
+- 日本語：ヘルプ画面：各項目に TOP 値または命令と並べて、Home Assistant のエンティティ ID 全体を表示するようにしました（例：`sensor.heishamon_…_top9`、`number.heishamon_…_top9`）。クリックで ID をコピーできます。検索でもエンティティを探せます。該当するエンティティがない場合はその旨を表示します。翻訳を補完：デモバー（デモモード、待機、バルブ）、「本日の消費電力量」、履歴の「最大」、設定値スライダーのラベルがドイツ語のままでした。
+
 ## v3.7.0
 
 - English: Help window. The "?" at the bottom right of the card opens a large window explaining everything HeishaMon can read and write in plain language: all values TOP0 to TOP143, the precise values XTOP0 to XTOP5, the optional board values OPT0 to OPT6, every command of the firmware, 1-Wire, S0 and OpenTherm. 207 entries in 16 groups, with search and group filter, in all four languages. Each entry shows whether the value is read, written or both, the command name and the range. Only what the HeishaMon documentation and the Panasonic manual say is stated; where they give no details, the entry says so.

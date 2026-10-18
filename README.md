@@ -13,7 +13,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Temperature colouring of tanks, radiators and pipes
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
 - Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, fault reset, operating hours and starts); changes are sent with “Apply” and the door closes
-- Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups
+- Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups; for every TOP value the full entity ID, copyable with one click
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
 - Landscape and portrait layout
