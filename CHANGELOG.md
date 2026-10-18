@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v3.7.0
+
+- English: Help window. The "?" at the bottom right of the card opens a large window explaining everything HeishaMon can read and write in plain language: all values TOP0 to TOP143, the precise values XTOP0 to XTOP5, the optional board values OPT0 to OPT6, every command of the firmware, 1-Wire, S0 and OpenTherm. 207 entries in 16 groups, with search and group filter, in all four languages. Each entry shows whether the value is read, written or both, the command name and the range. Only what the HeishaMon documentation and the Panasonic manual say is stated; where they give no details, the entry says so.
+- Deutsch: Hilfefenster. Das „?“ unten rechts in der Karte öffnet ein großes Fenster, das in einfacher Sprache alles erklärt, was HeishaMon lesen und schreiben kann: alle Werte TOP0 bis TOP143, die genauen Werte XTOP0 bis XTOP5, die Werte der Optional-Platine OPT0 bis OPT6, jeden Befehl der Firmware, 1-Wire, S0 und OpenTherm. 207 Einträge in 16 Gruppen, mit Suche und Gruppenfilter, in allen vier Sprachen. Jeder Eintrag zeigt, ob der Wert gelesen, geschrieben oder beides wird, den Befehlsnamen und den Bereich. Behauptet wird nur, was in der HeishaMon-Dokumentation und der Panasonic-Anleitung steht; wo dort nichts Genaues steht, sagt der Eintrag das.
+- Français : fenêtre d'aide. Le « ? » en bas à droite de la carte ouvre une grande fenêtre qui explique simplement tout ce que HeishaMon peut lire et écrire : toutes les valeurs TOP0 à TOP143, les valeurs précises XTOP0 à XTOP5, les valeurs de la carte optionnelle OPT0 à OPT6, chaque commande du firmware, 1-Wire, S0 et OpenTherm. 207 entrées en 16 groupes, avec recherche et filtre par groupe, dans les quatre langues. Chaque entrée indique si la valeur est lue, écrite ou les deux, le nom de la commande et la plage. Seul ce que disent la documentation HeishaMon et la notice Panasonic est affirmé ; quand elles ne précisent rien, l'entrée l'indique.
+- 日本語：ヘルプ画面。カード右下の「?」で大きな画面が開き、HeishaMon が読み書きできるすべてを分かりやすく説明します：TOP0〜TOP143 の全値、詳細値 XTOP0〜XTOP5、オプション基板の値 OPT0〜OPT6、ファームウェアの全命令、1-Wire、S0、OpenTherm。16 グループ 207 項目、検索とグループ絞り込み付き、4 言語対応。各項目に読み取り・書き込みの別、命令名、範囲を表示します。HeishaMon の説明書と Panasonic の取扱説明書に書かれていることだけを述べ、詳しい記載がない場合はその旨を示します。
+
 ## v3.6.0
 
 - English: The door now swings in 3D on its own graphics layer and runs smoothly; before, the whole heat pump drawing was redrawn in every frame. New sections behind the door: Operation (holiday mode, weekly schedule, Smart DHW), Fault (reset with the current error code shown) and Info (operating hours, compressor starts, heater hours for heating and hot water). If the height is not enough, the panel widens to two or three columns instead of scrolling.
