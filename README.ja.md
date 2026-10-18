@@ -86,6 +86,7 @@ entities:
 | `show_reload` | `true` | バッファーと給湯に「再加熱 …」の行を表示 |
 | `show_help` | `true` | カード右下にヘルプの「?」ボタンを表示 |
 | `show_door` | `true` | ヒートポンプ右下に詳細設定のボタンを表示 |
+| `theme` | `auto` | 配色：`auto`（Home Assistant のライト／ダークに従う）、`dunkel`（ダーク）、`hell`（ライト）、`kontrast`（ハイコントラスト）、`nacht`（夜間・減光）、`ha`（Home Assistant テーマの色） |
 | `profile_custom` | `[]` | 読み込んだデバイスプロファイル（エディターが設定、[説明](docs/GERAETEPROFIL.ja.md) 参照） |
 | `language_custom` | `[]` | 読み込んだ言語パック（エディターが設定、[説明](docs/SPRACHPAKET.ja.md) 参照） |
 | `history_width` | `450` | 使用量グラフの幅、250〜700 |

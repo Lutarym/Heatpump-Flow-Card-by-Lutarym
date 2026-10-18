@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.5.0
+
+- English: Colour schemes, selectable in the editor (section "Display", option `theme`): Automatic (follows light or dark mode of Home Assistant, default), Dark, Light, High contrast, Night (dimmed) and Colours of the Home Assistant theme. They apply to the card, the door, the dialogs and the help window. The coloured parts (tanks, water temperatures, flow, status colours) keep their colours; the value boxes of the heating circuits stay dark so that the white numbers remain readable. Fixed: in the vertical layout the names of buffer and hot water tank were missing unless an own name was set.
+- Deutsch: Farbdarstellungen, wählbar im Editor (Abschnitt „Darstellung“, Option `theme`): Automatisch (folgt hell oder dunkel von Home Assistant, Standard), Dunkel, Hell, Hoher Kontrast, Nacht (gedimmt) und Farben des Home-Assistant-Designs. Sie gelten für die Karte, die Tür, die Dialoge und das Hilfefenster. Die farbigen Teile (Speicher, Wassertemperaturen, Fluss, Zustandsfarben) behalten ihre Farben; die Wertekästen der Heizkreise bleiben dunkel, damit die weißen Zahlen lesbar bleiben. Behoben: Im Hochformat fehlten die Namen von Puffer und Warmwasserspeicher, wenn kein eigener Name eingetragen war.
+- Français : jeux de couleurs, au choix dans l'éditeur (section « Affichage », option `theme`) : Automatique (suit le mode clair ou sombre de Home Assistant, par défaut), Sombre, Clair, Contraste élevé, Nuit (atténué) et Couleurs du thème Home Assistant. Ils s'appliquent à la carte, à la porte, aux fenêtres et à l'aide. Les parties colorées (ballons, températures d'eau, flux, couleurs d'état) gardent leurs couleurs ; les cadres de valeurs des circuits restent sombres pour que les chiffres blancs restent lisibles. Corrigé : en format vertical, les noms du ballon tampon et du ballon d'eau chaude manquaient sans nom personnalisé.
+- 日本語：配色をエディター（「表示」セクション、オプション `theme`）で選べるようにしました：自動（Home Assistant のライト／ダークに従う、既定）、ダーク、ライト、ハイコントラスト、夜間（減光）、Home Assistant テーマの色。カード、扉、ダイアログ、ヘルプ画面に適用されます。色付きの部分（タンク、水温、流れ、状態色）は元の色のままで、暖房回路の値表示枠は白い数字が読めるよう暗いままです。修正：縦レイアウトで独自名を設定していない場合、バッファーと給湯タンクの名前が表示されていませんでした。
+
 ## v4.4.0
 
 - English: The COP is no longer shown in the buffer and hot water tank. It is now behind the door in its own section "Coefficient of performance (COP)", above the JAZ table: "Heating: Today COP x" and "Hot water: Today COP x" (time-weighted mean since midnight, current value in demo mode). The rows update while the door is open.

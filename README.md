@@ -86,6 +86,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
 | `show_help` | `true` | Show the “?” help button at the bottom right of the card |
 | `show_door` | `true` | Show the advanced settings button at the bottom right of the heat pump |
+| `theme` | `auto` | Colour scheme: `auto` (follows light/dark mode of Home Assistant), `dunkel` (dark), `hell` (light), `kontrast` (high contrast), `nacht` (night, dimmed), `ha` (colours of the Home Assistant theme) |
 | `profile_custom` | `[]` | Imported device profiles (set by the editor, see [guide](docs/GERAETEPROFIL.md)) |
 | `language_custom` | `[]` | Imported language packs (set by the editor, see [guide](docs/SPRACHPAKET.md)) |
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |

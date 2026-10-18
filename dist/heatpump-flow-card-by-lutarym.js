@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.4.0";
+const CARD_VERSION = "4.5.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -205,6 +205,14 @@ const TEXTE = {
   e_sprache: { de: "Sprache", en: "Language", fr: "Langue", ja: "言語" },
   e_sprache_h: { de: "automatisch folgt der Spracheinstellung von Home Assistant", en: "automatic follows the Home Assistant language", fr: "automatique suit la langue de Home Assistant", ja: "自動の場合はHome Assistantの言語に従います" },
   e_profil: { de: "Herstellerprofil", en: "Manufacturer profile", fr: "Profil du fabricant", ja: "メーカープロファイル" },
+  e_thema: { de: "Farbdarstellung", en: "Colour scheme", fr: "Jeu de couleurs", ja: "配色" },
+  e_thema_h: { de: "Automatisch folgt hell oder dunkel von Home Assistant", en: "Automatic follows light or dark mode of Home Assistant", fr: "Automatique suit le mode clair ou sombre de Home Assistant", ja: "自動は Home Assistant のライト／ダークに従います" },
+  o_th_auto: { de: "Automatisch (wie Home Assistant)", en: "Automatic (like Home Assistant)", fr: "Automatique (comme Home Assistant)", ja: "自動（Home Assistant に合わせる）" },
+  o_th_dunkel: { de: "Dunkel", en: "Dark", fr: "Sombre", ja: "ダーク" },
+  o_th_hell: { de: "Hell", en: "Light", fr: "Clair", ja: "ライト" },
+  o_th_kontrast: { de: "Hoher Kontrast", en: "High contrast", fr: "Contraste élevé", ja: "ハイコントラスト" },
+  o_th_nacht: { de: "Nacht (gedimmt)", en: "Night (dimmed)", fr: "Nuit (atténué)", ja: "夜間（減光）" },
+  o_th_ha: { de: "Farben des Home-Assistant-Designs", en: "Colours of the Home Assistant theme", fr: "Couleurs du thème Home Assistant", ja: "Home Assistant テーマの色" },
   e_s_export: { de: "Sprache exportieren", en: "Export language", fr: "Exporter la langue", ja: "言語を書き出す" },
   e_s_import: { de: "Sprache importieren", en: "Import language", fr: "Importer une langue", ja: "言語を読み込む" },
   e_s_entfernen: { de: "Eigene Sprache entfernen", en: "Remove own language", fr: "Supprimer la langue personnelle", ja: "独自の言語を削除" },
@@ -1625,6 +1633,7 @@ const DEFAULT_CONFIG = {
   show_reload: true,
   show_help: true,
   show_door: true,
+  theme: "auto",
   profile_custom: [],
   language_custom: [],
   buffer_present: "auto",
@@ -1740,9 +1749,30 @@ class LutarymHeatpumpCard extends HTMLElement {
     this._render();
   }
 
+  /** Gewaehlte Farbdarstellung, "auto" folgt Home Assistant. */
+  _thema() {
+    const w = (this._config && this._config.theme) || "auto";
+    if (w !== "auto") return w;
+    const dm = this._hass && this._hass.themes && this._hass.themes.darkMode;
+    if (typeof dm === "boolean") return dm ? "dunkel" : "hell";
+    const hell = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+    return hell ? "hell" : "dunkel";
+  }
+
+  /** Setzt die Farbdarstellung an der Karte. */
+  _setzeThema() {
+    const k = this.shadowRoot && this.shadowRoot.querySelector("ha-card.lhc");
+    if (!k) return;
+    const t = this._thema();
+    if (k.dataset.thema === t) return;
+    ["hell", "kontrast", "nacht", "ha"].forEach((n) => k.classList.toggle(`thema-${n}`, n === t));
+    k.dataset.thema = t;
+  }
+
   /** Hat sich eine Entitaet der Karte, die Sprache oder die Registrierung geaendert? */
   _relevantGeaendert(alt, neu) {
     if (alt.language !== neu.language || alt.entities !== neu.entities) return true;
+    if (alt.themes !== neu.themes) return true;
     if (!alt.states || !neu.states) return true;
     if (this._beobachtetFuer !== this._config || !this._beobachtet) {
       const ids = new Set();
@@ -2170,6 +2200,7 @@ class LutarymHeatpumpCard extends HTMLElement {
       this._gebautMit = sprachStand;
       this._gebautPuffer = puffer;
     }
+    this._setzeThema();
     this._groesse();
     this._update();
     this._holeVerlauf();
@@ -4266,7 +4297,8 @@ class LutarymHeatpumpCard extends HTMLElement {
     /* ---------------- Liegender Speicher ---------------- */
     const speicher = (id, y1, y2, name, fuell, mindest, labelKey, badges) => {
       const h = y2 - y1;
-      const breite = schildBreite(this._config[labelKey], mindest);
+      // Eigener Name oder der Standardname in der Kartensprache.
+      const breite = schildBreite(this._name(labelKey), mindest);
       return `
         <g class="unit klickbar" id="${id}">
           <rect x="${P.U1}" y="${y1}" width="${P.U2 - P.U1}" height="${h}" rx="26"
@@ -4280,7 +4312,7 @@ class LutarymHeatpumpCard extends HTMLElement {
             <rect x="${UM - breite / 2}" y="${y1 + 12}" width="${breite}" height="30" rx="8"
                   fill="#0D1219" stroke="#33415A" stroke-width="1" opacity="0.5"/>
             <text class="cap" x="${UM}" y="${y1 + 27}" text-anchor="middle"
-                  dominant-baseline="middle">${escapeHtml(this._config[labelKey])}</text>
+                  dominant-baseline="middle">${escapeHtml(this._name(labelKey))}</text>
           </g>
           <text class="value-l"  id="${name}-v"  x="${UM}" y="${y1 + h / 2 + 12}" text-anchor="middle">--</text>
           <text class="value-sp" id="${name}-sp" x="${UM}" y="${y1 + h / 2 + 36}" text-anchor="middle"></text>
@@ -4364,7 +4396,7 @@ class LutarymHeatpumpCard extends HTMLElement {
                   )}</text>
           </g>
           <g id="hk${n}-tag" transform="translate(${UM} ${y1 + h / 2 + 18})">
-            <rect x="-100" y="-30" width="200" height="60" rx="10" fill="#0B1017" opacity="0.9"/>
+            <rect class="fest-dunkel" x="-100" y="-30" width="200" height="60" rx="10" fill="#0B1017" opacity="0.9"/>
             <text class="tag-v" id="hk${n}-water-v" x="0" y="0" text-anchor="middle">--</text>
             <text class="value-sp" id="hk${n}-target-v" x="0" y="22" text-anchor="middle"></text>
           </g>
@@ -4456,10 +4488,10 @@ class LutarymHeatpumpCard extends HTMLElement {
         <g id="verlauf-sg"></g>
         <text class="hinweis-s" id="verlauf-sg-leer" x="${x + 8}"
               y="${y + hoehe - 23}" opacity="0">${this._t("kein_verlauf")}</text>
-        <text class="value-sp" x="${x}" y="${y + hoehe - 4}">${this._t("vor_24h")}</text>
-        <text class="value-sp" x="${x + breite}" y="${y + hoehe - 36}"
+        <text class="value-sp verlauf-text" x="${x}" y="${y + hoehe - 4}">${this._t("vor_24h")}</text>
+        <text class="value-sp verlauf-text" x="${x + breite}" y="${y + hoehe - 36}"
               text-anchor="end"><tspan fill="#FF5F52">${this._t("heizung")}</tspan><tspan fill="#7E8CA0"> · </tspan><tspan fill="#4D9BFF">${this._t("warmwasser")}</tspan><tspan fill="#7E8CA0"> · ${this._t("standby")}</tspan></text>
-        <text class="value-sp" x="${x + breite}" y="${y + hoehe - 4}"
+        <text class="value-sp verlauf-text" x="${x + breite}" y="${y + hoehe - 4}"
               text-anchor="end">${this._t("jetzt")}</text>
       </g>`;
   }
@@ -5523,7 +5555,7 @@ ${this._defs()}
         </g>
 
         <g id="hk${n}-tag" transform="translate(${mid} ${RT + 100})">
-          <rect x="-100" y="-30" width="200" height="60" rx="10"
+          <rect class="fest-dunkel" x="-100" y="-30" width="200" height="60" rx="10"
                 fill="#0B1017" opacity="0.9"/>
           <text class="tag-v" id="hk${n}-water-v" x="0" y="0" text-anchor="middle">--</text>
           <text class="value-sp" id="hk${n}-target-v" x="0" y="22" text-anchor="middle"></text>
@@ -5734,8 +5766,10 @@ ${this._defs()}
         set("sg-text", sg === null ? this._t("unbekannt") : this._t(info.kurz));
         const t = this._animEl("sg-text");
         if (t) {
-          t.style.fill = farbe;
-          t.style.color = farbe;
+          // Das helle Grau fuer "Normal" folgt der Farbdarstellung.
+          const stil = farbe === "#C3D0E0" ? "var(--c-c3d0e0)" : farbe;
+          t.style.fill = stil;
+          t.style.color = stil;
         }
         for (let i = 1; i <= 4; i++) {
           const seg = this._animEl(`sg-seg-${i}`);
@@ -6003,7 +6037,7 @@ ${this._defs()}
       if (!el) return;
       const dabei =
         k === "betrieb" ? anAus === true : k === "abtauen" ? abtaut : umfasst[k];
-      el.style.color = dabei ? modusFarben[k] : "#2E3847";
+      el.style.color = dabei ? modusFarben[k] : "var(--c-2e3847)";
       if (blinkt[k] && animate) {
         this._animState.set(`modus-${k}`, {
           type: "pulse", duration: 1.4, min: 0.3, max: 1,
@@ -6246,9 +6280,125 @@ ${this._defs()}
   _css() {
     return `
       :host { display: block; }
+      .lhc { --c-080c12: #080C12; --c-0b1017: #0B1017; --c-0d1219: #0D1219; --c-0d131b: #0D131B; --c-0e1620: #0E1620; --c-0f151e: #0F151E; --c-0f1826: #0F1826; --c-131a24: #131A24; --c-161d28: #161D28; --c-1b2431: #1B2431; --c-1c2533: #1C2533; --c-1e2836: #1E2836; --c-212b39: #212B39; --c-222c3a: #222C3A; --c-232c3a: #232C3A; --c-26303f: #26303F; --c-2a3446: #2A3446; --c-2a3b52: #2A3B52; --c-2b3546: #2B3546; --c-2e3847: #2E3847; --c-2e4661: #2E4661; --c-33415a: #33415A; --c-3a4557: #3A4557; --c-3a4658: #3A4658; --c-3a4757: #3A4757; --c-3e4c61: #3E4C61; --c-46536a: #46536A; --c-55637a: #55637A; --c-55657f: #55657F; --c-6b7a90: #6B7A90; --c-7e8ca0: #7E8CA0; --c-8fa8c8: #8FA8C8; --c-98a6ba: #98A6BA; --c-c3d0e0: #C3D0E0; --c-c9d3e0: #C9D3E0; --c-ddebfa: #DDEBFA; --c-e8edf4: #E8EDF4; }
+      .lhc.thema-hell { --c-080c12: #EEF1F5; --c-0b1017: #EEF1F5; --c-0d1219: #EEF1F5; --c-0d131b: #EEF1F5; --c-0e1620: #EBEEF2; --c-0f151e: #ECEFF3; --c-0f1826: #E8EBF0; --c-131a24: #E7EAEE; --c-161d28: #E4E7EB; --c-1b2431: #DDE0E5; --c-1c2533: #DCDFE4; --c-1e2836: #D9DDE1; --c-212b39: #D6DADF; --c-222c3a: #D5D9DE; --c-232c3a: #D5D8DE; --c-26303f: #D1D5DA; --c-2a3446: #CCD0D5; --c-2a3b52: #C6CAD0; --c-2b3546: #CBCFD5; --c-2e3847: #C9CDD3; --c-2e4661: #BCC0C7; --c-33415a: #BFC3C9; --c-3a4557: #BCC0C6; --c-3a4658: #BBC0C6; --c-3a4757: #BBC0C6; --c-3e4c61: #B5BAC0; --c-46536a: #ADB2B9; --c-55637a: #9EA3AB; --c-55657f: #9CA1A8; --c-6b7a90: #898E96; --c-7e8ca0: #787D86; --c-8fa8c8: #5C636D; --c-98a6ba: #5E656F; --c-c3d0e0: #373E4A; --c-c9d3e0: #343B47; --c-ddebfa: #1D2532; --c-e8edf4: #1B2330; }
+      .lhc.thema-kontrast { --c-080c12: #000000; --c-0b1017: #000000; --c-0d1219: #000000; --c-0d131b: #000000; --c-0e1620: #131313; --c-0f151e: #111111; --c-0f1826: #1E1E1E; --c-131a24: #212121; --c-161d28: #2A2A2A; --c-1b2431: #383838; --c-1c2533: #3B3B3B; --c-1e2836: #404040; --c-212b39: #454545; --c-222c3a: #474747; --c-232c3a: #474747; --c-26303f: #4E4E4E; --c-2a3446: #555555; --c-2a3b52: #5E5E5E; --c-2b3546: #565656; --c-2e3847: #595959; --c-2e4661: #6B6B6B; --c-33415a: #686868; --c-3a4557: #6B6B6B; --c-3a4658: #6C6C6C; --c-3a4757: #6C6C6C; --c-3e4c61: #747474; --c-46536a: #7D7D7D; --c-55637a: #8E8E8E; --c-55657f: #919191; --c-6b7a90: #A4A4A4; --c-7e8ca0: #B4B4B4; --c-8fa8c8: #CCCCCC; --c-98a6ba: #CACACA; --c-c3d0e0: #EAEAEA; --c-c9d3e0: #EDEDED; --c-ddebfa: #FDFDFD; --c-e8edf4: #FFFFFF; }
+      .lhc.thema-nacht { --c-080c12: #030507; --c-0b1017: #030507; --c-0d1219: #030507; --c-0d131b: #030507; --c-0e1620: #040709; --c-0f151e: #040608; --c-0f1826: #06080B; --c-131a24: #07090B; --c-161d28: #080B0D; --c-1b2431: #0C0E11; --c-1c2533: #0C0F12; --c-1e2836: #0E1014; --c-212b39: #0F1216; --c-222c3a: #101316; --c-232c3a: #101316; --c-26303f: #121519; --c-2a3446: #14171C; --c-2a3b52: #171B1F; --c-2b3546: #15181C; --c-2e3847: #16191D; --c-2e4661: #1C2025; --c-33415a: #1B1F24; --c-3a4557: #1C2026; --c-3a4658: #1D2126; --c-3a4757: #1D2126; --c-3e4c61: #20242A; --c-46536a: #24282E; --c-55637a: #2B3038; --c-55657f: #2D3239; --c-6b7a90: #363C45; --c-7e8ca0: #3F464F; --c-8fa8c8: #4D5460; --c-98a6ba: #4C535F; --c-c3d0e0: #606977; --c-c9d3e0: #616A79; --c-ddebfa: #6D7787; --c-e8edf4: #6E7888; }
+      .lhc.thema-ha { --c-080c12: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0b1017: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0d1219: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0d131b: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0e1620: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 1%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0f151e: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 1%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0f1826: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 3%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-131a24: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 3%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-161d28: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 5%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-1b2431: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 8%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-1c2533: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 9%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-1e2836: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 10%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-212b39: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 11%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-222c3a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 12%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-232c3a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 12%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-26303f: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 14%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2a3446: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 16%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2a3b52: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 19%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2b3546: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 16%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2e3847: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 17%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2e4661: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-33415a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 22%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3a4557: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3a4658: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3a4757: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3e4c61: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 27%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-46536a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 31%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-55637a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 38%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-55657f: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 39%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-6b7a90: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 48%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-7e8ca0: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 56%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-8fa8c8: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 69%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-98a6ba: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 68%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-c3d0e0: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 87%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-c9d3e0: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 88%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-ddebfa: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 99%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-e8edf4: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 100%, var(--ha-card-background, var(--card-background-color, #0D131B))); }
+      [fill="#080C12" i] { fill: var(--c-080c12); }
+      [stroke="#080C12" i] { stroke: var(--c-080c12); }
+      [stop-color="#080C12" i] { stop-color: var(--c-080c12); }
+      [fill="#0B1017" i] { fill: var(--c-0b1017); }
+      [stroke="#0B1017" i] { stroke: var(--c-0b1017); }
+      [stop-color="#0B1017" i] { stop-color: var(--c-0b1017); }
+      [fill="#0D1219" i] { fill: var(--c-0d1219); }
+      [stroke="#0D1219" i] { stroke: var(--c-0d1219); }
+      [stop-color="#0D1219" i] { stop-color: var(--c-0d1219); }
+      [fill="#0D131B" i] { fill: var(--c-0d131b); }
+      [stroke="#0D131B" i] { stroke: var(--c-0d131b); }
+      [stop-color="#0D131B" i] { stop-color: var(--c-0d131b); }
+      [fill="#0E1620" i] { fill: var(--c-0e1620); }
+      [stroke="#0E1620" i] { stroke: var(--c-0e1620); }
+      [stop-color="#0E1620" i] { stop-color: var(--c-0e1620); }
+      [fill="#0F151E" i] { fill: var(--c-0f151e); }
+      [stroke="#0F151E" i] { stroke: var(--c-0f151e); }
+      [stop-color="#0F151E" i] { stop-color: var(--c-0f151e); }
+      [fill="#0F1826" i] { fill: var(--c-0f1826); }
+      [stroke="#0F1826" i] { stroke: var(--c-0f1826); }
+      [stop-color="#0F1826" i] { stop-color: var(--c-0f1826); }
+      [fill="#131A24" i] { fill: var(--c-131a24); }
+      [stroke="#131A24" i] { stroke: var(--c-131a24); }
+      [stop-color="#131A24" i] { stop-color: var(--c-131a24); }
+      [fill="#161D28" i] { fill: var(--c-161d28); }
+      [stroke="#161D28" i] { stroke: var(--c-161d28); }
+      [stop-color="#161D28" i] { stop-color: var(--c-161d28); }
+      [fill="#1B2431" i] { fill: var(--c-1b2431); }
+      [stroke="#1B2431" i] { stroke: var(--c-1b2431); }
+      [stop-color="#1B2431" i] { stop-color: var(--c-1b2431); }
+      [fill="#1C2533" i] { fill: var(--c-1c2533); }
+      [stroke="#1C2533" i] { stroke: var(--c-1c2533); }
+      [stop-color="#1C2533" i] { stop-color: var(--c-1c2533); }
+      [fill="#1E2836" i] { fill: var(--c-1e2836); }
+      [stroke="#1E2836" i] { stroke: var(--c-1e2836); }
+      [stop-color="#1E2836" i] { stop-color: var(--c-1e2836); }
+      [fill="#212B39" i] { fill: var(--c-212b39); }
+      [stroke="#212B39" i] { stroke: var(--c-212b39); }
+      [stop-color="#212B39" i] { stop-color: var(--c-212b39); }
+      [fill="#222C3A" i] { fill: var(--c-222c3a); }
+      [stroke="#222C3A" i] { stroke: var(--c-222c3a); }
+      [stop-color="#222C3A" i] { stop-color: var(--c-222c3a); }
+      [fill="#232C3A" i] { fill: var(--c-232c3a); }
+      [stroke="#232C3A" i] { stroke: var(--c-232c3a); }
+      [stop-color="#232C3A" i] { stop-color: var(--c-232c3a); }
+      [fill="#26303F" i] { fill: var(--c-26303f); }
+      [stroke="#26303F" i] { stroke: var(--c-26303f); }
+      [stop-color="#26303F" i] { stop-color: var(--c-26303f); }
+      [fill="#2A3446" i] { fill: var(--c-2a3446); }
+      [stroke="#2A3446" i] { stroke: var(--c-2a3446); }
+      [stop-color="#2A3446" i] { stop-color: var(--c-2a3446); }
+      [fill="#2A3B52" i] { fill: var(--c-2a3b52); }
+      [stroke="#2A3B52" i] { stroke: var(--c-2a3b52); }
+      [stop-color="#2A3B52" i] { stop-color: var(--c-2a3b52); }
+      [fill="#2B3546" i] { fill: var(--c-2b3546); }
+      [stroke="#2B3546" i] { stroke: var(--c-2b3546); }
+      [stop-color="#2B3546" i] { stop-color: var(--c-2b3546); }
+      [fill="#2E3847" i] { fill: var(--c-2e3847); }
+      [stroke="#2E3847" i] { stroke: var(--c-2e3847); }
+      [stop-color="#2E3847" i] { stop-color: var(--c-2e3847); }
+      [fill="#2E4661" i] { fill: var(--c-2e4661); }
+      [stroke="#2E4661" i] { stroke: var(--c-2e4661); }
+      [stop-color="#2E4661" i] { stop-color: var(--c-2e4661); }
+      [fill="#33415A" i] { fill: var(--c-33415a); }
+      [stroke="#33415A" i] { stroke: var(--c-33415a); }
+      [stop-color="#33415A" i] { stop-color: var(--c-33415a); }
+      [fill="#3A4557" i] { fill: var(--c-3a4557); }
+      [stroke="#3A4557" i] { stroke: var(--c-3a4557); }
+      [stop-color="#3A4557" i] { stop-color: var(--c-3a4557); }
+      [fill="#3A4658" i] { fill: var(--c-3a4658); }
+      [stroke="#3A4658" i] { stroke: var(--c-3a4658); }
+      [stop-color="#3A4658" i] { stop-color: var(--c-3a4658); }
+      [fill="#3A4757" i] { fill: var(--c-3a4757); }
+      [stroke="#3A4757" i] { stroke: var(--c-3a4757); }
+      [stop-color="#3A4757" i] { stop-color: var(--c-3a4757); }
+      [fill="#3E4C61" i] { fill: var(--c-3e4c61); }
+      [stroke="#3E4C61" i] { stroke: var(--c-3e4c61); }
+      [stop-color="#3E4C61" i] { stop-color: var(--c-3e4c61); }
+      [fill="#46536A" i] { fill: var(--c-46536a); }
+      [stroke="#46536A" i] { stroke: var(--c-46536a); }
+      [stop-color="#46536A" i] { stop-color: var(--c-46536a); }
+      [fill="#55637A" i] { fill: var(--c-55637a); }
+      [stroke="#55637A" i] { stroke: var(--c-55637a); }
+      [stop-color="#55637A" i] { stop-color: var(--c-55637a); }
+      [fill="#55657F" i] { fill: var(--c-55657f); }
+      [stroke="#55657F" i] { stroke: var(--c-55657f); }
+      [stop-color="#55657F" i] { stop-color: var(--c-55657f); }
+      [fill="#6B7A90" i] { fill: var(--c-6b7a90); }
+      [stroke="#6B7A90" i] { stroke: var(--c-6b7a90); }
+      [stop-color="#6B7A90" i] { stop-color: var(--c-6b7a90); }
+      [fill="#7E8CA0" i] { fill: var(--c-7e8ca0); }
+      [stroke="#7E8CA0" i] { stroke: var(--c-7e8ca0); }
+      [stop-color="#7E8CA0" i] { stop-color: var(--c-7e8ca0); }
+      [fill="#8FA8C8" i] { fill: var(--c-8fa8c8); }
+      [stroke="#8FA8C8" i] { stroke: var(--c-8fa8c8); }
+      [stop-color="#8FA8C8" i] { stop-color: var(--c-8fa8c8); }
+      [fill="#98A6BA" i] { fill: var(--c-98a6ba); }
+      [stroke="#98A6BA" i] { stroke: var(--c-98a6ba); }
+      [stop-color="#98A6BA" i] { stop-color: var(--c-98a6ba); }
+      [fill="#C3D0E0" i] { fill: var(--c-c3d0e0); }
+      [stroke="#C3D0E0" i] { stroke: var(--c-c3d0e0); }
+      [stop-color="#C3D0E0" i] { stop-color: var(--c-c3d0e0); }
+      [fill="#C9D3E0" i] { fill: var(--c-c9d3e0); }
+      [stroke="#C9D3E0" i] { stroke: var(--c-c9d3e0); }
+      [stop-color="#C9D3E0" i] { stop-color: var(--c-c9d3e0); }
+      [fill="#DDEBFA" i] { fill: var(--c-ddebfa); }
+      [stroke="#DDEBFA" i] { stroke: var(--c-ddebfa); }
+      [stop-color="#DDEBFA" i] { stop-color: var(--c-ddebfa); }
+      [fill="#E8EDF4" i] { fill: var(--c-e8edf4); }
+      [stroke="#E8EDF4" i] { stroke: var(--c-e8edf4); }
+      [stop-color="#E8EDF4" i] { stop-color: var(--c-e8edf4); }
       .lhc {
-        --ink: #E8EDF4; --muted: #7E8CA0; --line: #26303F; --panel: #131A24;
-        background: linear-gradient(180deg, #131A24 0%, #0D131B 100%);
+        --ink: var(--c-e8edf4); --muted: var(--c-7e8ca0); --line: var(--c-26303f); --panel: var(--c-131a24);
+        background: linear-gradient(180deg, var(--c-131a24) 0%, var(--c-0d131b) 100%);
         /* Knappe Polsterung, damit die Zeichnung die Karte ausfuellt. */
         color: var(--ink); padding: 6px 8px 12px; overflow: hidden;
         position: relative;
@@ -6276,15 +6426,15 @@ ${this._defs()}
         display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px;
         flex-wrap: wrap;
       }
-      .lhc-demo-hinweis { font-size: 12px; color: #8FA8C8; }
+      .lhc-demo-hinweis { font-size: 12px; color: var(--c-8fa8c8); }
       .lhc-demo-reihe { display: flex; flex-wrap: wrap; gap: 8px; }
       .lhc-demo-knopf {
         padding: 7px 12px; border-radius: 8px; cursor: pointer; font: inherit;
-        font-size: 13px; background: #0F1826; color: var(--ink);
-        border: 1px solid #2E4661;
+        font-size: 13px; background: var(--c-0f1826); color: var(--ink);
+        border: 1px solid var(--c-2e4661);
       }
       .lhc-demo-knopf.is-on {
-        background: #1E3A5C; border-color: #5A9BD8; color: #DDEBFA;
+        background: #1E3A5C; border-color: #5A9BD8; color: var(--c-ddebfa);
       }
       .lhc-demo-knopf:hover { border-color: #5A9BD8; }
       .lhc-demo-regler {
@@ -6292,20 +6442,20 @@ ${this._defs()}
         gap: 10px 18px; margin-top: 12px;
       }
       .lhc-demo-schieber { display: flex; flex-direction: column; gap: 4px; }
-      .lhc-demo-schieber span { font-size: 12px; color: #8FA8C8; }
+      .lhc-demo-schieber span { font-size: 12px; color: var(--c-8fa8c8); }
       .lhc-demo-schieber b { color: var(--ink); font-weight: 700; }
       .lhc-demo-schieber input {
         -webkit-appearance: none; appearance: none; width: 100%; height: 5px;
-        border-radius: 3px; background: #2A3B52; outline: none;
+        border-radius: 3px; background: var(--c-2a3b52); outline: none;
       }
       .lhc-demo-schieber input::-webkit-slider-thumb {
         -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-        background: #5A9BD8; border: 2px solid #0F1826; cursor: pointer;
+        background: #5A9BD8; border: 2px solid var(--c-0f1826); cursor: pointer;
       }
       .lhc-svg { width: 100%; height: auto; display: block; }
 
       .pipe-shell {
-        fill: none; stroke: #0B1017; stroke-width: 18;
+        fill: none; stroke: var(--c-0b1017); stroke-width: 18;
         stroke-linecap: round; stroke-linejoin: round;
       }
       .pipe {
@@ -6326,12 +6476,12 @@ ${this._defs()}
       .unit-label {
         /* 11px mit engerer Sperrung, sonst passt "Außentemperatur"
            nicht in die halbe Gehaeusebreite. */
-        fill: #7E8CA0; font-size: 12px; letter-spacing: 0.02em;
+        fill: var(--c-7e8ca0); font-size: 12px; letter-spacing: 0.02em;
       }
       /* Eigene Groesse fuer die beiden Werte im Gehaeuse. Die gemeinsame
          Klasse wird auch ausserhalb verwendet und bleibt unveraendert. */
       .unit-value-s {
-        fill: #E8EDF4; font-size: 22px; font-weight: 700;
+        fill: var(--c-e8edf4); font-size: 22px; font-weight: 700;
         transition: fill 600ms ease;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-variant-numeric: tabular-nums;
@@ -6343,7 +6493,7 @@ ${this._defs()}
       }
       #verbrauch-group, #zirkulation-group { transition: opacity 300ms ease; }
       .unit-value {
-        fill: #E8EDF4; font-size: 26px; font-weight: 700;
+        fill: var(--c-e8edf4); font-size: 26px; font-weight: 700;
         transition: fill 600ms ease;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-variant-numeric: tabular-nums;
@@ -6352,8 +6502,8 @@ ${this._defs()}
          So bleibt erkennbar, dass es sie gibt. */
       .is-inaktiv { opacity: 0.28; transition: opacity 600ms ease; }
       #valve-arrow-down, #valve-arrow-right { transition: opacity 400ms ease; }
-      .cap { fill: #98A6BA; font-size: 15px; letter-spacing: 0.02em; }
-      .cap-s { fill: #7E8CA0; font-size: 13px; letter-spacing: 0.02em; }
+      .cap { fill: var(--c-98a6ba); font-size: 15px; letter-spacing: 0.02em; }
+      .cap-s { fill: var(--c-7e8ca0); font-size: 13px; letter-spacing: 0.02em; }
       .value-l {
         fill: #FFFFFF; font-size: 30px; font-weight: 700;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
@@ -6361,7 +6511,7 @@ ${this._defs()}
         paint-order: stroke; stroke: rgba(0,0,0,0.45); stroke-width: 5px;
       }
       .value-s {
-        fill: #98A6BA; font-size: 14px;
+        fill: var(--c-98a6ba); font-size: 14px;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-variant-numeric: tabular-nums;
       }
@@ -6378,8 +6528,12 @@ ${this._defs()}
         font-size: 14px; font-weight: 700;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
       }
-      .hinweis-s { fill: #6B7A90; font-size: 11px; }
+      .hinweis-s { fill: var(--c-6b7a90); font-size: 11px; }
       .value-sp { fill: rgba(255,255,255,0.85); font-size: 17px; }
+      .lhc .value-sp.verlauf-text { fill: var(--c-e8edf4); }
+      .lhc rect.fest-dunkel { fill: #0B1017; }
+      /* Namensschilder liegen auf farbigen Flaechen, nachts nicht zu dunkel. */
+      .lhc.thema-nacht .cap { fill: #A3ADBD; }
       /* Weiss mit dunklem Rand wie die Temperatur, damit der Wert auf
          jeder Speicherfarbe lesbar bleibt. */
       .value-cop {
@@ -6409,7 +6563,7 @@ ${this._defs()}
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-variant-numeric: tabular-nums;
       }
-      .badge-t { fill: #E8EDF4; font-size: 13px; }
+      .badge-t { fill: var(--c-e8edf4); font-size: 13px; }
       .modus-t { font-size: 22px; font-weight: 700; }
       .modus { transition: color 400ms ease; }
       .badge { opacity: 0; transition: opacity 300ms ease; }
@@ -6422,7 +6576,7 @@ ${this._defs()}
       }
       #pv-group { transition: opacity 300ms ease; }
       .sg-label {
-        fill: #C3D0E0; font-size: 13px; letter-spacing: 0.02em;
+        fill: var(--c-c3d0e0); font-size: 13px; letter-spacing: 0.02em;
       }
       .sg-value {
         /* 13px, damit auch der laengste Zustand "PV Ueberschuss High"
@@ -6444,17 +6598,17 @@ ${this._defs()}
       .rotor {
         transform-origin: 0 0;
       }
-      .rotor .blades path { fill: #55637A; }
-      .rotor.is-still .blades path, .rotor.is-still > path { fill: #3A4557; }
+      .rotor .blades path { fill: var(--c-55637a); }
+      .rotor.is-still .blades path, .rotor.is-still > path { fill: var(--c-3a4557); }
 
       .lhc-wert {
         display: flex; justify-content: space-between; align-items: center;
         width: 100%; gap: 12px; margin-top: 3px; padding: 5px 12px;
-        background: #0D131B; color: var(--ink); font: inherit; font-size: 14px;
+        background: var(--c-0d131b); color: var(--ink); font: inherit; font-size: 14px;
         border: 1px solid var(--line); border-radius: 8px;
         cursor: pointer; text-align: left;
       }
-      .lhc-wert:hover { border-color: #55657F; }
+      .lhc-wert:hover { border-color: var(--c-55657f); }
       .lhc-wert b {
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-variant-numeric: tabular-nums; white-space: nowrap;
@@ -6475,17 +6629,17 @@ ${this._defs()}
       }
       .lhc-slider {
         -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
-        border-radius: 3px; background: #26303F; outline: none;
+        border-radius: 3px; background: var(--c-26303f); outline: none;
       }
       .lhc-slider:disabled { opacity: 0.4; }
       .lhc-slider::-webkit-slider-thumb {
         -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
-        background: var(--thumb, #E0762E); border: 3px solid #0D131B;
-        cursor: pointer; box-shadow: 0 0 0 1px #3A4757;
+        background: var(--thumb, #E0762E); border: 3px solid var(--c-0d131b);
+        cursor: pointer; box-shadow: 0 0 0 1px var(--c-3a4757);
       }
       .lhc-slider::-moz-range-thumb {
         width: 18px; height: 18px; border-radius: 50%;
-        background: var(--thumb, #E0762E); border: 3px solid #0D131B; cursor: pointer;
+        background: var(--thumb, #E0762E); border: 3px solid var(--c-0d131b); cursor: pointer;
       }
       .lhc-slider:focus-visible { box-shadow: 0 0 0 3px rgba(224,118,46,0.4); }
       /* Anklickbare Baugruppen und das Einstellfenster. */
@@ -6506,7 +6660,7 @@ ${this._defs()}
         box-sizing: border-box;
         width: min(360px, 100%); max-height: 100%; overflow-y: auto;
         padding: 12px 16px; border-radius: 16px;
-        background: #161D28; border: 1px solid var(--line);
+        background: var(--c-161d28); border: 1px solid var(--line);
         box-shadow: 0 18px 48px rgba(0,0,0,0.55);
       }
       .lhc-dialog-head {
@@ -6529,10 +6683,10 @@ ${this._defs()}
       .lhc-dialog-row { display: flex; align-items: center; gap: 14px; }
       .lhc-step {
         width: 44px; height: 44px; flex: 0 0 auto; border-radius: 12px;
-        background: #1B2431; border: 1px solid var(--line); color: var(--ink);
+        background: var(--c-1b2431); border: 1px solid var(--line); color: var(--ink);
         font-size: 24px; line-height: 1; cursor: pointer;
       }
-      .lhc-step:hover { border-color: #3E4C61; }
+      .lhc-step:hover { border-color: var(--c-3e4c61); }
       .lhc-step:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
       /* Zwei Spalten: die Auswahlfelder stehen nebeneinander, die
          Schaltflaechen laufen ueber die volle Breite. Das spart Hoehe. */
@@ -6547,10 +6701,10 @@ ${this._defs()}
         grid-column: 1 / -1;
         /* Kurze Beschriftungen duerfen sich eine Zeile teilen. */
         font: inherit; font-size: 15px; font-weight: 500; cursor: pointer;
-        background: #1B2431; border: 1px solid var(--line); color: var(--ink);
+        background: var(--c-1b2431); border: 1px solid var(--line); color: var(--ink);
       }
       .lhc-dialog-action[hidden] { display: none; }
-      .lhc-dialog-action:hover { border-color: #3E4C61; }
+      .lhc-dialog-action:hover { border-color: var(--c-3e4c61); }
       .lhc-dialog-action.is-an {
         background: #0E2E1C; border-color: #46C07A; color: #BFEFD2;
       }
@@ -6560,7 +6714,7 @@ ${this._defs()}
       .lhc-dialog-action.schmal { grid-column: auto; }
       .lhc-dialog-action:disabled {
         opacity: 0.45; cursor: not-allowed;
-        background: #1B2431; border-color: var(--line); color: var(--muted);
+        background: var(--c-1b2431); border-color: var(--line); color: var(--muted);
       }
       .lhc-dialog-action:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
       #dlg-temp[hidden] { display: none; }
@@ -6577,23 +6731,23 @@ ${this._defs()}
            ganze Breite, sonst waere das Diagramm zu schmal. */
         box-sizing: border-box; width: min(94vw, 560px); max-height: 92vh;
         overflow-y: auto; padding: 16px 18px 14px; border-radius: 16px;
-        background: #161D28; border: 1px solid var(--line);
+        background: var(--c-161d28); border: 1px solid var(--line);
         box-shadow: 0 18px 48px rgba(0,0,0,0.55);
       }
       .lhc-kurve-titel {
         display: flex; align-items: center; justify-content: space-between;
-        font-size: 16px; font-weight: 600; color: #E8EDF4; margin-bottom: 8px;
+        font-size: 16px; font-weight: 600; color: var(--c-e8edf4); margin-bottom: 8px;
       }
       .lhc-kurve-reihe { display: flex; gap: 18px; align-items: flex-start; }
       .lhc-kurve-spalte { flex: 1; min-width: 0; }
       .lhc-kurve-spalte[hidden] { display: none; }
       .lhc-kurve-kopf {
         display: flex; justify-content: space-between; align-items: baseline;
-        font-size: 13px; color: #98A6BA; margin-bottom: 4px;
+        font-size: 13px; color: var(--c-98a6ba); margin-bottom: 4px;
         border-bottom: 1px solid var(--line); padding-bottom: 4px;
       }
       .lhc-kurve-soll {
-        font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #C3D0E0;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--c-c3d0e0);
       }
       .ist-jetzt-html { color: #46C07A; }
       .vl-html { color: #FF8A5F; }
@@ -6604,7 +6758,7 @@ ${this._defs()}
       }
       .lhc-num-kompakt {
         display: flex; align-items: center; gap: 6px; padding: 2px 0;
-        font-size: 12px; color: #98A6BA;
+        font-size: 12px; color: var(--c-98a6ba);
       }
       .lhc-num-kompakt span { flex: 1; min-width: 0; }
       /* Dieselbe Zuordnung wie im Diagramm: orange Vorlauf, blau außen. */
@@ -6612,7 +6766,7 @@ ${this._defs()}
       .lhc-num-kompakt.ist-aussen span, .lhc-num-kompakt.ist-aussen output { color: #6BB7E8; }
       .lhc-num-kompakt output {
         min-width: 58px; text-align: right; font-size: 13px; font-weight: 700;
-        font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #E8EDF4;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--c-e8edf4);
       }
       /* Die Tuer ist eine eigene Ebene ueber der Waermepumpe. Gedreht wird
          nur diese Ebene, das uebernimmt die Grafikkarte. Die SVG-Gruppe
@@ -6633,14 +6787,14 @@ ${this._defs()}
       .lhc-tuer {
         position: absolute; z-index: 4; box-sizing: border-box;
         display: flex; flex-direction: column; gap: 6px; padding: 10px 10px;
-        background: #080C12; border: 1px solid #33415A; border-radius: 14px;
+        background: var(--c-080c12); border: 1px solid var(--c-33415a); border-radius: 14px;
         color: var(--ink); opacity: 0; transition: opacity 260ms ease 520ms;
       }
       .lhc-tuer[hidden] { display: none; }
       .lhc-tuer.sichtbar { opacity: 1; }
       /* Beim Schliessen sofort ausblenden, dann klappt die Tuer zu. */
       .lhc-tuer:not(.sichtbar) { transition-delay: 0ms; }
-      .lhc-tuer-kopf { font-size: 14px; font-weight: 600; text-align: center; color: #E8EDF4; }
+      .lhc-tuer-kopf { font-size: 14px; font-weight: 600; text-align: center; color: var(--c-e8edf4); }
       .lhc-tuer-liste {
         flex: 1; min-height: 0; overflow-y: auto;
         display: flex; flex-direction: column; gap: 3px;
@@ -6648,7 +6802,7 @@ ${this._defs()}
       .lhc-hilfe-knopf {
         position: absolute; right: 10px; bottom: 10px; z-index: 2;
         width: 30px; height: 30px; border-radius: 50%; padding: 0;
-        border: 1px solid #55657F; background: #0D1219; color: #C3D0E0;
+        border: 1px solid var(--c-55657f); background: var(--c-0d1219); color: var(--c-c3d0e0);
         font-size: 17px; font-weight: 700; line-height: 1; cursor: pointer;
       }
       .lhc-hilfe-box:focus { outline: none; }
@@ -6662,8 +6816,8 @@ ${this._defs()}
       .lhc-hilfe-box {
         box-sizing: border-box; width: min(96vw, 920px); height: min(92vh, 900px);
         display: flex; flex-direction: column; gap: 10px; padding: 16px 18px 12px;
-        background: #161D28; border: 1px solid var(--line); border-radius: 16px;
-        box-shadow: 0 18px 48px rgba(0,0,0,0.55); color: #E8EDF4;
+        background: var(--c-161d28); border: 1px solid var(--line); border-radius: 16px;
+        box-shadow: 0 18px 48px rgba(0,0,0,0.55); color: var(--c-e8edf4);
       }
       .lhc-hilfe-kopf {
         display: flex; align-items: center; justify-content: space-between;
@@ -6671,12 +6825,12 @@ ${this._defs()}
       }
       .lhc-hilfe-suche {
         box-sizing: border-box; width: 100%; padding: 10px 12px; border-radius: 10px;
-        border: 1px solid #33415A; background: #0D1219; color: #E8EDF4; font-size: 15px;
+        border: 1px solid var(--c-33415a); background: var(--c-0d1219); color: var(--c-e8edf4); font-size: 15px;
       }
       .lhc-hilfe-suche:focus { outline: none; border-color: #E0762E; }
       .lhc-hilfe-chips { display: flex; flex-wrap: wrap; gap: 6px; }
       .lhc-hilfe-chips button {
-        border: 1px solid #33415A; background: transparent; color: #98A6BA;
+        border: 1px solid var(--c-33415a); background: transparent; color: var(--c-98a6ba);
         border-radius: 999px; padding: 4px 10px; font-size: 12.5px; cursor: pointer;
       }
       /* Auf schmalen Bildschirmen eine Zeile zum Wischen statt vieler Zeilen. */
@@ -6685,7 +6839,7 @@ ${this._defs()}
         .lhc-hilfe-chips button { flex: 0 0 auto; }
         .lhc-hilfe-box { padding: 12px 12px 10px; }
       }
-      .lhc-hilfe-chips button.aktiv { background: #26303F; color: #E8EDF4; border-color: #55657F; }
+      .lhc-hilfe-chips button.aktiv { background: var(--c-26303f); color: var(--c-e8edf4); border-color: var(--c-55657f); }
       .lhc-hilfe-liste { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; }
       .lhc-hilfe-liste h3 {
         margin: 14px 0 6px; font-size: 12px; letter-spacing: 0.06em;
@@ -6694,7 +6848,7 @@ ${this._defs()}
       .lhc-hilfe-liste section:first-child h3 { margin-top: 2px; }
       .lhc-hilfe-liste article {
         padding: 9px 11px; margin-bottom: 6px; border-radius: 10px;
-        background: #0F151E; border: 1px solid #222C3A;
+        background: var(--c-0f151e); border: 1px solid var(--c-222c3a);
       }
       .lhc-hilfe-liste .eintrag-kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
       .lhc-hilfe-liste .eintrag-kopf b { font-size: 14.5px; margin-right: 4px; }
@@ -6704,27 +6858,27 @@ ${this._defs()}
       }
       .lhc-hilfe-liste .marke.lesen { background: #12304A; color: #8CC4F0; }
       .lhc-hilfe-liste .marke.schreiben { background: #3A2410; color: #F2A86A; }
-      .lhc-hilfe-liste .marke.bereich { background: #1C2533; color: #C3D0E0; }
-      .lhc-hilfe-liste p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.5; color: #C9D3E0; }
-      .lhc-hilfe-liste .keine { color: #98A6BA; text-align: center; margin-top: 30px; }
+      .lhc-hilfe-liste .marke.bereich { background: var(--c-1c2533); color: var(--c-c3d0e0); }
+      .lhc-hilfe-liste p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--c-c9d3e0); }
+      .lhc-hilfe-liste .keine { color: var(--c-98a6ba); text-align: center; margin-top: 30px; }
       .lhc-hilfe-liste .entitaeten { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
       .lhc-hilfe-liste .entitaet {
         position: relative; display: inline-flex; align-items: center; gap: 6px;
         max-width: 100%; padding: 4px 8px; border-radius: 7px; cursor: pointer;
-        border: 1px solid #33415A; background: #0D1219; color: #C3D0E0;
+        border: 1px solid var(--c-33415a); background: var(--c-0d1219); color: var(--c-c3d0e0);
         font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
       }
       .lhc-hilfe-liste .entitaet span { overflow-wrap: anywhere; text-align: left; }
       .lhc-hilfe-liste .entitaet svg { width: 13px; height: 13px; flex: 0 0 auto; fill: currentColor; opacity: 0.7; }
-      .lhc-hilfe-liste .entitaet:hover { border-color: #E0762E; color: #E8EDF4; }
+      .lhc-hilfe-liste .entitaet:hover { border-color: #E0762E; color: var(--c-e8edf4); }
       .lhc-hilfe-liste .entitaet.kopiert { border-color: #46C07A; color: #46C07A; }
       .lhc-hilfe-liste .entitaet.kopiert::after {
         content: attr(data-hinweis); position: absolute; right: 6px; top: -22px;
-        background: #46C07A; color: #0D131B; font-family: inherit; font-size: 11px;
+        background: #46C07A; color: var(--c-0d131b); font-family: inherit; font-size: 11px;
         font-weight: 700; padding: 2px 6px; border-radius: 5px;
       }
-      .lhc-hilfe-liste .keine-entitaet { font-size: 12px; color: #6B7A90; font-style: italic; }
-      .lhc-hilfe-fuss { font-size: 11.5px; color: #7E8CA0; line-height: 1.4; }
+      .lhc-hilfe-liste .keine-entitaet { font-size: 12px; color: var(--c-6b7a90); font-style: italic; }
+      .lhc-hilfe-fuss { font-size: 11.5px; color: var(--c-7e8ca0); line-height: 1.4; }
       .lhc-tuer-gruppe { display: flex; flex-direction: column; gap: 3px; break-inside: avoid; }
       .lhc-tuer.zwei .lhc-tuer-liste { display: block; column-count: var(--spalten, 2); column-gap: 16px; }
       .lhc-tuer.zwei .lhc-tuer-gruppe { margin-bottom: 4px; }
@@ -6745,14 +6899,14 @@ ${this._defs()}
         display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; column-gap: 10px; row-gap: 6px;
         align-items: baseline; font-size: 12px; padding: 4px 12px 2px 0;
       }
-      .lhc-jaz .jaz-wert { color: #E8EDF4; }
+      .lhc-jaz .jaz-wert { color: var(--c-e8edf4); }
       .lhc-jaz .jaz-kopf { color: var(--muted); font-size: 11px; text-align: right; white-space: nowrap; }
       .lhc-jaz .jaz-art { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lhc-jaz output {
         text-align: right; min-width: 0; white-space: nowrap;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
       }
-      .lhc-jaz .jaz-gesamt { font-weight: 700; border-top: 1px solid #33415A; padding-top: 5px; }
+      .lhc-jaz .jaz-gesamt { font-weight: 700; border-top: 1px solid var(--c-33415a); padding-top: 5px; }
       .lhc-tuer-stell { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
       .lhc-tuer-stell output {
         min-width: 50px; text-align: center; font-size: 13px; white-space: nowrap;
@@ -6767,14 +6921,14 @@ ${this._defs()}
         background: transparent; color: var(--muted); border: 0;
         padding: 5px 6px; font-size: 11.5px; cursor: pointer; white-space: nowrap;
       }
-      .lhc-tuer-seg button.aktiv { background: #26303F; color: #E8EDF4; }
+      .lhc-tuer-seg button.aktiv { background: var(--c-26303f); color: var(--c-e8edf4); }
       .lhc-tuer-seg button:disabled { cursor: default; }
       .lhc-tuer-fuss { display: flex; gap: 8px; }
       .lhc-tuer-knopf {
         flex: 1; padding: 8px; border-radius: 9px; border: 1px solid var(--line);
-        background: #131A24; color: #E8EDF4; font-size: 13px; cursor: pointer;
+        background: var(--c-131a24); color: var(--c-e8edf4); font-size: 13px; cursor: pointer;
       }
-      .lhc-tuer-knopf.primaer { background: #E0762E; border-color: #E0762E; color: #0D131B; font-weight: 600; }
+      .lhc-tuer-knopf.primaer { background: #E0762E; border-color: #E0762E; color: var(--c-0d131b); font-weight: 600; }
       .lhc-step.klein {
         width: 26px; height: 26px; padding: 0; font-size: 15px; line-height: 1;
       }
@@ -6783,7 +6937,7 @@ ${this._defs()}
         display: flex; flex-direction: column; gap: 2px; margin-top: 0;
       }
       .lhc-dialog-select select {
-        background: #0D131B; color: var(--ink); font: inherit; font-size: 15px;
+        background: var(--c-0d131b); color: var(--ink); font: inherit; font-size: 15px;
         border: 1px solid var(--line); border-radius: 12px; padding: 7px 10px; width: 100%;
       }
 
@@ -6932,6 +7086,14 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
             <select id="opt-layout">
               <option value="quer">${this._t("e_quer")}</option>
               <option value="hoch">${this._t("e_hoch")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_thema")}<em>${this._t("e_thema_h")}</em></span>
+            <select id="opt-thema">
+              ${["auto", "dunkel", "hell", "kontrast", "nacht", "ha"]
+                .map((k) => `<option value="${k}">${this._t(`o_th_${k}`)}</option>`)
+                .join("")}
             </select>
           </label>
           <label class="ed-row">
@@ -7090,6 +7252,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     };
     bind("opt-fans", (el) => put({ fan_count: parseInt(el.value, 10) }));
     bind("opt-layout", (el) => put({ layout: el.value }));
+    bind("opt-thema", (el) => put({ theme: el.value }));
     bind("opt-breite", (el) => put({ card_width: parseInt(el.value, 10) || 0 }));
     bind("opt-hoehe", (el) => put({ card_height: parseInt(el.value, 10) || 0 }));
     bind("opt-rohr", (el) => put({ pipe_inner_mm: parseInt(el.value, 10) || 0 }));
@@ -7610,6 +7773,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     };
     put("opt-fans", String(this._config.fan_count));
     put("opt-layout", this._config.layout || "quer");
+    put("opt-thema", this._config.theme || "auto");
     put("opt-breite", String(this._config.card_width || 0));
     put("opt-hoehe", String(this._config.card_height || 0));
     put("opt-rohr", String(this._config.pipe_inner_mm || 0));
