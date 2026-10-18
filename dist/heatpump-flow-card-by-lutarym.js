@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.1.0";
+const CARD_VERSION = "4.2.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -205,6 +205,20 @@ const TEXTE = {
   e_sprache: { de: "Sprache", en: "Language", fr: "Langue", ja: "言語" },
   e_sprache_h: { de: "automatisch folgt der Spracheinstellung von Home Assistant", en: "automatic follows the Home Assistant language", fr: "automatique suit la langue de Home Assistant", ja: "自動の場合はHome Assistantの言語に従います" },
   e_profil: { de: "Herstellerprofil", en: "Manufacturer profile", fr: "Profil du fabricant", ja: "メーカープロファイル" },
+  e_s_export: { de: "Sprache exportieren", en: "Export language", fr: "Exporter la langue", ja: "言語を書き出す" },
+  e_s_import: { de: "Sprache importieren", en: "Import language", fr: "Importer une langue", ja: "言語を読み込む" },
+  e_s_entfernen: { de: "Eigene Sprache entfernen", en: "Remove own language", fr: "Supprimer la langue personnelle", ja: "独自の言語を削除" },
+  m_s_export_ok: { de: "Sprache „{n}“ wurde als Datei gespeichert und steht im Download-Ordner", en: "Language “{n}” has been saved as a file in your downloads folder", fr: "La langue « {n} » a été enregistrée dans le dossier des téléchargements", ja: "言語「{n}」をダウンロードフォルダに保存しました" },
+  m_s_import_ok: { de: "Sprache „{n}“ importiert und ausgewählt: {z} Texte, {h} Hilfetexte", en: "Language “{n}” imported and selected: {z} texts, {h} help texts", fr: "Langue « {n} » importée et sélectionnée : {z} textes, {h} textes d'aide", ja: "言語「{n}」を読み込んで選択しました：テキスト {z} 件、ヘルプ {h} 件" },
+  m_s_fehlen: { de: "{z} Texte fehlen, dort gilt die Grundsprache", en: "{z} texts are missing, the base language is used there", fr: "{z} textes manquent, la langue de base s'applique", ja: "{z} 件のテキストがなく、基本言語を使います" },
+  m_s_platz: { de: "Platzhalter in geschweiften Klammern passen nicht, Grundsprache verwendet bei: {liste}", en: "placeholders in curly braces do not match, base language used for: {liste}", fr: "les espaces réservés entre accolades ne correspondent pas, langue de base utilisée pour : {liste}", ja: "波かっこのプレースホルダーが一致しないため基本言語を使用：{liste}" },
+  m_s_unbekannt: { de: "{z} unbekannte Schlüssel ignoriert", en: "{z} unknown keys ignored", fr: "{z} clés inconnues ignorées", ja: "不明なキー {z} 件を無視しました" },
+  m_s_format: { de: "Das ist keine Sprachdatei (format muss „lutarym-sprachpaket“ sein).", en: "This is not a language file (format must be “lutarym-sprachpaket”).", fr: "Ce n'est pas un fichier de langue (format doit être « lutarym-sprachpaket »).", ja: "言語ファイルではありません（format は「lutarym-sprachpaket」である必要があります）。" },
+  m_s_version: { de: "Diese Version der Sprachdatei wird nicht unterstützt (erwartet: version 1).", en: "This language file version is not supported (expected: version 1).", fr: "Cette version du fichier de langue n'est pas prise en charge (attendu : version 1).", ja: "この言語ファイルのバージョンには対応していません（version 1 が必要です）。" },
+  m_s_code: { de: "Der Sprachcode (code) fehlt oder ist ungültig, zum Beispiel „nl“ oder „pt-br“.", en: "The language code (code) is missing or invalid, for example “nl” or “pt-br”.", fr: "Le code de langue (code) manque ou n'est pas valide, par exemple « nl » ou « pt-br ».", ja: "言語コード（code）がないか無効です。例：「nl」「pt-br」。" },
+  m_s_texte: { de: "Die Datei enthält keine bekannten Texte (texte).", en: "The file contains no known texts (texte).", fr: "Le fichier ne contient aucun texte connu (texte).", ja: "ファイルに既知のテキスト（texte）がありません。" },
+  m_s_entfernt: { de: "Eigene Sprache entfernt, die Sprache folgt wieder Home Assistant.", en: "Own language removed, the language follows Home Assistant again.", fr: "Langue personnelle supprimée, la langue suit de nouveau Home Assistant.", ja: "独自の言語を削除しました。言語は再び Home Assistant に従います。" },
+  m_s_zurueck: { de: "Anpassung entfernt, die eingebaute Übersetzung gilt wieder.", en: "Customisation removed, the built-in translation applies again.", fr: "Modification supprimée, la traduction intégrée s'applique de nouveau.", ja: "カスタムを削除し、内蔵の翻訳に戻しました。" },
   e_p_export: { de: "Profil exportieren", en: "Export profile", fr: "Exporter le profil", ja: "プロファイルを書き出す" },
   e_p_import: { de: "Profil importieren", en: "Import profile", fr: "Importer un profil", ja: "プロファイルを読み込む" },
   e_p_entfernen: { de: "Eigenes Profil entfernen", en: "Remove own profile", fr: "Supprimer le profil personnel", ja: "独自プロファイルを削除" },
@@ -609,9 +623,157 @@ function hinweisText(hint, sprache) {
 
 /** Liefert einen Text in der gewuenschten Sprache. */
 function t(schluessel, sprache) {
+  const paket = EIGENE_SPRACHEN[sprache];
+  if (paket && typeof paket.texte[schluessel] === "string" && paket.texte[schluessel]) {
+    return paket.texte[schluessel];
+  }
   const eintrag = TEXTE[schluessel];
   if (!eintrag) return schluessel;
-  return eintrag[sprache] || eintrag.en || eintrag.de;
+  const basis = paket && paket.basis;
+  return eintrag[sprache] || (basis && eintrag[basis]) || eintrag.en || eintrag.de;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Eigene Sprachen zum Exportieren und Importieren
+ * ------------------------------------------------------------------ */
+const SPRACH_FORMAT = "lutarym-sprachpaket";
+const SPRACH_VERSION = 1;
+const SPRACH_NAMEN = { de: "Deutsch", en: "English", fr: "Français", ja: "日本語" };
+/** Eingelesene Sprachpakete je Sprachcode, aus der Kartenkonfiguration. */
+const EIGENE_SPRACHEN = {};
+/** Zaehler, damit die Karte nach einem neuen Paket neu zeichnet. */
+let SPRACH_STAND = 0;
+
+/** Uebernimmt die Pakete aus der Konfiguration in die Ablage. */
+function registriereSprachen(config) {
+  const liste = config && Array.isArray(config.language_custom) ? config.language_custom : [];
+  const neu = {};
+  liste.forEach((p) => {
+    if (p && typeof p.code === "string" && p.texte && typeof p.texte === "object") neu[p.code] = p;
+  });
+  const vorher = JSON.stringify(EIGENE_SPRACHEN);
+  Object.keys(EIGENE_SPRACHEN).forEach((k) => {
+    if (!neu[k]) delete EIGENE_SPRACHEN[k];
+  });
+  Object.assign(EIGENE_SPRACHEN, neu);
+  if (JSON.stringify(EIGENE_SPRACHEN) !== vorher) SPRACH_STAND++;
+}
+
+/** Kennt die Karte diese Sprache, eingebaut oder als Paket? */
+function spracheBekannt(code) {
+  return SPRACHEN.includes(code) || Boolean(EIGENE_SPRACHEN[code]);
+}
+
+/** Text eines Hilfeeintrags oder Gruppentitels in der Sprache. */
+function hilfeText(sp, schluessel, mehrsprachig) {
+  const paket = EIGENE_SPRACHEN[sp];
+  const eigen = paket && paket.hilfe && paket.hilfe[schluessel];
+  if (typeof eigen === "string" && eigen) return eigen;
+  const basis = paket && paket.basis;
+  return mehrsprachig[sp] || (basis && mehrsprachig[basis]) || mehrsprachig.en || mehrsprachig.de || "";
+}
+
+/** Sprachpaket zum Exportieren: alle Texte und die Hilfe einer Sprache. */
+function sprachpaketFuer(code) {
+  const paket = EIGENE_SPRACHEN[code];
+  const sp = spracheBekannt(code) ? code : "en";
+  const texte = {};
+  Object.keys(TEXTE).sort().forEach((k) => {
+    texte[k] = t(k, sp);
+  });
+  const hilfe = {};
+  HILFE.forEach((g) => {
+    hilfe[g.id] = hilfeText(sp, g.id, g.titel);
+    g.e.forEach((e, i) => {
+      hilfe[`${g.id}.${i}.n`] = hilfeText(sp, `${g.id}.${i}.n`, e.n);
+      hilfe[`${g.id}.${i}.t`] = hilfeText(sp, `${g.id}.${i}.t`, e.t);
+    });
+  });
+  return {
+    format: SPRACH_FORMAT,
+    version: SPRACH_VERSION,
+    karte: CARD_VERSION,
+    code: sp,
+    name: paket ? paket.name : SPRACH_NAMEN[sp] || sp,
+    basis: paket ? paket.basis : sp === "ja" ? "en" : sp,
+    dezimal: paket ? paket.dezimal : dezimalFuer(sp),
+    texte,
+    hilfe,
+  };
+}
+
+/** Platzhalter wie {v} in einem Text. */
+function platzhalter(text) {
+  return (String(text).match(/\{\w+\}/g) || []).sort().join(",");
+}
+
+/**
+ * Prueft ein eingelesenes Sprachpaket. Unbekannte Schluessel werden
+ * verworfen. Fehlt ein Text oder stimmen die Platzhalter nicht, gilt
+ * dort der Text der Grundsprache.
+ */
+function pruefeSprache(roh) {
+  if (!roh || typeof roh !== "object" || Array.isArray(roh)) return { fehler: "m_s_format" };
+  if (roh.format !== SPRACH_FORMAT) return { fehler: "m_s_format" };
+  if (Number(roh.version) !== SPRACH_VERSION) return { fehler: "m_s_version" };
+  const code = String(roh.code || "").trim();
+  if (!/^[a-z]{2,3}(-[a-z0-9]{2,8})?$/.test(code)) return { fehler: "m_s_code" };
+  if (!roh.texte || typeof roh.texte !== "object" || Array.isArray(roh.texte)) {
+    return { fehler: "m_s_texte" };
+  }
+  const basis = SPRACHEN.includes(roh.basis) ? roh.basis : SPRACHEN.includes(code) ? code : "en";
+  const texte = {};
+  const unbekannt = [];
+  const platz = [];
+  Object.keys(roh.texte).forEach((k) => {
+    const w = roh.texte[k];
+    if (!TEXTE[k]) {
+      unbekannt.push(k);
+      return;
+    }
+    if (typeof w !== "string" || !w.trim()) return;
+    if (platzhalter(w) !== platzhalter(TEXTE[k][basis] || TEXTE[k].en)) {
+      platz.push(k);
+      return;
+    }
+    texte[k] = w;
+  });
+  const hilfe = {};
+  const gueltig = new Set();
+  HILFE.forEach((g) => {
+    gueltig.add(g.id);
+    g.e.forEach((e, i) => {
+      gueltig.add(`${g.id}.${i}.n`);
+      gueltig.add(`${g.id}.${i}.t`);
+    });
+  });
+  if (roh.hilfe && typeof roh.hilfe === "object" && !Array.isArray(roh.hilfe)) {
+    Object.keys(roh.hilfe).forEach((k) => {
+      const w = roh.hilfe[k];
+      if (!gueltig.has(k)) {
+        unbekannt.push(k);
+        return;
+      }
+      if (typeof w === "string" && w.trim()) hilfe[k] = w;
+    });
+  }
+  if (!Object.keys(texte).length) return { fehler: "m_s_texte" };
+  const fehlen = Object.keys(TEXTE).filter((k) => !texte[k]).length;
+  return {
+    paket: {
+      format: SPRACH_FORMAT,
+      version: SPRACH_VERSION,
+      code,
+      name: String(roh.name || code).trim().slice(0, 40) || code,
+      basis,
+      dezimal: roh.dezimal === "," || roh.dezimal === "." ? roh.dezimal : dezimalFuer(basis),
+      texte,
+      hilfe,
+    },
+    unbekannt,
+    platz,
+    fehlen,
+  };
 }
 
 const SG_STATES = {
@@ -776,6 +938,8 @@ function isOn(hass, entityId) {
 let DEZIMAL = ",";
 
 function dezimalFuer(sprache) {
+  const paket = EIGENE_SPRACHEN[sprache];
+  if (paket && (paket.dezimal === "," || paket.dezimal === ".")) return paket.dezimal;
   return sprache === "de" || sprache === "fr" ? "," : ".";
 }
 
@@ -1429,6 +1593,7 @@ const DEFAULT_CONFIG = {
   show_door: true,
   jaz_source: "heishamon",
   profile_custom: [],
+  language_custom: [],
   buffer_present: "auto",
   circulation_present: "auto",
   history_width: 450,
@@ -1497,6 +1662,7 @@ class LutarymHeatpumpCard extends HTMLElement {
 
   setConfig(config) {
     if (!config) throw new Error("Keine Konfiguration angegeben.");
+    registriereSprachen(config);
     this._config = {
       ...DEFAULT_CONFIG,
       ...config,
@@ -1836,14 +2002,15 @@ class LutarymHeatpumpCard extends HTMLElement {
   /** Gewaehlte Sprache, sonst die von Home Assistant, sonst Englisch. */
   _sp() {
     const gewaehlt = this._config && this._config.language;
-    if (gewaehlt && gewaehlt !== "auto" && SPRACHEN.includes(gewaehlt)) {
+    if (gewaehlt && gewaehlt !== "auto" && spracheBekannt(gewaehlt)) {
       return gewaehlt;
     }
     // Direkt aus Home Assistant, nicht aus der Datenquelle: im
     // Demomodus liefert diese Beispielwerte ohne Sprachangabe.
     const ha = this._hass && this._hass.language;
+    if (EIGENE_SPRACHEN[String(ha || "").toLowerCase()]) return String(ha).toLowerCase();
     const kurz = String(ha || "").slice(0, 2).toLowerCase();
-    return SPRACHEN.includes(kurz) ? kurz : "en";
+    return spracheBekannt(kurz) ? kurz : "en";
   }
 
   /**
@@ -1921,13 +2088,14 @@ class LutarymHeatpumpCard extends HTMLElement {
     DEZIMAL = dezimalFuer(sprache);
     // Auch ein anderer Pufferstatus verlangt eine neu gezeichnete Anlage.
     const puffer = this._hatPuffer();
-    if (this._built && (this._gebautMit !== sprache || this._gebautPuffer !== puffer)) {
+    const sprachStand = `${sprache}#${SPRACH_STAND}`;
+    if (this._built && (this._gebautMit !== sprachStand || this._gebautPuffer !== puffer)) {
       this._built = false;
     }
     if (!this._built) {
       this._build();
       this._built = true;
-      this._gebautMit = sprache;
+      this._gebautMit = sprachStand;
       this._gebautPuffer = puffer;
     }
     this._groesse();
@@ -2449,7 +2617,7 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (!host) return;
     const sp = this._sp();
     const chips = [{ id: "", titel: this._t("h_alle") }].concat(
-      HILFE.map((g) => ({ id: g.id, titel: g.titel[sp] || g.titel.en }))
+      HILFE.map((g) => ({ id: g.id, titel: hilfeText(sp, g.id, g.titel) }))
     );
     host.innerHTML = chips
       .map(
@@ -2579,7 +2747,13 @@ class LutarymHeatpumpCard extends HTMLElement {
       const treffer = g.e.filter((e) => {
         if (!woerter.length) return true;
         const text = norm(
-          [e.n[sp], e.t[sp], e.l, e.s, g.titel[sp]].concat(this._hilfeIds(e)).join(" ")
+          [
+            hilfeText(sp, `${g.id}.${g.e.indexOf(e)}.n`, e.n),
+            hilfeText(sp, `${g.id}.${g.e.indexOf(e)}.t`, e.t),
+            e.l,
+            e.s,
+            hilfeText(sp, g.id, g.titel),
+          ].concat(this._hilfeIds(e)).join(" ")
         );
         // Kennungen wie TOP9 nur als ganzes Wort, sonst faende TOP9
         // auch TOP90 bis TOP99.
@@ -2591,7 +2765,7 @@ class LutarymHeatpumpCard extends HTMLElement {
       });
       if (!treffer.length) return;
       anzahl += treffer.length;
-      html += `<section><h3>${escapeHtml(g.titel[sp] || g.titel.en)}</h3>`;
+      html += `<section><h3>${escapeHtml(hilfeText(sp, g.id, g.titel))}</h3>`;
       treffer.forEach((e) => {
         const marken = [];
         if (e.l) marken.push(`<span class="marke lesen">${lesen} · ${escapeHtml(e.l)}</span>`);
@@ -2611,8 +2785,8 @@ class LutarymHeatpumpCard extends HTMLElement {
             : `<div class="entitaeten keine-entitaet">${keineEntitaet}</div>`;
         }
         html += `<article>
-          <div class="eintrag-kopf"><b>${escapeHtml(e.n[sp] || e.n.en)}</b>${marken.join("")}</div>
-          <p>${escapeHtml(e.t[sp] || e.t.en)}</p>
+          <div class="eintrag-kopf"><b>${escapeHtml(hilfeText(sp, `${g.id}.${g.e.indexOf(e)}.n`, e.n))}</b>${marken.join("")}</div>
+          <p>${escapeHtml(hilfeText(sp, `${g.id}.${g.e.indexOf(e)}.t`, e.t))}</p>
           ${entitaeten}
         </article>`;
       });
@@ -6485,9 +6659,11 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
   /** Sprache des Dialogs, wie bei der Karte. */
   _sp() {
     const gewaehlt = this._config && this._config.language;
-    if (gewaehlt && gewaehlt !== "auto" && SPRACHEN.includes(gewaehlt)) return gewaehlt;
-    const kurz = String((this._hass && this._hass.language) || "").slice(0, 2).toLowerCase();
-    return SPRACHEN.includes(kurz) ? kurz : "en";
+    if (gewaehlt && gewaehlt !== "auto" && spracheBekannt(gewaehlt)) return gewaehlt;
+    const ha = String((this._hass && this._hass.language) || "").toLowerCase();
+    if (EIGENE_SPRACHEN[ha]) return ha;
+    const kurz = ha.slice(0, 2);
+    return spracheBekannt(kurz) ? kurz : "en";
   }
 
   _t(schluessel) {
@@ -6501,6 +6677,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
+    registriereSprachen(config);
     this._config = {
       ...DEFAULT_CONFIG,
       ...config,
@@ -6568,14 +6745,15 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
           </div>
           <label class="ed-row ed-breit">
             <span>${this._t("e_sprache")}${this._sp() === "en" ? "" : " / Language"}<em>${this._t("e_sprache_h")}</em></span>
-            <select id="opt-sprache">
-              <option value="auto">${this._t("e_auto")}</option>
-              <option value="de">Deutsch</option>
-              <option value="en">English</option>
-              <option value="fr">Français</option>
-              <option value="ja">日本語</option>
-            </select>
+            <select id="opt-sprache">${this._sprachOptionen()}</select>
           </label>
+          <div class="ed-buttons">
+            <button type="button" id="btn-sprache-aus">${this._t("e_s_export")}</button>
+            <button type="button" id="btn-sprache-ein">${this._t("e_s_import")}</button>
+            <button type="button" id="btn-sprache-weg">${this._t("e_s_entfernen")}</button>
+          </div>
+          <input type="file" id="ed-sprache-datei" accept=".json,application/json" hidden>
+          <p class="ed-info" id="ed-sprache-hinweis"></p>
           <label class="ed-row ed-breit">
             <span>${this._t("e_profil")}<em>${this._t("e_profil_h")}</em></span>
             <select id="opt-profil">${this._profilOptionen()}</select>
@@ -6780,7 +6958,11 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-hoehe", (el) => put({ card_height: parseInt(el.value, 10) || 0 }));
     bind("opt-rohr", (el) => put({ pipe_inner_mm: parseInt(el.value, 10) || 0 }));
     bind("opt-mqtt", (el) => put({ mqtt_prefix: el.value.trim() || "panasonic_heat_pump" }));
-    bind("opt-sprache", (el) => put({ language: el.value }));
+    bind("opt-sprache", (el) => {
+      put({ language: el.value });
+      this._zeigeSprachKnoepfe();
+    });
+    this._bindeSprachen();
     bind("opt-profil", (el) => {
       put({ profil: el.value });
       this._zeigeProfilKnoepfe();
@@ -7000,6 +7182,136 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     this._syncValues();
   }
 
+  /** Auswahlliste der Sprachen: automatisch, eingebaute und eigene. */
+  _sprachOptionen() {
+    const eigene = Array.isArray(this._config.language_custom) ? this._config.language_custom : [];
+    const html = [`<option value="auto">${escapeHtml(this._t("e_auto"))}</option>`];
+    SPRACHEN.forEach((code) => {
+      const ersetzt = eigene.find((p) => p.code === code);
+      const name = ersetzt ? `${ersetzt.name} ${this._t("o_p_angepasst")}` : SPRACH_NAMEN[code];
+      html.push(`<option value="${code}">${escapeHtml(name)}</option>`);
+    });
+    eigene
+      .filter((p) => p && !SPRACHEN.includes(p.code))
+      .forEach((p) => {
+        html.push(`<option value="${escapeHtml(p.code)}">${escapeHtml(p.name)} ${escapeHtml(this._t("o_p_eigen"))}</option>`);
+      });
+    return html.join("");
+  }
+
+  /** "Entfernen" nur bei einer eigenen oder angepassten Sprache. */
+  _zeigeSprachKnoepfe() {
+    const weg = this.shadowRoot.getElementById("btn-sprache-weg");
+    const eigene = Array.isArray(this._config.language_custom) ? this._config.language_custom : [];
+    if (weg) weg.hidden = !eigene.some((p) => p.code === this._config.language);
+  }
+
+  /** Bedienung von Export, Import und Entfernen der Sprachpakete. */
+  _bindeSprachen() {
+    const sr = this.shadowRoot;
+    const sagen = (text) => {
+      const el = sr.getElementById("ed-sprache-hinweis");
+      if (el) el.textContent = text;
+    };
+    // Neu aufbauen, damit alle Beschriftungen des Editors die Sprache wechseln.
+    const neuAufbauen = (hinweis) => {
+      this._built = false;
+      this._render();
+      const el = this.shadowRoot.getElementById("ed-sprache-hinweis");
+      if (el) el.textContent = hinweis;
+    };
+    const speichern = (liste, code, hinweis) => {
+      this._config = { ...this._config, language_custom: liste, language: code };
+      registriereSprachen(this._config);
+      this._emit();
+      neuAufbauen(hinweis);
+    };
+
+    const aus = sr.getElementById("btn-sprache-aus");
+    if (aus) {
+      aus.addEventListener("click", () => {
+        const paket = sprachpaketFuer(this._sp());
+        const text = JSON.stringify(paket, null, 2);
+        try {
+          const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `sprache-${paket.code}.json`;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          sagen(tf(this._t("m_s_export_ok"), { n: paket.name }));
+        } catch (e) {
+          sagen(this._t("m_datei_fehler"));
+        }
+      });
+    }
+
+    const datei = sr.getElementById("ed-sprache-datei");
+    const ein = sr.getElementById("btn-sprache-ein");
+    if (ein && datei) {
+      ein.addEventListener("click", () => datei.click());
+      datei.addEventListener("change", () => {
+        const f = datei.files && datei.files[0];
+        if (!f) return;
+        const leser = new FileReader();
+        leser.onload = () => {
+          let roh;
+          try {
+            roh = JSON.parse(String(leser.result || ""));
+          } catch (e) {
+            sagen(this._t("m_json"));
+            return;
+          }
+          const erg = pruefeSprache(roh);
+          if (erg.fehler) {
+            sagen(this._t(erg.fehler));
+            return;
+          }
+          const neu = erg.paket;
+          const liste = (Array.isArray(this._config.language_custom) ? this._config.language_custom : [])
+            .filter((p) => p.code !== neu.code);
+          liste.push(neu);
+          // Meldung schon in der neuen Sprache.
+          registriereSprachen({ language_custom: liste });
+          const teile = [
+            tf(t("m_s_import_ok", neu.code), {
+              n: neu.name,
+              z: Object.keys(neu.texte).length,
+              h: Object.keys(neu.hilfe).length,
+            }),
+          ];
+          if (erg.fehlen) teile.push(tf(t("m_s_fehlen", neu.code), { z: erg.fehlen }));
+          if (erg.platz.length) {
+            teile.push(tf(t("m_s_platz", neu.code), { liste: erg.platz.slice(0, 5).join(", ") }));
+          }
+          if (erg.unbekannt.length) {
+            teile.push(tf(t("m_s_unbekannt", neu.code), { z: erg.unbekannt.length }));
+          }
+          speichern(liste, neu.code, teile.join(". ") + ".");
+        };
+        leser.onerror = () => sagen(this._t("m_datei_lesen"));
+        leser.readAsText(f);
+        datei.value = "";
+      });
+    }
+
+    const weg = sr.getElementById("btn-sprache-weg");
+    if (weg) {
+      weg.addEventListener("click", () => {
+        const code = this._config.language;
+        const liste = (Array.isArray(this._config.language_custom) ? this._config.language_custom : [])
+          .filter((p) => p.code !== code);
+        const eingebaut = SPRACHEN.includes(code);
+        registriereSprachen({ language_custom: liste });
+        const ziel = eingebaut ? code : "auto";
+        speichern(liste, ziel, "");
+        const el = this.shadowRoot.getElementById("ed-sprache-hinweis");
+        if (el) el.textContent = this._t(eingebaut ? "m_s_zurueck" : "m_s_entfernt");
+      });
+    }
+    this._zeigeSprachKnoepfe();
+  }
+
   /** Auswahlliste der Profile: eingebaute, angepasste und eigene. */
   _profilOptionen() {
     const eigene = eigeneProfile(this._config);
@@ -7164,7 +7476,10 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-hoehe", String(this._config.card_height || 0));
     put("opt-rohr", String(this._config.pipe_inner_mm || 0));
     put("opt-mqtt", this._config.mqtt_prefix || "panasonic_heat_pump");
+    const sprachWahl = this.shadowRoot.getElementById("opt-sprache");
+    if (sprachWahl) sprachWahl.innerHTML = this._sprachOptionen();
     put("opt-sprache", this._config.language || "auto");
+    this._zeigeSprachKnoepfe();
     const profilWahl = this.shadowRoot.getElementById("opt-profil");
     if (profilWahl) profilWahl.innerHTML = this._profilOptionen();
     put("opt-profil", this._config.profil || "heishamon");

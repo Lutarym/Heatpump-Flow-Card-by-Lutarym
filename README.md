@@ -15,6 +15,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, seasonal performance factor (JAZ) for the last 12 months and since 1 January, operating hours and starts); changes are sent with “Apply” and the door closes
 - Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups; for every TOP value the full entity ID, copyable with one click
 - Device profiles: export the Panasonic profile as a file, adapt it or describe another manufacturer and import it again; see the [device profile guide](docs/GERAETEPROFIL.md)
+- Language packs: export a language as a file, translate it yourself or adjust it and import it again; see the [language pack guide](docs/SPRACHPAKET.md)
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
 - Landscape and portrait layout
@@ -87,6 +88,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `show_door` | `true` | Show the advanced settings button at the bottom right of the heat pump |
 | `jaz_source` | `heishamon` | Electricity for the JAZ: `heishamon` (heat pump only, TOP16/TOP41 or XTOP0/XTOP2) or `zaehler` (energy meter of the card, e.g. Shelly PM). Heat always comes from HeishaMon |
 | `profile_custom` | `[]` | Imported device profiles (set by the editor, see [guide](docs/GERAETEPROFIL.md)) |
+| `language_custom` | `[]` | Imported language packs (set by the editor, see [guide](docs/SPRACHPAKET.md)) |
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |
 | `card_width` | `0` | Width in pixels, 0 is automatic |
 | `card_height` | `0` | Height in pixels, 0 is automatic |
