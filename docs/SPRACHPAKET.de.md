@@ -67,6 +67,7 @@ Exportiere zum Beispiel Deutsch, ändere einzelne Texte und importiere die Datei
 - Unbekannte Schlüssel werden ignoriert und gemeldet.
 - Stimmen die Platzhalter eines Textes nicht mit dem Original überein, nimmt die Karte dort die Grundsprache und nennt die betroffenen Schlüssel.
 - Fehlende Texte werden gezählt und gemeldet.
+- Texte mit spitzen Klammern `< >`, geraden Anführungszeichen `"` oder Backticks werden abgelehnt, dort gilt die Grundsprache. Typografische Anführungszeichen wie „ “ oder « » sind erlaubt.
 
 ## Wo die Sprache gespeichert wird
 

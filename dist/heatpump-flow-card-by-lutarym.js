@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.2.0";
+const CARD_VERSION = "4.2.1";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -212,6 +212,7 @@ const TEXTE = {
   m_s_import_ok: { de: "Sprache „{n}“ importiert und ausgewählt: {z} Texte, {h} Hilfetexte", en: "Language “{n}” imported and selected: {z} texts, {h} help texts", fr: "Langue « {n} » importée et sélectionnée : {z} textes, {h} textes d'aide", ja: "言語「{n}」を読み込んで選択しました：テキスト {z} 件、ヘルプ {h} 件" },
   m_s_fehlen: { de: "{z} Texte fehlen, dort gilt die Grundsprache", en: "{z} texts are missing, the base language is used there", fr: "{z} textes manquent, la langue de base s'applique", ja: "{z} 件のテキストがなく、基本言語を使います" },
   m_s_platz: { de: "Platzhalter in geschweiften Klammern passen nicht, Grundsprache verwendet bei: {liste}", en: "placeholders in curly braces do not match, base language used for: {liste}", fr: "les espaces réservés entre accolades ne correspondent pas, langue de base utilisée pour : {liste}", ja: "波かっこのプレースホルダーが一致しないため基本言語を使用：{liste}" },
+  m_s_zeichen: { de: "Spitze Klammern, gerade Anführungszeichen und Backticks sind nicht erlaubt, Grundsprache verwendet bei: {liste}", en: "angle brackets, straight double quotes and backticks are not allowed, base language used for: {liste}", fr: "les chevrons, guillemets droits et accents graves isolés ne sont pas autorisés, langue de base utilisée pour : {liste}", ja: "山かっこ、半角の二重引用符、バッククォートは使えないため基本言語を使用：{liste}" },
   m_s_unbekannt: { de: "{z} unbekannte Schlüssel ignoriert", en: "{z} unknown keys ignored", fr: "{z} clés inconnues ignorées", ja: "不明なキー {z} 件を無視しました" },
   m_s_format: { de: "Das ist keine Sprachdatei (format muss „lutarym-sprachpaket“ sein).", en: "This is not a language file (format must be “lutarym-sprachpaket”).", fr: "Ce n'est pas un fichier de langue (format doit être « lutarym-sprachpaket »).", ja: "言語ファイルではありません（format は「lutarym-sprachpaket」である必要があります）。" },
   m_s_version: { de: "Diese Version der Sprachdatei wird nicht unterstützt (erwartet: version 1).", en: "This language file version is not supported (expected: version 1).", fr: "Cette version du fichier de langue n'est pas prise en charge (attendu : version 1).", ja: "この言語ファイルのバージョンには対応していません（version 1 が必要です）。" },
@@ -644,19 +645,40 @@ const EIGENE_SPRACHEN = {};
 /** Zaehler, damit die Karte nach einem neuen Paket neu zeichnet. */
 let SPRACH_STAND = 0;
 
-/** Uebernimmt die Pakete aus der Konfiguration in die Ablage. */
-function registriereSprachen(config) {
+/**
+ * Texte werden an vielen Stellen als HTML eingesetzt. Zeichen, mit denen
+ * ein fremder Text Markup oder Attribute einschleusen koennte, sind in
+ * Sprachpaketen deshalb nicht erlaubt.
+ */
+const SPRACH_VERBOTEN = /[<>"`]/;
+
+/**
+ * Uebernimmt die Pakete einer Kartenkonfiguration in die gemeinsame
+ * Ablage. Mehrere Karten teilen sich die Ablage, deshalb wird hier nur
+ * ergaenzt; entfernt wird ausdruecklich ueber "entfernen".
+ */
+function registriereSprachen(config, entfernen) {
   const liste = config && Array.isArray(config.language_custom) ? config.language_custom : [];
-  const neu = {};
+  let geaendert = false;
+  if (entfernen && EIGENE_SPRACHEN[entfernen]) {
+    delete EIGENE_SPRACHEN[entfernen];
+    geaendert = true;
+  }
   liste.forEach((p) => {
-    if (p && typeof p.code === "string" && p.texte && typeof p.texte === "object") neu[p.code] = p;
+    if (!p || typeof p.code !== "string" || !p.texte || typeof p.texte !== "object") return;
+    if (p.code === entfernen) return;
+    const texte = {};
+    Object.keys(p.texte).forEach((k) => {
+      const w = p.texte[k];
+      if (typeof w === "string" && !SPRACH_VERBOTEN.test(w)) texte[k] = w;
+    });
+    const sauber = { ...p, texte, hilfe: p.hilfe && typeof p.hilfe === "object" ? p.hilfe : {} };
+    if (JSON.stringify(EIGENE_SPRACHEN[p.code]) !== JSON.stringify(sauber)) {
+      EIGENE_SPRACHEN[p.code] = sauber;
+      geaendert = true;
+    }
   });
-  const vorher = JSON.stringify(EIGENE_SPRACHEN);
-  Object.keys(EIGENE_SPRACHEN).forEach((k) => {
-    if (!neu[k]) delete EIGENE_SPRACHEN[k];
-  });
-  Object.assign(EIGENE_SPRACHEN, neu);
-  if (JSON.stringify(EIGENE_SPRACHEN) !== vorher) SPRACH_STAND++;
+  if (geaendert) SPRACH_STAND++;
 }
 
 /** Kennt die Karte diese Sprache, eingebaut oder als Paket? */
@@ -725,6 +747,7 @@ function pruefeSprache(roh) {
   const texte = {};
   const unbekannt = [];
   const platz = [];
+  const zeichen = [];
   Object.keys(roh.texte).forEach((k) => {
     const w = roh.texte[k];
     if (!TEXTE[k]) {
@@ -732,6 +755,10 @@ function pruefeSprache(roh) {
       return;
     }
     if (typeof w !== "string" || !w.trim()) return;
+    if (SPRACH_VERBOTEN.test(w)) {
+      zeichen.push(k);
+      return;
+    }
     if (platzhalter(w) !== platzhalter(TEXTE[k][basis] || TEXTE[k].en)) {
       platz.push(k);
       return;
@@ -772,6 +799,7 @@ function pruefeSprache(roh) {
     },
     unbekannt,
     platz,
+    zeichen,
     fehlen,
   };
 }
@@ -1639,6 +1667,10 @@ class LutarymHeatpumpCard extends HTMLElement {
   disconnectedCallback() {
     if (this._animLoop) cancelAnimationFrame(this._animLoop);
     this._animLoop = null;
+    if (this._sichtBeobachter) {
+      this._sichtBeobachter.disconnect();
+      this._sichtBeobachter = null;
+    }
   }
 
   /**
@@ -1648,6 +1680,16 @@ class LutarymHeatpumpCard extends HTMLElement {
    * stehen.
    */
   connectedCallback() {
+    // Ausserhalb des sichtbaren Bereichs ruht die Animation. Das spart
+    // Rechenzeit und Akku, etwa auf langen Dashboards am Handy.
+    if (!this._sichtBeobachter && typeof IntersectionObserver !== "undefined") {
+      this._sichtBeobachter = new IntersectionObserver((eintraege) => {
+        const e = eintraege[eintraege.length - 1];
+        this._unsichtbar = !e.isIntersecting;
+        if (!this._unsichtbar && this._built && !this._animLoop) this._startAnimationLoop();
+      });
+      this._sichtBeobachter.observe(this);
+    }
     if (this._built && !this._animLoop) this._startAnimationLoop();
   }
 
@@ -1682,9 +1724,34 @@ class LutarymHeatpumpCard extends HTMLElement {
   }
 
   set hass(hass) {
+    const alt = this._hass;
     this._hass = hass;
     if (!this._config) return;
+    // Home Assistant ruft das bei jeder Zustandsaenderung im ganzen System
+    // auf. Aendert sich keine Entitaet der Karte, bleibt alles stehen.
+    if (alt && hass && this._built && !this._config.demo && !this._relevantGeaendert(alt, hass)) {
+      return;
+    }
     this._render();
+  }
+
+  /** Hat sich eine Entitaet der Karte, die Sprache oder die Registrierung geaendert? */
+  _relevantGeaendert(alt, neu) {
+    if (alt.language !== neu.language || alt.entities !== neu.entities) return true;
+    if (!alt.states || !neu.states) return true;
+    if (this._beobachtetFuer !== this._config || !this._beobachtet) {
+      const ids = new Set();
+      profilFeldnamen().forEach((k) => {
+        const id = this._e(k);
+        if (id) ids.add(id);
+      });
+      this._beobachtet = ids;
+      this._beobachtetFuer = this._config;
+    }
+    for (const id of this._beobachtet) {
+      if (alt.states[id] !== neu.states[id]) return true;
+    }
+    return false;
   }
 
   getCardSize() {
@@ -2250,6 +2317,11 @@ class LutarymHeatpumpCard extends HTMLElement {
 
     const tick = (time) => {
       if (!this.isConnected) return;
+      if (this._unsichtbar) {
+        // Pausiert, der Beobachter startet die Schleife wieder.
+        this._animLoop = null;
+        return;
+      }
 
       const deltaTime = (time - lastTime) / 1000; // in Sekunden
       lastTime = time;
@@ -2285,6 +2357,13 @@ class LutarymHeatpumpCard extends HTMLElement {
           this._bubbleCache.set(groupId, bubbles);
         }
         bubbles.forEach((bubble, idx) => {
+          // Ausgeblendete Blasen (Fuellstand, Stillstand oder Animation
+          // aus) bleiben unsichtbar. Vorher setzte die Schleife bei allen
+          // die Deckkraft, sodass immer alle Blasen zu sehen waren.
+          if (bubble.style.animationName === "none") {
+            if (bubble.getAttribute("opacity") !== "0") bubble.setAttribute("opacity", "0");
+            return;
+          }
           // Dauer und Versatz haengen nur vom Index ab und aendern sich nie.
           // Darum einmal berechnen und merken, statt bei jedem Bild erneut.
           const dur = bubbleDauer(idx);
@@ -2849,6 +2928,18 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (this._config && this._config.demo) return { demo: true };
     const q = this._hass;
     if (!q || !q.states) return null;
+    // Die Suche geht ueber alle Entitaeten. Nur neu, wenn sich
+    // Registrierung, Konfiguration oder die Anzahl der Entitaeten aendert.
+    // Mit Registrierung reicht deren Kennung, sonst zaehlt die Anzahl.
+    const anzahl = q.entities ? -1 : Object.keys(q.states).length;
+    const c = this._jazCache;
+    if (c && c.reg === q.entities && c.cfg === this._config && c.anzahl === anzahl) return c.wert;
+    const wert = this._jazQuellenSuchen(q);
+    this._jazCache = { reg: q.entities, cfg: this._config, anzahl, wert };
+    return wert;
+  }
+
+  _jazQuellenSuchen(q) {
     const index = this._hilfeEntitaeten();
     const sensor = (k) => (index[k] || []).find((id) => id.startsWith("sensor."));
     const xtop = sensor("xtop3") && sensor("xtop0");
@@ -4981,8 +5072,6 @@ class LutarymHeatpumpCard extends HTMLElement {
     const SEC_RL_ENDE = this._config.hk_count === 2 ? L.X_HK2_BACK : L.X_HK1_BACK;
     const T = L.TANK_TOP;
     const B = L.TANK_BOTTOM;
-    const C = L.CAP_Y;
-    const SG = L.SG_Y;
     const hk2 = this._config.hk_count === 2;
 
     return `
@@ -5347,8 +5436,6 @@ ${this._defs()}
   }
 
   _circuit(n, x1, x2, dropX, backX) {
-    const F = L.FLOW_Y;
-    const R = L.RET_Y;
     const RT = L.RAD_TOP;
     const RB = L.RAD_BOTTOM;
     const mid = (x1 + x2) / 2;
@@ -7287,6 +7374,9 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
           if (erg.unbekannt.length) {
             teile.push(tf(t("m_s_unbekannt", neu.code), { z: erg.unbekannt.length }));
           }
+          if (erg.zeichen.length) {
+            teile.push(tf(t("m_s_zeichen", neu.code), { liste: erg.zeichen.slice(0, 5).join(", ") }));
+          }
           speichern(liste, neu.code, teile.join(". ") + ".");
         };
         leser.onerror = () => sagen(this._t("m_datei_lesen"));
@@ -7302,7 +7392,7 @@ class LutarymHeatpumpCardEditor extends HTMLElement {
         const liste = (Array.isArray(this._config.language_custom) ? this._config.language_custom : [])
           .filter((p) => p.code !== code);
         const eingebaut = SPRACHEN.includes(code);
-        registriereSprachen({ language_custom: liste });
+        registriereSprachen({ language_custom: liste }, code);
         const ziel = eingebaut ? code : "auto";
         speichern(liste, ziel, "");
         const el = this.shadowRoot.getElementById("ed-sprache-hinweis");

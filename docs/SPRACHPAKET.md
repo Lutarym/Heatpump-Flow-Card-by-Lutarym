@@ -69,6 +69,7 @@ The keys are German and must stay exactly as shown.
 - Unknown keys are ignored and reported.
 - If the placeholders of a text do not match the original, the card uses the base language there and names the keys concerned.
 - Missing texts are counted and reported.
+- Texts containing angle brackets `< >`, straight double quotes `"` or backticks are rejected and the base language is used there. Typographic quotes such as “ ” or « » are allowed.
 
 ## Where the language is stored
 

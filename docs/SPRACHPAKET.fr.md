@@ -69,6 +69,7 @@ Les clés sont en allemand et doivent rester exactement ainsi.
 - Les clés inconnues sont ignorées et signalées.
 - Si les espaces réservés d'un texte ne correspondent pas à l'original, la carte utilise la langue de base et nomme les clés concernées.
 - Les textes manquants sont comptés et signalés.
+- Les textes contenant des chevrons `< >`, des guillemets droits `"` ou des accents graves isolés sont refusés, la langue de base s'applique. Les guillemets typographiques comme « » ou “ ” sont autorisés.
 
 ## Où la langue est enregistrée
 
