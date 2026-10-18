@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.4.0
+
+- English: The COP is no longer shown in the buffer and hot water tank. It is now behind the door in its own section "Coefficient of performance (COP)", above the JAZ table: "Heating: Today COP x" and "Hot water: Today COP x" (time-weighted mean since midnight, current value in demo mode). The rows update while the door is open.
+- Deutsch: Der COP steht nicht mehr im Puffer und im Warmwasserspeicher. Er steht jetzt hinter der Tür in einem eigenen Abschnitt „Leistungszahl (COP)“ über der JAZ-Tabelle: „Heizen: Heute COP x“ und „Warmwasser: Heute COP x“ (zeitgewichteter Mittelwert seit Mitternacht, im Demomodus der aktuelle Wert). Die Zeilen aktualisieren sich, solange die Tür offen ist.
+- Français : le COP n'apparaît plus dans le ballon tampon et le ballon d'eau chaude. Il se trouve désormais derrière la porte dans une section « Coefficient de performance (COP) », au-dessus du tableau JAZ : « Chauffage : Aujourd'hui COP x » et « Eau chaude : Aujourd'hui COP x » (moyenne pondérée dans le temps depuis minuit, valeur actuelle en mode démo). Les lignes se mettent à jour tant que la porte est ouverte.
+- 日本語：COP をバッファーと給湯タンクに表示しなくなりました。扉の奥、JAZ 表の上の「成績係数（COP）」セクションに「暖房：今日の COP x」「給湯：今日の COP x」として表示します（午前 0 時からの時間加重平均、デモモードでは現在値）。扉を開いている間は自動で更新されます。
+
 ## v4.3.3
 
 - English: Help window on phones and tablets: the search field no longer receives the focus on opening, so the on-screen keyboard stays closed. Only devices with a mouse jump directly into the search; on touch devices the window itself gets the focus, Escape still closes it. Before, only the screen width was checked, so the keyboard opened on phones in landscape and on tablets.

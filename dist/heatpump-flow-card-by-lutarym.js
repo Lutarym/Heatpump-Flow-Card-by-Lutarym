@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.3.3";
+const CARD_VERSION = "4.4.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -467,6 +467,8 @@ const TEXTE = {
   t_quittieren: { de: "Quittieren", en: "Reset", fr: "Acquitter", ja: "リセット" },
   t_betrieb: { de: "Betrieb", en: "Operation", fr: "Fonctionnement", ja: "運転" },
   t_stoerung: { de: "Störung", en: "Fault", fr: "Défaut", ja: "異常" },
+  t_cop: { de: "Leistungszahl (COP)", en: "Coefficient of performance (COP)", fr: "Coefficient de performance (COP)", ja: "成績係数（COP）" },
+  j_cop_heute: { de: "Heute COP {v}", en: "Today COP {v}", fr: "Aujourd'hui COP {v}", ja: "今日の COP {v}" },
   t_jaz: { de: "Jahresarbeitszahl (JAZ)", en: "Seasonal performance (SPF)", fr: "Coefficient annuel (SPF)", ja: "年間性能係数（SPF）" },
   k_jaz_12: { de: "Letzte 12 Monate", en: "Last 12 months", fr: "12 derniers mois", ja: "直近 12 か月" },
   j_gesamt: { de: "Gesamt", en: "Total", fr: "Total", ja: "合計" },
@@ -1488,6 +1490,8 @@ const TUER_FELDER = [
   { abschnitt: "t_pumpe", key: "pump_flow_mode", auswahl: ["o_spreizung", "o_max_leistung"] },
   { abschnitt: "t_pumpe", key: "pump_max_duty", min: 64, max: 254, step: 1, einheit: "" },
   { abschnitt: "t_leise", key: "quiet_priority", auswahl: ["o_lautstaerke", "o_leistung"] },
+  { abschnitt: "t_cop", key: "cop_heating", cop: "heizen" },
+  { abschnitt: "t_cop", key: "cop_dhw", cop: "ww" },
   { abschnitt: "t_jaz", key: "jaz", jaz: "tabelle" },
   { abschnitt: "t_info", key: "operating_hours", info: true, einheit: "h" },
   { abschnitt: "t_info", key: "compressor_starts", info: true, einheit: "" },
@@ -3037,6 +3041,16 @@ class LutarymHeatpumpCard extends HTMLElement {
     }
   }
 
+  /** Aktualisiert die COP-Zeilen, solange die Tuer offen ist. */
+  _tuerCopAuffrischen() {
+    if (!this._tuerListe) return;
+    const panel = this.shadowRoot.getElementById("tuer-panel");
+    if (!panel || panel.hidden) return;
+    this._tuerListe.forEach((f, i) => {
+      if (f.cop) this._tuerZeige(i);
+    });
+  }
+
   /** Fuellt die JAZ-Tabelle hinter der Tuer. */
   _jazZeige(f, el, seit) {
     // Erfundene Werte fuer den Demomodus, in sich stimmig.
@@ -3252,6 +3266,11 @@ class LutarymHeatpumpCard extends HTMLElement {
       const titel = escapeHtml(this._t(`k_${f.key}`));
       const lang = escapeHtml(feldText(f, this._sp()));
       const bereich = f.id.split(".")[0];
+      if (f.cop) {
+        html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${escapeHtml(this._t(`j_${f.cop}`))}</span>
+          <div class="lhc-tuer-stell"><output id="tuer-z${i}">--</output></div></div>`;
+        return;
+      }
       if (f.jaz) {
         // Kleine Tabelle: Zeilen Heizen, Warmwasser, Gesamt; Spalten die
         // beiden Zeitraeume. Gesamt nur, wenn es beide Arten gibt.
@@ -3369,6 +3388,12 @@ class LutarymHeatpumpCard extends HTMLElement {
     if (!f || !el) return;
     if (f.jaz) {
       this._jazZeige(f, el, this.shadowRoot.getElementById(`tuer-s${i}`));
+      return;
+    }
+    if (f.cop) {
+      // Tagesmittelwert seit Mitternacht, im Demomodus der aktuelle Wert.
+      const v = this._cop(this._quelle, f.key);
+      el.textContent = v === null ? "--" : tf(this._t("j_cop_heute"), { v: fmt(v, 1) });
       return;
     }
     const geaendert = Boolean(this._tuerNeu && this._tuerNeu[f.id]);
@@ -4000,7 +4025,6 @@ class LutarymHeatpumpCard extends HTMLElement {
     const zeilen = [
       { el: this._animEl(`${name}-sp`), zeigen: this._config.show_target !== false },
       { el: this._animEl(`${name}-delta`), zeigen: this._config.show_reload !== false },
-      { el: this._animEl(`${name}-cop`), zeigen: true },
     ];
     if (zeilen.some((z) => !z.el)) return;
     zeilen.forEach((z) => {
@@ -4261,7 +4285,6 @@ class LutarymHeatpumpCard extends HTMLElement {
           <text class="value-l"  id="${name}-v"  x="${UM}" y="${y1 + h / 2 + 12}" text-anchor="middle">--</text>
           <text class="value-sp" id="${name}-sp" x="${UM}" y="${y1 + h / 2 + 36}" text-anchor="middle"></text>
           <text class="value-sp" id="${name}-delta" x="${UM}" y="${y1 + h / 2 + 60}" text-anchor="middle"></text>
-          <text class="value-cop" id="${name}-cop" x="${UM}" y="${y1 + h / 2 + 84}" text-anchor="middle"></text>
           ${badges || ""}
         </g>`;
     };
@@ -5336,7 +5359,6 @@ ${this._defs()}
         <text class="value-l" id="buf-v" x="${L.X_BUF_C}" y="460" text-anchor="middle">--</text>
         <text class="value-sp" id="buf-sp" x="${L.X_BUF_C}" y="488" text-anchor="middle"></text>
         <text class="value-sp" id="buf-delta" x="${L.X_BUF_C}" y="512" text-anchor="middle"></text>
-        <text class="value-cop" id="buf-cop" x="${L.X_BUF_C}" y="536" text-anchor="middle"></text>
         <g id="roomheater-badge" class="badge" transform="translate(${L.X_BUF_C} 604)">
           <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
@@ -5430,7 +5452,6 @@ ${this._defs()}
         <text class="value-l" id="dhw-v" x="${L.X_DHW_C}" y="430" text-anchor="middle">--</text>
         <text class="value-sp" id="dhw-sp" x="${L.X_DHW_C}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="dhw-delta" x="${L.X_DHW_C}" y="482" text-anchor="middle"></text>
-        <text class="value-cop" id="dhw-cop" x="${L.X_DHW_C}" y="505" text-anchor="middle"></text>
         <g id="dhwforce-badge" class="badge" transform="translate(${L.X_DHW_C} 536)">
           <rect x="${-abzeichenBreite("Aufheizen") / 2}" y="-15" width="${abzeichenBreite("Aufheizen")}" height="30" rx="15"
                 fill="#08243A" stroke="#3B9BE0" stroke-width="1.5"/>
@@ -5828,8 +5849,9 @@ ${this._defs()}
         : tf(this._t("s_laedt_ab"), { v: fmt(bufSp - Math.abs(bDelta), 0) })
     );
     void wwLaeuft;
-    const copH = this._cop(hass, "cop_heating");
-    set("buf-cop", copH === null ? "" : tf(this._t("s_cop"), { v: fmt(copH, 1) }));
+    // Der COP steht hinter der Tuer. Abgefragt wird er hier, damit der
+    // Tagesmittelwert geladen ist, wenn die Tuer aufgeht.
+    this._cop(hass, "cop_heating");
     // TOP58 und TOP59 sind nur die Freigabe. Ob ein Heizstab heizt,
     // melden TOP60 (intern) und TOP61 (extern). Das Abzeichen erscheint
     // in dem Speicher, auf den das Dreiwegeventil gerade stellt.
@@ -5843,8 +5865,8 @@ ${this._defs()}
     paint("dhw-bottom", col(dhw === null ? null : dhw - 6));
     set("dhw-v", dhw === null ? "--" : `${fmt(dhw)} °C`);
     set("dhw-sp", dhwSp === null ? "" : tf(this._t("s_ziel"), { v: fmt(dhwSp, 0) }));
-    const copW = this._cop(hass, "cop_dhw");
-    set("dhw-cop", copW === null ? "" : tf(this._t("s_cop"), { v: fmt(copW, 1) }));
+    this._cop(hass, "cop_dhw");
+    this._tuerCopAuffrischen();
     // TOP22 ist negativ und sagt, wie weit das Warmwasser unter den
     // Sollwert fallen darf. Angezeigt wird daraus die Temperatur, ab
     // der nachgeladen wird, das ist die eigentlich nuetzliche Angabe.
