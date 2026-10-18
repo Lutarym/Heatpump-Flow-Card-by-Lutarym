@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.3.1
+
+- English: The seasonal performance factor (JAZ) behind the door is now a small table: rows heating, hot water and total (bold, below a line), columns "12 months" and "Since 1 Jan". The note "data only since …" appears once below the table.
+- Deutsch: Die Jahresarbeitszahl (JAZ) hinter der Tür ist jetzt eine kleine Tabelle: Zeilen Heizen, Warmwasser und Gesamt (fett, unter einem Strich), Spalten „12 Monate“ und „Seit 1. Jan.“. Der Hinweis „Daten erst seit …“ steht einmal unter der Tabelle.
+- Français : le coefficient annuel (JAZ) derrière la porte est désormais un petit tableau : lignes chauffage, eau chaude et total (en gras, sous un trait), colonnes « 12 mois » et « Depuis 1er janv. ». La mention « données depuis le … seulement » apparaît une fois sous le tableau.
+- 日本語：扉の奥の年間性能係数（JAZ）を小さな表にしました：行は暖房・給湯・合計（線の下に太字）、列は「12 か月」と「1月1日から」。「… 以降のデータのみ」の注記は表の下に 1 回だけ表示します。
+
 ## v4.3.0
 
 - English: Seasonal performance factor (JAZ) behind the door now only uses HeishaMon values and is shown separately: total, heating (TOP15/TOP16) and hot water (TOP40/TOP41), each for the last 12 months and since 1 January (XTOP3/XTOP0 and XTOP5/XTOP2 if the heat pump sends the extra data block). The option `jaz_source` with an own power meter (Shelly PM) is removed, because a single meter cannot split electricity between heating and hot water. Rows without matching entities are hidden.

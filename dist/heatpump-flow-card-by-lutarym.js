@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const CARD_VERSION = "4.3.0";
+const CARD_VERSION = "4.3.1";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -472,7 +472,8 @@ const TEXTE = {
   j_gesamt: { de: "Gesamt", en: "Total", fr: "Total", ja: "合計" },
   j_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "暖房" },
   j_ww: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "給湯" },
-  j_zeile: { de: "{a}, {z}", en: "{a}, {z}", fr: "{a}, {z}", ja: "{a}・{z}" },
+  j_k12: { de: "12 Monate", en: "12 months", fr: "12 mois", ja: "12 か月" },
+  j_kjahr: { de: "Seit 1. Jan.", en: "Since 1 Jan", fr: "Depuis 1er janv.", ja: "1月1日から" },
   k_jaz_jahr: { de: "Seit 1. Januar", en: "Since 1 January", fr: "Depuis le 1er janvier", ja: "1 月 1 日から" },
   j_seit: { de: "Daten erst seit {v}", en: "data only since {v}", fr: "données depuis le {v} seulement", ja: "{v} 以降のデータのみ" },
   j_titel: { de: "Wärme {w} kWh geteilt durch Strom {s} kWh", en: "Heat {w} kWh divided by electricity {s} kWh", fr: "Chaleur {w} kWh divisée par électricité {s} kWh", ja: "熱 {w} kWh ÷ 電力 {s} kWh" },
@@ -1485,12 +1486,7 @@ const TUER_FELDER = [
   { abschnitt: "t_pumpe", key: "pump_flow_mode", auswahl: ["o_spreizung", "o_max_leistung"] },
   { abschnitt: "t_pumpe", key: "pump_max_duty", min: 64, max: 254, step: 1, einheit: "" },
   { abschnitt: "t_leise", key: "quiet_priority", auswahl: ["o_lautstaerke", "o_leistung"] },
-  { abschnitt: "t_jaz", key: "jaz_12_gesamt", jaz: "12", art: "gesamt" },
-  { abschnitt: "t_jaz", key: "jaz_12_heizen", jaz: "12", art: "heizen" },
-  { abschnitt: "t_jaz", key: "jaz_12_ww", jaz: "12", art: "ww" },
-  { abschnitt: "t_jaz", key: "jaz_jahr_gesamt", jaz: "jahr", art: "gesamt" },
-  { abschnitt: "t_jaz", key: "jaz_jahr_heizen", jaz: "jahr", art: "heizen" },
-  { abschnitt: "t_jaz", key: "jaz_jahr_ww", jaz: "jahr", art: "ww" },
+  { abschnitt: "t_jaz", key: "jaz", jaz: "tabelle" },
   { abschnitt: "t_info", key: "operating_hours", info: true, einheit: "h" },
   { abschnitt: "t_info", key: "compressor_starts", info: true, einheit: "" },
   { abschnitt: "t_info", key: "room_heater_hours", info: true, einheit: "h" },
@@ -3035,28 +3031,31 @@ class LutarymHeatpumpCard extends HTMLElement {
     }
   }
 
-  /** Zeigt eine JAZ-Zeile hinter der Tuer. */
+  /** Fuellt die JAZ-Tabelle hinter der Tuer. */
   _jazZeige(f, el, seit) {
-    if (this._config.demo) {
-      const demo = { gesamt: [3.9, 4.2], heizen: [4.3, 4.6], ww: [2.9, 3.0] };
-      el.textContent = fmt(demo[f.art][f.jaz === "12" ? 0 : 1], 1);
-      if (seit) seit.textContent = "";
-      return;
-    }
-    const r = this._jaz && this._jaz[`${f.jaz}_${f.art}`];
-    el.textContent = r ? fmt(r.jaz, 1) : "--";
-    el.title = r
-      ? tf(this._t("j_titel"), { w: fmt(r.waerme, 0), s: fmt(r.strom, 0) })
-      : "";
-    if (seit) {
+    const demo = { "12_heizen": 4.3, jahr_heizen: 4.6, "12_ww": 2.9, jahr_ww: 3.0, "12_gesamt": 3.9, jahr_gesamt: 4.2 };
+    let frueh = null;
+    el.querySelectorAll("output[data-jaz]").forEach((o) => {
+      const k = o.dataset.jaz;
+      if (this._config.demo) {
+        o.textContent = fmt(demo[k], 1);
+        o.title = "";
+        return;
+      }
+      const r = this._jaz && this._jaz[k];
+      o.textContent = r ? fmt(r.jaz, 1) : "--";
+      o.title = r ? tf(this._t("j_titel"), { w: fmt(r.waerme, 0), s: fmt(r.strom, 0) }) : "";
       // Reicht die Statistik nicht bis zum Anfang des Zeitraums zurueck,
-      // steht dabei, ab wann gerechnet wurde.
-      const spaeter = r && r.erster - r.ab > 86400000;
-      seit.textContent = spaeter
-        ? tf(this._t("j_seit"), {
-            v: new Date(r.erster).toLocaleDateString(this._sp(), { day: "2-digit", month: "2-digit", year: "numeric" }),
-          })
-        : "";
+      // steht unter der Tabelle, ab wann gerechnet wurde.
+      if (r && r.erster - r.ab > 86400000 && (frueh === null || r.erster < frueh)) frueh = r.erster;
+    });
+    if (seit) {
+      seit.textContent =
+        frueh === null
+          ? ""
+          : tf(this._t("j_seit"), {
+              v: new Date(frueh).toLocaleDateString(this._sp(), { day: "2-digit", month: "2-digit", year: "numeric" }),
+            });
     }
   }
 
@@ -3065,10 +3064,8 @@ class LutarymHeatpumpCard extends HTMLElement {
     const q = this._quelle;
     if (!q) return [];
     const jaz = this._jazQuellen();
-    // Gesamt braucht mindestens eine Art, Heizen und Warmwasser ihr Paar.
-    const jazDa = (f) => jaz && (f.art === "gesamt" ? true : Boolean(jaz[f.art]));
     return TUER_FELDER.map((f) =>
-      f.jaz ? { ...f, id: jazDa(f) ? `jaz.${f.key}` : "" } : { ...f, id: this._e(f.key) }
+      f.jaz ? { ...f, id: jaz ? "jaz.tabelle" : "" } : { ...f, id: this._e(f.key) }
     ).filter((f) => f.id && (f.jaz || q.states[f.id]));
   }
 
@@ -3241,14 +3238,22 @@ class LutarymHeatpumpCard extends HTMLElement {
       const lang = escapeHtml(feldText(f, this._sp()));
       const bereich = f.id.split(".")[0];
       if (f.jaz) {
-        const jazTitel = escapeHtml(
-          tf(this._t("j_zeile"), {
-            a: this._t(`j_${f.art}`),
-            z: this._t(f.jaz === "12" ? "k_jaz_12" : "k_jaz_jahr"),
-          })
-        );
-        html += `<div class="lhc-tuer-zeile"><span>${jazTitel}<em class="jaz-seit" id="tuer-s${i}"></em></span>
-          <div class="lhc-tuer-stell"><output id="tuer-z${i}">--</output></div></div>`;
+        // Kleine Tabelle: Zeilen Heizen, Warmwasser, Gesamt; Spalten die
+        // beiden Zeitraeume. Gesamt nur, wenn es beide Arten gibt.
+        const quellen = this._jazQuellen() || {};
+        const arten = ["heizen", "ww"].filter((k) => quellen[k]);
+        if (arten.length === 2) arten.push("gesamt");
+        const zellen = arten
+          .map(
+            (k) => `<span class="jaz-art${k === "gesamt" ? " jaz-gesamt" : ""}">${escapeHtml(this._t(`j_${k}`))}</span>
+              <output class="${k === "gesamt" ? "jaz-gesamt" : ""}" data-jaz="12_${k}">--</output>
+              <output class="${k === "gesamt" ? "jaz-gesamt" : ""}" data-jaz="jahr_${k}">--</output>`
+          )
+          .join("");
+        html += `<div class="lhc-jaz" id="tuer-z${i}">
+            <span></span><span class="jaz-kopf">${escapeHtml(this._t("j_k12"))}</span><span class="jaz-kopf">${escapeHtml(this._t("j_kjahr"))}</span>
+            ${zellen}
+          </div><em class="jaz-seit" id="tuer-s${i}"></em>`;
         return;
       }
       if (f.info) {
@@ -6695,7 +6700,17 @@ ${this._defs()}
       .lhc-tuer-zeile.spalte { flex-direction: column; align-items: stretch; gap: 4px; }
       .lhc-tuer-zeile.spalte .lhc-tuer-seg button { flex: 1; }
       .lhc-tuer-zeile em { color: var(--muted); font-style: normal; font-size: 11px; }
-      .lhc-tuer-zeile em.jaz-seit { display: block; }
+      .lhc-tuer-gruppe em.jaz-seit { display: block; color: var(--muted); font-style: normal; font-size: 11px; margin: 2px 0 4px; }
+      .lhc-jaz {
+        display: grid; grid-template-columns: 1fr auto auto; column-gap: 14px; row-gap: 6px;
+        align-items: baseline; font-size: 13px; padding: 4px 12px 2px 0;
+      }
+      .lhc-jaz .jaz-kopf { color: var(--muted); font-size: 11px; text-align: right; white-space: nowrap; }
+      .lhc-jaz output {
+        text-align: right; min-width: 44px; white-space: nowrap;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+      .lhc-jaz .jaz-gesamt { font-weight: 700; border-top: 1px solid #33415A; padding-top: 5px; }
       .lhc-tuer-stell { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
       .lhc-tuer-stell output {
         min-width: 50px; text-align: center; font-size: 13px; white-space: nowrap;
