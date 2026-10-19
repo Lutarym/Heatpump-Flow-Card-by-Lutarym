@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.9.0
+
+- English: The energy chart at the top right no longer takes up space permanently. Instead there are three buttons: Energy, SG Ready and Temperatures (in the vertical layout one below the other). Each opens a window with the past 24 hours: energy as before; SG Ready as a wide band with clock times and the duration of each state; temperatures with flow, return and outdoor temperature, each with current value, minimum and maximum. Tabs switch between the views. In the editor the option "24 hour charts" (`show_history`) offers: as buttons (default), energy always in the card (as before), off.
+- Deutsch: Das Verbrauchsdiagramm oben rechts belegt keinen Platz mehr dauerhaft. Stattdessen gibt es drei Knöpfe: Verbrauch, SG Ready und Temperaturen (im Hochformat untereinander). Jeder öffnet ein Fenster mit den letzten 24 Stunden: Verbrauch wie bisher; SG Ready als breites Band mit Uhrzeiten und der Dauer je Zustand; Temperaturen mit Vorlauf, Rücklauf und Außentemperatur, jeweils mit aktuellem Wert, kleinstem und größtem Wert. Über Reiter lässt sich zwischen den Ansichten wechseln. Im Editor bietet die Option „Diagramme 24 Stunden“ (`show_history`): als Knöpfe (Standard), Verbrauch dauerhaft in der Karte (wie bisher), aus.
+- Français : le graphique de consommation en haut à droite n'occupe plus de place en permanence. Il est remplacé par trois boutons : Consommation, SG Ready et Températures (l'un sous l'autre en format vertical). Chacun ouvre une fenêtre sur les dernières 24 heures : consommation comme avant ; SG Ready sous forme de bande avec les heures et la durée de chaque état ; températures avec départ, retour et extérieur, chacune avec valeur actuelle, minimum et maximum. Des onglets permettent de passer d'une vue à l'autre. Dans l'éditeur, l'option « Graphiques 24 heures » (`show_history`) propose : boutons (par défaut), consommation toujours dans la carte (comme avant), désactivé.
+- 日本語：右上の使用量グラフが常に場所を占めないようにしました。代わりに「使用量」「SG Ready」「温度」の3つのボタンを表示します（縦レイアウトでは縦に並べます）。それぞれ過去24時間のウィンドウを開きます：使用量は従来どおり、SG Ready は時刻付きの帯と状態ごとの時間、温度は往き・還り・外気温を現在値・最小・最大とともに表示します。タブで表示を切り替えられます。エディターのオプション「24時間グラフ」（`show_history`）で、ボタン（既定）、使用量を常にカードに表示（従来どおり）、オフを選べます。
+
 ## v4.8.0
 
 - English: Heating circuits redrawn. For each circuit the editor offers a picture: panel radiator (default), column radiator or underfloor heating (options `hk1_style`, `hk2_style`). Name and temperature now stand freely below the radiator (in the vertical layout next to it) instead of in a dark box on top of it. The line with the target temperature of the heating circuits is removed. The hot water tank now has the same shape and size as the buffer.

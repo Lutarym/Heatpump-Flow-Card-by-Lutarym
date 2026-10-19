@@ -470,6 +470,26 @@ export const stilKarte = {
       #kurve-dialog {
         position: fixed; inset: 0; z-index: 99;
       }
+      /* Diagrammfenster: wie die Heizkurve ueber dem ganzen Bildschirm. */
+      #dia-dialog { position: fixed; inset: 0; z-index: 99; }
+      .lhc-kurve-box.lhc-dia-box { width: min(94vw, 680px); }
+      /* Im Fenster steht der Titel schon oben. */
+      #dia-verbrauch .verlauf-titel { display: none; }
+      .lhc-dia-box:focus { outline: none; }
+      .lhc-dia-svg { display: block; width: 100%; height: auto; margin-top: 10px; }
+      .lhc-dia-liste { margin-top: 8px; }
+      .lhc-dia-zeile {
+        display: grid; grid-template-columns: 14px 1fr auto auto; gap: 10px; align-items: center;
+        padding: 6px 2px; border-top: 1px solid var(--line); font-size: 14px; color: var(--c-c3d0e0);
+      }
+      .lhc-dia-zeile b { font-variant-numeric: tabular-nums; color: var(--c-e8edf4); }
+      .lhc-dia-zeile em { font-style: normal; color: var(--c-7e8ca0); font-size: 13px; }
+      .lhc-dia-farbe { width: 14px; height: 14px; border-radius: 4px; }
+      .dia-knopf { cursor: pointer; }
+      .dia-knopf .dia-symbol { color: var(--c-98a6ba); }
+      .dia-knopf:hover rect, .dia-knopf:focus-visible rect { stroke: #E0762E; }
+      .dia-knopf:hover .dia-symbol, .dia-knopf:focus-visible .dia-symbol { color: #E0762E; }
+      .dia-knopf:focus { outline: none; }
       .lhc-kurve-box {
         /* Eine Spalte braucht weniger Platz als zwei. */
         /* Auf grossen Bildschirmen zwei Drittel, auf dem Handy fast die

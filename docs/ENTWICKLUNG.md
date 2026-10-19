@@ -19,7 +19,7 @@ The code lives in modules under `src/`. The single file in `dist/` is built from
 | `src/erkennung.js` | Detection of HeishaMon by Lutarym |
 | `src/profile.js` | Device profiles |
 | `src/felder.js` | Card fields and default configuration |
-| `src/karte/` | The card, split by area (graphics, door, dialogs, help, history, heating curve, demo, style) |
+| `src/karte/` | The card, split by area (graphics, door, dialogs, help, history, charts, heating curve, demo, style) |
 | `src/editor/` | The editor (operation, import and export, style) |
 
 ## Building

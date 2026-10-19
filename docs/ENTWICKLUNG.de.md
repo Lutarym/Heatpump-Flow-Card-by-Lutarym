@@ -19,7 +19,7 @@ Der Code liegt in Modulen unter `src/`. Daraus wird die eine Datei in `dist/` ge
 | `src/erkennung.js` | Erkennung von HeishaMon by Lutarym |
 | `src/profile.js` | Geräteprofile |
 | `src/felder.js` | Felder der Karte und Standardkonfiguration |
-| `src/karte/` | Die Karte, aufgeteilt nach Bereichen (Grafik, Tür, Dialoge, Hilfe, Verlauf, Heizkurve, Demo, Stil) |
+| `src/karte/` | Die Karte, aufgeteilt nach Bereichen (Grafik, Tür, Dialoge, Hilfe, Verlauf, Diagramme, Heizkurve, Demo, Stil) |
 | `src/editor/` | Der Editor (Bedienung, Import und Export, Stil) |
 
 ## Bauen

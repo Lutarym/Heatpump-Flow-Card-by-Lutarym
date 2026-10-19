@@ -66,7 +66,7 @@ export const verlaufKarte = {
     this._verlaufMasse = { x, y, breite, hoehe };
     return `
       <g id="verlauf-group" opacity="0">
-        <text class="cap-s" x="${x}" y="${y + 14}">${this._t("verbrauch_24")}</text>
+        <text class="cap-s verlauf-titel" x="${x}" y="${y + 14}">${this._t("verbrauch_24")}</text>
         <text class="value-s" id="verlauf-max" x="${x + breite}" y="${y + 14}"
               text-anchor="end">--</text>
         <line x1="${x}" y1="${y + 26}" x2="${x + breite}" y2="${y + 26}"
@@ -109,12 +109,21 @@ export const verlaufKarte = {
     if (this._config.demo) {
       // Im Demomodus ein nachgebildeter Tagesverlauf.
       const punkte = [];
+      const start = jetzt - 86400000;
       for (let i = 0; i <= 96; i++) {
         const stunde = (i / 4) % 24;
         const grund = stunde > 5 && stunde < 9 ? 2.4 : stunde > 16 && stunde < 21 ? 1.8 : 0.4;
-        punkte.push({ t: i, v: Math.max(0, grund + Math.sin(i / 3) * 0.5) });
+        punkte.push({ t: start + i * 900000, v: Math.max(0, grund + Math.sin(i / 3) * 0.5) });
       }
       this._verlauf = punkte;
+      // Nachgebildeter SG-Ready-Verlauf: meist normal, mittags
+      // Einschaltempfehlung und Anlauf, abends kurz gesperrt.
+      const h = 3600000;
+      this._sgVerlauf = [
+        { t: start, stufe: 2 }, { t: start + 10 * h, stufe: 3 }, { t: start + 12 * h, stufe: 4 },
+        { t: start + 13.5 * h, stufe: 3 }, { t: start + 15 * h, stufe: 2 },
+        { t: start + 18 * h, stufe: 1 }, { t: start + 19 * h, stufe: 2 },
+      ];
       this._zeichneVerlauf();
       return;
     }
@@ -220,6 +229,7 @@ export const verlaufKarte = {
     const daten = this._verlauf || [];
     if (daten.length < 2) {
       gruppe.setAttribute("opacity", "0");
+      this._diaNachVerlauf();
       return;
     }
     const links = masse.x;
@@ -339,5 +349,6 @@ export const verlaufKarte = {
     const inKW = hoechst >= 100 ? hoechst / 1000 : hoechst;
     sr.getElementById("verlauf-max").textContent = tf(this._t("s_max"), { v: `${fmt(inKW, 2)} kW` });
     gruppe.setAttribute("opacity", "1");
+    this._diaNachVerlauf();
   },
 };

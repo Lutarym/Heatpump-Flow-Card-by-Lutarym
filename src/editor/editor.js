@@ -222,9 +222,13 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <input type="checkbox" id="opt-laedt">
             <span>${this._t("e_laedt_zeigen")}<em>${this._t("e_laedt_zeigen_h")}</em></span>
           </label>
-          <label class="ed-row ed-check">
-            <input type="checkbox" id="opt-verlauf">
+          <label class="ed-row">
             <span>${this._t("e_verlauf")}<em>${this._t("e_verlauf_h")}</em></span>
+            <select id="opt-verlauf">
+              <option value="knopf">${this._t("e_verlauf_knopf")}</option>
+              <option value="karte">${this._t("e_verlauf_karte")}</option>
+              <option value="aus">${this._t("o_aus")}</option>
+            </select>
           </label>
           <label class="ed-row ed-check">
             <input type="checkbox" id="opt-hilfe">
@@ -429,7 +433,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-eday", (el) => put({ energy_daily: el.checked }));
     bind("opt-animate", (el) => put({ animate: el.value === "aus" ? false : el.value === "auto" ? "auto" : true }));
     bind("opt-demo", (el) => put({ demo: el.checked }));
-    bind("opt-verlauf", (el) => put({ show_history: el.checked }));
+    bind("opt-verlauf", (el) => put({ show_history: el.value === "karte" ? true : el.value === "aus" ? false : "knopf" }));
     bind("opt-ziel", (el) => put({ show_target: el.checked }));
     bind("opt-laedt", (el) => put({ show_reload: el.checked }));
     bind("opt-hilfe", (el) => put({ show_help: el.checked }));
@@ -673,7 +677,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     check("opt-eday", this._config.energy_daily);
     put("opt-animate", this._config.animate === false ? "aus" : this._config.animate === "auto" ? "auto" : "ein");
     check("opt-demo", this._config.demo === true);
-    check("opt-verlauf", this._config.show_history !== false);
+    put("opt-verlauf", this._config.show_history === true ? "karte" : this._config.show_history === false ? "aus" : "knopf");
     check("opt-ziel", this._config.show_target !== false);
     check("opt-laedt", this._config.show_reload !== false);
     check("opt-hilfe", this._config.show_help !== false);

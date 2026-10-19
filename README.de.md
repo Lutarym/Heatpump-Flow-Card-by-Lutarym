@@ -81,7 +81,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `profil` | `heishamon_lutarym` | `heishamon_lutarym` oder `heishamon` für das MQTT-Namensschema |
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
-| `show_history` | `true` | Verbrauchsverlauf anzeigen |
+| `show_history` | `knopf` | Diagramme 24 Stunden: `knopf` drei Knöpfe oben rechts öffnen Verbrauch, SG Ready und Temperaturen im Fenster, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
 | `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
 | `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen |

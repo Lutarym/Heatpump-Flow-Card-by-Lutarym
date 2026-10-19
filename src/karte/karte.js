@@ -7,6 +7,7 @@ import { DEFAULT_CONFIG } from "../felder.js";
 import { animationAn, bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, numState, setzeDezimal } from "../hilfsfunktionen.js";
 import { aktualisierenKarte } from "./aktualisieren.js";
 import { demoKarte } from "./demo.js";
+import { diagrammeKarte } from "./diagramme.js";
 import { dialogKarte } from "./dialog.js";
 import { grafikHochKarte } from "./grafik-hoch.js";
 import { grafikQuerKarte } from "./grafik-quer.js";
@@ -331,6 +332,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._groesse();
     this._update();
     this._holeVerlauf();
+    this._diaEinrichten();
     const kd = this.shadowRoot.getElementById("kurve-dialog");
     if (kd && !kd.dataset.fertig) {
       kd.dataset.fertig = "1";
@@ -385,6 +387,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
         <div class="lhc-scene">${this._svg()}</div>
 
         ${this._kurveDialogMarkup()}
+        ${this._diaDialogMarkup()}
         <button type="button" class="lhc-hilfe-knopf" id="hilfe-knopf"
                 title="${escapeHtml(this._t("h_knopf"))}" aria-label="${escapeHtml(this._t("h_knopf"))}">?</button>
         <div class="lhc-hilfe" id="hilfe" hidden>
@@ -597,6 +600,7 @@ Object.assign(
   demoKarte,
   kennzahlenKarte,
   verlaufKarte,
+  diagrammeKarte,
   aktualisierenKarte,
   dialogKarte,
   hilfeKarte,

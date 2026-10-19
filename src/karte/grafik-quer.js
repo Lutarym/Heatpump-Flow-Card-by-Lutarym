@@ -243,7 +243,11 @@ ${this._defs()}
         // Links endet der Verlauf spaetestens bei x=700, rechts vom
         // Umschaltventil und seiner Beschriftung.
         const w = clamp(Number(this._config.history_width) || 450, 250, Math.min(700, rand - 700));
-        return this._verlaufRahmen(rand - w, 84 - LUFT, w, 144);
+        // Als Knopf stehen oben rechts nur drei kleine Knoepfe, das
+        // Diagramm oeffnet sich im Fenster.
+        return this._verlaufAlsKnopf()
+          ? this._diaKnoepfe(rand - w, 84 - LUFT + 8, w)
+          : this._verlaufRahmen(rand - w, 84 - LUFT, w, 144);
       })()}
 
 

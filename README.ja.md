@@ -81,7 +81,7 @@ entities:
 | `profil` | `heishamon_lutarym` | `heishamon_lutarym`、または MQTT 命名規則の `heishamon` |
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
-| `show_history` | `true` | 使用量グラフを表示 |
+| `show_history` | `knopf` | 24時間グラフ：`knopf` 右上の3つのボタンで使用量・SG Ready・温度をウィンドウ表示、`true` 使用量を常にカードに表示、`false` オフ |
 | `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
 | `show_reload` | `true` | バッファーと給湯に「再加熱 …」の行を表示 |
 | `show_help` | `true` | カード右下にヘルプの「?」ボタンを表示 |

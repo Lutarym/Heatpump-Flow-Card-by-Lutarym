@@ -81,7 +81,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `profil` | `heishamon_lutarym` | `heishamon_lutarym` or `heishamon` for the MQTT naming scheme |
 | `buffer_present` | `auto` | Heating buffer: `auto` from TOP99, `true` or `false` |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
-| `show_history` | `true` | Show the energy chart |
+| `show_history` | `knopf` | 24 hour charts: `knopf` three buttons at the top right open energy, SG Ready and temperatures in a window, `true` energy always in the card, `false` off |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
 | `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
 | `show_help` | `true` | Show the “?” help button at the bottom right of the card |

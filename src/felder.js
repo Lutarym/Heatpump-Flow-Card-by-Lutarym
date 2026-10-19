@@ -136,7 +136,7 @@ export const DEFAULT_CONFIG = {
   mqtt_prefix: "panasonic_heat_pump",
   profil: "heishamon_lutarym",
   language: "auto",
-  show_history: true,
+  show_history: "knopf",
   show_target: true,
   show_reload: true,
   show_help: true,

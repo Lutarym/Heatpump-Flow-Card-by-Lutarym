@@ -19,7 +19,7 @@ Le code se trouve dans des modules sous `src/`. Le fichier unique de `dist/` est
 | `src/erkennung.js` | Détection de HeishaMon by Lutarym |
 | `src/profile.js` | Profils d'appareil |
 | `src/felder.js` | Champs de la carte et configuration par défaut |
-| `src/karte/` | La carte, répartie par domaine (graphique, porte, fenêtres, aide, historique, courbe de chauffe, démo, style) |
+| `src/karte/` | La carte, répartie par domaine (graphique, porte, fenêtres, aide, historique, graphiques, courbe de chauffe, démo, style) |
 | `src/editor/` | L'éditeur (utilisation, import et export, style) |
 
 ## Construire

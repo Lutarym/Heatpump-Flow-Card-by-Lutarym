@@ -352,7 +352,9 @@ export const grafikHochKarte = {
       ${(() => {
         const w = clamp(Number(this._config.history_width) || 450, 250, 700);
         const breit = clamp(w, 240, 360);
-        return this._verlaufRahmen(740 - breit, 420, breit, 260);
+        return this._verlaufAlsKnopf()
+          ? this._diaKnoepfe(740 - breit, 420, breit, true)
+          : this._verlaufRahmen(740 - breit, 420, breit, 260);
       })()}
 
       ${leitungen}
