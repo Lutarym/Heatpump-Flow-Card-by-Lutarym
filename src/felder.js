@@ -92,6 +92,19 @@ export const ENTITY_FIELDS = [
   { key: "hk2_setpoint", label: "HK2 Sollwert einstellbar", group: "Heizkreis 2", hint: "TOP34, number" },
   { key: "hk2_switch", label: "HK2 ein und aus", group: "Heizkreis 2", hint: "eigener Schalter, optional" },
 
+  { key: "hk3_water", label: "HK3 Wassertemperatur", group: "Heizkreis 3", hint: "eigene Entität, °C" },
+  { key: "hk3_pump", label: "HK3 Pumpe läuft", group: "Heizkreis 3", hint: "eigener Schalter oder Sensor" },
+  { key: "hk3_switch", label: "HK3 ein und aus", group: "Heizkreis 3", hint: "eigener Schalter, optional" },
+
+  { key: "hk4_water", label: "HK4 Wassertemperatur", group: "Heizkreis 4", hint: "eigene Entität, °C" },
+  { key: "hk4_pump", label: "HK4 Pumpe läuft", group: "Heizkreis 4", hint: "eigener Schalter oder Sensor" },
+  { key: "hk4_switch", label: "HK4 ein und aus", group: "Heizkreis 4", hint: "eigener Schalter, optional" },
+
+  { key: "kamin_temp", label: "Kamin Temperatur", group: "Zusatzwärme", hint: "eigene Entität, °C" },
+  { key: "kamin_pump", label: "Kamin Pumpe läuft", group: "Zusatzwärme", hint: "eigener Schalter oder Sensor" },
+  { key: "solar_temp", label: "Solarthermie Temperatur", group: "Zusatzwärme", hint: "TOP47" },
+  { key: "solar_pump", label: "Solarthermie Pumpe läuft", group: "Zusatzwärme", hint: "OPT5" },
+
   { key: "dhw_installed", label: "Warmwasser vorhanden", group: "Warmwasser", hint: "TOP100" },
   { key: "dhw_temp", label: "Warmwasser Isttemperatur", group: "Warmwasser", hint: "TOP10" },
   { key: "dhw_heat_delta", label: "Warmwasser Hysterese", group: "Warmwasser", hint: "TOP22" },
@@ -166,5 +179,10 @@ export const DEFAULT_CONFIG = {
   animate: true,
   hk1_style: "platte",
   hk2_style: "platte",
+  hk3_style: "platte",
+  hk4_style: "platte",
+  label_hk3: "",
+  label_hk4: "",
+  extra_heat: "aus",
   entities: {},
 };

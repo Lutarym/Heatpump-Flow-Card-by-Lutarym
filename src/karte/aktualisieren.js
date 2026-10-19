@@ -520,14 +520,14 @@ export const aktualisierenKarte = {
     set("valve-v", valveText);
     // Sichtbar ist nur der Pfeil in die geoeffnete Richtung.
     const bekannt = valveNum !== null;
-    zeige("valve-arrow-down", bekannt && !zuWarmwasser);
-    zeige("valve-arrow-right", bekannt && zuWarmwasser);
+    zeige("valve-arrow-heiz", bekannt && !zuWarmwasser);
+    zeige("valve-arrow-ww", bekannt && zuWarmwasser);
     const pfeilfarbe = col(flow);
-    ["valve-down-line", "valve-right-line"].forEach((id) => {
+    ["valve-heiz-line", "valve-ww-line"].forEach((id) => {
       const el = this._animEl(id);
       if (el) el.setAttribute("stroke", pfeilfarbe);
     });
-    ["valve-down-head", "valve-right-head"].forEach((id) => {
+    ["valve-heiz-head", "valve-ww-head"].forEach((id) => {
       const el = this._animEl(id);
       if (el) el.setAttribute("fill", pfeilfarbe);
     });
@@ -571,16 +571,17 @@ export const aktualisierenKarte = {
     this._direkt = this._hatPuffer()
       ? null
       : { heizt: foerdertPrimaer && !zuWarmwasser, vl: col(flow), rl: col(ret) };
-    const hk1Laeuft = this._circuitUpdate(1, col, animate, buf, laeuft);
-    const hk2Laeuft =
-      this._config.hk_count === 2
-        ? this._circuitUpdate(2, col, animate, buf, laeuft)
-        : false;
+    const kreisLaeuft = [];
+    for (let n = 1; n <= this._hkAnzahl(); n++) {
+      kreisLaeuft.push(this._circuitUpdate(n, col, animate, buf, laeuft));
+    }
+    // Im Hochformat fuehrt der zweite Abschnitt zu allen weiteren Heizkreisen.
+    const hk2Laeuft = kreisLaeuft.slice(1).some(Boolean);
 
     // Mit Puffer wird der Sekundaerkreis bewegt, sobald eine Kreispumpe
     // foerdert, seine Waerme kommt aus dem Puffer. Ohne Puffer liefern
     // die Heizkreise bereits nur dann Fluss, wenn die Waermepumpe heizt.
-    const sekundaer = hk1Laeuft || hk2Laeuft;
+    const sekundaer = kreisLaeuft.some(Boolean);
     const d = this._direkt;
     const farbeVL = d ? d.vl : col(buf);
     const farbeRL = d ? d.rl : col(buf);
@@ -598,9 +599,13 @@ export const aktualisierenKarte = {
     // Jeder Abschnitt einzeln, abhaengig nur vom eigenen Kreis.
     // Vor dem Ventil fliesst immer, dahinter nur bei Warmwasserladung.
     stroemt(["dots-vl-a"], primaer, col(flow));
-    stroemt(["dots-vl-b"], primaer && zuWarmwasser, col(flow));
+    // Hinter dem Ventil: im Querformat fuehrt der Weg zur Heizung weiter,
+    // im Hochformat der Weg zum Warmwasser.
+    stroemt(["dots-heiz-vl"], primaer && !zuWarmwasser, col(flow));
+    stroemt(["dots-ww-vl"], primaer && zuWarmwasser, col(flow));
     stroemt(["dots-rl-a"], primaer, col(ret));
-    stroemt(["dots-rl-b"], primaer && zuWarmwasser, col(ret));
+    stroemt(["dots-heiz-rl"], primaer && !zuWarmwasser, col(ret));
+    stroemt(["dots-ww-rl"], primaer && zuWarmwasser, col(ret));
     stroemt(["dots-buf"], primaer && !zuWarmwasser, col(flow));
     stroemt(["dots-buf2"], primaer && !zuWarmwasser, col(ret));
     stroemt(["dots-dhw"], primaer && zuWarmwasser, col(flow));
@@ -633,11 +638,67 @@ export const aktualisierenKarte = {
         }
       });
     };
-    blasen("buf-bubbles", buf, primaer && !zuWarmwasser);
+    // Zusatzwaerme: Kamin und Solarthermie laden den Puffer ueber ihre
+    // eigene Pumpe, unabhaengig von der Waermepumpe.
+    const quelleLaedt = this._quellenUpdate(col, animate, buf);
+    blasen("buf-bubbles", buf, (primaer && !zuWarmwasser) || quelleLaedt);
     blasen("dhw-bubbles", dhw, primaer && zuWarmwasser);
 
     /* Bedienung */
     this._syncDialog();
+  },
+
+  /**
+   * Kamin und Solarthermie: Temperatur, Pumpe, Fluss in den Puffer.
+   * Liefert, ob gerade eine davon den Puffer laedt.
+   */
+  _quellenUpdate(col, animate, buf) {
+    const hass = this._quelle;
+    let laedt = false;
+    ["kamin", "solar"].forEach((art) => {
+      if (!this._animEl(`${art}-group`)) return;
+      const temp = numState(hass, this._e(`${art}_temp`));
+      const pumpe = isOn(hass, this._e(`${art}_pump`)) === true;
+      const tEl = this._animEl(`${art}-v`);
+      if (tEl) tEl.textContent = temp === null ? "--" : `${fmt(temp, 1)} °C`;
+      const pEl = this._animEl(`${art}-pump-v`);
+      if (pEl) {
+        pEl.textContent = this._e(`${art}_pump`)
+          ? tf(this._t("pumpe_wert"), { v: wertText(pumpe ? "läuft" : "aus", this._sp()) })
+          : "";
+      }
+      if (art === "kamin") {
+        const flamme = this._animEl("kamin-flamme");
+        if (flamme) flamme.setAttribute("opacity", pumpe ? "1" : "0");
+      }
+      this._blattFarbe(`${art}-blade`, col(temp), pumpe);
+      const rotorId = `${art}-rotor`;
+      const rotor = this._animEl(rotorId);
+      if (rotor) {
+        rotor.classList.remove("is-still");
+        if (pumpe && animate) {
+          const da = this._animState.get(rotorId);
+          if (da && da.type === "spin") da.duration = PUMP_SECONDS;
+          else this._animState.set(rotorId, { type: "spin", duration: PUMP_SECONDS, winkel: 0 });
+        } else {
+          this._animState.delete(rotorId);
+        }
+      }
+      [[`dots-${art}`, col(temp)], [`dots-${art}b`, col(buf)]].forEach(([id, farbe]) => {
+        const el = this._animEl(id);
+        if (!el) return;
+        const aktiv = animate && pumpe;
+        el.classList.toggle("is-on", aktiv);
+        el.style.stroke = farbe;
+        if (aktiv) this._animState.set(id, { type: "flow", reverse: false });
+        else {
+          this._animState.delete(id);
+          el.setAttribute("stroke-dashoffset", "0");
+        }
+      });
+      if (pumpe) laedt = true;
+    });
+    return laedt;
   },
 
   _circuitUpdate(n, col, animate, buf, laeuft) {

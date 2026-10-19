@@ -75,7 +75,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | Option | Vorgabe | Bedeutung |
 |---|---|---|
 | `layout` | `quer` | `quer` Querformat, `hoch` Hochformat |
-| `hk_count` | `2` | Anzahl der Heizkreise, 1 oder 2 |
+| `hk_count` | `2` | Anzahl der Heizkreise, 1 bis 4. HK3 und HK4 brauchen eigene Entitäten, die Aquarea regelt nur zwei Zonen |
 | `fan_count` | `2` | Anzahl der Lüfter, 1 oder 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` oder `ja` |
 | `profil` | `heishamon_lutarym` | `heishamon_lutarym` oder `heishamon` für das MQTT-Namensschema |
@@ -98,10 +98,11 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `curve_y_min / curve_y_max` | `20 / 75` | Vorlaufskala der Heizkurve in °C |
 | `scale_min / scale_max` | `20 / 60` | Farbskala der Heizung in °C |
 | `outdoor_min / outdoor_max` | `-15 / 35` | Farbskala des Außenfühlers in °C |
-| `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | Eigene Namen, leer nimmt die Kartensprache |
+| `label_hk1` bis `label_hk4`, `label_buffer, label_dhw, label_energy` | | Eigene Namen, leer nimmt die Kartensprache |
 | `energy_daily` | `true` | Tagesverbrauch aus dem Zählerstand rechnen |
 | `animate` | `true` | Animation: `true` ein, `false` aus, `auto` das Gerät entscheidet (Einstellung „Bewegung reduzieren“) |
-| `hk1_style` / `hk2_style` | `platte` | Bild des Heizkreises: `platte` Plattenheizkörper, `glieder` Gliederheizkörper, `fbh` Fußbodenheizung |
+| `hk1_style` bis `hk4_style` | `platte` | Bild des Heizkreises: `platte` Plattenheizkörper, `glieder` Gliederheizkörper, `fbh` Fußbodenheizung |
+| `extra_heat` | `aus` | Zusatzwärme am Puffer: `aus`, `kamin`, `solar`, `beide`. Nur mit Heizungspuffer |
 | `demo` | `false` | Beispielwerte zum Ausprobieren |
 
 ### Entitäten
@@ -171,6 +172,13 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `hk2_pump` | HK2 Pumpe läuft | TOP123 |
 | `hk2_setpoint` | HK2 Sollwert einstellbar | TOP34, number |
 | `hk2_switch` | HK2 ein und aus | eigener Schalter, optional |
+| `hk3_water, hk4_water` | Wassertemperatur HK3, HK4 | eigene Entität, °C |
+| `hk3_pump, hk4_pump` | Pumpe HK3, HK4 läuft | eigener Schalter oder Sensor |
+| `hk3_switch, hk4_switch` | HK3, HK4 ein und aus | eigener Schalter, optional |
+| `kamin_temp` | Kamin Temperatur | eigene Entität, °C |
+| `kamin_pump` | Kamin Pumpe läuft | eigener Schalter oder Sensor |
+| `solar_temp` | Solarthermie Temperatur | TOP47 |
+| `solar_pump` | Solarthermie Pumpe läuft | OPT5 |
 | **Warmwasser** | | |
 | `dhw_installed` | Warmwasser vorhanden | TOP100 |
 | `dhw_temp` | Warmwasser Isttemperatur | TOP10 |

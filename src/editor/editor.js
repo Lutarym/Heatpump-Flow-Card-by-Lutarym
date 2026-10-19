@@ -154,30 +154,32 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           </label>
           <label class="ed-row">
             <span>${this._t("e_anz_hk")}</span>
-            <select id="opt-hk"><option value="1">${this._t("e_1hk")}</option><option value="2">${this._t("e_2hk")}</option></select>
+            <select id="opt-hk"><option value="1">${this._t("e_1hk")}</option><option value="2">${this._t("e_2hk")}</option><option value="3">${this._t("e_3hk")}</option><option value="4">${this._t("e_4hk")}</option></select>
           </label>
-          <label class="ed-row">
-            <span>${this._t("e_hk1_bild")}</span>
-            <select id="opt-hk1-stil">
+          ${[1, 2, 3, 4].map((n) => `
+          <label class="ed-row" data-hk-zeile="${n}">
+            <span>${this._t(`e_hk${n}_bild`)}</span>
+            <select id="opt-hk${n}-stil">
               <option value="platte">${this._t("e_rad_platte")}</option>
               <option value="glieder">${this._t("e_rad_glieder")}</option>
               <option value="fbh">${this._t("e_rad_fbh")}</option>
             </select>
-          </label>
-          <label class="ed-row">
-            <span>${this._t("e_hk2_bild")}</span>
-            <select id="opt-hk2-stil">
-              <option value="platte">${this._t("e_rad_platte")}</option>
-              <option value="glieder">${this._t("e_rad_glieder")}</option>
-              <option value="fbh">${this._t("e_rad_fbh")}</option>
-            </select>
-          </label>
+          </label>`).join("")}
           <label class="ed-row">
             <span>${this._t("e_puffer")}<em>${this._t("e_puffer_auto_h")}</em></span>
             <select id="opt-puffer">
               <option value="auto">${this._t("e_auto")}</option>
               <option value="ja">${this._t("e_vorhanden")}</option>
               <option value="nein">${this._t("e_nicht_vorhanden")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_zusatz")}<em>${this._t("e_zusatz_h")}</em></span>
+            <select id="opt-zusatz">
+              <option value="aus">${this._t("o_aus")}</option>
+              <option value="kamin">${this._t("kamin")}</option>
+              <option value="solar">${this._t("solarthermie")}</option>
+              <option value="beide">${this._t("e_zusatz_beide")}</option>
             </select>
           </label>
           <label class="ed-row">
@@ -195,10 +197,11 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_l_hk1")}<em>${this._t("e_l_hk_h")}</em></span>
             <input type="text" id="opt-lhk1">
           </label>
-          <label class="ed-row">
-            <span>${this._t("e_l_hk2")}<em>${this._t("e_l_hk_h")}</em></span>
-            <input type="text" id="opt-lhk2">
-          </label>
+          ${[2, 3, 4].map((n) => `
+          <label class="ed-row" data-hk-zeile="${n}">
+            <span>${this._t(`e_l_hk${n}`)}<em>${this._t("e_l_hk_h")}</em></span>
+            <input type="text" id="opt-lhk${n}">
+          </label>`).join("")}
           <label class="ed-row">
             <span>${this._t("e_l_buf")}<em>${this._t("e_frei")}</em></span>
             <input type="text" id="opt-lbuf">
@@ -324,7 +327,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           ${groups
             .map(
               (g, gi) => `
-          <details class="ed-group ed-klapp" data-klapp="g${gi}" data-gruppe="${gi}">
+          <details class="ed-group ed-klapp" data-klapp="g${gi}" data-gruppe="${gi}" data-gruppe-name="${escapeHtml(g.name)}">
             <summary><h3>${escapeHtml(gruppenText(g.name, this._sp()))}</h3><span class="ed-zahl" id="ed-zahl-${gi}"></span></summary>
             ${g.fields
               .map((f) => {
@@ -420,13 +423,13 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-kxmax", (el) => put({ curve_x_max: parseInt(el.value, 10) }));
     bind("opt-kymin", (el) => put({ curve_y_min: parseInt(el.value, 10) }));
     bind("opt-kymax", (el) => put({ curve_y_max: parseInt(el.value, 10) }));
-    bind("opt-hk", (el) => put({ hk_count: parseInt(el.value, 10) }));
+    bind("opt-hk", (el) => { put({ hk_count: parseInt(el.value, 10) }); this._syncValues(); });
     bind("opt-min", (el) => put({ scale_min: parseFloat(el.value) }));
     bind("opt-max", (el) => put({ scale_max: parseFloat(el.value) }));
     bind("opt-omin", (el) => put({ outdoor_min: parseFloat(el.value) }));
     bind("opt-omax", (el) => put({ outdoor_max: parseFloat(el.value) }));
     bind("opt-lhk1", (el) => put({ label_hk1: el.value }));
-    bind("opt-lhk2", (el) => put({ label_hk2: el.value }));
+    [2, 3, 4].forEach((n) => bind(`opt-lhk${n}`, (el) => put({ [`label_hk${n}`]: el.value })));
     bind("opt-lbuf", (el) => put({ label_buffer: el.value }));
     bind("opt-ldhw", (el) => put({ label_dhw: el.value }));
     bind("opt-lenergy", (el) => put({ label_energy: el.value }));
@@ -438,8 +441,8 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-laedt", (el) => put({ show_reload: el.checked }));
     bind("opt-hilfe", (el) => put({ show_help: el.checked }));
     bind("opt-tuer", (el) => put({ show_door: el.checked }));
-    bind("opt-hk1-stil", (el) => put({ hk1_style: el.value }));
-    bind("opt-hk2-stil", (el) => put({ hk2_style: el.value }));
+    [1, 2, 3, 4].forEach((n) => bind(`opt-hk${n}-stil`, (el) => put({ [`hk${n}_style`]: el.value })));
+    bind("opt-zusatz", (el) => { put({ extra_heat: el.value }); this._syncValues(); });
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
 
@@ -670,7 +673,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-omin", this._config.outdoor_min);
     put("opt-omax", this._config.outdoor_max);
     put("opt-lhk1", this._config.label_hk1);
-    put("opt-lhk2", this._config.label_hk2);
+    [2, 3, 4].forEach((n) => put(`opt-lhk${n}`, this._config[`label_hk${n}`]));
     put("opt-lbuf", this._config.label_buffer);
     put("opt-ldhw", this._config.label_dhw);
     put("opt-lenergy", this._config.label_energy);
@@ -682,10 +685,23 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     check("opt-laedt", this._config.show_reload !== false);
     check("opt-hilfe", this._config.show_help !== false);
     check("opt-tuer", this._config.show_door !== false);
-    put("opt-hk1-stil", this._config.hk1_style || "platte");
-    put("opt-hk2-stil", this._config.hk2_style || "platte");
-    const zeileHk2 = this.shadowRoot.getElementById("opt-hk2-stil");
-    if (zeileHk2) zeileHk2.closest("label").style.display = this._config.hk_count === 2 ? "" : "none";
+    const anzahlHk = Number(this._config.hk_count) || 2;
+    [1, 2, 3, 4].forEach((n) => put(`opt-hk${n}-stil`, this._config[`hk${n}_style`] || "platte"));
+    // Nur die Zeilen der vorhandenen Heizkreise zeigen.
+    sr.querySelectorAll("[data-hk-zeile]").forEach((z) => {
+      z.style.display = Number(z.dataset.hkZeile) <= anzahlHk ? "" : "none";
+    });
+    put("opt-zusatz", this._config.extra_heat || "aus");
+    // Entitaetsgruppen fuer HK3, HK4 und Zusatzwaerme nur, wenn genutzt.
+    const zusatz = this._config.extra_heat || "aus";
+    sr.querySelectorAll("details[data-gruppe-name]").forEach((d) => {
+      const name = d.dataset.gruppeName;
+      let zeigen = true;
+      if (name === "Heizkreis 3") zeigen = anzahlHk >= 3;
+      if (name === "Heizkreis 4") zeigen = anzahlHk >= 4;
+      if (name === "Zusatzwärme") zeigen = zusatz !== "aus";
+      d.style.display = zeigen ? "" : "none";
+    });
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
 

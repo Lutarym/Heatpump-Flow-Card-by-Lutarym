@@ -75,7 +75,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | Option | Défaut | Signification |
 |---|---|---|
 | `layout` | `quer` | `quer` paysage, `hoch` portrait |
-| `hk_count` | `2` | Nombre de circuits, 1 ou 2 |
+| `hk_count` | `2` | Nombre de circuits, 1 à 4. Les circuits 3 et 4 nécessitent des entités propres, l'Aquarea ne régule que deux zones |
 | `fan_count` | `2` | Nombre de ventilateurs, 1 ou 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` ou `ja` |
 | `profil` | `heishamon_lutarym` | `heishamon_lutarym` ou `heishamon` pour le nommage MQTT |
@@ -98,10 +98,11 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `curve_y_min / curve_y_max` | `20 / 75` | Échelle de départ de la courbe en °C |
 | `scale_min / scale_max` | `20 / 60` | Échelle de couleur du chauffage en °C |
 | `outdoor_min / outdoor_max` | `-15 / 35` | Échelle de couleur de la sonde extérieure en °C |
-| `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | Noms personnalisés, vide = langue de la carte |
+| `label_hk1` à `label_hk4`, `label_buffer, label_dhw, label_energy` | | Noms personnalisés, vide = langue de la carte |
 | `energy_daily` | `true` | Calculer la consommation du jour à partir du compteur |
 | `animate` | `true` | Animation : `true` marche, `false` arrêt, `auto` l'appareil décide (réglage « réduire les animations ») |
-| `hk1_style` / `hk2_style` | `platte` | Image du circuit : `platte` radiateur à panneaux, `glieder` radiateur à éléments, `fbh` plancher chauffant |
+| `hk1_style` à `hk4_style` | `platte` | Image du circuit : `platte` radiateur à panneaux, `glieder` radiateur à éléments, `fbh` plancher chauffant |
+| `extra_heat` | `aus` | Chaleur d'appoint au ballon tampon : `aus` (arrêt), `kamin` (poêle), `solar`, `beide` (les deux). Uniquement avec ballon tampon |
 | `demo` | `false` | Valeurs d'exemple pour essayer |
 
 ### Entités
@@ -171,6 +172,13 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `hk2_pump` | Circuit 2 pompe en marche | TOP123 |
 | `hk2_setpoint` | Circuit 2 consigne réglable | TOP34, number |
 | `hk2_switch` | Circuit 2 marche et arrêt | interrupteur propre, facultatif |
+| `hk3_water, hk4_water` | Température d'eau circuits 3, 4 | entité propre, °C |
+| `hk3_pump, hk4_pump` | Pompe circuits 3, 4 en marche | interrupteur ou capteur propre |
+| `hk3_switch, hk4_switch` | Circuits 3, 4 marche et arrêt | interrupteur propre, facultatif |
+| `kamin_temp` | Température du poêle | entité propre, °C |
+| `kamin_pump` | Pompe du poêle en marche | interrupteur ou capteur propre |
+| `solar_temp` | Température solaire thermique | TOP47 |
+| `solar_pump` | Pompe solaire en marche | OPT5 |
 | **Eau chaude** | | |
 | `dhw_installed` | Eau chaude présente | TOP100 |
 | `dhw_temp` | Température de l'eau chaude | TOP10 |

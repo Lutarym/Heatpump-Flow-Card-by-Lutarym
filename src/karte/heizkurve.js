@@ -213,7 +213,7 @@ export const heizkurveKarte = {
       if (spalte)
         spalte.hidden =
           fehlt ||
-          (z === 2 && this._config.hk_count !== 2) ||
+          (z === 2 && this._config.hk_count < 2) ||
           (this._kurveNur && this._kurveNur !== z);
       if (fehlt) return;
 

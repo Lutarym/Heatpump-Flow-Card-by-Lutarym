@@ -209,6 +209,12 @@ export const stilKarte = {
         opacity: 0;
       }
       .flowdots.is-on { opacity: 0.9; }
+      /* Schmalere Leitungen fuer Heizkreise, Zusatzwaerme und Zirkulation,
+         damit die Geraete und nicht die Rohre das Bild praegen. Die
+         Strichlaenge ergibt wie oben 44, sonst springt die Bewegung. */
+      .pipe-shell.duenn { stroke-width: 12; }
+      .pipe.duenn { stroke-width: 6; }
+      .flowdots.duenn { stroke-width: 4; stroke-dasharray: 12 32; }
 
       .unit-label {
         /* 11px mit engerer Sperrung, sonst passt "Außentemperatur"
@@ -238,7 +244,7 @@ export const stilKarte = {
       /* Nicht aktivierte Kreise werden abgeblendet, nicht ausgeblendet.
          So bleibt erkennbar, dass es sie gibt. */
       .is-inaktiv { opacity: 0.28; transition: opacity 600ms ease; }
-      #valve-arrow-down, #valve-arrow-right { transition: opacity 400ms ease; }
+      #valve-arrow-heiz, #valve-arrow-ww { transition: opacity 400ms ease; }
       .cap { fill: var(--c-98a6ba); font-size: 15px; letter-spacing: 0.02em; }
       .cap-s { fill: var(--c-7e8ca0); font-size: 13px; letter-spacing: 0.02em; }
       .value-l {

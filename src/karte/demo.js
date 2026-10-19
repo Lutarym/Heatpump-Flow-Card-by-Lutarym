@@ -31,6 +31,8 @@ export const demoKarte = {
       dhw_heater_switch: "off", room_heater_switch: "off", buffer_switch: "on",
       power_state: "on", hk1_switch: "on", hk2_switch: "off",
       operating_mode: 4,
+      hk3_water: 32.8, hk3_pump: 1, hk3_switch: "on", hk4_water: 28.4, hk4_pump: 0, hk4_switch: "off",
+      kamin_temp: 72.4, kamin_pump: 1, solar_temp: 41.0, solar_pump: 0,
       cop_heating: 4.3, cop_dhw: 3.1, heater_internal: 0, heater_external: 0,
       operating_hours: 1462, compressor_starts: 2381, room_heater_hours: 3, dhw_heater_hours: 11,
       holiday_mode: "off", main_schedule: "off", fault_reset: "unknown",

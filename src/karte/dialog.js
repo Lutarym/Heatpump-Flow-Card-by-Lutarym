@@ -135,6 +135,15 @@ export const dialogKarte = {
           { typ: "kurveknopf", zone: 2, schmal: true, titel: "f_heizkurve_zeigen" },
         ],
       },
+      // HK3 und HK4 haben keine Zone der Waermepumpe, nur eigene Entitaeten.
+      ...[3, 4].map((n) => ({
+        gruppe: `hk${n}-group`,
+        beschriftung: `label_hk${n}`,
+        werte: [`hk${n}_water`, `hk${n}_pump`],
+        aktionen: [
+          { feld: `hk${n}_switch`, typ: "schalter", schmal: true, an: "f_kreis_aus", aus: "f_kreis_an" },
+        ],
+      })),
     ];
 
     fenster.forEach((f) => {
@@ -179,6 +188,14 @@ export const dialogKarte = {
         "hk1-pump-v": "hk1_pump",
         "hk2-water-v": "hk2_water",
         "hk2-pump-v": "hk2_pump",
+        "hk3-water-v": "hk3_water",
+        "hk3-pump-v": "hk3_pump",
+        "hk4-water-v": "hk4_water",
+        "hk4-pump-v": "hk4_pump",
+        "kamin-v": "kamin_temp",
+        "kamin-pump-v": "kamin_pump",
+        "solar-v": "solar_temp",
+        "solar-pump-v": "solar_pump",
       };
       Object.entries(anzeigen).forEach(([id, feld]) => {
         const el = sr.getElementById(id);

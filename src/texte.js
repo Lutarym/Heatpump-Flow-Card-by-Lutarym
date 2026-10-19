@@ -338,6 +338,33 @@ export const TEXTE = {
   hnw_5: { de: "Shelly oder eigener Schalter", en: "Shelly or own switch", fr: "Shelly ou interrupteur propre", ja: "Shellyまたは独自スイッチ" },
   hnw_6: { de: "Switch zum Ein/Ausschalten der Zirkulation", en: "switch to turn circulation on and off", fr: "interrupteur pour la circulation", ja: "循環の入切スイッチ" },
   hnw_7: { de: "SetHeatpump oder TOP0", en: "SetHeatpump or TOP0", fr: "SetHeatpump ou TOP0", ja: "SetHeatpump または TOP0" },
+  fld_hk3_water: { de: "HK3 Wassertemperatur", en: "Circuit 3 water temperature", fr: "Circuit 3 température d'eau", ja: "回路3 水温" },
+  fld_hk3_pump: { de: "HK3 Pumpe läuft", en: "Circuit 3 pump running", fr: "Circuit 3 pompe en marche", ja: "回路3 ポンプ運転中" },
+  fld_hk3_switch: { de: "HK3 ein und aus", en: "Circuit 3 on and off", fr: "Circuit 3 marche et arrêt", ja: "回路3 入切" },
+  fld_hk4_water: { de: "HK4 Wassertemperatur", en: "Circuit 4 water temperature", fr: "Circuit 4 température d'eau", ja: "回路4 水温" },
+  fld_hk4_pump: { de: "HK4 Pumpe läuft", en: "Circuit 4 pump running", fr: "Circuit 4 pompe en marche", ja: "回路4 ポンプ運転中" },
+  fld_hk4_switch: { de: "HK4 ein und aus", en: "Circuit 4 on and off", fr: "Circuit 4 marche et arrêt", ja: "回路4 入切" },
+  fld_kamin_temp: { de: "Kamin Temperatur", en: "Stove temperature", fr: "Température du poêle", ja: "薪ストーブ温度" },
+  fld_kamin_pump: { de: "Kamin Pumpe läuft", en: "Stove pump running", fr: "Pompe du poêle en marche", ja: "薪ストーブ ポンプ運転中" },
+  fld_solar_temp: { de: "Solarthermie Temperatur", en: "Solar thermal temperature", fr: "Température solaire thermique", ja: "太陽熱温度" },
+  fld_solar_pump: { de: "Solarthermie Pumpe läuft", en: "Solar thermal pump running", fr: "Pompe solaire en marche", ja: "太陽熱ポンプ運転中" },
+  grp_11: { de: "Heizkreis 3", en: "Heating circuit 3", fr: "Circuit de chauffage 3", ja: "暖房回路 3" },
+  grp_12: { de: "Heizkreis 4", en: "Heating circuit 4", fr: "Circuit de chauffage 4", ja: "暖房回路 4" },
+  grp_13: { de: "Zusatzwärme", en: "Additional heat", fr: "Chaleur d'appoint", ja: "追加熱源" },
+  hnw_9: { de: "eigene Entität, °C", en: "own entity, °C", fr: "entité propre, °C", ja: "独自エンティティ、°C" },
+  hnw_10: { de: "eigener Schalter oder Sensor", en: "own switch or sensor", fr: "interrupteur ou capteur propre", ja: "独自のスイッチまたはセンサー" },
+  kamin: { de: "Kamin", en: "Stove", fr: "Poêle", ja: "薪ストーブ" },
+  solarthermie: { de: "Solarthermie", en: "Solar thermal", fr: "Solaire thermique", ja: "太陽熱" },
+  pumpe_wert: { de: "Pumpe {v}", en: "Pump {v}", fr: "Pompe {v}", ja: "ポンプ {v}" },
+  e_zusatz: { de: "Zusatzwärme am Puffer", en: "Additional heat at the buffer", fr: "Chaleur d'appoint au ballon tampon", ja: "バッファーの追加熱源" },
+  e_zusatz_h: { de: "nur mit Heizungspuffer", en: "only with a heating buffer", fr: "uniquement avec ballon tampon", ja: "バッファーがある場合のみ" },
+  e_zusatz_beide: { de: "Kamin und Solarthermie", en: "Stove and solar thermal", fr: "Poêle et solaire thermique", ja: "薪ストーブと太陽熱" },
+  e_3hk: { de: "3 Heizkreise", en: "3 circuits", fr: "3 circuits", ja: "3回路" },
+  e_4hk: { de: "4 Heizkreise", en: "4 circuits", fr: "4 circuits", ja: "4回路" },
+  e_hk3_bild: { de: "Bild Heizkreis 3", en: "Picture heating circuit 3", fr: "Image circuit 3", ja: "暖房回路 3 の図" },
+  e_hk4_bild: { de: "Bild Heizkreis 4", en: "Picture heating circuit 4", fr: "Image circuit 4", ja: "暖房回路 4 の図" },
+  e_l_hk3: { de: "Beschriftung Heizkreis 3", en: "Label circuit 3", fr: "Nom du circuit 3", ja: "回路3の表示名" },
+  e_l_hk4: { de: "Beschriftung Heizkreis 4", en: "Label circuit 4", fr: "Nom du circuit 4", ja: "回路4の表示名" },
   hnw_8: { de: "Quelle in der Integration unter COP Quelle wählbar", en: "source selectable in the integration under COP source", fr: "source réglable dans l'intégration sous Source COP", ja: "ソースは統合の COP ソースで選択" },
   grp_10: { de: "Erweiterte Einstellungen", en: "Advanced settings", fr: "Réglages avancés", ja: "詳細設定" },
   fld_heating_off_temp: { de: "Heizen aus ab Außentemperatur", en: "Heating off above outdoor temp.", fr: "Arrêt chauffage au-dessus de", ja: "暖房停止 外気温" },
@@ -507,9 +534,9 @@ export const TEXTE = {
 };
 
 /** Zuordnung deutscher Gruppen und Hinweise zu Sprachschluesseln. */
-export const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9", "Erweiterte Einstellungen": "grp_10" };
+export const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9", "Erweiterte Einstellungen": "grp_10", "Heizkreis 3": "grp_11", "Heizkreis 4": "grp_12", "Zusatzwärme": "grp_13" };
 
-export const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle wählbar": "hnw_8" };
+export const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle wählbar": "hnw_8", "eigene Entität, °C": "hnw_9", "eigener Schalter oder Sensor": "hnw_10" };
 
 /** Setzt Werte in Platzhalter wie {n} ein. */
 export function tf(text, werte) {

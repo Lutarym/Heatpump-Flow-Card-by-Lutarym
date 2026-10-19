@@ -14,7 +14,8 @@ export const grafikHochKarte = {
    * wie im Querformat, damit die Aktualisierung unveraendert arbeitet.
    */
   _svgHoch() {
-    const hk2 = this._config.hk_count === 2;
+    const anzahl = this._hkAnzahl();
+    const quellen = this._quellen();
     const P = {
       W: 760,
       X_RL: 80, X_VL: 710,      // Primaerkreis
@@ -31,9 +32,14 @@ export const grafikHochKarte = {
     const mitPuffer = this._hatPuffer();
     const ab = mitPuffer ? 0 : 280;
     const PUF = [860, 1080];
-    const HK1 = [1140 - ab, 1340 - ab];
-    const HK2 = [1380 - ab, 1580 - ab];
-    const WW = hk2 ? [1600 - ab, 1860 - ab] : [1360 - ab, 1620 - ab];
+    // Kamin und Solarthermie stehen in einer eigenen Zeile direkt unter
+    // dem Puffer und schliessen von unten an ihn an.
+    const QZ = quellen.length ? [PUF[1] + 60, PUF[1] + 280] : null;
+    const QH = quellen.length ? 250 : 0;
+    const HKS = Array.from({ length: anzahl }, (_, i) =>
+      [1140 - ab + QH + i * 240, 1340 - ab + QH + i * 240]);
+    const HK1 = HKS[0];
+    const WW = [HKS[anzahl - 1][1] + 20, HKS[anzahl - 1][1] + 280];
     // Hoehe, auf der der Sekundaerkreis abzweigt
     const ABZW = mitPuffer ? PUF[1] - 20 : HK1[0] - 40;
     const UNTEN = WW[1] + 40;
@@ -146,9 +152,9 @@ export const grafikHochKarte = {
       ${rohr(`M260 680 V ${P.OBEN} H ${P.X_VL} V ${WW[0] + 40}`)}
       ${rohr(`M${P.X_RL} ${WW[1] - 20} V 680`)}
       <path class="flowdots" id="dots-vl-a" d="M260 680 V ${P.OBEN} H ${P.X_VL} V ${mitPuffer ? PUF[0] + 60 : ABZW}"/>
-      <path class="flowdots" id="dots-vl-b" d="M${P.X_VL} ${mitPuffer ? PUF[0] + 60 : ABZW} V ${WW[0] + 40}"/>
+      <path class="flowdots" id="dots-ww-vl" d="M${P.X_VL} ${mitPuffer ? PUF[0] + 60 : ABZW} V ${WW[0] + 40}"/>
       <path class="flowdots" id="dots-rl-a" d="M${P.X_RL} ${mitPuffer ? PUF[1] - 60 : ABZW} V 680"/>
-      <path class="flowdots" id="dots-rl-b" d="M${P.X_RL} ${WW[1] - 20} V ${mitPuffer ? PUF[1] - 60 : ABZW}"/>
+      <path class="flowdots" id="dots-ww-rl" d="M${P.X_RL} ${WW[1] - 20} V ${mitPuffer ? PUF[1] - 60 : ABZW}"/>
 
       <g id="vl-schild">
         <rect x="${P.X_VL - schildBreite("Vorlauf", 92) / 2}" y="${P.OBEN + 40}" width="${schildBreite("Vorlauf", 92)}" height="28" rx="8"
@@ -167,13 +173,13 @@ export const grafikHochKarte = {
 
       <g id="ventil" transform="translate(${P.X_VL} 830)">
         <circle r="22" fill="#0D1219" stroke="#33415A" stroke-width="2"/>
-        <g id="valve-arrow-down" opacity="1">
-          <path id="valve-down-line" d="M0 -12 V 4" stroke="${NEUTRAL}" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <path id="valve-down-head" d="M-8 2 L 0 14 L 8 2 Z" fill="${NEUTRAL}"/>
+        <g id="valve-arrow-heiz" opacity="1">
+          <path id="valve-heiz-line" d="M0 -12 V 4" stroke="${NEUTRAL}" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path id="valve-heiz-head" d="M-8 2 L 0 14 L 8 2 Z" fill="${NEUTRAL}"/>
         </g>
-        <g id="valve-arrow-right" opacity="0">
-          <path id="valve-right-line" d="M-12 0 H 4" stroke="${NEUTRAL}" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <path id="valve-right-head" d="M2 -8 L 14 0 L 2 8 Z" fill="${NEUTRAL}"/>
+        <g id="valve-arrow-ww" opacity="0">
+          <path id="valve-ww-line" d="M-12 0 H 4" stroke="${NEUTRAL}" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path id="valve-ww-head" d="M2 -8 L 14 0 L 2 8 Z" fill="${NEUTRAL}"/>
         </g>
       </g>
       <text class="cap-s" x="${P.X_VL - 34}" y="854" text-anchor="end">${this._t("umschaltventil")}</text>
@@ -277,16 +283,16 @@ export const grafikHochKarte = {
       const r = this._fbhReihen(y1 + 10, y2 - 10);
       return { vy: r[0], ry: r[r.length - 1] };
     };
-    const a1 = anschluss(1, HK1[0], HK1[1]);
-    const a2 = anschluss(2, HK2[0], HK2[1]);
-    const sekEnde = hk2 ? a2.ry : a1.ry;
+    const an = HKS.map((z, i) => anschluss(i + 1, z[0], z[1]));
+    const a1 = an[0];
+    const letzt = an[anzahl - 1];
     const sekundaer = `
-      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${hk2 ? a2.vy : a1.vy}`)}
-      ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${sekEnde}`)}
+      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${letzt.vy}`)}
+      ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${letzt.ry}`)}
       <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${a1.vy}"/>
-      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${a1.vy} V ${hk2 ? a2.vy : a1.vy}"/>
+      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${a1.vy} V ${letzt.vy}"/>
       <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
-      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${sekEnde} V ${a1.ry}"/>`;
+      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${letzt.ry} V ${a1.ry}"/>`;
 
     const heizkreis = (n, y1, y2) => {
       // Heizkoerper links, Name und Werte rechts daneben frei ohne Kasten.
@@ -360,10 +366,47 @@ export const grafikHochKarte = {
       ${leitungen}
       ${mitPuffer ? puffer : ""}
       ${sekundaer}
-      ${heizkreis(1, HK1[0], HK1[1])}
-      ${hk2 ? heizkreis(2, HK2[0], HK2[1]) : ""}
+      ${QZ ? this._quellenHoch(quellen, UM, PUF[1], QZ) : ""}
+      ${HKS.map((z, i) => heizkreis(i + 1, z[0], z[1])).join("")}
       ${warmwasser}
       ${zirk}
     </svg>`;
+  },
+
+  /**
+   * Kamin und Solarthermie im Hochformat: nebeneinander unter dem Puffer,
+   * jeweils mit eigenem Vor- und Ruecklauf von unten in den Puffer.
+   */
+  _quellenHoch(quellen, mitte, pufferUnten, zeile) {
+    const yc = zeile[0] + 92;
+    const lagen = quellen.length === 2 ? [mitte - 82, mitte + 82] : [mitte];
+    return quellen
+      .map((art, i) => {
+        const cx = lagen[i];
+        const geraetOben = art === "kamin" ? yc - 62 : yc - 40;
+        const vl = `M${cx - 18} ${geraetOben} V ${pufferUnten}`;
+        const rl = `M${cx + 18} ${pufferUnten} V ${geraetOben}`;
+        const pumpY = Math.round((pufferUnten + geraetOben) / 2);
+        return `
+      <g class="quelle" id="${art}-group">
+        <path class="pipe-shell duenn" d="${vl} ${rl}"/>
+        <path class="pipe duenn" id="pipe-${art}-vl" d="${vl}"/>
+        <path class="pipe duenn" id="pipe-${art}-rl" d="${rl}"/>
+        <path class="flowdots duenn" id="dots-${art}" d="${vl}"/>
+        <path class="flowdots duenn" id="dots-${art}b" d="${rl}"/>
+        <g transform="translate(${cx + 18} ${pumpY})">
+          <circle r="13" fill="#0D1219" stroke="#33415A" stroke-width="2"/>
+          <g class="rotor" id="${art}-rotor">
+            <path id="${art}-blade" d="M0 -7 L2 -2 L8 0 L2 2 L0 7 L-2 2 L-8 0 L-2 -2 Z" fill="#55637A"/>
+            <circle r="2.2" fill="#0D1219"/>
+          </g>
+        </g>
+        ${art === "kamin" ? this._kaminBild(cx, yc) : this._solarBild(cx, yc)}
+        <text class="cap" id="${art}-name" x="${cx}" y="${yc + 84}" text-anchor="middle">${this._t(art === "kamin" ? "kamin" : "solarthermie")}</text>
+        <text class="tag-v hk-wert" id="${art}-v" x="${cx}" y="${yc + 110}" text-anchor="middle">--</text>
+        <text class="value-s" id="${art}-pump-v" x="${cx}" y="${yc + 132}" text-anchor="middle">--</text>
+      </g>`;
+      })
+      .join("");
   },
 };

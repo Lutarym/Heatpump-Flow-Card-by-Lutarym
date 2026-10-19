@@ -66,6 +66,8 @@ export const TOPIC_TO_FIELD = {
   top10: "dhw_temp",
   top9: "dhw_setpoint",
   top58: "dhw_heater",
+  top47: "solar_temp",
+  opt5: "solar_pump",
 };
 
 export const COMMAND_TO_FIELD = {
@@ -110,6 +112,8 @@ export const FIELD_DOMAIN = {
   dhw_force: ["switch", "input_boolean"],
   hk1_switch: ["switch", "input_boolean"],
   hk2_switch: ["switch", "input_boolean"],
+  hk3_switch: ["switch", "input_boolean"],
+  hk4_switch: ["switch", "input_boolean"],
   force_sterilization: ["switch", "input_boolean"],
   force_defrost: ["switch", "input_boolean"],
   dhw_heater_switch: ["switch", "input_boolean"],

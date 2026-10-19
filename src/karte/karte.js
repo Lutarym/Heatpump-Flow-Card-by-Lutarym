@@ -107,7 +107,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
       entities: { ...(config.entities || {}) },
     };
     this._config.fan_count = this._config.fan_count === 1 ? 1 : 2;
-    this._config.hk_count = this._config.hk_count === 1 ? 1 : 2;
+    // 1 bis 4 Heizkreise. HK3 und HK4 kommen aus eigenen Entitaeten,
+    // die Aquarea selbst regelt nur zwei Zonen.
+    this._config.hk_count = Math.min(4, Math.max(1, parseInt(this._config.hk_count, 10) || 2));
     this._built = false;
     this._auto = null;
     if (this._config.demo) this._demoAufbauen();
@@ -266,12 +268,14 @@ export class LutarymHeatpumpCard extends HTMLElement {
   _name(schluessel) {
     const frueher = {
       label_hk1: "Heizkreis 1", label_hk2: "Heizkreis 2",
+      label_hk3: "Heizkreis 3", label_hk4: "Heizkreis 4",
       label_dhw: "Warmwasser", label_buffer: "Puffer",
     };
     const eigen = this._config && this._config[schluessel];
     if (eigen && eigen !== frueher[schluessel]) return eigen;
     if (schluessel === "label_hk1") return `${this._t("heizkreis")} 1`;
-    if (schluessel === "label_hk2") return `${this._t("heizkreis")} 2`;
+    const hk = /^label_hk([1-4])$/.exec(schluessel);
+    if (hk) return `${this._t("heizkreis")} ${hk[1]}`;
     if (schluessel === "label_dhw") return this._t("warmwasser");
     if (schluessel === "label_buffer") return this._t("puffer");
     return eigen || "";

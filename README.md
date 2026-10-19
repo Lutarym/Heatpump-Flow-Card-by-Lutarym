@@ -75,7 +75,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | Option | Default | Meaning |
 |---|---|---|
 | `layout` | `quer` | `quer` landscape, `hoch` portrait |
-| `hk_count` | `2` | Number of heating circuits, 1 or 2 |
+| `hk_count` | `2` | Number of heating circuits, 1 to 4. Circuits 3 and 4 need own entities, the Aquarea controls only two zones |
 | `fan_count` | `2` | Number of fans, 1 or 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` or `ja` |
 | `profil` | `heishamon_lutarym` | `heishamon_lutarym` or `heishamon` for the MQTT naming scheme |
@@ -98,10 +98,11 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `curve_y_min / curve_y_max` | `20 / 75` | Flow scale of the heat curve in °C |
 | `scale_min / scale_max` | `20 / 60` | Colour scale for heating in °C |
 | `outdoor_min / outdoor_max` | `-15 / 35` | Colour scale for the outdoor sensor in °C |
-| `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | Own names, empty uses the card language |
+| `label_hk1` to `label_hk4`, `label_buffer, label_dhw, label_energy` | | Own names, empty uses the card language |
 | `energy_daily` | `true` | Calculate daily energy from the meter reading |
 | `animate` | `true` | Animation: `true` on, `false` off, `auto` the device decides (setting "reduce motion") |
-| `hk1_style` / `hk2_style` | `platte` | Picture of the heating circuit: `platte` panel radiator, `glieder` column radiator, `fbh` underfloor heating |
+| `hk1_style` to `hk4_style` | `platte` | Picture of the heating circuit: `platte` panel radiator, `glieder` column radiator, `fbh` underfloor heating |
+| `extra_heat` | `aus` | Additional heat at the buffer: `aus` (off), `kamin` (stove), `solar`, `beide` (both). Only with a heating buffer |
 | `demo` | `false` | Sample values for trying out |
 
 ### Entities
@@ -171,6 +172,13 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `hk2_pump` | Circuit 2 pump running | TOP123 |
 | `hk2_setpoint` | Circuit 2 adjustable target | TOP34, number |
 | `hk2_switch` | Circuit 2 on and off | own switch, optional |
+| `hk3_water, hk4_water` | Water temperature circuit 3, 4 | own entity, °C |
+| `hk3_pump, hk4_pump` | Pump circuit 3, 4 running | own switch or sensor |
+| `hk3_switch, hk4_switch` | Circuit 3, 4 on and off | own switch, optional |
+| `kamin_temp` | Stove temperature | own entity, °C |
+| `kamin_pump` | Stove pump running | own switch or sensor |
+| `solar_temp` | Solar thermal temperature | TOP47 |
+| `solar_pump` | Solar thermal pump running | OPT5 |
 | **Hot water** | | |
 | `dhw_installed` | Hot water installed | TOP100 |
 | `dhw_temp` | Hot water temperature | TOP10 |
