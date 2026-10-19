@@ -1,0 +1,15 @@
+{
+  "name": "heatpump-flow-card-by-lutarym",
+  "version": "4.7.0",
+  "description": "Home Assistant Lovelace card for Panasonic Aquarea heat pumps with HeishaMon",
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
