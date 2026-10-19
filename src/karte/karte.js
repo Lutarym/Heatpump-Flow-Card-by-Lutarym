@@ -4,7 +4,7 @@
  */
 import { detectIntegration } from "../erkennung.js";
 import { DEFAULT_CONFIG } from "../felder.js";
-import { bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, numState, setzeDezimal } from "../hilfsfunktionen.js";
+import { animationAn, bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, numState, setzeDezimal } from "../hilfsfunktionen.js";
 import { aktualisierenKarte } from "./aktualisieren.js";
 import { demoKarte } from "./demo.js";
 import { dialogKarte } from "./dialog.js";
@@ -66,13 +66,14 @@ export class LutarymHeatpumpCard extends HTMLElement {
       });
       this._sichtBeobachter.observe(this);
     }
-    if (this._built && !this._animLoop) this._startAnimationLoop();
-    // Aendert sich die Einstellung "Bewegung reduzieren", neu zeichnen.
+    // Bei "Automatisch" folgt die Karte der Systemeinstellung
+    // "Bewegung reduzieren", auch wenn sie sich spaeter aendert.
     if (!this._bewegungMq && window.matchMedia) {
       try {
         this._bewegungMq = window.matchMedia("(prefers-reduced-motion: reduce)");
         this._bewegungMq.addEventListener("change", () => {
-          if (this._hass && this._config) this._render();
+          if (!this._config || this._config.animate !== "auto") return;
+          if (this._hass) this._render();
           if (bewegungReduziert()) {
             if (this._animLoop) cancelAnimationFrame(this._animLoop);
             this._animLoop = null;
@@ -84,6 +85,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
         this._bewegungMq = null;
       }
     }
+    if (this._built && !this._animLoop) this._startAnimationLoop();
   }
 
   static getConfigElement() {
@@ -473,8 +475,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
   }
 
   _startAnimationLoop() {
-    // Mit "Bewegung reduzieren" laeuft keine Schleife, die Karte steht.
-    if (bewegungReduziert()) {
+    // Animation aus (Editor oder Geraet bei "Automatisch"): keine Schleife.
+    if (!animationAn(this._config)) {
       this._animLoop = null;
       return;
     }

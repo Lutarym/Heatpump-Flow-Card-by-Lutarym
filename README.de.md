@@ -100,7 +100,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `outdoor_min / outdoor_max` | `-15 / 35` | Farbskala des Außenfühlers in °C |
 | `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | Eigene Namen, leer nimmt die Kartensprache |
 | `energy_daily` | `true` | Tagesverbrauch aus dem Zählerstand rechnen |
-| `animate` | `true` | Bewegung anzeigen |
+| `animate` | `true` | Animation: `true` ein, `false` aus, `auto` das Gerät entscheidet (Einstellung „Bewegung reduzieren“) |
 | `demo` | `false` | Beispielwerte zum Ausprobieren |
 
 ### Entitäten

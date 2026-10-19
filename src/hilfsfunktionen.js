@@ -5,13 +5,24 @@
 import { BUBBLE_DAUER, LOAD_STOPS, NEUTRAL, THERMAL_STOPS } from "./konstanten.js";
 import { EIGENE_SPRACHEN } from "./sprachen.js";
 
-/** Hat das System "Bewegung reduzieren" eingestellt? */
+/** Wuenscht das Geraet weniger Bewegung (Systemeinstellung)? */
 export function bewegungReduziert() {
   try {
     return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   } catch (e) {
     return false;
   }
+}
+
+/**
+ * Laeuft die Animation? Option animate: true (Ein, Standard), false (Aus)
+ * oder "auto" (das Geraet entscheidet ueber "Bewegung reduzieren").
+ */
+export function animationAn(config) {
+  const a = config ? config.animate : true;
+  if (a === false) return false;
+  if (a === "auto") return !bewegungReduziert();
+  return true;
 }
 
 export function loadColor(value, min, max) {

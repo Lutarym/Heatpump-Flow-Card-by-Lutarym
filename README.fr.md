@@ -100,7 +100,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `outdoor_min / outdoor_max` | `-15 / 35` | Échelle de couleur de la sonde extérieure en °C |
 | `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | Noms personnalisés, vide = langue de la carte |
 | `energy_daily` | `true` | Calculer la consommation du jour à partir du compteur |
-| `animate` | `true` | Afficher l'animation |
+| `animate` | `true` | Animation : `true` marche, `false` arrêt, `auto` l'appareil décide (réglage « réduire les animations ») |
 | `demo` | `false` | Valeurs d'exemple pour essayer |
 
 ### Entités

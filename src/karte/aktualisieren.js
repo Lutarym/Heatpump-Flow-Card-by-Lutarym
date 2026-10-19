@@ -2,7 +2,7 @@
  * Aktualisiert Werte, Farben und Animationen bei jeder Aenderung.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { attr, bewegungReduziert, clamp, fmt, isOn, loadColor, numState, rawState, thermalColor } from "../hilfsfunktionen.js";
+import { animationAn, attr, clamp, fmt, isOn, loadColor, numState, rawState, thermalColor } from "../hilfsfunktionen.js";
 import { BUBBLE_COUNT, COMP_MAX_HZ, COMP_MIN_HZ, DRUCK_MAX, DRUCK_MIN, MODE_LABELS, NEUTRAL, PUMP_SECONDS, SG_STATES, VALVE_LABELS } from "../konstanten.js";
 import { tf, wertText } from "../texte.js";
 
@@ -74,7 +74,7 @@ export const aktualisierenKarte = {
     const min = Number(this._config.scale_min);
     const max = Number(this._config.scale_max);
     const col = (v) => thermalColor(v, min, max);
-    const animate = this._config.animate !== false && !bewegungReduziert();
+    const animate = animationAn(this._config);
 
     const set = (id, text) => {
       const el = this._animEl(id);
@@ -625,6 +625,12 @@ export const aktualisierenKarte = {
         // bekommen deshalb gar keine Animation, sonst blieben sie
         // sichtbar in der Luft stehen.
         el.style.animationName = i < sichtbar ? "" : "none";
+        // Ausgeblendete Blasen sofort unsichtbar machen. Sonst bleiben
+        // sie am Boden liegen, wenn die Animationsschleife nicht laeuft.
+        if (i >= sichtbar && el.getAttribute("opacity") !== "0") {
+          el.setAttribute("opacity", "0");
+          el.removeAttribute("transform");
+        }
       });
     };
     blasen("buf-bubbles", buf, primaer && !zuWarmwasser);
@@ -715,7 +721,7 @@ export const aktualisierenKarte = {
     if (label) label.textContent = rpm === null ? "--" : `${fmt(rpm, 0)} ${unit}`;
     const el = this.shadowRoot.getElementById(rotorId);
     if (!el) return;
-    const animate = this._config.animate !== false && !bewegungReduziert();
+    const animate = animationAn(this._config);
     if (rpm === null || rpm <= 0 || !animate || erlaubt === false) {
       el.classList.toggle("is-still", rpm === null || rpm <= 0);
       this._animState.delete(rotorId);

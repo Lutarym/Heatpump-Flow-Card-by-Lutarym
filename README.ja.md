@@ -100,7 +100,7 @@ entities:
 | `outdoor_min / outdoor_max` | `-15 / 35` | 外気センサーの色分け範囲（°C） |
 | `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | 独自の名前。空欄ならカードの言語 |
 | `energy_daily` | `true` | メーター値から当日の使用量を計算 |
-| `animate` | `true` | アニメーションを表示 |
+| `animate` | `true` | アニメーション：`true` オン、`false` オフ、`auto` 端末の設定（視差効果を減らす）に従う |
 | `demo` | `false` | 試用のための仮の値 |
 
 ### エンティティ

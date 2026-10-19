@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.7.1
+
+- English: Animation can be set in the editor to On (default), Automatic or Off (option `animate`: `true`, `"auto"`, `false`). Only with Automatic does the device setting "reduce motion" decide; before, v4.7.0 stopped the animation whenever this setting was on. Fixed: bubbles that are not rising no longer lie visible at the bottom of the tank. Buffer and hot water tank now show their temperature at the same height.
+- Deutsch: Die Animation lässt sich im Editor auf Ein (Standard), Automatisch oder Aus stellen (Option `animate`: `true`, `"auto"`, `false`). Nur bei Automatisch entscheidet die Geräteeinstellung „Bewegung reduzieren“; in v4.7.0 hielt die Karte die Animation an, sobald diese Einstellung eingeschaltet war. Behoben: Blasen, die nicht aufsteigen, liegen nicht mehr sichtbar am Boden des Speichers. Puffer und Warmwasserspeicher zeigen ihre Temperatur jetzt auf gleicher Höhe.
+- Français : l'animation se règle dans l'éditeur sur Marche (par défaut), Automatique ou Arrêt (option `animate` : `true`, `"auto"`, `false`). Seul le mode Automatique suit le réglage de l'appareil « réduire les animations » ; en v4.7.0, la carte arrêtait l'animation dès que ce réglage était actif. Corrigé : les bulles qui ne montent pas ne restent plus visibles au fond du ballon. Le ballon tampon et le ballon d'eau chaude affichent leur température à la même hauteur.
+- 日本語：アニメーションをエディターで「オン」（既定）「自動」「オフ」に設定できるようにしました（オプション `animate`：`true`、`"auto"`、`false`）。端末の「視差効果を減らす」設定に従うのは「自動」の場合だけです。v4.7.0 ではこの設定が有効だと常にアニメーションが止まっていました。修正：上昇していない泡がタンクの底に表示されたままになることがなくなりました。バッファーと給湯タンクの温度を同じ高さに表示します。
+
 ## v4.7.0
 
 - English: Readability and operation. When the device asks for reduced motion, the card no longer animates. The operating mode is shown as text below the icons ("Heat and hot water", "Off", "Defrost"). Bubbles only rise in the tank that is being loaded right now. The "?" button is larger (44 px). Energy values are no longer green, only PV surplus stays green. Circulation shows its state in the label ("Circulation · off"), tapping the label opens the dialog. Light theme: labels have more contrast. History: without SG Ready data the empty band is hidden and the note "no history available" no longer overlaps other text. Editor: the section "Display" is divided into subgroups (General, Names, What is shown, Size, Heating curve chart, Colour scales, Technical); Size, diagram, scales and technical settings only appear in Advanced. For maintenance the code is split into modules under `src/`; `npm run build` creates the single file in `dist/` as before (see docs/ENTWICKLUNG.md). Nothing changes for installation via HACS.

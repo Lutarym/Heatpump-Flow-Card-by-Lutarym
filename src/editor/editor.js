@@ -218,7 +218,14 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <input type="checkbox" id="opt-tuer">
             <span>${this._t("e_tuer_zeigen")}<em>${this._t("e_tuer_zeigen_h")}</em></span>
           </label>
-          <label class="ed-row ed-check"><input type="checkbox" id="opt-animate"><span>${this._t("e_bewegung")}</span></label>
+          <label class="ed-row">
+            <span>${this._t("e_bewegung")}<em>${this._t("e_bewegung_h")}</em></span>
+            <select id="opt-animate">
+              <option value="ein">${this._t("o_ein")}</option>
+              <option value="auto">${this._t("e_auto")}</option>
+              <option value="aus">${this._t("o_aus")}</option>
+            </select>
+          </label>
           <label class="ed-row ed-check">
             <input type="checkbox" id="opt-demo">
             <span>${this._t("e_demo")}<em>${this._t("e_demo_h")}</em></span>
@@ -404,7 +411,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-ldhw", (el) => put({ label_dhw: el.value }));
     bind("opt-lenergy", (el) => put({ label_energy: el.value }));
     bind("opt-eday", (el) => put({ energy_daily: el.checked }));
-    bind("opt-animate", (el) => put({ animate: el.checked }));
+    bind("opt-animate", (el) => put({ animate: el.value === "aus" ? false : el.value === "auto" ? "auto" : true }));
     bind("opt-demo", (el) => put({ demo: el.checked }));
     bind("opt-verlauf", (el) => put({ show_history: el.checked }));
     bind("opt-ziel", (el) => put({ show_target: el.checked }));
@@ -646,7 +653,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-ldhw", this._config.label_dhw);
     put("opt-lenergy", this._config.label_energy);
     check("opt-eday", this._config.energy_daily);
-    check("opt-animate", this._config.animate);
+    put("opt-animate", this._config.animate === false ? "aus" : this._config.animate === "auto" ? "auto" : "ein");
     check("opt-demo", this._config.demo === true);
     check("opt-verlauf", this._config.show_history !== false);
     check("opt-ziel", this._config.show_target !== false);

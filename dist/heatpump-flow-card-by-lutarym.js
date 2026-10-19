@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "4.7.0";
+var CARD_VERSION = "4.7.1";
 var L = {
   W: 1650,
   H: 700,
@@ -320,7 +320,8 @@ var TEXTE = {
   e_verlauf_h: { de: "Diagramm der letzten 24 Stunden anzeigen", en: "show the chart of the past 24 hours", fr: "afficher le graphique des derni\xE8res 24 heures", ja: "\u904E\u53BB24\u6642\u9593\u306E\u30B0\u30E9\u30D5\u3092\u8868\u793A" },
   e_anz_hk: { de: "Anzahl Heizkreise", en: "Number of circuits", fr: "Nombre de circuits", ja: "\u56DE\u8DEF\u6570" },
   e_anz_luefter: { de: "Anzahl L\xFCfter", en: "Number of fans", fr: "Nombre de ventilateurs", ja: "\u30D5\u30A1\u30F3\u6570" },
-  e_bewegung: { de: "Bewegung anzeigen", en: "Show animation", fr: "Afficher l'animation", ja: "\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u8868\u793A" },
+  e_bewegung: { de: "Animation", en: "Animation", fr: "Animation", ja: "\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3" },
+  e_bewegung_h: { de: "Automatisch: das Ger\xE4t entscheidet (Einstellung \u201EBewegung reduzieren\u201C)", en: "Automatic: the device decides (setting \u201Creduce motion\u201D)", fr: "Automatique : l'appareil d\xE9cide (r\xE9glage \xAB r\xE9duire les animations \xBB)", ja: "\u81EA\u52D5\uFF1A\u7AEF\u672B\u306E\u8A2D\u5B9A\uFF08\u8996\u5DEE\u52B9\u679C\u3092\u6E1B\u3089\u3059\uFF09\u306B\u5F93\u3046" },
   e_tagesverbrauch: { de: "Tagesverbrauch aus dem Z\xE4hlerstand rechnen", en: "Calculate daily energy from the meter reading", fr: "Calculer la consommation du jour \xE0 partir du compteur", ja: "\u30E1\u30FC\u30BF\u30FC\u5024\u304B\u3089\u5F53\u65E5\u306E\u4F7F\u7528\u91CF\u3092\u8A08\u7B97" },
   e_alle_leeren: { de: "Alle leeren", en: "Clear all", fr: "Tout effacer", ja: "\u3059\u3079\u3066\u6D88\u53BB" },
   e_datei_speichern: { de: "Als Datei speichern", en: "Save as file", fr: "Enregistrer dans un fichier", ja: "\u30D5\u30A1\u30A4\u30EB\u306B\u4FDD\u5B58" },
@@ -803,6 +804,12 @@ function bewegungReduziert() {
   } catch (e) {
     return false;
   }
+}
+function animationAn(config) {
+  const a = config ? config.animate : true;
+  if (a === false) return false;
+  if (a === "auto") return !bewegungReduziert();
+  return true;
 }
 function loadColor(value, min, max) {
   if (value === null || value === void 0 || Number.isNaN(value)) return NEUTRAL;
@@ -2199,7 +2206,14 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
             <input type="checkbox" id="opt-tuer">
             <span>${this._t("e_tuer_zeigen")}<em>${this._t("e_tuer_zeigen_h")}</em></span>
           </label>
-          <label class="ed-row ed-check"><input type="checkbox" id="opt-animate"><span>${this._t("e_bewegung")}</span></label>
+          <label class="ed-row">
+            <span>${this._t("e_bewegung")}<em>${this._t("e_bewegung_h")}</em></span>
+            <select id="opt-animate">
+              <option value="ein">${this._t("o_ein")}</option>
+              <option value="auto">${this._t("e_auto")}</option>
+              <option value="aus">${this._t("o_aus")}</option>
+            </select>
+          </label>
           <label class="ed-row ed-check">
             <input type="checkbox" id="opt-demo">
             <span>${this._t("e_demo")}<em>${this._t("e_demo_h")}</em></span>
@@ -2376,7 +2390,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     bind("opt-ldhw", (el) => put({ label_dhw: el.value }));
     bind("opt-lenergy", (el) => put({ label_energy: el.value }));
     bind("opt-eday", (el) => put({ energy_daily: el.checked }));
-    bind("opt-animate", (el) => put({ animate: el.checked }));
+    bind("opt-animate", (el) => put({ animate: el.value === "aus" ? false : el.value === "auto" ? "auto" : true }));
     bind("opt-demo", (el) => put({ demo: el.checked }));
     bind("opt-verlauf", (el) => put({ show_history: el.checked }));
     bind("opt-ziel", (el) => put({ show_target: el.checked }));
@@ -2591,7 +2605,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     put("opt-ldhw", this._config.label_dhw);
     put("opt-lenergy", this._config.label_energy);
     check("opt-eday", this._config.energy_daily);
-    check("opt-animate", this._config.animate);
+    put("opt-animate", this._config.animate === false ? "aus" : this._config.animate === "auto" ? "auto" : "ein");
     check("opt-demo", this._config.demo === true);
     check("opt-verlauf", this._config.show_history !== false);
     check("opt-ziel", this._config.show_target !== false);
@@ -2687,7 +2701,7 @@ var aktualisierenKarte = {
     const min = Number(this._config.scale_min);
     const max = Number(this._config.scale_max);
     const col = (v) => thermalColor(v, min, max);
-    const animate = this._config.animate !== false && !bewegungReduziert();
+    const animate = animationAn(this._config);
     const set = (id, text) => {
       const el = this._animEl(id);
       if (el) el.textContent = text;
@@ -3100,6 +3114,10 @@ var aktualisierenKarte = {
       const sichtbar = animate && laeuft && laedt ? Math.round(anteil * BUBBLE_COUNT) : 0;
       Array.from(g.children).forEach((el, i) => {
         el.style.animationName = i < sichtbar ? "" : "none";
+        if (i >= sichtbar && el.getAttribute("opacity") !== "0") {
+          el.setAttribute("opacity", "0");
+          el.removeAttribute("transform");
+        }
       });
     };
     blasen("buf-bubbles", buf, primaer && !zuWarmwasser);
@@ -3170,7 +3188,7 @@ var aktualisierenKarte = {
     if (label) label.textContent = rpm === null ? "--" : `${fmt(rpm, 0)} ${unit}`;
     const el = this.shadowRoot.getElementById(rotorId);
     if (!el) return;
-    const animate = this._config.animate !== false && !bewegungReduziert();
+    const animate = animationAn(this._config);
     if (rpm === null || rpm <= 0 || !animate || erlaubt === false) {
       el.classList.toggle("is-still", rpm === null || rpm <= 0);
       this._animState.delete(rotorId);
@@ -4616,9 +4634,9 @@ ${this._defs()}
         <rect x="548" y="298" width="174" height="334" rx="20" fill="url(#bufferFill)"/>
         <g clip-path="url(#bufClip)">${this._bubbles("buf-bubbles", 548, 298, 174, 334)}</g>
         <rect x="548" y="298" width="174" height="334" rx="20" fill="url(#glass)"/>
-        <text class="value-l" id="buf-v" x="${L.X_BUF_C}" y="460" text-anchor="middle">--</text>
-        <text class="value-sp" id="buf-sp" x="${L.X_BUF_C}" y="488" text-anchor="middle"></text>
-        <text class="value-sp" id="buf-delta" x="${L.X_BUF_C}" y="512" text-anchor="middle"></text>
+        <text class="value-l" id="buf-v" x="${L.X_BUF_C}" y="430" text-anchor="middle">--</text>
+        <text class="value-sp" id="buf-sp" x="${L.X_BUF_C}" y="458" text-anchor="middle"></text>
+        <text class="value-sp" id="buf-delta" x="${L.X_BUF_C}" y="482" text-anchor="middle"></text>
         <g id="roomheater-badge" class="badge" transform="translate(${L.X_BUF_C} 604)">
           <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
@@ -4808,7 +4826,7 @@ ${this._defs()}
       naechste();
       naechste();
       const bubbleId = `${id}-bubble-${i}`;
-      kreise += `<circle class="bubble" id="${bubbleId}" cx="${cx}" cy="${y + h - 4}" r="${r}"/>`;
+      kreise += `<circle class="bubble" id="${bubbleId}" cx="${cx}" cy="${y + h - 4}" r="${r}" opacity="0"/>`;
     }
     return `<g id="${id}">${kreise}</g>`;
   },
@@ -6231,10 +6249,6 @@ var stilKarte = {
         border: 1px solid var(--line); border-radius: 12px; padding: 7px 10px; width: 100%;
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .rotor, .bubble, .flowdots, .badge, .lhc-alert, #unit-glow, #sg-group {
-          animation: none !important;
-        }
       }
     `;
   }
@@ -6958,12 +6972,12 @@ var LutarymHeatpumpCard = class extends HTMLElement {
       });
       this._sichtBeobachter.observe(this);
     }
-    if (this._built && !this._animLoop) this._startAnimationLoop();
     if (!this._bewegungMq && window.matchMedia) {
       try {
         this._bewegungMq = window.matchMedia("(prefers-reduced-motion: reduce)");
         this._bewegungMq.addEventListener("change", () => {
-          if (this._hass && this._config) this._render();
+          if (!this._config || this._config.animate !== "auto") return;
+          if (this._hass) this._render();
           if (bewegungReduziert()) {
             if (this._animLoop) cancelAnimationFrame(this._animLoop);
             this._animLoop = null;
@@ -6975,6 +6989,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
         this._bewegungMq = null;
       }
     }
+    if (this._built && !this._animLoop) this._startAnimationLoop();
   }
   static getConfigElement() {
     return document.createElement("heatpump-flow-card-by-lutarym-editor");
@@ -7329,7 +7344,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     else el.style.removeProperty("fill");
   }
   _startAnimationLoop() {
-    if (bewegungReduziert()) {
+    if (!animationAn(this._config)) {
       this._animLoop = null;
       return;
     }

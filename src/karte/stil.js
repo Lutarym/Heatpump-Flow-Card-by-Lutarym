@@ -684,10 +684,6 @@ export const stilKarte = {
         border: 1px solid var(--line); border-radius: 12px; padding: 7px 10px; width: 100%;
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .rotor, .bubble, .flowdots, .badge, .lhc-alert, #unit-glow, #sg-group {
-          animation: none !important;
-        }
       }
     `;
   },

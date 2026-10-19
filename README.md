@@ -100,7 +100,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `outdoor_min / outdoor_max` | `-15 / 35` | Colour scale for the outdoor sensor in °C |
 | `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | Own names, empty uses the card language |
 | `energy_daily` | `true` | Calculate daily energy from the meter reading |
-| `animate` | `true` | Show the animation |
+| `animate` | `true` | Animation: `true` on, `false` off, `auto` the device decides (setting "reduce motion") |
 | `demo` | `false` | Sample values for trying out |
 
 ### Entities
