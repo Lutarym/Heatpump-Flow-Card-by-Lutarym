@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-export const CARD_VERSION = "4.7.1";
+export const CARD_VERSION = "4.8.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -59,7 +59,7 @@ export const L = {
   X_HK2_BACK: 1280,
   X_ZIRK: 1370,
   X_PRESS: 1390,
-  X_DHW: 1440,
+  X_DHW: 1430,
   X_DHW_C: 1525,
 }
 

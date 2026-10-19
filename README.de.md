@@ -101,6 +101,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | Eigene Namen, leer nimmt die Kartensprache |
 | `energy_daily` | `true` | Tagesverbrauch aus dem Zählerstand rechnen |
 | `animate` | `true` | Animation: `true` ein, `false` aus, `auto` das Gerät entscheidet (Einstellung „Bewegung reduzieren“) |
+| `hk1_style` / `hk2_style` | `platte` | Bild des Heizkreises: `platte` Plattenheizkörper, `glieder` Gliederheizkörper, `fbh` Fußbodenheizung |
 | `demo` | `false` | Beispielwerte zum Ausprobieren |
 
 ### Entitäten

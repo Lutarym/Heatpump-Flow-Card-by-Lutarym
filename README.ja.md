@@ -101,6 +101,7 @@ entities:
 | `label_hk1, label_hk2, label_buffer, label_dhw, label_energy` | | 独自の名前。空欄ならカードの言語 |
 | `energy_daily` | `true` | メーター値から当日の使用量を計算 |
 | `animate` | `true` | アニメーション：`true` オン、`false` オフ、`auto` 端末の設定（視差効果を減らす）に従う |
+| `hk1_style` / `hk2_style` | `platte` | 暖房回路の図：`platte` パネルラジエーター、`glieder` セクショナルラジエーター、`fbh` 床暖房 |
 | `demo` | `false` | 試用のための仮の値 |
 
 ### エンティティ

@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "4.7.1";
+var CARD_VERSION = "4.8.0";
 var L = {
   W: 1650,
   H: 700,
@@ -32,7 +32,7 @@ var L = {
   X_HK2_BACK: 1280,
   X_ZIRK: 1370,
   X_PRESS: 1390,
-  X_DHW: 1440,
+  X_DHW: 1430,
   X_DHW_C: 1525
 };
 var MODE_LABELS = {
@@ -336,6 +336,11 @@ var TEXTE = {
   e_2luefter: { de: "2 L\xFCfter", en: "2 fans", fr: "2 ventilateurs", ja: "\u30D5\u30A1\u30F32\u57FA" },
   e_hoch: { de: "Hochformat", en: "Portrait", fr: "Portrait", ja: "\u7E26\u9577" },
   e_quer: { de: "Querformat", en: "Landscape", fr: "Paysage", ja: "\u6A2A\u9577" },
+  e_hk1_bild: { de: "Bild Heizkreis 1", en: "Picture heating circuit 1", fr: "Image circuit 1", ja: "\u6696\u623F\u56DE\u8DEF 1 \u306E\u56F3" },
+  e_hk2_bild: { de: "Bild Heizkreis 2", en: "Picture heating circuit 2", fr: "Image circuit 2", ja: "\u6696\u623F\u56DE\u8DEF 2 \u306E\u56F3" },
+  e_rad_platte: { de: "Plattenheizk\xF6rper", en: "Panel radiator", fr: "Radiateur \xE0 panneaux", ja: "\u30D1\u30CD\u30EB\u30E9\u30B8\u30A8\u30FC\u30BF\u30FC" },
+  e_rad_glieder: { de: "Gliederheizk\xF6rper", en: "Column radiator", fr: "Radiateur \xE0 \xE9l\xE9ments", ja: "\u30BB\u30AF\u30B7\u30E7\u30CA\u30EB\u30E9\u30B8\u30A8\u30FC\u30BF\u30FC" },
+  e_rad_fbh: { de: "Fu\xDFbodenheizung", en: "Underfloor heating", fr: "Plancher chauffant", ja: "\u5E8A\u6696\u623F" },
   e_auto: { de: "Automatisch", en: "Automatic", fr: "Automatique", ja: "\u81EA\u52D5" },
   e_darstellung: { de: "Darstellung", en: "Display", fr: "Affichage", ja: "\u8868\u793A" },
   e_integration: { de: "Integration", en: "Integration", fr: "Int\xE9gration", ja: "\u7D71\u5408" },
@@ -1083,6 +1088,8 @@ var DEFAULT_CONFIG = {
   energy_daily: true,
   demo: false,
   animate: true,
+  hk1_style: "platte",
+  hk2_style: "platte",
   entities: {}
 };
 
@@ -2145,6 +2152,22 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
             <select id="opt-hk"><option value="1">${this._t("e_1hk")}</option><option value="2">${this._t("e_2hk")}</option></select>
           </label>
           <label class="ed-row">
+            <span>${this._t("e_hk1_bild")}</span>
+            <select id="opt-hk1-stil">
+              <option value="platte">${this._t("e_rad_platte")}</option>
+              <option value="glieder">${this._t("e_rad_glieder")}</option>
+              <option value="fbh">${this._t("e_rad_fbh")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_hk2_bild")}</span>
+            <select id="opt-hk2-stil">
+              <option value="platte">${this._t("e_rad_platte")}</option>
+              <option value="glieder">${this._t("e_rad_glieder")}</option>
+              <option value="fbh">${this._t("e_rad_fbh")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
             <span>${this._t("e_puffer")}<em>${this._t("e_puffer_auto_h")}</em></span>
             <select id="opt-puffer">
               <option value="auto">${this._t("e_auto")}</option>
@@ -2397,6 +2420,8 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     bind("opt-laedt", (el) => put({ show_reload: el.checked }));
     bind("opt-hilfe", (el) => put({ show_help: el.checked }));
     bind("opt-tuer", (el) => put({ show_door: el.checked }));
+    bind("opt-hk1-stil", (el) => put({ hk1_style: el.value }));
+    bind("opt-hk2-stil", (el) => put({ hk2_style: el.value }));
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     const applyMap = (map, merge) => {
@@ -2612,6 +2637,10 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     check("opt-laedt", this._config.show_reload !== false);
     check("opt-hilfe", this._config.show_help !== false);
     check("opt-tuer", this._config.show_door !== false);
+    put("opt-hk1-stil", this._config.hk1_style || "platte");
+    put("opt-hk2-stil", this._config.hk2_style || "platte");
+    const zeileHk2 = this.shadowRoot.getElementById("opt-hk2-stil");
+    if (zeileHk2) zeileHk2.closest("label").style.display = this._config.hk_count === 2 ? "" : "none";
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
     const imFokus = sr.activeElement;
@@ -3128,7 +3157,6 @@ var aktualisierenKarte = {
     const hass = this._quelle;
     const sr = this.shadowRoot;
     const water = numState(hass, this._e(`hk${n}_water`));
-    const target = numState(hass, this._e(`hk${n}_water_target`));
     const pumpOn = isOn(hass, this._e(`hk${n}_pump`)) === true;
     const set = (id, text) => {
       const el = this._animEl(id);
@@ -3141,7 +3169,6 @@ var aktualisierenKarte = {
     paint(`rad${n}-top`, col(water));
     paint(`rad${n}-bottom`, col(water === null ? null : water - 6));
     set(`hk${n}-water-v`, water === null ? "--" : `${fmt(water, 1)} \xB0C`);
-    set(`hk${n}-target-v`, target === null ? "" : tf(this._t("s_ziel"), { v: fmt(target, 0) }));
     const rotor = this._animEl(`hk${n}-rotor`);
     if (rotor) {
       rotor.classList.remove("is-still");
@@ -4249,57 +4276,58 @@ var grafikHochKarte = {
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>`);
-    const sekEnde = hk2 ? HK2[1] - 60 : HK1[1] - 60;
+    const anschluss = (n, y1, y2) => {
+      if (this._heizStil(n) !== "fbh") return { vy: y1 + 60, ry: y2 - 60 };
+      const r = this._fbhReihen(y1 + 10, y2 - 10);
+      return { vy: r[0], ry: r[r.length - 1] };
+    };
+    const a1 = anschluss(1, HK1[0], HK1[1]);
+    const a2 = anschluss(2, HK2[0], HK2[1]);
+    const sekEnde = hk2 ? a2.ry : a1.ry;
     const sekundaer = `
-      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${hk2 ? HK2[0] + 60 : HK1[0] + 60}`)}
+      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${hk2 ? a2.vy : a1.vy}`)}
       ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${sekEnde}`)}
-      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${HK1[0] + 60}"/>
-      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${HK1[0] + 60} V ${hk2 ? HK2[0] + 60 : HK1[0] + 60}"/>
-      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${HK1[1] - 60} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
-      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${sekEnde} V ${HK1[1] - 60}"/>`;
+      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${a1.vy}"/>
+      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${a1.vy} V ${hk2 ? a2.vy : a1.vy}"/>
+      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
+      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${sekEnde} V ${a1.ry}"/>`;
     const heizkreis = (n, y1, y2) => {
-      const h = y2 - y1;
-      const breite = schildBreite(
-        this._name(`label_hk${n}`),
-        180
+      const kr = P.U1 + 180;
+      const tx = Math.round((kr + P.U2) / 2) + 4;
+      const { vy, ry } = anschluss(n, y1, y2);
+      const koerper = this._heizkoerper(
+        n,
+        P.U1,
+        kr,
+        y1 + 10,
+        y2 - 10,
+        { x: kr + 6, y: vy, seite: "rechts" },
+        { x: P.U1 - 6, y: ry, seite: "links" }
       );
-      let rippen = "";
-      for (let x = P.U1 + 34; x < P.U2 - 20; x += 34) {
-        rippen += `<line x1="${x}" y1="${y1 + 14}" x2="${x}" y2="${y2 - 14}"/>`;
-      }
       return `
-        ${rohr(`M${P.S_VL} ${y1 + 60} H ${P.U2 + 9}`)}
-        ${rohr(`M${P.U1 - 9} ${y2 - 60} H ${P.S_RL}`)}
-        <path class="flowdots" id="dots-hk${n}" d="M${P.S_VL} ${y1 + 60} H ${P.U2 + 9}"/>
-        <path class="flowdots" id="dots-hk${n}b" d="M${P.U1 - 9} ${y2 - 60} H ${P.S_RL}"/>
+        ${rohr(`M${P.S_VL} ${vy} H ${kr + 9}`)}
+        ${rohr(`M${P.U1 - 9} ${ry} H ${P.S_RL}`)}
+        <path class="flowdots" id="dots-hk${n}" d="M${P.S_VL} ${vy} H ${kr + 9}"/>
+        <path class="flowdots" id="dots-hk${n}b" d="M${P.U1 - 9} ${ry} H ${P.S_RL}"/>
         <g class="circuit klickbar" id="hk${n}-group">
-          <g id="hk${n}-rad">
-            <rect x="${P.U1}" y="${y1}" width="${P.U2 - P.U1}" height="${h}" rx="18"
-                  fill="url(#rad${n}Fill)" stroke="#33415A" stroke-width="2"/>
-            <g stroke="#0D1219" stroke-width="7" opacity="0.5">${rippen}</g>
-            <rect x="${P.U1}" y="${y1}" width="${P.U2 - P.U1}" height="${h}" rx="18" fill="url(#glass)"/>
+          <g id="hk${n}-rad">${koerper}
           </g>
           <g id="hk${n}-name">
-            <rect x="${UM - breite / 2}" y="${y1 + 10}" width="${breite}" height="30" rx="8"
-                  fill="#0D1219" stroke="#33415A" stroke-width="1" opacity="0.5"/>
-            <text class="cap" x="${UM}" y="${y1 + 25}" text-anchor="middle"
-                  dominant-baseline="middle">${escapeHtml(
+            <text class="cap" x="${tx}" y="${y1 + 88}" text-anchor="middle">${escapeHtml(
         this._name(`label_hk${n}`)
       )}</text>
           </g>
-          <g id="hk${n}-tag" transform="translate(${UM} ${y1 + h / 2 + 18})">
-            <rect class="fest-dunkel" x="-100" y="-30" width="200" height="60" rx="10" fill="#0B1017" opacity="0.9"/>
-            <text class="tag-v" id="hk${n}-water-v" x="0" y="0" text-anchor="middle">--</text>
-            <text class="value-sp" id="hk${n}-target-v" x="0" y="22" text-anchor="middle"></text>
+          <g id="hk${n}-tag">
+            <text class="tag-v hk-wert" id="hk${n}-water-v" x="${tx}" y="${y1 + 118}" text-anchor="middle">--</text>
           </g>
-          <g transform="translate(${(P.U2 + P.S_VL) / 2} ${y1 + 60})">
+          <g transform="translate(${(P.U2 + P.S_VL) / 2} ${vy})">
             <circle r="24" fill="#0D1219" stroke="#33415A" stroke-width="2"/>
             <g class="rotor" id="hk${n}-rotor">
               <path id="hk${n}-blade" d="M0 -13 L4 -3 L14 0 L4 3 L0 13 L-4 3 L-14 0 L-4 -3 Z" fill="#55637A"/>
               <circle r="3.5" fill="#0D1219"/>
             </g>
           </g>
-          <text class="value-s" id="hk${n}-pump-v" x="${(P.U2 + P.S_VL) / 2}" y="${y1 + 100}"
+          <text class="value-s" id="hk${n}-pump-v" x="${(P.U2 + P.S_VL) / 2}" y="${vy + 40}"
                 text-anchor="middle">--</text>
         </g>`;
     };
@@ -4390,7 +4418,7 @@ var grafikQuerKarte = {
           <rect x="548" y="298" width="174" height="334" rx="20"/>
         </clipPath>
         <clipPath id="dhwClip">
-          <rect x="1448" y="298" width="154" height="334" rx="28"/>
+          <rect x="1438" y="298" width="174" height="334" rx="20"/>
         </clipPath>
       </defs>`;
   },
@@ -4722,11 +4750,11 @@ ${this._defs()}
       </g>
 
             <g id="dhw-group" transform="translate(${-VX} 0)">
-        <rect x="${L.X_DHW}" y="${T}" width="170" height="350" rx="34"
+        <rect x="${L.X_DHW}" y="${T}" width="190" height="350" rx="26"
               fill="#0D1219" stroke="#33415A" stroke-width="2"/>
-        <rect x="1448" y="298" width="154" height="334" rx="28" fill="url(#dhwFill)"/>
-        <g clip-path="url(#dhwClip)">${this._bubbles("dhw-bubbles", 1448, 298, 154, 334)}</g>
-        <rect x="1448" y="298" width="154" height="334" rx="28" fill="url(#glass)"/>
+        <rect x="1438" y="298" width="174" height="334" rx="20" fill="url(#dhwFill)"/>
+        <g clip-path="url(#dhwClip)">${this._bubbles("dhw-bubbles", 1438, 298, 174, 334)}</g>
+        <rect x="1438" y="298" width="174" height="334" rx="20" fill="url(#glass)"/>
         <text class="value-l" id="dhw-v" x="${L.X_DHW_C}" y="430" text-anchor="middle">--</text>
         <text class="value-sp" id="dhw-sp" x="${L.X_DHW_C}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="dhw-delta" x="${L.X_DHW_C}" y="482" text-anchor="middle"></text>
@@ -4745,8 +4773,8 @@ ${this._defs()}
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>
-        <g id="dhw-name"><rect x="${L.X_DHW_C - schildBreite(this._name("label_dhw"), 134) / 2}" y="305"
-              width="${schildBreite(this._name("label_dhw"), 134)}" height="30" rx="8"
+        <g id="dhw-name"><rect x="${L.X_DHW_C - schildBreite(this._name("label_dhw"), 150) / 2}" y="305"
+              width="${schildBreite(this._name("label_dhw"), 150)}" height="30" rx="8"
               fill="#0D1219" stroke="#33415A" stroke-width="1" opacity="0.5"/>
         <text class="cap" x="${L.X_DHW_C}" y="320" text-anchor="middle" dominant-baseline="middle">${escapeHtml(
       this._name("label_dhw")
@@ -4757,15 +4785,21 @@ ${this._defs()}
   },
   _circuit(n, x1, x2, dropX, backX) {
     const RT = L.RAD_TOP;
-    const RB = L.RAD_BOTTOM;
-    const mid = (x1 + x2) / 2;
-    const drop = `M${dropX} ${L.SEC_FLOW} V ${RT - 9}`;
+    const BT = RT;
+    const BB = RT + 92;
+    const tx = Math.round((x1 + backX - 9) / 2);
+    const drop = `M${dropX} ${L.SEC_FLOW} V ${BT - 9}`;
     const pumpY = Math.round((L.SEC_FLOW + RT) / 2);
-    const back = `M${backX} ${RB + 9} V ${L.SEC_RET}`;
-    let fins = "";
-    for (let x = x1 + 26; x < x2 - 10; x += 30) {
-      fins += `<line x1="${x}" y1="${RT + 10}" x2="${x}" y2="${RB - 10}"/>`;
-    }
+    const back = `M${backX} ${BB} V ${L.SEC_RET}`;
+    const koerper = this._heizkoerper(
+      n,
+      x1 + 14,
+      x2 - 14,
+      BT,
+      BB,
+      { x: dropX, y: BT, seite: "oben" },
+      { x: backX, y: BB, seite: "unten" }
+    );
     return `
       <g class="circuit" id="hk${n}-group">
         <path class="pipe-shell" d="${drop} ${back}"/>
@@ -4784,27 +4818,88 @@ ${this._defs()}
         <text class="value-s" id="hk${n}-pump-v" x="${dropX + 34}" y="${pumpY + 6}"
               text-anchor="start">--</text>
 
-        <g id="hk${n}-rad">
-          <rect x="${x1}" y="${RT}" width="${x2 - x1}" height="${RB - RT}" rx="10"
-                fill="url(#rad${n}Fill)" stroke="#33415A" stroke-width="2"/>
-          <g stroke="#0D1219" stroke-width="7" opacity="0.5">${fins}</g>
-          <rect x="${x1}" y="${RT}" width="${x2 - x1}" height="${RB - RT}" rx="10" fill="url(#glass)"/>
+        <g id="hk${n}-rad">${koerper}
         </g>
 
-        <g id="hk${n}-tag" transform="translate(${mid} ${RT + 100})">
-          <rect class="fest-dunkel" x="-100" y="-30" width="200" height="60" rx="10"
-                fill="#0B1017" opacity="0.9"/>
-          <text class="tag-v" id="hk${n}-water-v" x="0" y="0" text-anchor="middle">--</text>
-          <text class="value-sp" id="hk${n}-target-v" x="0" y="22" text-anchor="middle"></text>
-        </g>
-
-        <g id="hk${n}-name"><rect x="${mid - schildBreite(this._name(`label_hk${n}`), 180) / 2}" y="405"
-              width="${schildBreite(this._name(`label_hk${n}`), 180)}" height="30" rx="8"
-              fill="#0D1219" stroke="#33415A" stroke-width="1" opacity="0.5"/>
-        <text class="cap" x="${mid}" y="420" text-anchor="middle" dominant-baseline="middle">${escapeHtml(
+        <g id="hk${n}-name">
+          <text class="cap" x="${tx}" y="${BB + 26}" text-anchor="middle">${escapeHtml(
       this._name(`label_hk${n}`)
-    )}</text></g>
+    )}</text>
+        </g>
+        <g id="hk${n}-tag">
+          <text class="tag-v hk-wert" id="hk${n}-water-v" x="${tx}" y="${BB + 54}" text-anchor="middle">--</text>
+        </g>
       </g>`;
+  },
+  /** Bildart des Heizkreises: Platte, Glieder oder Fussbodenheizung. */
+  _heizStil(n) {
+    const v = this._config[`hk${n}_style`];
+    return v === "glieder" || v === "fbh" ? v : "platte";
+  },
+  /** Reihen der Rohrschlange einer Fussbodenheizung, immer ungerade Anzahl. */
+  _fbhReihen(top, unten) {
+    const r = [];
+    for (let y = top + 16; y <= unten - 12; y += 13) r.push(y);
+    if (r.length % 2 === 0) r.pop();
+    return r;
+  },
+  /**
+   * Zeichnet den Heizkoerper eines Heizkreises in den Rahmen a..b,
+   * top..unten. ein und aus sind die Anschluesse von Vor- und
+   * Ruecklauf, nur die Fussbodenheizung fuehrt ihr Rohr bis dorthin.
+   */
+  _heizkoerper(n, a, b, top, unten, ein, aus) {
+    const stil = this._heizStil(n);
+    const fill = `url(#rad${n}Fill)`;
+    if (stil === "glieder") {
+      const w = 14, gap = 5;
+      const anzahl = Math.floor((b - a - 4 + gap) / (w + gap));
+      const off = a + Math.round((b - a - (anzahl * (w + gap) - gap)) / 2);
+      let glieder = "";
+      for (let i = 0; i < anzahl; i++) {
+        glieder += `<rect x="${off + i * (w + gap)}" y="${top + 4}" width="${w}" height="${unten - top - 8}" rx="7"/>`;
+      }
+      return `
+          <rect x="${a - 2}" y="${top + 12}" width="${b - a + 4}" height="8" rx="4" fill="#33415A"/>
+          <rect x="${a - 2}" y="${unten - 20}" width="${b - a + 4}" height="8" rx="4" fill="#33415A"/>
+          <g fill="${fill}" stroke="#0D1219" stroke-width="1.5">${glieder}</g>`;
+    }
+    if (stil === "fbh") {
+      const li = a + 18, re = b - 18;
+      const reihen = this._fbhReihen(top, unten);
+      let d, x;
+      if (ein.seite === "rechts") {
+        d = `M${ein.x} ${reihen[0]} H ${li}`;
+        x = li;
+      } else {
+        d = `M${ein.x} ${ein.y} V ${reihen[0]} H ${li} H ${re}`;
+        x = re;
+      }
+      reihen.slice(1).forEach((y) => {
+        x = x === li ? re : li;
+        d += ` V ${y} H ${x}`;
+      });
+      d += aus.seite === "links" ? ` H ${aus.x}` : ` H ${aus.x} V ${aus.y}`;
+      return `
+          <rect x="${a - 6}" y="${top}" width="${b - a + 12}" height="${unten - top}" rx="8"
+                fill="#0D1219" stroke="#33415A" stroke-width="2"/>
+          <path d="${d}" fill="none" stroke="${fill}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    let profil = "";
+    for (let x = a + 8; x < b - 4; x += 9) {
+      profil += `<line x1="${x}" y1="${top + 16}" x2="${x}" y2="${unten - 6}"/>`;
+    }
+    let schlitze = "";
+    for (let x = a + 10; x < b - 8; x += 12) {
+      schlitze += `<rect x="${x}" y="${top + 4}" width="6" height="5" rx="1"/>`;
+    }
+    return `
+          <rect x="${a}" y="${top}" width="${b - a}" height="${unten - top}" rx="6"
+                fill="${fill}" stroke="#33415A" stroke-width="2"/>
+          <g stroke="#0D1219" stroke-width="3" opacity="0.28">${profil}</g>
+          <rect x="${a + 2}" y="${top + 2}" width="${b - a - 4}" height="11" rx="4" fill="#0D1219" opacity="0.35"/>
+          <g fill="#0D1219" opacity="0.5">${schlitze}</g>
+          <rect x="${a}" y="${top}" width="${b - a}" height="${unten - top}" rx="6" fill="url(#glass)"/>`;
   },
   /**
    * Aufsteigende Blasen in einem Speicher.
@@ -5832,6 +5927,8 @@ var stilKarte = {
       }
       .hinweis-s { fill: var(--c-6b7a90); font-size: 11px; }
       .value-sp { fill: rgba(255,255,255,0.85); font-size: 17px; }
+      /* Werte der Heizkreise stehen frei unter dem Heizkoerper. */
+      .lhc .hk-wert { fill: var(--c-e8edf4); font-size: 22px; }
       .lhc .value-sp.verlauf-text { fill: var(--c-e8edf4); }
       .lhc rect.fest-dunkel { fill: #0B1017; }
       /* Namensschilder liegen auf farbigen Flaechen, nachts nicht zu dunkel. */

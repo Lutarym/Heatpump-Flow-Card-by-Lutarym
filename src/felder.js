@@ -164,5 +164,7 @@ export const DEFAULT_CONFIG = {
   energy_daily: true,
   demo: false,
   animate: true,
+  hk1_style: "platte",
+  hk2_style: "platte",
   entities: {},
 };

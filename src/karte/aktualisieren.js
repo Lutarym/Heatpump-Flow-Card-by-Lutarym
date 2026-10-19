@@ -644,7 +644,6 @@ export const aktualisierenKarte = {
     const hass = this._quelle;
     const sr = this.shadowRoot;
     const water = numState(hass, this._e(`hk${n}_water`));
-    const target = numState(hass, this._e(`hk${n}_water_target`));
     const pumpOn = isOn(hass, this._e(`hk${n}_pump`)) === true;
 
     const set = (id, text) => {
@@ -661,7 +660,6 @@ export const aktualisierenKarte = {
     // Wie bei Puffer und Warmwasser: oben die Temperatur, darunter das
     // Ziel. Ohne Fachbegriffe, damit klar ist, was die Zahlen bedeuten.
     set(`hk${n}-water-v`, water === null ? "--" : `${fmt(water, 1)} °C`);
-    set(`hk${n}-target-v`, target === null ? "" : tf(this._t("s_ziel"), { v: fmt(target, 0) }));
 
     const rotor = this._animEl(`hk${n}-rotor`);
     if (rotor) {

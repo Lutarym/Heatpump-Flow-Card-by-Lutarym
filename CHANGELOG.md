@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v4.8.0
+
+- English: Heating circuits redrawn. For each circuit the editor offers a picture: panel radiator (default), column radiator or underfloor heating (options `hk1_style`, `hk2_style`). Name and temperature now stand freely below the radiator (in the vertical layout next to it) instead of in a dark box on top of it. The line with the target temperature of the heating circuits is removed. The hot water tank now has the same shape and size as the buffer.
+- Deutsch: Heizkreise neu gezeichnet. Für jeden Heizkreis bietet der Editor ein Bild an: Plattenheizkörper (Standard), Gliederheizkörper oder Fußbodenheizung (Optionen `hk1_style`, `hk2_style`). Name und Temperatur stehen jetzt frei unter dem Heizkörper (im Hochformat daneben) statt in einem dunklen Kasten darauf. Die Zeile mit der Zieltemperatur der Heizkreise entfällt. Der Warmwasserspeicher hat jetzt dieselbe Form und Größe wie der Puffer.
+- Français : circuits de chauffage redessinés. Pour chaque circuit, l'éditeur propose une image : radiateur à panneaux (par défaut), radiateur à éléments ou plancher chauffant (options `hk1_style`, `hk2_style`). Le nom et la température s'affichent désormais librement sous le radiateur (à côté en format vertical) au lieu d'un cadre sombre posé dessus. La ligne de température cible des circuits est supprimée. Le ballon d'eau chaude a désormais la même forme et la même taille que le ballon tampon.
+- 日本語：暖房回路を描き直しました。エディターで回路ごとに図を選べます：パネルラジエーター（既定）、セクショナルラジエーター、床暖房（オプション `hk1_style`、`hk2_style`）。名前と温度は、ラジエーターに重ねた暗い枠ではなく、ラジエーターの下（縦レイアウトでは横）に表示します。暖房回路の目標温度の行を削除しました。給湯タンクをバッファーと同じ形と大きさにしました。
+
 ## v4.7.1
 
 - English: Animation can be set in the editor to On (default), Automatic or Off (option `animate`: `true`, `"auto"`, `false`). Only with Automatic does the device setting "reduce motion" decide; before, v4.7.0 stopped the animation whenever this setting was on. Fixed: bubbles that are not rising no longer lie visible at the bottom of the tank. Buffer and hot water tank now show their temperature at the same height.

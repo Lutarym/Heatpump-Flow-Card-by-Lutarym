@@ -157,6 +157,22 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <select id="opt-hk"><option value="1">${this._t("e_1hk")}</option><option value="2">${this._t("e_2hk")}</option></select>
           </label>
           <label class="ed-row">
+            <span>${this._t("e_hk1_bild")}</span>
+            <select id="opt-hk1-stil">
+              <option value="platte">${this._t("e_rad_platte")}</option>
+              <option value="glieder">${this._t("e_rad_glieder")}</option>
+              <option value="fbh">${this._t("e_rad_fbh")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_hk2_bild")}</span>
+            <select id="opt-hk2-stil">
+              <option value="platte">${this._t("e_rad_platte")}</option>
+              <option value="glieder">${this._t("e_rad_glieder")}</option>
+              <option value="fbh">${this._t("e_rad_fbh")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
             <span>${this._t("e_puffer")}<em>${this._t("e_puffer_auto_h")}</em></span>
             <select id="opt-puffer">
               <option value="auto">${this._t("e_auto")}</option>
@@ -418,6 +434,8 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-laedt", (el) => put({ show_reload: el.checked }));
     bind("opt-hilfe", (el) => put({ show_help: el.checked }));
     bind("opt-tuer", (el) => put({ show_door: el.checked }));
+    bind("opt-hk1-stil", (el) => put({ hk1_style: el.value }));
+    bind("opt-hk2-stil", (el) => put({ hk2_style: el.value }));
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
 
@@ -660,6 +678,10 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     check("opt-laedt", this._config.show_reload !== false);
     check("opt-hilfe", this._config.show_help !== false);
     check("opt-tuer", this._config.show_door !== false);
+    put("opt-hk1-stil", this._config.hk1_style || "platte");
+    put("opt-hk2-stil", this._config.hk2_style || "platte");
+    const zeileHk2 = this.shadowRoot.getElementById("opt-hk2-stil");
+    if (zeileHk2) zeileHk2.closest("label").style.display = this._config.hk_count === 2 ? "" : "none";
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
 

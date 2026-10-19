@@ -270,58 +270,57 @@ export const grafikHochKarte = {
         </g>`);
 
     /* ---------------- Sekundaerkreis und Heizkreise ---------------- */
-    const sekEnde = hk2 ? HK2[1] - 60 : HK1[1] - 60;
+    // Hoehe der Anschluesse von Vor- und Ruecklauf je Heizkreis. Die
+    // Fussbodenheizung schliesst an ihrer ersten und letzten Rohrreihe an.
+    const anschluss = (n, y1, y2) => {
+      if (this._heizStil(n) !== "fbh") return { vy: y1 + 60, ry: y2 - 60 };
+      const r = this._fbhReihen(y1 + 10, y2 - 10);
+      return { vy: r[0], ry: r[r.length - 1] };
+    };
+    const a1 = anschluss(1, HK1[0], HK1[1]);
+    const a2 = anschluss(2, HK2[0], HK2[1]);
+    const sekEnde = hk2 ? a2.ry : a1.ry;
     const sekundaer = `
-      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${hk2 ? HK2[0] + 60 : HK1[0] + 60}`)}
+      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${hk2 ? a2.vy : a1.vy}`)}
       ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${sekEnde}`)}
-      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${HK1[0] + 60}"/>
-      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${HK1[0] + 60} V ${hk2 ? HK2[0] + 60 : HK1[0] + 60}"/>
-      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${HK1[1] - 60} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
-      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${sekEnde} V ${HK1[1] - 60}"/>`;
+      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${a1.vy}"/>
+      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${a1.vy} V ${hk2 ? a2.vy : a1.vy}"/>
+      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
+      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${sekEnde} V ${a1.ry}"/>`;
 
     const heizkreis = (n, y1, y2) => {
-      const h = y2 - y1;
-      const breite = schildBreite(
-        this._name(`label_hk${n}`),
-        180
-      );
-      let rippen = "";
-      for (let x = P.U1 + 34; x < P.U2 - 20; x += 34) {
-        rippen += `<line x1="${x}" y1="${y1 + 14}" x2="${x}" y2="${y2 - 14}"/>`;
-      }
+      // Heizkoerper links, Name und Werte rechts daneben frei ohne Kasten.
+      const kr = P.U1 + 180;
+      const tx = Math.round((kr + P.U2) / 2) + 4;
+      // Die Fussbodenheizung bekommt ihre Anschluesse auf Hoehe der
+      // ersten und letzten Rohrreihe, sonst laeuft das Rohr doppelt.
+      const { vy, ry } = anschluss(n, y1, y2);
+      const koerper = this._heizkoerper(n, P.U1, kr, y1 + 10, y2 - 10,
+        { x: kr + 6, y: vy, seite: "rechts" }, { x: P.U1 - 6, y: ry, seite: "links" });
       return `
-        ${rohr(`M${P.S_VL} ${y1 + 60} H ${P.U2 + 9}`)}
-        ${rohr(`M${P.U1 - 9} ${y2 - 60} H ${P.S_RL}`)}
-        <path class="flowdots" id="dots-hk${n}" d="M${P.S_VL} ${y1 + 60} H ${P.U2 + 9}"/>
-        <path class="flowdots" id="dots-hk${n}b" d="M${P.U1 - 9} ${y2 - 60} H ${P.S_RL}"/>
+        ${rohr(`M${P.S_VL} ${vy} H ${kr + 9}`)}
+        ${rohr(`M${P.U1 - 9} ${ry} H ${P.S_RL}`)}
+        <path class="flowdots" id="dots-hk${n}" d="M${P.S_VL} ${vy} H ${kr + 9}"/>
+        <path class="flowdots" id="dots-hk${n}b" d="M${P.U1 - 9} ${ry} H ${P.S_RL}"/>
         <g class="circuit klickbar" id="hk${n}-group">
-          <g id="hk${n}-rad">
-            <rect x="${P.U1}" y="${y1}" width="${P.U2 - P.U1}" height="${h}" rx="18"
-                  fill="url(#rad${n}Fill)" stroke="#33415A" stroke-width="2"/>
-            <g stroke="#0D1219" stroke-width="7" opacity="0.5">${rippen}</g>
-            <rect x="${P.U1}" y="${y1}" width="${P.U2 - P.U1}" height="${h}" rx="18" fill="url(#glass)"/>
+          <g id="hk${n}-rad">${koerper}
           </g>
           <g id="hk${n}-name">
-            <rect x="${UM - breite / 2}" y="${y1 + 10}" width="${breite}" height="30" rx="8"
-                  fill="#0D1219" stroke="#33415A" stroke-width="1" opacity="0.5"/>
-            <text class="cap" x="${UM}" y="${y1 + 25}" text-anchor="middle"
-                  dominant-baseline="middle">${escapeHtml(
-                    this._name(`label_hk${n}`)
-                  )}</text>
+            <text class="cap" x="${tx}" y="${y1 + 88}" text-anchor="middle">${escapeHtml(
+              this._name(`label_hk${n}`)
+            )}</text>
           </g>
-          <g id="hk${n}-tag" transform="translate(${UM} ${y1 + h / 2 + 18})">
-            <rect class="fest-dunkel" x="-100" y="-30" width="200" height="60" rx="10" fill="#0B1017" opacity="0.9"/>
-            <text class="tag-v" id="hk${n}-water-v" x="0" y="0" text-anchor="middle">--</text>
-            <text class="value-sp" id="hk${n}-target-v" x="0" y="22" text-anchor="middle"></text>
+          <g id="hk${n}-tag">
+            <text class="tag-v hk-wert" id="hk${n}-water-v" x="${tx}" y="${y1 + 118}" text-anchor="middle">--</text>
           </g>
-          <g transform="translate(${(P.U2 + P.S_VL) / 2} ${y1 + 60})">
+          <g transform="translate(${(P.U2 + P.S_VL) / 2} ${vy})">
             <circle r="24" fill="#0D1219" stroke="#33415A" stroke-width="2"/>
             <g class="rotor" id="hk${n}-rotor">
               <path id="hk${n}-blade" d="M0 -13 L4 -3 L14 0 L4 3 L0 13 L-4 3 L-14 0 L-4 -3 Z" fill="#55637A"/>
               <circle r="3.5" fill="#0D1219"/>
             </g>
           </g>
-          <text class="value-s" id="hk${n}-pump-v" x="${(P.U2 + P.S_VL) / 2}" y="${y1 + 100}"
+          <text class="value-s" id="hk${n}-pump-v" x="${(P.U2 + P.S_VL) / 2}" y="${vy + 40}"
                 text-anchor="middle">--</text>
         </g>`;
     };

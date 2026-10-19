@@ -267,6 +267,8 @@ export const stilKarte = {
       }
       .hinweis-s { fill: var(--c-6b7a90); font-size: 11px; }
       .value-sp { fill: rgba(255,255,255,0.85); font-size: 17px; }
+      /* Werte der Heizkreise stehen frei unter dem Heizkoerper. */
+      .lhc .hk-wert { fill: var(--c-e8edf4); font-size: 22px; }
       .lhc .value-sp.verlauf-text { fill: var(--c-e8edf4); }
       .lhc rect.fest-dunkel { fill: #0B1017; }
       /* Namensschilder liegen auf farbigen Flaechen, nachts nicht zu dunkel. */
