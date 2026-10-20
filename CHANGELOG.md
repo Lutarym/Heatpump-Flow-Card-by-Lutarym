@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.1.7
+
+- English: Landscape: SG Ready, PV surplus, power and energy now stand centred between the heat pump and the hot water tank. The primary pump sits on the common return between the heat pump and the hot water branch, so every return flow passes through it. The circulation label stands vertically to the left of the circulation pump, between the hot water tank and the circulation pipe.
+- Deutsch: Querformat: SG Ready, PV Überschuss, Leistung und Zählerstand stehen mittig zwischen Wärmepumpe und Warmwasserspeicher. Die Primärpumpe sitzt auf dem gemeinsamen Rücklauf zwischen Wärmepumpe und Warmwasserabzweig, so fließt jeder Rücklauf durch sie. Die Beschriftung der Zirkulation steht senkrecht links neben der Zirkulationspumpe, zwischen Warmwasserspeicher und Zirkulationsleitung.
+- Français : paysage : SG Ready, surplus PV, puissance et compteur sont centrés entre la pompe à chaleur et le ballon d'eau chaude. La pompe primaire se trouve sur le retour commun entre la pompe à chaleur et la dérivation d'eau chaude, tout retour passe donc par elle. Le libellé de la circulation est vertical, à gauche de la pompe de circulation, entre le ballon d'eau chaude et la conduite de circulation.
+- 日本語：横レイアウト：SG Ready、PV 余剰、消費電力、積算値をヒートポンプと給湯タンクの中央に配置しました。一次ポンプはヒートポンプと給湯分岐の間の共通戻り配管に移し、すべての戻り水が通るようにしました。循環の表示は循環ポンプの左側、給湯タンクと循環配管の間に縦書きで配置しました。
+
 ## v5.1.5
 
 - English: The previous view up to version 4.9 remains selectable as "Landscape classic" (option `layout: klassisch`): buffer, heating circuits 1 and 2, hot water tank on the right. It shows at most 2 heating circuits and no additional heat.

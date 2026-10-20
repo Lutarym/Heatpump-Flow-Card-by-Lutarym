@@ -110,6 +110,10 @@ export const grafikQuerKarte = {
     const B = L.TANK_BOTTOM;
     const M = this._querMasse();
     const { XW, XB, ZIRK_X } = M;
+    // Primaerpumpe auf dem gemeinsamen Ruecklauf, zwischen dem Schild
+    // "Ruecklauf" und dem Abzweig zum Warmwasserspeicher. So fliesst
+    // jeder Ruecklauf, aus Speicher und Puffer, durch die Pumpe.
+    const PUMP_X = Math.round((450 + XW) / 2);
     const zone = this._heizkreisZone(M);
     // Ende von Vor- und Ruecklauf des Primaerkreises: am Puffer oder,
     // ohne Puffer, an den Sammelleitungen der Heizkreise.
@@ -237,10 +241,10 @@ ${this._defs()}
 
       <!-- Primärpumpe -->
       <g>
-        <text class="cap-s" x="690" y="662" text-anchor="middle">${this._t("pumpe")}</text>
-        <text class="value-s" id="pump-v" x="690" y="749" text-anchor="middle">--</text>
-        <text class="value-s" id="flow-v" x="690" y="769" text-anchor="middle">--</text>
-        <g transform="translate(690 ${R})">
+        <text class="cap-s" x="${PUMP_X}" y="662" text-anchor="middle">${this._t("pumpe")}</text>
+        <text class="value-s" id="pump-v" x="${PUMP_X}" y="749" text-anchor="middle">--</text>
+        <text class="value-s" id="flow-v" x="${PUMP_X}" y="769" text-anchor="middle">--</text>
+        <g transform="translate(${PUMP_X} ${R})">
           <circle r="26" fill="#0D1219" stroke="#33415A" stroke-width="2"/>
           <g class="rotor" id="pump-rotor">
             <path id="pump-blade" d="M0 -15 L5 -4 L16 0 L5 4 L0 15 L-5 4 L-16 0 L-5 -4 Z" fill="#55637A"/>
@@ -263,7 +267,8 @@ ${this._defs()}
             <circle r="3" fill="#0D1219"/>
           </g>
         </g>
-        <text class="cap-s" id="zirk-name" x="${XW + 100}" y="280" text-anchor="start">${this._t("zirkulation")}</text>
+        <text class="cap-s" id="zirk-name" x="${ZIRK_X - 26}" y="475" text-anchor="middle"
+              dominant-baseline="middle" transform="rotate(-90 ${ZIRK_X - 26} 475)">${this._t("zirkulation")}</text>
         <text class="value-s" id="zirk-v" x="${ZIRK_X}" y="318" text-anchor="middle" opacity="0">--</text>
       </g>
 
@@ -391,34 +396,37 @@ ${this._defs()}
 
   /** SG Ready, PV, Leistung und Zaehler in der Spalte neben der Waermepumpe. */
   _kennzahlenQuer(F) {
+    // Mitte zwischen rechter Kante der Waermepumpe und linker Kante des
+    // Warmwasserspeichers.
+    const MX = (340 + this._querMasse().XW - 95) / 2;
     return `
       <g id="kennzahlen">
       <g id="sg-group" opacity="0">
-        <text class="sg-label" x="${L.X_COL}" y="${F + 60}" text-anchor="middle">SG Ready</text>
-        <g transform="translate(${L.X_COL} ${F + 90})">
+        <text class="sg-label" x="${MX}" y="${F + 60}" text-anchor="middle">SG Ready</text>
+        <g transform="translate(${MX} ${F + 90})">
           <rect x="-68" y="0" width="32" height="11" rx="5.5" id="sg-seg-1" fill="#3A4658"/>
           <rect x="-34" y="0" width="32" height="11" rx="5.5" id="sg-seg-2" fill="#3A4658"/>
           <rect x="2" y="0" width="32" height="11" rx="5.5" id="sg-seg-3" fill="#3A4658"/>
           <rect x="36" y="0" width="32" height="11" rx="5.5" id="sg-seg-4" fill="#3A4658"/>
         </g>
-        <text class="sg-value" id="sg-text" x="${L.X_COL}" y="${F + 130}"
+        <text class="sg-value" id="sg-text" x="${MX}" y="${F + 130}"
               text-anchor="middle">--</text>
-        <line x1="380" y1="${F + 150}" x2="510" y2="${F + 150}" stroke="#55657F" stroke-width="1"/>
+        <line x1="${MX - 65}" y1="${F + 150}" x2="${MX + 65}" y2="${F + 150}" stroke="#55657F" stroke-width="1"/>
       </g>
       <g id="pv-group" opacity="0">
-        <text class="sg-label" id="pv-label" x="${L.X_COL}" y="${F + 190}" text-anchor="middle">${this._t("pv_ueberschuss")}</text>
-        <text class="pv-value" id="pv-v" x="${L.X_COL}" y="${F + 228}"
+        <text class="sg-label" id="pv-label" x="${MX}" y="${F + 190}" text-anchor="middle">${this._t("pv_ueberschuss")}</text>
+        <text class="pv-value" id="pv-v" x="${MX}" y="${F + 228}"
               text-anchor="middle">--</text>
-        <line x1="380" y1="${F + 245}" x2="510" y2="${F + 245}" stroke="#55657F" stroke-width="1"/>
+        <line x1="${MX - 65}" y1="${F + 245}" x2="${MX + 65}" y2="${F + 245}" stroke="#55657F" stroke-width="1"/>
       </g>
       <g id="verbrauch-group" opacity="0">
-        <text class="sg-label" x="${L.X_COL}" y="${F + 285}" text-anchor="middle">${this._t("leistung")}</text>
-        <text class="verbrauch-v" id="power-now-v" x="${L.X_COL}" y="${F + 323}"
+        <text class="sg-label" x="${MX}" y="${F + 285}" text-anchor="middle">${this._t("leistung")}</text>
+        <text class="verbrauch-v" id="power-now-v" x="${MX}" y="${F + 323}"
               text-anchor="middle">--</text>
-        <line x1="380" y1="${F + 340}" x2="510" y2="${F + 340}" stroke="#55657F" stroke-width="1"/>
-        <text class="sg-label" id="energy-label" x="${L.X_COL}" y="${F + 380}"
+        <line x1="${MX - 65}" y1="${F + 340}" x2="${MX + 65}" y2="${F + 340}" stroke="#55657F" stroke-width="1"/>
+        <text class="sg-label" id="energy-label" x="${MX}" y="${F + 380}"
               text-anchor="middle">--</text>
-        <text class="unit-value" id="energy-today-v" x="${L.X_COL}" y="${F + 420}"
+        <text class="unit-value" id="energy-today-v" x="${MX}" y="${F + 420}"
               text-anchor="middle">--</text>
       </g>
       </g>`;
