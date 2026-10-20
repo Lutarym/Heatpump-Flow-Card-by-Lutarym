@@ -383,7 +383,7 @@ export const grafikHochKarte = {
     return quellen
       .map((art, i) => {
         const cx = lagen[i];
-        const geraetOben = art === "kamin" ? yc - 62 : yc - 40;
+        const geraetOben = art === "kamin" ? yc - 46 : yc - 40;
         const vl = `M${cx - 18} ${geraetOben} V ${pufferUnten}`;
         const rl = `M${cx + 18} ${pufferUnten} V ${geraetOben}`;
         const pumpY = Math.round((pufferUnten + geraetOben) / 2);

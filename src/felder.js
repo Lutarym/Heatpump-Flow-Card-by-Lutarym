@@ -184,5 +184,7 @@ export const DEFAULT_CONFIG = {
   label_hk3: "",
   label_hk4: "",
   extra_heat: "aus",
+  kamin_fire_temp: 30,
+  solar_sun_temp: 30,
   entities: {},
 };

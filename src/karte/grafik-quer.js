@@ -538,7 +538,7 @@ ${this._defs()}
     return M.quellen
       .map((art, i) => {
         const yc = lagen[i];
-        const rand = art === "kamin" ? cx + 55 : cx + 58;
+        const rand = art === "kamin" ? cx + 40 : cx + 58;
         const vl = `M${rand} ${yc - 18} H ${M.BL}`;
         const rl = `M${M.BL} ${yc + 18} H ${rand}`;
         const ly = yc + (art === "kamin" ? 80 : 72);
@@ -565,44 +565,86 @@ ${this._defs()}
       .join("");
   },
 
-  /** Kaminofen mit Sichtfenster. Die Flammen erscheinen, wenn er heizt. */
+  /**
+   * Moderner Kaminofen: schmal, grosses Sichtfenster, Holzscheite,
+   * Aschelade, Rauchrohr oben. Ab der eingestellten Temperatur lodert
+   * ein Feuer im Fenster.
+   */
   _kaminBild(cx, yc) {
-    const x = cx - 55;
-    const top = yc - 62;
+    const x = cx - 40;
+    const t = yc - 46;
+    const fx = x + 9;
+    const fy = t + 9;
+    const boden = fy + 56;
     return `
-        <rect x="${cx - 13}" y="${top}" width="26" height="16" fill="#26303F" stroke="#33415A" stroke-width="2"/>
-        <rect x="${x}" y="${top + 16}" width="110" height="104" rx="12" fill="#161D28" stroke="#33415A" stroke-width="2"/>
-        <rect x="${x + 14}" y="${top + 30}" width="82" height="60" rx="7" fill="#0B1017" stroke="#46536A" stroke-width="1.5"/>
-        <g id="kamin-flamme" opacity="0" transform="translate(${cx} ${top + 86}) scale(1.35)">
-          <path d="M0 0 c-16 -6 -14 -20 -4 -32 c0 10 8 12 8 4 c6 8 10 20 -4 28 Z" fill="#FF8A3D"/>
-          <path d="M0 0 c-8 -3 -7 -11 -1 -17 c1 6 6 6 5 1 c4 6 4 12 -4 16 Z" fill="#FFC44D"/>
-          <path d="M-12 0 c-7 -4 -5 -12 0 -17 c0 6 4 6 4 2 c3 6 3 12 -4 15 Z" fill="#FF6B5E"/>
+        <rect x="${cx - 9}" y="${t - 16}" width="18" height="18" fill="#26303F" stroke="#33415A" stroke-width="2"/>
+        <rect x="${x}" y="${t}" width="80" height="106" rx="10" fill="#161D28" stroke="#33415A" stroke-width="2"/>
+        <rect x="${fx}" y="${fy}" width="62" height="58" rx="6" fill="#0B1017" stroke="#46536A" stroke-width="1.5"/>
+        <g id="kamin-schein" opacity="0">
+          <rect x="${fx + 1}" y="${fy + 1}" width="60" height="56" rx="5" fill="#2A1408"/>
+          <ellipse id="kamin-glut" cx="${cx}" cy="${boden - 14}" rx="26" ry="18" fill="#FF8A3D" opacity="0.3"/>
         </g>
-        <rect x="${x + 14}" y="${top + 100}" width="82" height="8" rx="4" fill="#33415A"/>`;
+        <rect x="${cx - 24}" y="${boden - 9}" width="48" height="8" rx="4" fill="#6B4A2E" stroke="#3E2A1A" stroke-width="1"/>
+        <rect x="${cx - 18}" y="${boden - 16}" width="36" height="8" rx="4" fill="#7A5534" stroke="#3E2A1A" stroke-width="1"
+              transform="rotate(-8 ${cx} ${boden - 12})"/>
+        <circle cx="${cx - 24}" cy="${boden - 5}" r="3.6" fill="#A47B52"/>
+        <circle cx="${cx + 24}" cy="${boden - 5}" r="3.6" fill="#A47B52"/>
+        <g id="kamin-flamme" opacity="0" transform="translate(${cx} ${boden - 7}) scale(0.82)">
+          <g id="kamin-feuer">
+            <path d="M-2 0 c-20 -6 -20 -26 -6 -42 c0 12 10 14 9 3 c10 10 16 28 -3 39 Z" fill="#FF6B2E"/>
+            <path d="M12 0 c-10 -4 -10 -16 -2 -26 c0 8 7 8 6 1 c6 8 8 18 -4 25 Z" fill="#FF8A3D"/>
+            <path d="M-16 0 c-8 -4 -7 -14 0 -21 c0 7 5 7 5 2 c4 7 4 14 -5 19 Z" fill="#FF8A3D"/>
+            <path d="M0 0 c-9 -3 -9 -14 -1 -22 c1 7 6 7 5 1 c5 7 5 15 -4 21 Z" fill="#FFC44D"/>
+            <path d="M0 0 c-4 -2 -4 -7 0 -11 c1 4 3 4 3 0 c2 4 2 8 -3 11 Z" fill="#FFF1B8"/>
+          </g>
+        </g>
+        <rect x="${fx}" y="${t + 74}" width="62" height="24" rx="5" fill="#0F151E" stroke="#26303F" stroke-width="1.5"/>
+        <line x1="${fx + 10}" y1="${t + 86}" x2="${fx + 52}" y2="${t + 86}" stroke="#33415A" stroke-width="3" stroke-linecap="round"/>`;
   },
 
-  /** Solarkollektor mit Sonne. */
+  /**
+   * Solarkollektor mit Sonne. Ab der eingestellten Temperatur scheint
+   * die Sonne: sie leuchtet, die Strahlen drehen sich langsam und ein
+   * Lichtschein zieht ueber den Kollektor.
+   */
   _solarBild(cx, yc) {
     const x = cx - 65;
     const u = yc + 50;
     const o = yc - 40;
-    const strahlen = [0, 45, 90, 135, 180, 225, 270, 315]
-      .map((w) => {
-        const r = (w * Math.PI) / 180;
-        return `<line x1="${(x + 4 + Math.cos(r) * 14).toFixed(1)}" y1="${(o - 18 + Math.sin(r) * 14).toFixed(1)}"
-          x2="${(x + 4 + Math.cos(r) * 20).toFixed(1)}" y2="${(o - 18 + Math.sin(r) * 20).toFixed(1)}"
-          stroke="#FFC44D" stroke-width="2.2" stroke-linecap="round"/>`;
-      })
-      .join("");
+    const sx = x + 4;
+    const sy = o - 18;
+    const strahlen = (farbe) =>
+      [0, 45, 90, 135, 180, 225, 270, 315]
+        .map((w) => {
+          const r = (w * Math.PI) / 180;
+          return `<line x1="${(Math.cos(r) * 14).toFixed(1)}" y1="${(Math.sin(r) * 14).toFixed(1)}"
+          x2="${(Math.cos(r) * 20).toFixed(1)}" y2="${(Math.sin(r) * 20).toFixed(1)}"
+          stroke="${farbe}" stroke-width="2.2" stroke-linecap="round"/>`;
+        })
+        .join("");
     const laengs = [1, 2, 3, 4]
       .map((i) => `<line x1="${x + (94 * i) / 5}" y1="${u}" x2="${x + 36 + (94 * i) / 5}" y2="${o}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`)
       .join("");
     const quer = [1, 2]
       .map((i) => `<line x1="${x + (36 * i) / 3}" y1="${u - (90 * i) / 3}" x2="${x + 94 + (36 * i) / 3}" y2="${u - (90 * i) / 3}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`)
       .join("");
+    const flaeche = `M${x} ${u} L${x + 36} ${o} L${x + 130} ${o} L${x + 94} ${u} Z`;
     return `
-        <g id="solar-sonne"><circle cx="${x + 4}" cy="${o - 18}" r="10" fill="#FFC44D"/>${strahlen}</g>
-        <path d="M${x} ${u} L${x + 36} ${o} L${x + 130} ${o} L${x + 94} ${u} Z" fill="#1E5FA8" stroke="#33415A" stroke-width="2"/>
+        <clipPath id="solar-clip"><path d="${flaeche}"/></clipPath>
+        <g transform="translate(${sx} ${sy})">
+          <circle id="solar-schein" r="26" fill="#FFC44D" opacity="0"/>
+          <g id="solar-sonne-aus"><circle r="10" fill="#3A4658"/>${strahlen("#55637A")}</g>
+          <g id="solar-sonne" opacity="0">
+            <circle r="10" fill="#FFC44D"/>
+            <g id="solar-strahlen">${strahlen("#FFC44D")}</g>
+          </g>
+        </g>
+        <path d="${flaeche}" fill="#1B3F66" stroke="#33415A" stroke-width="2"/>
+        <path id="solar-hell" d="${flaeche}" fill="#2470C2" opacity="0"/>
+        <g clip-path="url(#solar-clip)">
+          <path id="solar-glanz" opacity="0" d="M${x + 40} ${u} L${x + 66} ${o} L${x + 86} ${o} L${x + 60} ${u} Z" fill="#FFFFFF"/>
+        </g>
+        <path d="${flaeche}" fill="none" stroke="#33415A" stroke-width="2"/>
         ${laengs}${quer}`;
   },
 

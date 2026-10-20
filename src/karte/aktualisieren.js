@@ -667,10 +667,12 @@ export const aktualisierenKarte = {
           ? tf(this._t("pumpe_wert"), { v: wertText(pumpe ? "läuft" : "aus", this._sp()) })
           : "";
       }
-      if (art === "kamin") {
-        const flamme = this._animEl("kamin-flamme");
-        if (flamme) flamme.setAttribute("opacity", pumpe ? "1" : "0");
-      }
+      // Feuer im Kamin und Sonne ueber der Solarthermie haengen an der
+      // Temperatur, ab der eingestellten Grenze.
+      const grenze = Number(this._config[art === "kamin" ? "kamin_fire_temp" : "solar_sun_temp"]);
+      const aktiv = temp !== null && temp >= (Number.isFinite(grenze) ? grenze : 30);
+      if (art === "kamin") this._kaminFeuer(aktiv, animate);
+      else this._solarSonne(aktiv, animate);
       this._blattFarbe(`${art}-blade`, col(temp), pumpe);
       const rotorId = `${art}-rotor`;
       const rotor = this._animEl(rotorId);
@@ -699,6 +701,52 @@ export const aktualisierenKarte = {
       if (pumpe) laedt = true;
     });
     return laedt;
+  },
+
+  /** Feuer im Kamin: sichtbar ab der Grenze, lodert mit Animation. */
+  _kaminFeuer(an, animate) {
+    const sichtbar = (id, ja) => {
+      const el = this._animEl(id);
+      if (el) el.setAttribute("opacity", ja ? "1" : "0");
+    };
+    sichtbar("kamin-schein", an);
+    sichtbar("kamin-flamme", an);
+    const feuer = this._animEl("kamin-feuer");
+    const glut = this._animEl("kamin-glut");
+    if (an && animate) {
+      if (!this._animState.has("kamin-feuer")) this._animState.set("kamin-feuer", { type: "flacker" });
+      this._animState.set("kamin-glut", { type: "pulse", duration: 1.7, min: 0.15, max: 0.45 });
+    } else {
+      this._animState.delete("kamin-feuer");
+      this._animState.delete("kamin-glut");
+      if (feuer) feuer.removeAttribute("transform");
+      if (glut) glut.setAttribute("opacity", "0.3");
+    }
+  },
+
+  /** Sonne ueber der Solarthermie: scheint ab der Grenze. */
+  _solarSonne(an, animate) {
+    const deck = (id, wert) => {
+      const el = this._animEl(id);
+      if (el) el.setAttribute("opacity", wert);
+    };
+    deck("solar-sonne", an ? "1" : "0");
+    deck("solar-sonne-aus", an ? "0" : "1");
+    deck("solar-hell", an ? "1" : "0");
+    if (an && animate) {
+      const da = this._animState.get("solar-strahlen");
+      if (!da || da.type !== "spin") this._animState.set("solar-strahlen", { type: "spin", duration: 14, winkel: 0 });
+      this._animState.set("solar-schein", { type: "pulse", duration: 3, min: 0.08, max: 0.3 });
+      this._animState.set("solar-glanz", { type: "glanz" });
+    } else {
+      ["solar-strahlen", "solar-schein", "solar-glanz"].forEach((id) => this._animState.delete(id));
+      const str = this._animEl("solar-strahlen");
+      if (str) str.removeAttribute("transform");
+      deck("solar-schein", an ? "0.2" : "0");
+      const gl = this._animEl("solar-glanz");
+      if (gl) gl.removeAttribute("transform");
+      deck("solar-glanz", an ? "0.22" : "0");
+    }
   },
 
   _circuitUpdate(n, col, animate, buf, laeuft) {

@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.2.0
+
+- English: New stove picture: a modern wood stove with a large viewing window, logs, ash drawer and flue pipe. From a set stove temperature (option `kamin_fire_temp`, default 30 °C) a fire burns in the window and flickers when animation is on. Solar thermal works the same way: from a set collector temperature (option `solar_sun_temp`, default 30 °C) the sun shines, its rays turn slowly and a light reflection moves across the collector. Below the limit the sun is grey. Both limits can be set in the editor next to the additional heat.
+- Deutsch: Neues Kaminbild: ein moderner Kaminofen mit großem Sichtfenster, Holzscheiten, Aschelade und Rauchrohr. Ab einer einstellbaren Kamintemperatur (Option `kamin_fire_temp`, Standard 30 °C) lodert ein Feuer im Fenster, mit Animation flackert es. Bei der Solarthermie ebenso: ab einer einstellbaren Kollektortemperatur (Option `solar_sun_temp`, Standard 30 °C) scheint die Sonne, ihre Strahlen drehen sich langsam und ein Lichtschein zieht über den Kollektor. Unter der Grenze ist die Sonne grau. Beide Grenzen lassen sich im Editor bei der Zusatzwärme einstellen.
+- Français : nouvelle image du poêle : un poêle à bois moderne avec grande vitre, bûches, cendrier et conduit de fumée. À partir d'une température réglable du poêle (option `kamin_fire_temp`, 30 °C par défaut), un feu brûle derrière la vitre et vacille avec l'animation. De même pour le solaire thermique : à partir d'une température réglable du capteur (option `solar_sun_temp`, 30 °C par défaut), le soleil brille, ses rayons tournent lentement et un reflet traverse le capteur. En dessous du seuil, le soleil est gris. Les deux seuils se règlent dans l'éditeur à côté de la chaleur d'appoint.
+- 日本語：薪ストーブの図を変更しました：大きな覗き窓、薪、灰受け、煙突を備えたモダンな薪ストーブです。設定した薪ストーブ温度（オプション `kamin_fire_temp`、既定 30 °C）以上で窓の中に炎が燃え、アニメーション有効時は揺らぎます。太陽熱も同様に、設定した集熱器温度（オプション `solar_sun_temp`、既定 30 °C）以上で太陽が輝き、光線がゆっくり回り、集熱器の上を光の反射が流れます。しきい値未満では太陽は灰色です。どちらのしきい値もエディターの追加熱源の項目で設定できます。
+
 ## v5.1.7
 
 - English: Landscape: SG Ready, PV surplus, power and energy now stand centred between the heat pump and the hot water tank. The primary pump sits on the common return between the heat pump and the hot water branch, so every return flow passes through it. The circulation label stands vertically to the left of the circulation pump, between the hot water tank and the circulation pipe.

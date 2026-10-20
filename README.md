@@ -103,6 +103,8 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `animate` | `true` | Animation: `true` on, `false` off, `auto` the device decides (setting "reduce motion") |
 | `hk1_style` to `hk4_style` | `platte` | Picture of the heating circuit: `platte` panel radiator, `glieder` column radiator, `fbh` underfloor heating |
 | `extra_heat` | `aus` | Additional heat at the buffer: `aus` (off), `kamin` (stove), `solar`, `beide` (both). Only with a heating buffer |
+| `kamin_fire_temp` | `30` | From this stove temperature in °C the fire burns in the stove |
+| `solar_sun_temp` | `30` | From this collector temperature in °C the sun shines above the solar thermal collector |
 | `demo` | `false` | Sample values for trying out |
 
 ### Entities

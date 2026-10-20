@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.1.7";
+var CARD_VERSION = "5.2.0";
 var L = {
   W: 1650,
   H: 700,
@@ -482,6 +482,10 @@ var TEXTE = {
   pumpe_wert: { de: "Pumpe {v}", en: "Pump {v}", fr: "Pompe {v}", ja: "\u30DD\u30F3\u30D7 {v}" },
   e_zusatz: { de: "Zusatzw\xE4rme am Puffer", en: "Additional heat at the buffer", fr: "Chaleur d'appoint au ballon tampon", ja: "\u30D0\u30C3\u30D5\u30A1\u30FC\u306E\u8FFD\u52A0\u71B1\u6E90" },
   e_zusatz_h: { de: "nur mit Heizungspuffer", en: "only with a heating buffer", fr: "uniquement avec ballon tampon", ja: "\u30D0\u30C3\u30D5\u30A1\u30FC\u304C\u3042\u308B\u5834\u5408\u306E\u307F" },
+  e_feuer_ab: { de: "Feuer im Kamin ab", en: "Fire in the stove from", fr: "Feu dans le po\xEAle \xE0 partir de", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u306E\u708E\u306E\u8868\u793A\u6E29\u5EA6" },
+  e_feuer_ab_h: { de: "\xB0C Kamintemperatur, Standard 30", en: "\xB0C stove temperature, default 30", fr: "\xB0C temp\xE9rature du po\xEAle, 30 par d\xE9faut", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u6E29\u5EA6 \xB0C\u3001\u65E2\u5B9A 30" },
+  e_sonne_ab: { de: "Sonne \xFCber Solarthermie ab", en: "Sun above solar thermal from", fr: "Soleil sur le solaire thermique \xE0 partir de", ja: "\u592A\u967D\u71B1\u306E\u592A\u967D\u8868\u793A\u6E29\u5EA6" },
+  e_sonne_ab_h: { de: "\xB0C Kollektortemperatur, Standard 30", en: "\xB0C collector temperature, default 30", fr: "\xB0C temp\xE9rature du capteur, 30 par d\xE9faut", ja: "\u96C6\u71B1\u5668\u6E29\u5EA6 \xB0C\u3001\u65E2\u5B9A 30" },
   e_zusatz_beide: { de: "Kamin und Solarthermie", en: "Stove and solar thermal", fr: "Po\xEAle et solaire thermique", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u3068\u592A\u967D\u71B1" },
   e_3hk: { de: "3 Heizkreise", en: "3 circuits", fr: "3 circuits", ja: "3\u56DE\u8DEF" },
   e_4hk: { de: "4 Heizkreise", en: "4 circuits", fr: "4 circuits", ja: "4\u56DE\u8DEF" },
@@ -1137,6 +1141,8 @@ var DEFAULT_CONFIG = {
   label_hk3: "",
   label_hk4: "",
   extra_heat: "aus",
+  kamin_fire_temp: 30,
+  solar_sun_temp: 30,
   entities: {}
 };
 
@@ -2229,6 +2235,14 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
               <option value="beide">${this._t("e_zusatz_beide")}</option>
             </select>
           </label>
+          <label class="ed-row" data-zusatz-zeile="kamin">
+            <span>${this._t("e_feuer_ab")}<em>${this._t("e_feuer_ab_h")}</em></span>
+            <input type="number" id="opt-feuer" step="1">
+          </label>
+          <label class="ed-row" data-zusatz-zeile="solar">
+            <span>${this._t("e_sonne_ab")}<em>${this._t("e_sonne_ab_h")}</em></span>
+            <input type="number" id="opt-sonne" step="1">
+          </label>
           <label class="ed-row">
             <span>${this._t("e_zirk")}<em>${this._t("e_zirk_h")}</em></span>
             <select id="opt-zirk">
@@ -2487,6 +2501,14 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
       put({ extra_heat: el.value });
       this._syncValues();
     });
+    bind("opt-feuer", (el) => {
+      const v = parseFloat(el.value);
+      if (Number.isFinite(v)) put({ kamin_fire_temp: v });
+    });
+    bind("opt-sonne", (el) => {
+      const v = parseFloat(el.value);
+      if (Number.isFinite(v)) put({ solar_sun_temp: v });
+    });
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     const applyMap = (map, merge) => {
@@ -2709,6 +2731,12 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     });
     put("opt-zusatz", this._config.extra_heat || "aus");
     const zusatz = this._config.extra_heat || "aus";
+    put("opt-feuer", this._config.kamin_fire_temp ?? 30);
+    put("opt-sonne", this._config.solar_sun_temp ?? 30);
+    sr.querySelectorAll("[data-zusatz-zeile]").forEach((z) => {
+      const art = z.dataset.zusatzZeile;
+      z.style.display = zusatz === art || zusatz === "beide" ? "" : "none";
+    });
     sr.querySelectorAll("details[data-gruppe-name]").forEach((d) => {
       const name = d.dataset.gruppeName;
       let zeigen = true;
@@ -3252,10 +3280,10 @@ var aktualisierenKarte = {
       if (pEl) {
         pEl.textContent = this._e(`${art}_pump`) ? tf(this._t("pumpe_wert"), { v: wertText(pumpe ? "l\xE4uft" : "aus", this._sp()) }) : "";
       }
-      if (art === "kamin") {
-        const flamme = this._animEl("kamin-flamme");
-        if (flamme) flamme.setAttribute("opacity", pumpe ? "1" : "0");
-      }
+      const grenze = Number(this._config[art === "kamin" ? "kamin_fire_temp" : "solar_sun_temp"]);
+      const aktiv = temp !== null && temp >= (Number.isFinite(grenze) ? grenze : 30);
+      if (art === "kamin") this._kaminFeuer(aktiv, animate);
+      else this._solarSonne(aktiv, animate);
       this._blattFarbe(`${art}-blade`, col(temp), pumpe);
       const rotorId = `${art}-rotor`;
       const rotor = this._animEl(rotorId);
@@ -3272,10 +3300,10 @@ var aktualisierenKarte = {
       [[`dots-${art}`, col(temp)], [`dots-${art}b`, col(buf)]].forEach(([id, farbe]) => {
         const el = this._animEl(id);
         if (!el) return;
-        const aktiv = animate && pumpe;
-        el.classList.toggle("is-on", aktiv);
+        const aktiv2 = animate && pumpe;
+        el.classList.toggle("is-on", aktiv2);
         el.style.stroke = farbe;
-        if (aktiv) this._animState.set(id, { type: "flow", reverse: false });
+        if (aktiv2) this._animState.set(id, { type: "flow", reverse: false });
         else {
           this._animState.delete(id);
           el.setAttribute("stroke-dashoffset", "0");
@@ -3284,6 +3312,50 @@ var aktualisierenKarte = {
       if (pumpe) laedt = true;
     });
     return laedt;
+  },
+  /** Feuer im Kamin: sichtbar ab der Grenze, lodert mit Animation. */
+  _kaminFeuer(an, animate) {
+    const sichtbar = (id, ja) => {
+      const el = this._animEl(id);
+      if (el) el.setAttribute("opacity", ja ? "1" : "0");
+    };
+    sichtbar("kamin-schein", an);
+    sichtbar("kamin-flamme", an);
+    const feuer = this._animEl("kamin-feuer");
+    const glut = this._animEl("kamin-glut");
+    if (an && animate) {
+      if (!this._animState.has("kamin-feuer")) this._animState.set("kamin-feuer", { type: "flacker" });
+      this._animState.set("kamin-glut", { type: "pulse", duration: 1.7, min: 0.15, max: 0.45 });
+    } else {
+      this._animState.delete("kamin-feuer");
+      this._animState.delete("kamin-glut");
+      if (feuer) feuer.removeAttribute("transform");
+      if (glut) glut.setAttribute("opacity", "0.3");
+    }
+  },
+  /** Sonne ueber der Solarthermie: scheint ab der Grenze. */
+  _solarSonne(an, animate) {
+    const deck = (id, wert) => {
+      const el = this._animEl(id);
+      if (el) el.setAttribute("opacity", wert);
+    };
+    deck("solar-sonne", an ? "1" : "0");
+    deck("solar-sonne-aus", an ? "0" : "1");
+    deck("solar-hell", an ? "1" : "0");
+    if (an && animate) {
+      const da = this._animState.get("solar-strahlen");
+      if (!da || da.type !== "spin") this._animState.set("solar-strahlen", { type: "spin", duration: 14, winkel: 0 });
+      this._animState.set("solar-schein", { type: "pulse", duration: 3, min: 0.08, max: 0.3 });
+      this._animState.set("solar-glanz", { type: "glanz" });
+    } else {
+      ["solar-strahlen", "solar-schein", "solar-glanz"].forEach((id) => this._animState.delete(id));
+      const str = this._animEl("solar-strahlen");
+      if (str) str.removeAttribute("transform");
+      deck("solar-schein", an ? "0.2" : "0");
+      const gl = this._animEl("solar-glanz");
+      if (gl) gl.removeAttribute("transform");
+      deck("solar-glanz", an ? "0.22" : "0");
+    }
   },
   _circuitUpdate(n, col, animate, buf, laeuft) {
     const hass = this._quelle;
@@ -4858,7 +4930,7 @@ var grafikHochKarte = {
     const lagen = quellen.length === 2 ? [mitte - 82, mitte + 82] : [mitte];
     return quellen.map((art, i) => {
       const cx = lagen[i];
-      const geraetOben = art === "kamin" ? yc - 62 : yc - 40;
+      const geraetOben = art === "kamin" ? yc - 46 : yc - 40;
       const vl = `M${cx - 18} ${geraetOben} V ${pufferUnten}`;
       const rl = `M${cx + 18} ${pufferUnten} V ${geraetOben}`;
       const pumpY = Math.round((pufferUnten + geraetOben) / 2);
@@ -5812,7 +5884,7 @@ ${this._defs()}
     const cx = M.BL - 122;
     return M.quellen.map((art, i) => {
       const yc = lagen[i];
-      const rand = art === "kamin" ? cx + 55 : cx + 58;
+      const rand = art === "kamin" ? cx + 40 : cx + 58;
       const vl = `M${rand} ${yc - 18} H ${M.BL}`;
       const rl = `M${M.BL} ${yc + 18} H ${rand}`;
       const ly = yc + (art === "kamin" ? 80 : 72);
@@ -5837,37 +5909,78 @@ ${this._defs()}
       </g>`;
     }).join("");
   },
-  /** Kaminofen mit Sichtfenster. Die Flammen erscheinen, wenn er heizt. */
+  /**
+   * Moderner Kaminofen: schmal, grosses Sichtfenster, Holzscheite,
+   * Aschelade, Rauchrohr oben. Ab der eingestellten Temperatur lodert
+   * ein Feuer im Fenster.
+   */
   _kaminBild(cx, yc) {
-    const x = cx - 55;
-    const top = yc - 62;
+    const x = cx - 40;
+    const t2 = yc - 46;
+    const fx = x + 9;
+    const fy = t2 + 9;
+    const boden = fy + 56;
     return `
-        <rect x="${cx - 13}" y="${top}" width="26" height="16" fill="#26303F" stroke="#33415A" stroke-width="2"/>
-        <rect x="${x}" y="${top + 16}" width="110" height="104" rx="12" fill="#161D28" stroke="#33415A" stroke-width="2"/>
-        <rect x="${x + 14}" y="${top + 30}" width="82" height="60" rx="7" fill="#0B1017" stroke="#46536A" stroke-width="1.5"/>
-        <g id="kamin-flamme" opacity="0" transform="translate(${cx} ${top + 86}) scale(1.35)">
-          <path d="M0 0 c-16 -6 -14 -20 -4 -32 c0 10 8 12 8 4 c6 8 10 20 -4 28 Z" fill="#FF8A3D"/>
-          <path d="M0 0 c-8 -3 -7 -11 -1 -17 c1 6 6 6 5 1 c4 6 4 12 -4 16 Z" fill="#FFC44D"/>
-          <path d="M-12 0 c-7 -4 -5 -12 0 -17 c0 6 4 6 4 2 c3 6 3 12 -4 15 Z" fill="#FF6B5E"/>
+        <rect x="${cx - 9}" y="${t2 - 16}" width="18" height="18" fill="#26303F" stroke="#33415A" stroke-width="2"/>
+        <rect x="${x}" y="${t2}" width="80" height="106" rx="10" fill="#161D28" stroke="#33415A" stroke-width="2"/>
+        <rect x="${fx}" y="${fy}" width="62" height="58" rx="6" fill="#0B1017" stroke="#46536A" stroke-width="1.5"/>
+        <g id="kamin-schein" opacity="0">
+          <rect x="${fx + 1}" y="${fy + 1}" width="60" height="56" rx="5" fill="#2A1408"/>
+          <ellipse id="kamin-glut" cx="${cx}" cy="${boden - 14}" rx="26" ry="18" fill="#FF8A3D" opacity="0.3"/>
         </g>
-        <rect x="${x + 14}" y="${top + 100}" width="82" height="8" rx="4" fill="#33415A"/>`;
+        <rect x="${cx - 24}" y="${boden - 9}" width="48" height="8" rx="4" fill="#6B4A2E" stroke="#3E2A1A" stroke-width="1"/>
+        <rect x="${cx - 18}" y="${boden - 16}" width="36" height="8" rx="4" fill="#7A5534" stroke="#3E2A1A" stroke-width="1"
+              transform="rotate(-8 ${cx} ${boden - 12})"/>
+        <circle cx="${cx - 24}" cy="${boden - 5}" r="3.6" fill="#A47B52"/>
+        <circle cx="${cx + 24}" cy="${boden - 5}" r="3.6" fill="#A47B52"/>
+        <g id="kamin-flamme" opacity="0" transform="translate(${cx} ${boden - 7}) scale(0.82)">
+          <g id="kamin-feuer">
+            <path d="M-2 0 c-20 -6 -20 -26 -6 -42 c0 12 10 14 9 3 c10 10 16 28 -3 39 Z" fill="#FF6B2E"/>
+            <path d="M12 0 c-10 -4 -10 -16 -2 -26 c0 8 7 8 6 1 c6 8 8 18 -4 25 Z" fill="#FF8A3D"/>
+            <path d="M-16 0 c-8 -4 -7 -14 0 -21 c0 7 5 7 5 2 c4 7 4 14 -5 19 Z" fill="#FF8A3D"/>
+            <path d="M0 0 c-9 -3 -9 -14 -1 -22 c1 7 6 7 5 1 c5 7 5 15 -4 21 Z" fill="#FFC44D"/>
+            <path d="M0 0 c-4 -2 -4 -7 0 -11 c1 4 3 4 3 0 c2 4 2 8 -3 11 Z" fill="#FFF1B8"/>
+          </g>
+        </g>
+        <rect x="${fx}" y="${t2 + 74}" width="62" height="24" rx="5" fill="#0F151E" stroke="#26303F" stroke-width="1.5"/>
+        <line x1="${fx + 10}" y1="${t2 + 86}" x2="${fx + 52}" y2="${t2 + 86}" stroke="#33415A" stroke-width="3" stroke-linecap="round"/>`;
   },
-  /** Solarkollektor mit Sonne. */
+  /**
+   * Solarkollektor mit Sonne. Ab der eingestellten Temperatur scheint
+   * die Sonne: sie leuchtet, die Strahlen drehen sich langsam und ein
+   * Lichtschein zieht ueber den Kollektor.
+   */
   _solarBild(cx, yc) {
     const x = cx - 65;
     const u = yc + 50;
     const o = yc - 40;
-    const strahlen = [0, 45, 90, 135, 180, 225, 270, 315].map((w) => {
+    const sx = x + 4;
+    const sy = o - 18;
+    const strahlen = (farbe) => [0, 45, 90, 135, 180, 225, 270, 315].map((w) => {
       const r = w * Math.PI / 180;
-      return `<line x1="${(x + 4 + Math.cos(r) * 14).toFixed(1)}" y1="${(o - 18 + Math.sin(r) * 14).toFixed(1)}"
-          x2="${(x + 4 + Math.cos(r) * 20).toFixed(1)}" y2="${(o - 18 + Math.sin(r) * 20).toFixed(1)}"
-          stroke="#FFC44D" stroke-width="2.2" stroke-linecap="round"/>`;
+      return `<line x1="${(Math.cos(r) * 14).toFixed(1)}" y1="${(Math.sin(r) * 14).toFixed(1)}"
+          x2="${(Math.cos(r) * 20).toFixed(1)}" y2="${(Math.sin(r) * 20).toFixed(1)}"
+          stroke="${farbe}" stroke-width="2.2" stroke-linecap="round"/>`;
     }).join("");
     const laengs = [1, 2, 3, 4].map((i) => `<line x1="${x + 94 * i / 5}" y1="${u}" x2="${x + 36 + 94 * i / 5}" y2="${o}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`).join("");
     const quer = [1, 2].map((i) => `<line x1="${x + 36 * i / 3}" y1="${u - 90 * i / 3}" x2="${x + 94 + 36 * i / 3}" y2="${u - 90 * i / 3}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`).join("");
+    const flaeche = `M${x} ${u} L${x + 36} ${o} L${x + 130} ${o} L${x + 94} ${u} Z`;
     return `
-        <g id="solar-sonne"><circle cx="${x + 4}" cy="${o - 18}" r="10" fill="#FFC44D"/>${strahlen}</g>
-        <path d="M${x} ${u} L${x + 36} ${o} L${x + 130} ${o} L${x + 94} ${u} Z" fill="#1E5FA8" stroke="#33415A" stroke-width="2"/>
+        <clipPath id="solar-clip"><path d="${flaeche}"/></clipPath>
+        <g transform="translate(${sx} ${sy})">
+          <circle id="solar-schein" r="26" fill="#FFC44D" opacity="0"/>
+          <g id="solar-sonne-aus"><circle r="10" fill="#3A4658"/>${strahlen("#55637A")}</g>
+          <g id="solar-sonne" opacity="0">
+            <circle r="10" fill="#FFC44D"/>
+            <g id="solar-strahlen">${strahlen("#FFC44D")}</g>
+          </g>
+        </g>
+        <path d="${flaeche}" fill="#1B3F66" stroke="#33415A" stroke-width="2"/>
+        <path id="solar-hell" d="${flaeche}" fill="#2470C2" opacity="0"/>
+        <g clip-path="url(#solar-clip)">
+          <path id="solar-glanz" opacity="0" d="M${x + 40} ${u} L${x + 66} ${o} L${x + 86} ${o} L${x + 60} ${u} Z" fill="#FFFFFF"/>
+        </g>
+        <path d="${flaeche}" fill="none" stroke="#33415A" stroke-width="2"/>
         ${laengs}${quer}`;
   },
   /** Bildart des Heizkreises: Platte, Glieder oder Fussbodenheizung. */
@@ -8598,6 +8711,24 @@ var LutarymHeatpumpCard = class extends HTMLElement {
         if (typeof state.winkel !== "number") state.winkel = 0;
         state.winkel = (state.winkel + deltaTime / state.duration * 360 + 360) % 360;
         el.setAttribute("transform", `rotate(${state.winkel.toFixed(2)} 0 0)`);
+      });
+      this._animState.forEach((state, id) => {
+        if (!state || state.type !== "flacker" && state.type !== "glanz") return;
+        const el = this._animEl(id);
+        if (!el) return;
+        const t2 = this._animTime;
+        if (state.type === "flacker") {
+          const sy = 1 + 0.09 * Math.sin(t2 * 9.1) + 0.05 * Math.sin(t2 * 14.3 + 1.3);
+          const sx = 1 - 0.05 * Math.sin(t2 * 11.7 + 0.7);
+          const kipp = 3 * Math.sin(t2 * 6.3);
+          el.setAttribute("transform", `skewX(${kipp.toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
+        } else {
+          const prog = t2 % 5 / 5;
+          const dx = -70 + prog * 170;
+          const op = prog < 0.2 ? prog / 0.2 : prog > 0.8 ? (1 - prog) / 0.2 : 1;
+          el.setAttribute("transform", `translate(${dx.toFixed(1)} 0)`);
+          el.setAttribute("opacity", (0.3 * op).toFixed(3));
+        }
       });
       this._animLoop = requestAnimationFrame(tick);
     };

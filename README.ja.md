@@ -103,6 +103,8 @@ entities:
 | `animate` | `true` | アニメーション：`true` オン、`false` オフ、`auto` 端末の設定（視差効果を減らす）に従う |
 | `hk1_style` から `hk4_style` | `platte` | 暖房回路の図：`platte` パネルラジエーター、`glieder` セクショナルラジエーター、`fbh` 床暖房 |
 | `extra_heat` | `aus` | バッファーの追加熱源：`aus`（オフ）、`kamin`（薪ストーブ）、`solar`（太陽熱）、`beide`（両方）。バッファーがある場合のみ |
+| `kamin_fire_temp` | `30` | 薪ストーブ温度（°C）がこの値以上になると炎を表示 |
+| `solar_sun_temp` | `30` | 集熱器温度（°C）がこの値以上になると太陽を表示 |
 | `demo` | `false` | 試用のための仮の値 |
 
 ### エンティティ
