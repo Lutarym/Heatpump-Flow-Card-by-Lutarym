@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.2.0";
+var CARD_VERSION = "5.2.1";
 var L = {
   W: 1650,
   H: 700,
@@ -613,6 +613,8 @@ var TEXTE = {
   w_22: { de: "Pumpe HK2", en: "Pump circuit 2", fr: "Pompe circuit 2", ja: "\u56DE\u8DEF2\u30DD\u30F3\u30D7" },
   w_23: { de: "Heizstab Heizung", en: "Heater, heating", fr: "Appoint chauffage", ja: "\u6696\u623F\u30D2\u30FC\u30BF\u30FC" },
   w_43: { de: "Heizstab l\xE4uft", en: "Heater running", fr: "Appoint en marche", ja: "\u30D2\u30FC\u30BF\u30FC\u904B\u8EE2\u4E2D" },
+  w_44: { de: "Pumpe Kamin", en: "Stove pump", fr: "Pompe po\xEAle", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u30DD\u30F3\u30D7" },
+  w_45: { de: "Pumpe Solarthermie", en: "Solar thermal pump", fr: "Pompe solaire thermique", ja: "\u592A\u967D\u71B1\u30DD\u30F3\u30D7" },
   w_24: { de: "Heizstab Warmwasser", en: "Heater, hot water", fr: "Appoint eau chaude", ja: "\u7D66\u6E6F\u30D2\u30FC\u30BF\u30FC" },
   w_25: { de: "Abtauung", en: "Defrost", fr: "D\xE9givrage", ja: "\u9664\u971C" },
   w_26: { de: "Zirkulation Status", en: "Circulation", fr: "Circulation", ja: "\u5FAA\u74B0" },
@@ -668,7 +670,7 @@ function tf(text, werte) {
     (_, k) => werte && werte[k] !== void 0 ? werte[k] : `{${k}}`
   );
 }
-var WERT_SCHLUESSEL = { "W\xE4rmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab Heizung": "w_23", "Heizstab Warmwasser": "w_24", "Heizstab l\xE4uft": "w_43", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Au\xDFen": "w_30", "Vorlauf": "w_31", "R\xFCcklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema": "w_38", "Vaillant, in Vorbereitung": "w_39", "Bosch, in Vorbereitung": "w_40", "Viessmann, in Vorbereitung": "w_41", "Stiebel Eltron, in Vorbereitung": "w_42", "Nur Heizen": "w_0", "Nur K\xFChlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "K\xFChlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik K\xFChlen": "w_7", "Automatik K\xFChlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "l\xE4uft": "w_18", "aus": "w_19" };
+var WERT_SCHLUESSEL = { "W\xE4rmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab Heizung": "w_23", "Heizstab Warmwasser": "w_24", "Heizstab l\xE4uft": "w_43", "Pumpe Kamin": "w_44", "Pumpe Solarthermie": "w_45", "Kamin": "kamin", "Solarthermie": "solarthermie", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Au\xDFen": "w_30", "Vorlauf": "w_31", "R\xFCcklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema": "w_38", "Vaillant, in Vorbereitung": "w_39", "Bosch, in Vorbereitung": "w_40", "Viessmann, in Vorbereitung": "w_41", "Stiebel Eltron, in Vorbereitung": "w_42", "Nur Heizen": "w_0", "Nur K\xFChlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "K\xFChlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik K\xFChlen": "w_7", "Automatik K\xFChlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "l\xE4uft": "w_18", "aus": "w_19" };
 function wertText(wert, sprache) {
   const k = WERT_SCHLUESSEL[wert];
   return k ? t(k, sprache) : wert;
@@ -3629,6 +3631,9 @@ var demoKarte = {
       ["dhw_force_state", "Aufheizen"],
       ["sterilization_state", "Legionellenschutz"]
     ];
+    const quellen = this._quellen();
+    if (quellen.includes("kamin")) schalter.push(["kamin_pump", "Pumpe Kamin"]);
+    if (quellen.includes("solar")) schalter.push(["solar_pump", "Pumpe Solarthermie"]);
     const regler = [
       ["pv_power", "PV Leistung", 0, 12e3],
       ["outside_temp", "Au\xDFen", -20, 40],
@@ -3641,6 +3646,8 @@ var demoKarte = {
       ["compressor", "Verdichter", 0, 90],
       ["pump_flow", "Durchfluss", 0, 40]
     ];
+    if (quellen.includes("kamin")) regler.push(["kamin_temp", "Kamin", 10, 90]);
+    if (quellen.includes("solar")) regler.push(["solar_temp", "Solarthermie", 0, 90]);
     host.innerHTML = `
       <div class="lhc-demo-kopf">
         <span class="lhc-field-label">${this._t("e_demo")}</span>

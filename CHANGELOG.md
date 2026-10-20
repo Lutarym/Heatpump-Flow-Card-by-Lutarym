@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.2.1
+
+- English: Demo mode: when stove or solar thermal is selected, the demo bar offers a switch for its pump and a slider for its temperature. So the fire and the sun can be tried out.
+- Deutsch: Demomodus: Ist Kamin oder Solarthermie gewählt, bietet die Demoleiste einen Schalter für die Pumpe und einen Regler für die Temperatur. So lassen sich Feuer und Sonne ausprobieren.
+- Français : mode démo : si le poêle ou le solaire thermique est choisi, la barre de démo propose un interrupteur pour sa pompe et un curseur pour sa température. Le feu et le soleil peuvent ainsi être essayés.
+- 日本語：デモモード：薪ストーブまたは太陽熱を選択している場合、デモバーにポンプのスイッチと温度のスライダーが表示されます。炎と太陽の表示を試せます。
+
 ## v5.2.0
 
 - English: New stove picture: a modern wood stove with a large viewing window, logs, ash drawer and flue pipe. From a set stove temperature (option `kamin_fire_temp`, default 30 °C) a fire burns in the window and flickers when animation is on. Solar thermal works the same way: from a set collector temperature (option `solar_sun_temp`, default 30 °C) the sun shines, its rays turn slowly and a light reflection moves across the collector. Below the limit the sun is grey. Both limits can be set in the editor next to the additional heat.

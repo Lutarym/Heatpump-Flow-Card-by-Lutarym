@@ -146,6 +146,10 @@ export const demoKarte = {
       ["dhw_force_state", "Aufheizen"],
       ["sterilization_state", "Legionellenschutz"],
     ];
+    // Kamin und Solarthermie nur, wenn sie im Editor gewaehlt sind.
+    const quellen = this._quellen();
+    if (quellen.includes("kamin")) schalter.push(["kamin_pump", "Pumpe Kamin"]);
+    if (quellen.includes("solar")) schalter.push(["solar_pump", "Pumpe Solarthermie"]);
     const regler = [
       ["pv_power", "PV Leistung", 0, 12000],
       ["outside_temp", "Außen", -20, 40],
@@ -158,6 +162,8 @@ export const demoKarte = {
       ["compressor", "Verdichter", 0, 90],
       ["pump_flow", "Durchfluss", 0, 40],
     ];
+    if (quellen.includes("kamin")) regler.push(["kamin_temp", "Kamin", 10, 90]);
+    if (quellen.includes("solar")) regler.push(["solar_temp", "Solarthermie", 0, 90]);
 
     host.innerHTML = `
       <div class="lhc-demo-kopf">
