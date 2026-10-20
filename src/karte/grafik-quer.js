@@ -552,9 +552,11 @@ ${kreise}`;
     return M.quellen
       .map((art, i) => {
         const yc = lagen[i];
-        const rand = art === "kamin" ? cx + 40 : cx + 58;
-        const vl = `M${rand} ${yc - 18} H ${M.BL}`;
-        const rl = `M${M.BL} ${yc + 18} H ${rand}`;
+        // Rechte Kante des Geraets auf Hoehe der Leitung. Der Kollektor
+        // ist schraeg, seine Kante liegt unten weiter links.
+        const kante = (y) => (art === "kamin" ? cx + 40 : this._solarKante(cx, yc, y));
+        const vl = `M${kante(yc - 18)} ${yc - 18} H ${M.BL}`;
+        const rl = `M${M.BL} ${yc + 18} H ${kante(yc + 18)}`;
         const ly = yc + (art === "kamin" ? 80 : 72);
         return `
       <g class="quelle" id="${art}-group">
@@ -614,52 +616,6 @@ ${kreise}`;
         </g>
         <rect x="${fx}" y="${t + 74}" width="62" height="24" rx="5" fill="#0F151E" stroke="#26303F" stroke-width="1.5"/>
         <line x1="${fx + 10}" y1="${t + 86}" x2="${fx + 52}" y2="${t + 86}" stroke="#33415A" stroke-width="3" stroke-linecap="round"/>`;
-  },
-
-  /**
-   * Solarkollektor mit Sonne. Ab der eingestellten Temperatur scheint
-   * die Sonne: sie leuchtet, die Strahlen drehen sich langsam und ein
-   * Lichtschein zieht ueber den Kollektor.
-   */
-  _solarBild(cx, yc) {
-    const x = cx - 65;
-    const u = yc + 50;
-    const o = yc - 40;
-    const sx = x + 4;
-    const sy = o - 18;
-    const strahlen = (farbe) =>
-      [0, 45, 90, 135, 180, 225, 270, 315]
-        .map((w) => {
-          const r = (w * Math.PI) / 180;
-          return `<line x1="${(Math.cos(r) * 14).toFixed(1)}" y1="${(Math.sin(r) * 14).toFixed(1)}"
-          x2="${(Math.cos(r) * 20).toFixed(1)}" y2="${(Math.sin(r) * 20).toFixed(1)}"
-          stroke="${farbe}" stroke-width="2.2" stroke-linecap="round"/>`;
-        })
-        .join("");
-    const laengs = [1, 2, 3, 4]
-      .map((i) => `<line x1="${x + (94 * i) / 5}" y1="${u}" x2="${x + 36 + (94 * i) / 5}" y2="${o}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`)
-      .join("");
-    const quer = [1, 2]
-      .map((i) => `<line x1="${x + (36 * i) / 3}" y1="${u - (90 * i) / 3}" x2="${x + 94 + (36 * i) / 3}" y2="${u - (90 * i) / 3}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`)
-      .join("");
-    const flaeche = `M${x} ${u} L${x + 36} ${o} L${x + 130} ${o} L${x + 94} ${u} Z`;
-    return `
-        <clipPath id="solar-clip"><path d="${flaeche}"/></clipPath>
-        <g transform="translate(${sx} ${sy})">
-          <circle id="solar-schein" r="26" fill="#FFC44D" opacity="0"/>
-          <g id="solar-sonne-aus"><circle r="10" fill="#3A4658"/>${strahlen("#55637A")}</g>
-          <g id="solar-sonne" opacity="0">
-            <circle r="10" fill="#FFC44D"/>
-            <g id="solar-strahlen">${strahlen("#FFC44D")}</g>
-          </g>
-        </g>
-        <path d="${flaeche}" fill="#1B3F66" stroke="#33415A" stroke-width="2"/>
-        <path id="solar-hell" d="${flaeche}" fill="#2470C2" opacity="0"/>
-        <g clip-path="url(#solar-clip)">
-          <path id="solar-glanz" opacity="0" d="M${x + 40} ${u} L${x + 66} ${o} L${x + 86} ${o} L${x + 60} ${u} Z" fill="#FFFFFF"/>
-        </g>
-        <path d="${flaeche}" fill="none" stroke="#33415A" stroke-width="2"/>
-        ${laengs}${quer}`;
   },
 
   /** Bildart des Heizkreises: Platte, Glieder oder Fussbodenheizung. */

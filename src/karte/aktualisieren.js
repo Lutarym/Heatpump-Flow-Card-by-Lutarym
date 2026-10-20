@@ -723,31 +723,6 @@ export const aktualisierenKarte = {
     }
   },
 
-  /** Sonne ueber der Solarthermie: scheint ab der Grenze. */
-  _solarSonne(an, animate) {
-    const deck = (id, wert) => {
-      const el = this._animEl(id);
-      if (el) el.setAttribute("opacity", wert);
-    };
-    deck("solar-sonne", an ? "1" : "0");
-    deck("solar-sonne-aus", an ? "0" : "1");
-    deck("solar-hell", an ? "1" : "0");
-    if (an && animate) {
-      const da = this._animState.get("solar-strahlen");
-      if (!da || da.type !== "spin") this._animState.set("solar-strahlen", { type: "spin", duration: 14, winkel: 0 });
-      this._animState.set("solar-schein", { type: "pulse", duration: 3, min: 0.08, max: 0.3 });
-      this._animState.set("solar-glanz", { type: "glanz" });
-    } else {
-      ["solar-strahlen", "solar-schein", "solar-glanz"].forEach((id) => this._animState.delete(id));
-      const str = this._animEl("solar-strahlen");
-      if (str) str.removeAttribute("transform");
-      deck("solar-schein", an ? "0.2" : "0");
-      const gl = this._animEl("solar-glanz");
-      if (gl) gl.removeAttribute("transform");
-      deck("solar-glanz", an ? "0.22" : "0");
-    }
-  },
-
   _circuitUpdate(n, col, animate, buf, laeuft) {
     const hass = this._quelle;
     const sr = this.shadowRoot;

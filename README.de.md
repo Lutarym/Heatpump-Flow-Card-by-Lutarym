@@ -105,6 +105,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `extra_heat` | `aus` | Zusatzwärme am Puffer: `aus`, `kamin`, `solar`, `beide`. Nur mit Heizungspuffer |
 | `kamin_fire_temp` | `30` | Ab dieser Kamintemperatur in °C lodert das Feuer im Kamin |
 | `solar_sun_temp` | `30` | Ab dieser Kollektortemperatur in °C scheint die Sonne über der Solarthermie |
+| `solar_style` | `strahlen` | Darstellung der Solarthermie: `strahlen` (Lichtstrahlen und Zellenwelle), `funkeln` (Aufwärmen und Funkeln), `roehren` (Röhrenkollektor) |
 | `demo` | `false` | Beispielwerte zum Ausprobieren |
 
 ### Entitäten

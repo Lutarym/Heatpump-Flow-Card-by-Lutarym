@@ -191,6 +191,14 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_sonne_ab")}<em>${this._t("e_sonne_ab_h")}</em></span>
             <input type="number" id="opt-sonne" step="1">
           </label>
+          <label class="ed-row" data-zusatz-zeile="solar">
+            <span>${this._t("e_solarstil")}<em>${this._t("e_solarstil_h")}</em></span>
+            <select id="opt-solarstil">
+              <option value="strahlen">${this._t("o_solar_strahlen")}</option>
+              <option value="funkeln">${this._t("o_solar_funkeln")}</option>
+              <option value="roehren">${this._t("o_solar_roehren")}</option>
+            </select>
+          </label>
           <label class="ed-row">
             <span>${this._t("e_zirk")}<em>${this._t("e_zirk_h")}</em></span>
             <select id="opt-zirk">
@@ -453,6 +461,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     [1, 2, 3, 4].forEach((n) => bind(`opt-hk${n}-stil`, (el) => put({ [`hk${n}_style`]: el.value })));
     bind("opt-zusatz", (el) => { put({ extra_heat: el.value }); this._syncValues(); });
     bind("opt-feuer", (el) => { const v = parseFloat(el.value); if (Number.isFinite(v)) put({ kamin_fire_temp: v }); });
+    bind("opt-solarstil", (el) => put({ solar_style: el.value }));
     bind("opt-sonne", (el) => { const v = parseFloat(el.value); if (Number.isFinite(v)) put({ solar_sun_temp: v }); });
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
@@ -707,6 +716,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     const zusatz = this._config.extra_heat || "aus";
     put("opt-feuer", this._config.kamin_fire_temp ?? 30);
     put("opt-sonne", this._config.solar_sun_temp ?? 30);
+    put("opt-solarstil", this._config.solar_style || "strahlen");
     // Grenzen fuer Feuer und Sonne nur, wenn Kamin oder Solarthermie genutzt.
     sr.querySelectorAll("[data-zusatz-zeile]").forEach((z) => {
       const art = z.dataset.zusatzZeile;

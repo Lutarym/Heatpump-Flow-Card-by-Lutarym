@@ -105,6 +105,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `extra_heat` | `aus` | Additional heat at the buffer: `aus` (off), `kamin` (stove), `solar`, `beide` (both). Only with a heating buffer |
 | `kamin_fire_temp` | `30` | From this stove temperature in °C the fire burns in the stove |
 | `solar_sun_temp` | `30` | From this collector temperature in °C the sun shines above the solar thermal collector |
+| `solar_style` | `strahlen` | Solar thermal style: `strahlen` (light rays and cell wave), `funkeln` (warming and sparkle), `roehren` (tube collector) |
 | `demo` | `false` | Sample values for trying out |
 
 ### Entities

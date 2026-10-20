@@ -15,6 +15,7 @@ import { grafikQuerKarte } from "./grafik-quer.js";
 import { heizkurveKarte } from "./heizkurve.js";
 import { hilfeKarte } from "./hilfe.js";
 import { kennzahlenKarte } from "./kennzahlen.js";
+import { solarKarte } from "./solar.js";
 import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { verlaufKarte } from "./verlauf.js";
@@ -595,24 +596,21 @@ export class LutarymHeatpumpCard extends HTMLElement {
       });
 
       // Feuer flackern: Flammen strecken und stauchen sich unregelmaessig.
-      // Lichtschein: zieht ueber den Solarkollektor und blendet aus.
+      // Solarthermie: Effekte der gewaehlten Darstellung.
       this._animState.forEach((state, id) => {
-        if (!state || (state.type !== "flacker" && state.type !== "glanz")) return;
+        if (!state) return;
+        if (state.type === "solar") {
+          this._solarBildFrame(this._animTime);
+          return;
+        }
+        if (state.type !== "flacker") return;
         const el = this._animEl(id);
         if (!el) return;
         const t = this._animTime;
-        if (state.type === "flacker") {
-          const sy = 1 + 0.09 * Math.sin(t * 9.1) + 0.05 * Math.sin(t * 14.3 + 1.3);
-          const sx = 1 - 0.05 * Math.sin(t * 11.7 + 0.7);
-          const kipp = 3 * Math.sin(t * 6.3);
-          el.setAttribute("transform", `skewX(${kipp.toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
-        } else {
-          const prog = (t % 5) / 5;
-          const dx = -70 + prog * 170;
-          const op = prog < 0.2 ? prog / 0.2 : prog > 0.8 ? (1 - prog) / 0.2 : 1;
-          el.setAttribute("transform", `translate(${dx.toFixed(1)} 0)`);
-          el.setAttribute("opacity", (0.3 * op).toFixed(3));
-        }
+        const sy = 1 + 0.09 * Math.sin(t * 9.1) + 0.05 * Math.sin(t * 14.3 + 1.3);
+        const sx = 1 - 0.05 * Math.sin(t * 11.7 + 0.7);
+        const kipp = 3 * Math.sin(t * 6.3);
+        el.setAttribute("transform", `skewX(${kipp.toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
       });
 
       this._animLoop = requestAnimationFrame(tick);
@@ -633,6 +631,7 @@ Object.assign(
   tuerKarte,
   grafikQuerKarte,
   grafikKlassischKarte,
+  solarKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte

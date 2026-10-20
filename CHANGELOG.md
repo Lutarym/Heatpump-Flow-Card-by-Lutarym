@@ -2,6 +2,24 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.3.0
+
+- English: Solar thermal now offers three styles, selectable in the editor (option `solar_style`): light rays and cell wave (default, rays fall from the sun onto the collector, the cells light up as a wave, heat rises), warming and sparkle (the collector warms from the top, the glass sparkles, heat shimmers above it), tube collector (vacuum tubes in which glowing heat rises). All three appear from the set collector temperature; with animation off they show a still image.
+- Deutsch: Die Solarthermie bietet jetzt drei Darstellungen, im Editor wählbar (Option `solar_style`): Lichtstrahlen und Zellenwelle (Standard, Strahlen fallen von der Sonne auf den Kollektor, die Felder leuchten als Welle auf, Wärme steigt auf), Aufwärmen und Funkeln (der Kollektor wird von oben warm, das Glas funkelt, darüber flimmert Hitze), Röhrenkollektor (Vakuumröhren, in denen leuchtende Wärme nach oben steigt). Alle drei erscheinen ab der eingestellten Kollektortemperatur; ohne Animation zeigen sie ein Standbild.
+- Français : le solaire thermique propose maintenant trois styles, au choix dans l'éditeur (option `solar_style`) : rayons et vague de cellules (par défaut, les rayons tombent du soleil sur le capteur, les cellules s'allument en vague, la chaleur monte), réchauffement et scintillement (le capteur se réchauffe par le haut, le verre scintille, la chaleur ondule au-dessus), capteur à tubes (tubes sous vide où la chaleur lumineuse monte). Les trois apparaissent à partir de la température réglée du capteur ; sans animation, ils affichent une image fixe.
+- 日本語：太陽熱の表示を 3 種類から選べるようになりました（エディター、オプション `solar_style`）：光線とセルの波（既定。太陽から集熱器へ光線が落ち、セルが波のように光り、熱が立ち上ります）、加熱ときらめき（集熱器が上から温まり、ガラスがきらめき、上に陽炎が揺れます）、真空管集熱器（管の中を光る熱が上昇します）。いずれも設定した集熱器温度以上で表示され、アニメーション無効時は静止画になります。
+
+## v5.2.3
+
+- English: Demo mode: with 3 or 4 heating circuits the demo bar offers switches for the pumps and sliders for the water temperature of circuits 3 and 4.
+- English: Fixed: in landscape both pipes of the solar thermal collector now reach its slanted edge.
+- Deutsch: Demomodus: Bei 3 oder 4 Heizkreisen bietet die Demoleiste Schalter für die Pumpen und Regler für die Wassertemperatur von Heizkreis 3 und 4.
+- Deutsch: Behoben: Im Querformat reichen beide Leitungen der Solarthermie jetzt bis an die schräge Kante des Kollektors.
+- Français : mode démo : avec 3 ou 4 circuits, la barre de démo propose des interrupteurs pour les pompes et des curseurs pour la température d'eau des circuits 3 et 4.
+- Français : corrigé : en paysage, les deux conduites du solaire thermique atteignent désormais le bord oblique du capteur.
+- 日本語：デモモード：暖房回路が 3 または 4 の場合、デモバーに回路 3 と 4 のポンプのスイッチと水温のスライダーが表示されます。
+- 日本語：修正：横レイアウトで太陽熱集熱器の 2 本の配管が斜めの縁まで届くようにしました。
+
 ## v5.2.2
 
 - English: Fixed: in landscape the moving dots of heating circuits 1 and 3 were hidden. The pipe of the circuit next to them lay on top of the shared section. Now all pipes are drawn first and all moving dots above them, for all 4 circuits.

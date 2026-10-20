@@ -105,6 +105,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `extra_heat` | `aus` | Chaleur d'appoint au ballon tampon : `aus` (arrêt), `kamin` (poêle), `solar`, `beide` (les deux). Uniquement avec ballon tampon |
 | `kamin_fire_temp` | `30` | À partir de cette température du poêle en °C, le feu brûle dans le poêle |
 | `solar_sun_temp` | `30` | À partir de cette température du capteur en °C, le soleil brille au-dessus du solaire thermique |
+| `solar_style` | `strahlen` | Style du solaire thermique : `strahlen` (rayons et vague de cellules), `funkeln` (réchauffement et scintillement), `roehren` (capteur à tubes) |
 | `demo` | `false` | Valeurs d'exemple pour essayer |
 
 ### Entités

@@ -148,6 +148,10 @@ export const demoKarte = {
     ];
     // Kamin und Solarthermie nur, wenn sie im Editor gewaehlt sind.
     const quellen = this._quellen();
+    // Heizkreis 3 und 4 nur, wenn so viele Heizkreise eingestellt sind.
+    const hk = this._hkAnzahl();
+    if (hk >= 3) schalter.splice(3, 0, ["hk3_pump", "Pumpe HK3"]);
+    if (hk >= 4) schalter.splice(4, 0, ["hk4_pump", "Pumpe HK4"]);
     if (quellen.includes("kamin")) schalter.push(["kamin_pump", "Pumpe Kamin"]);
     if (quellen.includes("solar")) schalter.push(["solar_pump", "Pumpe Solarthermie"]);
     const regler = [
@@ -162,6 +166,8 @@ export const demoKarte = {
       ["compressor", "Verdichter", 0, 90],
       ["pump_flow", "Durchfluss", 0, 40],
     ];
+    if (hk >= 3) regler.splice(8, 0, ["hk3_water", "HK3 Wasser", 15, 60]);
+    if (hk >= 4) regler.splice(9, 0, ["hk4_water", "HK4 Wasser", 15, 60]);
     if (quellen.includes("kamin")) regler.push(["kamin_temp", "Kamin", 10, 90]);
     if (quellen.includes("solar")) regler.push(["solar_temp", "Solarthermie", 0, 90]);
 
@@ -220,6 +226,8 @@ export const demoKarte = {
         this._demoSetze("power_now", 0);
         this._demoSetze("hk1_pump", 0);
         this._demoSetze("hk2_pump", 0);
+        this._demoSetze("hk3_pump", 0);
+        this._demoSetze("hk4_pump", 0);
         this._demoSetze("circulation_pump", 0);
       } else {
         this._demoSetze("compressor", 42);
@@ -230,6 +238,8 @@ export const demoKarte = {
         this._demoSetze("power_now", 1240);
         this._demoSetze("hk1_pump", 1);
         this._demoSetze("hk2_pump", 0);
+        this._demoSetze("hk3_pump", 1);
+        this._demoSetze("hk4_pump", 0);
       }
       this._syncDemo();
     });

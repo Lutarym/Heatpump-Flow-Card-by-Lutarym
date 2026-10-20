@@ -186,5 +186,6 @@ export const DEFAULT_CONFIG = {
   extra_heat: "aus",
   kamin_fire_temp: 30,
   solar_sun_temp: 30,
+  solar_style: "strahlen",
   entities: {},
 };

@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.2.2";
+var CARD_VERSION = "5.3.0";
 var L = {
   W: 1650,
   H: 700,
@@ -486,6 +486,11 @@ var TEXTE = {
   e_feuer_ab_h: { de: "\xB0C Kamintemperatur, Standard 30", en: "\xB0C stove temperature, default 30", fr: "\xB0C temp\xE9rature du po\xEAle, 30 par d\xE9faut", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u6E29\u5EA6 \xB0C\u3001\u65E2\u5B9A 30" },
   e_sonne_ab: { de: "Sonne \xFCber Solarthermie ab", en: "Sun above solar thermal from", fr: "Soleil sur le solaire thermique \xE0 partir de", ja: "\u592A\u967D\u71B1\u306E\u592A\u967D\u8868\u793A\u6E29\u5EA6" },
   e_sonne_ab_h: { de: "\xB0C Kollektortemperatur, Standard 30", en: "\xB0C collector temperature, default 30", fr: "\xB0C temp\xE9rature du capteur, 30 par d\xE9faut", ja: "\u96C6\u71B1\u5668\u6E29\u5EA6 \xB0C\u3001\u65E2\u5B9A 30" },
+  e_solarstil: { de: "Solarthermie Darstellung", en: "Solar thermal style", fr: "Style du solaire thermique", ja: "\u592A\u967D\u71B1\u306E\u8868\u793A" },
+  e_solarstil_h: { de: "Bild und Animation, wenn die Sonne scheint", en: "picture and animation while the sun shines", fr: "image et animation quand le soleil brille", ja: "\u592A\u967D\u304C\u51FA\u3066\u3044\u308B\u3068\u304D\u306E\u56F3\u3068\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3" },
+  o_solar_strahlen: { de: "Lichtstrahlen und Zellenwelle", en: "Light rays and cell wave", fr: "Rayons et vague de cellules", ja: "\u5149\u7DDA\u3068\u30BB\u30EB\u306E\u6CE2" },
+  o_solar_funkeln: { de: "Aufw\xE4rmen und Funkeln", en: "Warming and sparkle", fr: "R\xE9chauffement et scintillement", ja: "\u52A0\u71B1\u3068\u304D\u3089\u3081\u304D" },
+  o_solar_roehren: { de: "R\xF6hrenkollektor", en: "Tube collector", fr: "Capteur \xE0 tubes", ja: "\u771F\u7A7A\u7BA1\u96C6\u71B1\u5668" },
   e_zusatz_beide: { de: "Kamin und Solarthermie", en: "Stove and solar thermal", fr: "Po\xEAle et solaire thermique", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u3068\u592A\u967D\u71B1" },
   e_3hk: { de: "3 Heizkreise", en: "3 circuits", fr: "3 circuits", ja: "3\u56DE\u8DEF" },
   e_4hk: { de: "4 Heizkreise", en: "4 circuits", fr: "4 circuits", ja: "4\u56DE\u8DEF" },
@@ -615,6 +620,10 @@ var TEXTE = {
   w_43: { de: "Heizstab l\xE4uft", en: "Heater running", fr: "Appoint en marche", ja: "\u30D2\u30FC\u30BF\u30FC\u904B\u8EE2\u4E2D" },
   w_44: { de: "Pumpe Kamin", en: "Stove pump", fr: "Pompe po\xEAle", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u30DD\u30F3\u30D7" },
   w_45: { de: "Pumpe Solarthermie", en: "Solar thermal pump", fr: "Pompe solaire thermique", ja: "\u592A\u967D\u71B1\u30DD\u30F3\u30D7" },
+  w_46: { de: "Pumpe HK3", en: "Pump circuit 3", fr: "Pompe circuit 3", ja: "\u56DE\u8DEF3\u30DD\u30F3\u30D7" },
+  w_47: { de: "Pumpe HK4", en: "Pump circuit 4", fr: "Pompe circuit 4", ja: "\u56DE\u8DEF4\u30DD\u30F3\u30D7" },
+  w_48: { de: "HK3 Wasser", en: "Circuit 3 water", fr: "Circuit 3 eau", ja: "\u56DE\u8DEF3 \u6C34\u6E29" },
+  w_49: { de: "HK4 Wasser", en: "Circuit 4 water", fr: "Circuit 4 eau", ja: "\u56DE\u8DEF4 \u6C34\u6E29" },
   w_24: { de: "Heizstab Warmwasser", en: "Heater, hot water", fr: "Appoint eau chaude", ja: "\u7D66\u6E6F\u30D2\u30FC\u30BF\u30FC" },
   w_25: { de: "Abtauung", en: "Defrost", fr: "D\xE9givrage", ja: "\u9664\u971C" },
   w_26: { de: "Zirkulation Status", en: "Circulation", fr: "Circulation", ja: "\u5FAA\u74B0" },
@@ -670,7 +679,7 @@ function tf(text, werte) {
     (_, k) => werte && werte[k] !== void 0 ? werte[k] : `{${k}}`
   );
 }
-var WERT_SCHLUESSEL = { "W\xE4rmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab Heizung": "w_23", "Heizstab Warmwasser": "w_24", "Heizstab l\xE4uft": "w_43", "Pumpe Kamin": "w_44", "Pumpe Solarthermie": "w_45", "Kamin": "kamin", "Solarthermie": "solarthermie", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Au\xDFen": "w_30", "Vorlauf": "w_31", "R\xFCcklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema": "w_38", "Vaillant, in Vorbereitung": "w_39", "Bosch, in Vorbereitung": "w_40", "Viessmann, in Vorbereitung": "w_41", "Stiebel Eltron, in Vorbereitung": "w_42", "Nur Heizen": "w_0", "Nur K\xFChlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "K\xFChlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik K\xFChlen": "w_7", "Automatik K\xFChlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "l\xE4uft": "w_18", "aus": "w_19" };
+var WERT_SCHLUESSEL = { "W\xE4rmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab Heizung": "w_23", "Heizstab Warmwasser": "w_24", "Heizstab l\xE4uft": "w_43", "Pumpe Kamin": "w_44", "Pumpe Solarthermie": "w_45", "Pumpe HK3": "w_46", "Pumpe HK4": "w_47", "HK3 Wasser": "w_48", "HK4 Wasser": "w_49", "Kamin": "kamin", "Solarthermie": "solarthermie", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Au\xDFen": "w_30", "Vorlauf": "w_31", "R\xFCcklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema": "w_38", "Vaillant, in Vorbereitung": "w_39", "Bosch, in Vorbereitung": "w_40", "Viessmann, in Vorbereitung": "w_41", "Stiebel Eltron, in Vorbereitung": "w_42", "Nur Heizen": "w_0", "Nur K\xFChlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "K\xFChlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik K\xFChlen": "w_7", "Automatik K\xFChlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "l\xE4uft": "w_18", "aus": "w_19" };
 function wertText(wert, sprache) {
   const k = WERT_SCHLUESSEL[wert];
   return k ? t(k, sprache) : wert;
@@ -1145,6 +1154,7 @@ var DEFAULT_CONFIG = {
   extra_heat: "aus",
   kamin_fire_temp: 30,
   solar_sun_temp: 30,
+  solar_style: "strahlen",
   entities: {}
 };
 
@@ -2245,6 +2255,14 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
             <span>${this._t("e_sonne_ab")}<em>${this._t("e_sonne_ab_h")}</em></span>
             <input type="number" id="opt-sonne" step="1">
           </label>
+          <label class="ed-row" data-zusatz-zeile="solar">
+            <span>${this._t("e_solarstil")}<em>${this._t("e_solarstil_h")}</em></span>
+            <select id="opt-solarstil">
+              <option value="strahlen">${this._t("o_solar_strahlen")}</option>
+              <option value="funkeln">${this._t("o_solar_funkeln")}</option>
+              <option value="roehren">${this._t("o_solar_roehren")}</option>
+            </select>
+          </label>
           <label class="ed-row">
             <span>${this._t("e_zirk")}<em>${this._t("e_zirk_h")}</em></span>
             <select id="opt-zirk">
@@ -2507,6 +2525,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
       const v = parseFloat(el.value);
       if (Number.isFinite(v)) put({ kamin_fire_temp: v });
     });
+    bind("opt-solarstil", (el) => put({ solar_style: el.value }));
     bind("opt-sonne", (el) => {
       const v = parseFloat(el.value);
       if (Number.isFinite(v)) put({ solar_sun_temp: v });
@@ -2735,6 +2754,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     const zusatz = this._config.extra_heat || "aus";
     put("opt-feuer", this._config.kamin_fire_temp ?? 30);
     put("opt-sonne", this._config.solar_sun_temp ?? 30);
+    put("opt-solarstil", this._config.solar_style || "strahlen");
     sr.querySelectorAll("[data-zusatz-zeile]").forEach((z) => {
       const art = z.dataset.zusatzZeile;
       z.style.display = zusatz === art || zusatz === "beide" ? "" : "none";
@@ -3335,30 +3355,6 @@ var aktualisierenKarte = {
       if (glut) glut.setAttribute("opacity", "0.3");
     }
   },
-  /** Sonne ueber der Solarthermie: scheint ab der Grenze. */
-  _solarSonne(an, animate) {
-    const deck = (id, wert) => {
-      const el = this._animEl(id);
-      if (el) el.setAttribute("opacity", wert);
-    };
-    deck("solar-sonne", an ? "1" : "0");
-    deck("solar-sonne-aus", an ? "0" : "1");
-    deck("solar-hell", an ? "1" : "0");
-    if (an && animate) {
-      const da = this._animState.get("solar-strahlen");
-      if (!da || da.type !== "spin") this._animState.set("solar-strahlen", { type: "spin", duration: 14, winkel: 0 });
-      this._animState.set("solar-schein", { type: "pulse", duration: 3, min: 0.08, max: 0.3 });
-      this._animState.set("solar-glanz", { type: "glanz" });
-    } else {
-      ["solar-strahlen", "solar-schein", "solar-glanz"].forEach((id) => this._animState.delete(id));
-      const str = this._animEl("solar-strahlen");
-      if (str) str.removeAttribute("transform");
-      deck("solar-schein", an ? "0.2" : "0");
-      const gl = this._animEl("solar-glanz");
-      if (gl) gl.removeAttribute("transform");
-      deck("solar-glanz", an ? "0.22" : "0");
-    }
-  },
   _circuitUpdate(n, col, animate, buf, laeuft) {
     const hass = this._quelle;
     const sr = this.shadowRoot;
@@ -3632,6 +3628,9 @@ var demoKarte = {
       ["sterilization_state", "Legionellenschutz"]
     ];
     const quellen = this._quellen();
+    const hk = this._hkAnzahl();
+    if (hk >= 3) schalter.splice(3, 0, ["hk3_pump", "Pumpe HK3"]);
+    if (hk >= 4) schalter.splice(4, 0, ["hk4_pump", "Pumpe HK4"]);
     if (quellen.includes("kamin")) schalter.push(["kamin_pump", "Pumpe Kamin"]);
     if (quellen.includes("solar")) schalter.push(["solar_pump", "Pumpe Solarthermie"]);
     const regler = [
@@ -3646,6 +3645,8 @@ var demoKarte = {
       ["compressor", "Verdichter", 0, 90],
       ["pump_flow", "Durchfluss", 0, 40]
     ];
+    if (hk >= 3) regler.splice(8, 0, ["hk3_water", "HK3 Wasser", 15, 60]);
+    if (hk >= 4) regler.splice(9, 0, ["hk4_water", "HK4 Wasser", 15, 60]);
     if (quellen.includes("kamin")) regler.push(["kamin_temp", "Kamin", 10, 90]);
     if (quellen.includes("solar")) regler.push(["solar_temp", "Solarthermie", 0, 90]);
     host.innerHTML = `
@@ -3695,6 +3696,8 @@ var demoKarte = {
         this._demoSetze("power_now", 0);
         this._demoSetze("hk1_pump", 0);
         this._demoSetze("hk2_pump", 0);
+        this._demoSetze("hk3_pump", 0);
+        this._demoSetze("hk4_pump", 0);
         this._demoSetze("circulation_pump", 0);
       } else {
         this._demoSetze("compressor", 42);
@@ -3705,6 +3708,8 @@ var demoKarte = {
         this._demoSetze("power_now", 1240);
         this._demoSetze("hk1_pump", 1);
         this._demoSetze("hk2_pump", 0);
+        this._demoSetze("hk3_pump", 1);
+        this._demoSetze("hk4_pump", 0);
       }
       this._syncDemo();
     });
@@ -5900,9 +5905,9 @@ ${kreise}`;
     const cx = M.BL - 122;
     return M.quellen.map((art, i) => {
       const yc = lagen[i];
-      const rand = art === "kamin" ? cx + 40 : cx + 58;
-      const vl = `M${rand} ${yc - 18} H ${M.BL}`;
-      const rl = `M${M.BL} ${yc + 18} H ${rand}`;
+      const kante = (y) => art === "kamin" ? cx + 40 : this._solarKante(cx, yc, y);
+      const vl = `M${kante(yc - 18)} ${yc - 18} H ${M.BL}`;
+      const rl = `M${M.BL} ${yc + 18} H ${kante(yc + 18)}`;
       const ly = yc + (art === "kamin" ? 80 : 72);
       return `
       <g class="quelle" id="${art}-group">
@@ -5960,44 +5965,6 @@ ${kreise}`;
         </g>
         <rect x="${fx}" y="${t2 + 74}" width="62" height="24" rx="5" fill="#0F151E" stroke="#26303F" stroke-width="1.5"/>
         <line x1="${fx + 10}" y1="${t2 + 86}" x2="${fx + 52}" y2="${t2 + 86}" stroke="#33415A" stroke-width="3" stroke-linecap="round"/>`;
-  },
-  /**
-   * Solarkollektor mit Sonne. Ab der eingestellten Temperatur scheint
-   * die Sonne: sie leuchtet, die Strahlen drehen sich langsam und ein
-   * Lichtschein zieht ueber den Kollektor.
-   */
-  _solarBild(cx, yc) {
-    const x = cx - 65;
-    const u = yc + 50;
-    const o = yc - 40;
-    const sx = x + 4;
-    const sy = o - 18;
-    const strahlen = (farbe) => [0, 45, 90, 135, 180, 225, 270, 315].map((w) => {
-      const r = w * Math.PI / 180;
-      return `<line x1="${(Math.cos(r) * 14).toFixed(1)}" y1="${(Math.sin(r) * 14).toFixed(1)}"
-          x2="${(Math.cos(r) * 20).toFixed(1)}" y2="${(Math.sin(r) * 20).toFixed(1)}"
-          stroke="${farbe}" stroke-width="2.2" stroke-linecap="round"/>`;
-    }).join("");
-    const laengs = [1, 2, 3, 4].map((i) => `<line x1="${x + 94 * i / 5}" y1="${u}" x2="${x + 36 + 94 * i / 5}" y2="${o}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`).join("");
-    const quer = [1, 2].map((i) => `<line x1="${x + 36 * i / 3}" y1="${u - 90 * i / 3}" x2="${x + 94 + 36 * i / 3}" y2="${u - 90 * i / 3}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`).join("");
-    const flaeche = `M${x} ${u} L${x + 36} ${o} L${x + 130} ${o} L${x + 94} ${u} Z`;
-    return `
-        <clipPath id="solar-clip"><path d="${flaeche}"/></clipPath>
-        <g transform="translate(${sx} ${sy})">
-          <circle id="solar-schein" r="26" fill="#FFC44D" opacity="0"/>
-          <g id="solar-sonne-aus"><circle r="10" fill="#3A4658"/>${strahlen("#55637A")}</g>
-          <g id="solar-sonne" opacity="0">
-            <circle r="10" fill="#FFC44D"/>
-            <g id="solar-strahlen">${strahlen("#FFC44D")}</g>
-          </g>
-        </g>
-        <path d="${flaeche}" fill="#1B3F66" stroke="#33415A" stroke-width="2"/>
-        <path id="solar-hell" d="${flaeche}" fill="#2470C2" opacity="0"/>
-        <g clip-path="url(#solar-clip)">
-          <path id="solar-glanz" opacity="0" d="M${x + 40} ${u} L${x + 66} ${o} L${x + 86} ${o} L${x + 60} ${u} Z" fill="#FFFFFF"/>
-        </g>
-        <path d="${flaeche}" fill="none" stroke="#33415A" stroke-width="2"/>
-        ${laengs}${quer}`;
   },
   /** Bildart des Heizkreises: Platte, Glieder oder Fussbodenheizung. */
   _heizStil(n) {
@@ -6826,6 +6793,221 @@ var kennzahlenKarte = {
     if (seit) {
       seit.textContent = frueh === null ? "" : tf(this._t("j_seit"), {
         v: new Date(frueh).toLocaleDateString(this._sp(), { day: "2-digit", month: "2-digit", year: "numeric" })
+      });
+    }
+  }
+};
+
+// src/karte/solar.js
+var STILE = ["strahlen", "funkeln", "roehren"];
+var ZELLEN = 15;
+var FUNKEN = [[0.2, 0.3], [0.55, 0.7], [0.8, 0.25], [0.4, 0.55], [0.7, 0.45]];
+var ROEHREN = 6;
+var solarKarte = {
+  /** Gewaehlte Darstellung der Solarthermie. */
+  _solarStil() {
+    const s = this._config.solar_style;
+    return STILE.includes(s) ? s : "strahlen";
+  },
+  /**
+   * Rechte Kante des Kollektors auf Hoehe y, fuer den Anschluss der
+   * Leitungen. Der Kollektor ist schraeg, unten liegt die Kante weiter links.
+   */
+  _solarKante(cx, yc, y) {
+    const kante = cx + 65 - 36 * (y - (yc - 40)) / 90;
+    return Math.round(this._solarStil() === "roehren" ? kante - 4 : kante);
+  },
+  /** Kollektor mit Sonne. Die Effekte liegen unsichtbar bereit. */
+  _solarBild(cx, yc) {
+    const stil = this._solarStil();
+    const x = cx - 65;
+    const u = yc + 50;
+    const o = yc - 40;
+    const sx = x + 4;
+    const sy = o - 18;
+    const strahlen = (farbe) => [0, 45, 90, 135, 180, 225, 270, 315].map((w) => {
+      const r = w * Math.PI / 180;
+      return `<line x1="${(Math.cos(r) * 14).toFixed(1)}" y1="${(Math.sin(r) * 14).toFixed(1)}"
+          x2="${(Math.cos(r) * 20).toFixed(1)}" y2="${(Math.sin(r) * 20).toFixed(1)}"
+          stroke="${farbe}" stroke-width="2.2" stroke-linecap="round"/>`;
+    }).join("");
+    const sonne = `
+        <g transform="translate(${sx} ${sy})">
+          <circle id="solar-schein" r="28" fill="#FFC44D" opacity="0"/>
+          <g id="solar-sonne-aus"><circle r="10" fill="#3A4658"/>${strahlen("#55637A")}</g>
+          <g id="solar-sonne" opacity="0">
+            <circle r="10" fill="#FFD966"/>
+            <g id="solar-strahlen">${strahlen("#FFC44D")}</g>
+          </g>
+        </g>`;
+    const daten = `data-x="${x}" data-u="${u}" data-o="${o}" data-sx="${sx}" data-sy="${sy}"`;
+    if (stil === "roehren") {
+      let roehren = "";
+      let hell = "";
+      let punkte = "";
+      for (let i = 0; i < ROEHREN; i++) {
+        const bx = x + 8 + i * 15.5;
+        const tx = bx + 36;
+        roehren += `<line x1="${bx}" y1="${u}" x2="${tx}" y2="${o}" stroke="#1E5FA8" stroke-width="11" stroke-linecap="round"/>
+          <line x1="${bx}" y1="${u}" x2="${tx}" y2="${o}" stroke="#16324F" stroke-width="5" stroke-linecap="round"/>`;
+        hell += `<line x1="${bx}" y1="${u}" x2="${tx}" y2="${o}" stroke="#3A8FE0" stroke-width="5" stroke-linecap="round"/>`;
+        for (let k = 0; k < 3; k++) {
+          punkte += `<circle id="solar-c-${i}-${k}" r="2.6" fill="#FFB070" cx="${bx}" cy="${u}"/>`;
+        }
+      }
+      return `${sonne}
+        <rect x="${x + 38}" y="${o - 8}" width="100" height="10" rx="4" fill="#26303F" stroke="#33415A" stroke-width="2"/>
+        ${roehren}
+        <g id="solar-hell" opacity="0">${hell}</g>
+        <g id="solar-effekt" opacity="0" ${daten}>${punkte}</g>
+        <rect x="${x}" y="${u}" width="100" height="6" rx="3" fill="#26303F"/>`;
+    }
+    const flaeche = `M${x} ${u} L${x + 36} ${o} L${x + 130} ${o} L${x + 94} ${u} Z`;
+    const laengs = [1, 2, 3, 4].map((i) => `<line x1="${x + 94 * i / 5}" y1="${u}" x2="${x + 36 + 94 * i / 5}" y2="${o}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`).join("");
+    const quer = [1, 2].map((i) => `<line x1="${x + 36 * i / 3}" y1="${u - 90 * i / 3}" x2="${x + 94 + 36 * i / 3}" y2="${u - 90 * i / 3}" stroke="#8FA8C8" stroke-width="1" opacity="0.6"/>`).join("");
+    if (stil === "funkeln") {
+      const funken = FUNKEN.map(
+        (_, i) => `<path id="solar-b-funke${i}" d="M0 -7 L2 -2 L7 0 L2 2 L0 7 L-2 2 L-7 0 L-2 -2 Z" fill="#FFFFFF" opacity="0"/>`
+      ).join("");
+      const flimmer = [0, 1, 2, 3].map(
+        (k) => `<path id="solar-b-flimmer${k}" d="M0 0 q3 -4 0 -8 q-3 -4 0 -8" fill="none" stroke="#FFC44D" stroke-width="1.8" stroke-linecap="round" opacity="0"/>`
+      ).join("");
+      return `${sonne}
+        <linearGradient id="solar-verlauf" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#2470C2"/>
+          <stop id="solar-b-stop" offset="0.5" stop-color="#3A8FE0"/>
+          <stop offset="1" stop-color="#FF9A4D"/>
+        </linearGradient>
+        <path d="${flaeche}" fill="#1B3F66" stroke="#33415A" stroke-width="2"/>
+        <path id="solar-hell" d="${flaeche}" fill="url(#solar-verlauf)" opacity="0"/>
+        <path d="${flaeche}" fill="none" stroke="#33415A" stroke-width="2"/>
+        ${laengs}${quer}
+        <g id="solar-effekt" opacity="0" ${daten}>${funken}${flimmer}</g>`;
+    }
+    let zellen = "";
+    for (let i = 0; i < ZELLEN; i++) {
+      const r = Math.floor(i / 5);
+      const s = i % 5;
+      const yy = u - 90 * (r + 0.5) / 3;
+      const xx = x + 36 * (r + 0.5) / 3 + 94 * (s + 0.5) / 5;
+      zellen += `<path id="solar-a-zelle${i}" d="M${(xx - 9).toFixed(1)} ${(yy + 13).toFixed(1)} l7 -26 h12 l-7 26 Z" fill="#9FD3FF" opacity="0"/>`;
+    }
+    const strahl = [0, 1, 2].map(
+      (k) => `<line id="solar-a-strahl${k}" x1="${sx + 10}" y1="${sy + 10}" x2="${sx + 10}" y2="${sy + 10}" stroke="#FFE08A" stroke-width="3" stroke-linecap="round"/>
+        <circle id="solar-a-punkt${k}" r="3" fill="#FFF1B8" cx="${sx + 10}" cy="${sy + 10}"/>`
+    ).join("");
+    const hitze = [0, 1, 2].map(
+      (k) => `<path id="solar-a-hitze${k}" d="M0 0 q5 -6 0 -12 q-5 -6 0 -12" fill="none" stroke="#FFB070" stroke-width="2" stroke-linecap="round" opacity="0"/>`
+    ).join("");
+    return `${sonne}
+        <clipPath id="solar-clip"><path d="${flaeche}"/></clipPath>
+        <path d="${flaeche}" fill="#1B3F66" stroke="#33415A" stroke-width="2"/>
+        <path id="solar-hell" d="${flaeche}" fill="#2470C2" opacity="0"/>
+        <g id="solar-effekt" opacity="0" ${daten}>
+          <g clip-path="url(#solar-clip)">${zellen}</g>
+        </g>
+        <path d="${flaeche}" fill="none" stroke="#33415A" stroke-width="2"/>
+        ${laengs}${quer}
+        <g id="solar-effekt2" opacity="0">${strahl}${hitze}</g>`;
+  },
+  /** Sonne und Kollektor: scheint ab der eingestellten Temperatur. */
+  _solarSonne(an, animate) {
+    const deck = (id, wert) => {
+      const el = this._animEl(id);
+      if (el) el.setAttribute("opacity", wert);
+    };
+    deck("solar-sonne", an ? "1" : "0");
+    deck("solar-sonne-aus", an ? "0" : "1");
+    deck("solar-hell", an ? "1" : "0");
+    deck("solar-effekt", an ? "1" : "0");
+    deck("solar-effekt2", an ? "1" : "0");
+    if (an && animate) {
+      const da = this._animState.get("solar-strahlen");
+      if (!da || da.type !== "spin") this._animState.set("solar-strahlen", { type: "spin", duration: 14, winkel: 0 });
+      this._animState.set("solar-schein", { type: "pulse", duration: 2.2, min: 0.1, max: 0.3 });
+      this._animState.set("solar-effekt", { type: "solar" });
+    } else {
+      ["solar-strahlen", "solar-schein", "solar-effekt"].forEach((id) => this._animState.delete(id));
+      const str = this._animEl("solar-strahlen");
+      if (str) str.removeAttribute("transform");
+      deck("solar-schein", an ? "0.2" : "0");
+      if (an) this._solarBildFrame(0.35);
+    }
+  },
+  /** Zeichnet einen Zeitpunkt der Solaranimation. */
+  _solarBildFrame(t2) {
+    const g = this._animEl("solar-effekt");
+    if (!g) return;
+    const x = Number(g.dataset.x);
+    const u = Number(g.dataset.u);
+    const o = Number(g.dataset.o);
+    const sx = Number(g.dataset.sx);
+    const sy = Number(g.dataset.sy);
+    const setze = (id, werte) => {
+      const el = this._animEl(id);
+      if (el) Object.entries(werte).forEach(([k, v]) => el.setAttribute(k, v));
+    };
+    const stil = this._solarStil();
+    if (stil === "roehren") {
+      for (let i = 0; i < ROEHREN; i++) {
+        const bx = x + 8 + i * 15.5;
+        const tx = bx + 36;
+        for (let k = 0; k < 3; k++) {
+          const p = (t2 * 0.8 + k / 3 + i * 0.11) % 1;
+          setze(`solar-c-${i}-${k}`, {
+            cx: (bx + (tx - bx) * p).toFixed(1),
+            cy: (u + (o - u) * p).toFixed(1),
+            opacity: (0.3 + 0.7 * p).toFixed(2)
+          });
+        }
+      }
+      return;
+    }
+    if (stil === "funkeln") {
+      const w = 0.5 + 0.5 * Math.sin(t2 * 1.5);
+      setze("solar-b-stop", { offset: (0.3 + 0.4 * w).toFixed(3) });
+      FUNKEN.forEach(([a, b], i) => {
+        const ph = (t2 * 1.3 + i * 0.37) % 1;
+        const s = Math.max(0, Math.sin(ph * Math.PI));
+        const yy = u - 90 * b;
+        const xx = x + 36 * b + 94 * a;
+        setze(`solar-b-funke${i}`, {
+          transform: `translate(${xx.toFixed(1)} ${yy.toFixed(1)}) scale(${Math.max(s, 0.01).toFixed(2)})`,
+          opacity: s.toFixed(2)
+        });
+      });
+      for (let k = 0; k < 4; k++) {
+        const p = (t2 * 0.6 + k / 4) % 1;
+        const wx = x + 45 + k * 22 + 2 * Math.sin(t2 * 6 + k);
+        setze(`solar-b-flimmer${k}`, {
+          transform: `translate(${wx.toFixed(1)} ${(o - 4 - p * 20).toFixed(1)})`,
+          opacity: (0.6 * Math.sin(p * Math.PI)).toFixed(2)
+        });
+      }
+      return;
+    }
+    for (let k = 0; k < 3; k++) {
+      const p = (t2 * 0.9 + k / 3) % 1;
+      const x1 = sx + 10;
+      const y1 = sy + 10;
+      const x2 = x + 50 + k * 28;
+      const y2 = o + 30;
+      const xa = x1 + (x2 - x1) * p;
+      const ya = y1 + (y2 - y1) * p;
+      setze(`solar-a-strahl${k}`, { x2: xa.toFixed(1), y2: ya.toFixed(1), opacity: (0.7 * (1 - p)).toFixed(2) });
+      setze(`solar-a-punkt${k}`, { cx: xa.toFixed(1), cy: ya.toFixed(1), opacity: (1 - p * 0.6).toFixed(2) });
+    }
+    for (let i = 0; i < ZELLEN; i++) {
+      const r = Math.floor(i / 5);
+      const s = i % 5;
+      const ph = ((t2 * 1.2 - (s + r) * 0.12) % 1 + 1) % 1;
+      setze(`solar-a-zelle${i}`, { opacity: (Math.max(0, Math.sin(ph * Math.PI)) * 0.55).toFixed(2) });
+    }
+    for (let k = 0; k < 3; k++) {
+      const p = (t2 * 0.7 + k / 3) % 1;
+      setze(`solar-a-hitze${k}`, {
+        transform: `translate(${x + 60 + k * 25} ${(o - 6 - p * 18).toFixed(1)})`,
+        opacity: (0.8 * Math.sin(p * Math.PI)).toFixed(2)
       });
     }
   }
@@ -8729,22 +8911,19 @@ var LutarymHeatpumpCard = class extends HTMLElement {
         el.setAttribute("transform", `rotate(${state.winkel.toFixed(2)} 0 0)`);
       });
       this._animState.forEach((state, id) => {
-        if (!state || state.type !== "flacker" && state.type !== "glanz") return;
+        if (!state) return;
+        if (state.type === "solar") {
+          this._solarBildFrame(this._animTime);
+          return;
+        }
+        if (state.type !== "flacker") return;
         const el = this._animEl(id);
         if (!el) return;
         const t2 = this._animTime;
-        if (state.type === "flacker") {
-          const sy = 1 + 0.09 * Math.sin(t2 * 9.1) + 0.05 * Math.sin(t2 * 14.3 + 1.3);
-          const sx = 1 - 0.05 * Math.sin(t2 * 11.7 + 0.7);
-          const kipp = 3 * Math.sin(t2 * 6.3);
-          el.setAttribute("transform", `skewX(${kipp.toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
-        } else {
-          const prog = t2 % 5 / 5;
-          const dx = -70 + prog * 170;
-          const op = prog < 0.2 ? prog / 0.2 : prog > 0.8 ? (1 - prog) / 0.2 : 1;
-          el.setAttribute("transform", `translate(${dx.toFixed(1)} 0)`);
-          el.setAttribute("opacity", (0.3 * op).toFixed(3));
-        }
+        const sy = 1 + 0.09 * Math.sin(t2 * 9.1) + 0.05 * Math.sin(t2 * 14.3 + 1.3);
+        const sx = 1 - 0.05 * Math.sin(t2 * 11.7 + 0.7);
+        const kipp = 3 * Math.sin(t2 * 6.3);
+        el.setAttribute("transform", `skewX(${kipp.toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
       });
       this._animLoop = requestAnimationFrame(tick);
     };
@@ -8763,6 +8942,7 @@ Object.assign(
   tuerKarte,
   grafikQuerKarte,
   grafikKlassischKarte,
+  solarKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte

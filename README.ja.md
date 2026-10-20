@@ -105,6 +105,7 @@ entities:
 | `extra_heat` | `aus` | バッファーの追加熱源：`aus`（オフ）、`kamin`（薪ストーブ）、`solar`（太陽熱）、`beide`（両方）。バッファーがある場合のみ |
 | `kamin_fire_temp` | `30` | 薪ストーブ温度（°C）がこの値以上になると炎を表示 |
 | `solar_sun_temp` | `30` | 集熱器温度（°C）がこの値以上になると太陽を表示 |
+| `solar_style` | `strahlen` | 太陽熱の表示：`strahlen`（光線とセルの波）、`funkeln`（加熱ときらめき）、`roehren`（真空管集熱器） |
 | `demo` | `false` | 試用のための仮の値 |
 
 ### エンティティ
