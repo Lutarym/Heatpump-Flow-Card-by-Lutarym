@@ -511,6 +511,13 @@ ${this._defs()}
       </g>`;
     }
     const letzterAst = Math.max(...aeste);
+    // Laufpunkte der Sammelleitungen in Abschnitten: der gemeinsame Teil
+    // laeuft, sobald ein Kreis laeuft, der Teil zur zweiten Reihe nur,
+    // wenn HK3 oder HK4 laufen, der Ruecklauf jeder Reihe nur mit ihren
+    // Kreisen.
+    const r1 = ruecks[0];
+    const r2 = zeilen > 1 ? ruecks[spalten] : null;
+    let punkteSammel;
     let vlPfad;
     let rlPfad;
     if (M.puffer) {
@@ -519,10 +526,21 @@ ${this._defs()}
       vlPfad = `M${M.BR} ${VLY} H ${vorl} V ${letzterAst}`;
       const teile = ruecks.map((y) => `M${rueck} ${y} V ${RLY}`);
       rlPfad = `${[...new Set(teile)].join(" ")} M${rueck} ${RLY} H ${M.BR}`;
+      punkteSammel = `
+      <path class="flowdots duenn" id="dots-sf-a" d="M${M.BR} ${VLY} H ${vorl}"/>
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="M${vorl} ${VLY} V ${letzterAst}"/>` : ""}
+      <path class="flowdots duenn" id="dots-sr-z1" d="M${rueck} ${r1} V ${RLY}"/>
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sr-z2" d="M${rueck} ${r2} V ${RLY}"/>` : ""}
+      <path class="flowdots duenn" id="dots-sr-a" d="M${rueck} ${RLY} H ${M.BR}"/>`;
     } else {
       // Ohne Puffer kommen die Heizkreise direkt an den Primaerkreis.
       vlPfad = `M${vorl} ${F} V ${letzterAst}`;
       rlPfad = `M${rueck} ${Math.min(...ruecks)} V ${R}`;
+      punkteSammel = `
+      <path class="flowdots duenn" id="dots-sf-a" d="M${vorl} ${F} V ${VLY}"/>
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="M${vorl} ${VLY} V ${letzterAst}"/>` : ""}
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sr-z1" d="M${rueck} ${r1} V ${r2}"/>` : ""}
+      <path class="flowdots duenn" id="dots-sr-a" d="M${rueck} ${zeilen > 1 ? r2 : r1} V ${R}"/>`;
     }
     const rohre = `
       <!-- Sammelleitungen der Heizkreise -->
@@ -533,9 +551,7 @@ ${this._defs()}
     // Sammelleitungen, zuletzt Pumpen, Heizkoerper und Beschriftung.
     kreise = `
       <!-- Leitungen der Heizkreise -->${leitungen}
-      <!-- Laufpunkte der Sammelleitungen und Heizkreise -->
-      <path class="flowdots duenn" id="dots-sf-a" d="${vlPfad}"/>
-      <path class="flowdots duenn" id="dots-sr-a" d="${rlPfad}"/>${punkte}
+      <!-- Laufpunkte der Sammelleitungen und Heizkreise -->${punkteSammel}${punkte}
 ${kreise}`;
     return { rohre, kreise, vorl, rueck };
   },

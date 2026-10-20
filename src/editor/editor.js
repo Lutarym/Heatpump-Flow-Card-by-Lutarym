@@ -5,7 +5,7 @@
 import { bedienungEditor } from "./bedienung.js";
 import { stilEditor } from "./stil.js";
 import { werkzeugeEditor } from "./werkzeuge.js";
-import { FIELD_DOMAIN, defaultEntityMap, detectIntegration } from "../erkennung.js";
+import { FIELD_DOMAIN, defaultEntityMap, detectIntegration, quellenZuordnung } from "../erkennung.js";
 import { DEFAULT_CONFIG, ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, friendly } from "../hilfsfunktionen.js";
 import { CARD_VERSION } from "../konstanten.js";
@@ -630,11 +630,11 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
 
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
       const f = detectIntegration(this._hass, profilFuer(this._config));
-      if (f.found) applyMap(f.entities, true);
+      if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat), true);
     });
     this.shadowRoot
       .getElementById("btn-default")
-      .addEventListener("click", () => applyMap(defaultEntityMap(), true));
+      .addEventListener("click", () => applyMap(quellenZuordnung(defaultEntityMap(), this._config.extra_heat), true));
     this.shadowRoot
       .getElementById("btn-clear")
       .addEventListener("click", () => applyMap({}, false));

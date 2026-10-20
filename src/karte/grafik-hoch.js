@@ -290,9 +290,15 @@ export const grafikHochKarte = {
       ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${letzt.vy}`)}
       ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${letzt.ry}`)}
       <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${a1.vy}"/>
-      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${a1.vy} V ${letzt.vy}"/>
       <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
-      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${letzt.ry} V ${a1.ry}"/>`;
+      ${an.slice(1).map((z, i) => {
+        // Abschnitt vom vorigen zum naechsten Heizkreis. Er laeuft nur,
+        // wenn dieser oder ein weiter unten liegender Kreis laeuft.
+        const k = i + 2;
+        const id = k === 2 ? "" : String(k);
+        return `<path class="flowdots" id="dots-sf-b${id}" d="M${P.S_VL} ${an[i].vy} V ${z.vy}"/>
+      <path class="flowdots" id="dots-sr-b${id}" d="M${P.S_RL} ${z.ry} V ${an[i].ry}"/>`;
+      }).join("")}`;
 
     const heizkreis = (n, y1, y2) => {
       // Heizkoerper links, Name und Werte rechts daneben frei ohne Kasten.

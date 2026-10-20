@@ -178,8 +178,8 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `hk3_water, hk4_water` | Wassertemperatur HK3, HK4 | eigene Entität, °C |
 | `hk3_pump, hk4_pump` | Pumpe HK3, HK4 läuft | eigener Schalter oder Sensor |
 | `hk3_switch, hk4_switch` | HK3, HK4 ein und aus | eigener Schalter, optional |
-| `kamin_temp` | Kamin Temperatur | eigene Entität, °C |
-| `kamin_pump` | Kamin Pumpe läuft | eigener Schalter oder Sensor |
+| `kamin_temp` | Kamin Temperatur | eigene Entität, °C; Kamin allein: TOP47 |
+| `kamin_pump` | Kamin Pumpe läuft | eigener Schalter oder Sensor; Kamin allein: OPT5 |
 | `solar_temp` | Solarthermie Temperatur | TOP47 |
 | `solar_pump` | Solarthermie Pumpe läuft | OPT5 |
 | **Warmwasser** | | |

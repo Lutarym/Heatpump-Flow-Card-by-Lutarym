@@ -205,6 +205,23 @@ export function detectIntegration(hass, profil) {
   return result;
 }
 
+/**
+ * Die Aquarea kennt nur einen Solareingang (TOP47 Temperatur, OPT5 Pumpe).
+ * Ist nur ein Kamin gewaehlt, haengt er an diesem Eingang. Dann gehoeren
+ * die erkannten Solar-Entitaeten zum Kamin. Bei Solarthermie allein oder
+ * beidem bleiben sie bei der Solarthermie. Selbst eingetragene
+ * Kamin-Entitaeten haben Vorrang.
+ */
+export function quellenZuordnung(entities, extraHeat) {
+  if (extraHeat !== "kamin") return entities;
+  const out = { ...entities };
+  if (out.solar_temp && !out.kamin_temp) out.kamin_temp = out.solar_temp;
+  if (out.solar_pump && !out.kamin_pump) out.kamin_pump = out.solar_pump;
+  delete out.solar_temp;
+  delete out.solar_pump;
+  return out;
+}
+
 export function defaultEntityMap() {
   const map = {};
   Object.keys(TOPIC_TO_FIELD).forEach((topic) => {

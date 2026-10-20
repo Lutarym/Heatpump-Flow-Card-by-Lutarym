@@ -575,8 +575,6 @@ export const aktualisierenKarte = {
     for (let n = 1; n <= this._hkAnzahl(); n++) {
       kreisLaeuft.push(this._circuitUpdate(n, col, animate, buf, laeuft));
     }
-    // Im Hochformat fuehrt der zweite Abschnitt zu allen weiteren Heizkreisen.
-    const hk2Laeuft = kreisLaeuft.slice(1).some(Boolean);
 
     // Mit Puffer wird der Sekundaerkreis bewegt, sobald eine Kreispumpe
     // foerdert, seine Waerme kommt aus dem Puffer. Ohne Puffer liefern
@@ -588,8 +586,21 @@ export const aktualisierenKarte = {
     // Der Abschnitt zum zweiten Heizkreis nur, wenn dieser Fluss hat.
     stroemt(["dots-sf-a"], sekundaer, farbeVL);
     stroemt(["dots-sr-a"], sekundaer, farbeRL);
-    stroemt(["dots-sf-b"], hk2Laeuft, farbeVL);
-    stroemt(["dots-sr-b"], hk2Laeuft, farbeRL);
+    // Hochformat: jeder Abschnitt zwischen zwei Heizkreisen laeuft nur,
+    // wenn ein Kreis dahinter laeuft.
+    [2, 3, 4].forEach((k) => {
+      const id = k === 2 ? "" : String(k);
+      const dahinter = kreisLaeuft.slice(k - 1).some(Boolean);
+      stroemt([`dots-sf-b${id}`], dahinter, farbeVL);
+      stroemt([`dots-sr-b${id}`], dahinter, farbeRL);
+    });
+    // Querformat: HK1 und HK2 bilden die erste Reihe, HK3 und HK4 die zweite.
+    const spalten = Math.min(kreisLaeuft.length, 2);
+    const reihe1 = kreisLaeuft.slice(0, spalten).some(Boolean);
+    const reihe2 = kreisLaeuft.slice(spalten).some(Boolean);
+    stroemt(["dots-sf-z2"], reihe2, farbeVL);
+    stroemt(["dots-sr-z1"], reihe1, farbeRL);
+    stroemt(["dots-sr-z2"], reihe2, farbeRL);
 
     /* Durchflussanimation */
     // Der Primaerkreis foerdert, wenn Pumpe oder Durchfluss das melden.

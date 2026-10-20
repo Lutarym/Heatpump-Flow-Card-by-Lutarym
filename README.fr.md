@@ -178,8 +178,8 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `hk3_water, hk4_water` | Température d'eau circuits 3, 4 | entité propre, °C |
 | `hk3_pump, hk4_pump` | Pompe circuits 3, 4 en marche | interrupteur ou capteur propre |
 | `hk3_switch, hk4_switch` | Circuits 3, 4 marche et arrêt | interrupteur propre, facultatif |
-| `kamin_temp` | Température du poêle | entité propre, °C |
-| `kamin_pump` | Pompe du poêle en marche | interrupteur ou capteur propre |
+| `kamin_temp` | Température du poêle | entité propre, °C ; poêle seul : TOP47 |
+| `kamin_pump` | Pompe du poêle en marche | interrupteur ou capteur propre ; poêle seul : OPT5 |
 | `solar_temp` | Température solaire thermique | TOP47 |
 | `solar_pump` | Pompe solaire en marche | OPT5 |
 | **Eau chaude** | | |

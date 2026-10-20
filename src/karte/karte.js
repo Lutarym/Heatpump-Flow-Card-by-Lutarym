@@ -2,7 +2,7 @@
  * Die Karte: Lebenszyklus, Konfiguration, Aufbau und Animation.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { detectIntegration } from "../erkennung.js";
+import { detectIntegration, quellenZuordnung } from "../erkennung.js";
 import { DEFAULT_CONFIG } from "../felder.js";
 import { animationAn, bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, numState, setzeDezimal } from "../hilfsfunktionen.js";
 import { aktualisierenKarte } from "./aktualisieren.js";
@@ -193,7 +193,10 @@ export class LutarymHeatpumpCard extends HTMLElement {
     const configured = eintraege[key] || eintraege[alias[key]];
     if (configured) return configured;
     if (!this._auto) {
-      this._auto = detectIntegration(this._quelle, eigenesProfil(this._config) || undefined).entities;
+      this._auto = quellenZuordnung(
+        detectIntegration(this._quelle, eigenesProfil(this._config) || undefined).entities,
+        this._config.extra_heat
+      );
     }
     return this._auto[key] || "";
   }

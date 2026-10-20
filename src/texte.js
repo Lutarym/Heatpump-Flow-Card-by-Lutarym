@@ -354,6 +354,8 @@ export const TEXTE = {
   grp_13: { de: "Zusatzwärme", en: "Additional heat", fr: "Chaleur d'appoint", ja: "追加熱源" },
   hnw_9: { de: "eigene Entität, °C", en: "own entity, °C", fr: "entité propre, °C", ja: "独自エンティティ、°C" },
   hnw_10: { de: "eigener Schalter oder Sensor", en: "own switch or sensor", fr: "interrupteur ou capteur propre", ja: "独自のスイッチまたはセンサー" },
+  hnw_11: { de: "eigene Entität, °C; Kamin allein: TOP47", en: "own entity, °C; stove only: TOP47", fr: "entité propre, °C ; poêle seul : TOP47", ja: "独自エンティティ、°C。薪ストーブのみ：TOP47" },
+  hnw_12: { de: "eigener Schalter oder Sensor; Kamin allein: OPT5", en: "own switch or sensor; stove only: OPT5", fr: "interrupteur ou capteur propre ; poêle seul : OPT5", ja: "独自のスイッチまたはセンサー。薪ストーブのみ：OPT5" },
   kamin: { de: "Kamin", en: "Stove", fr: "Poêle", ja: "薪ストーブ" },
   solarthermie: { de: "Solarthermie", en: "Solar thermal", fr: "Solaire thermique", ja: "太陽熱" },
   pumpe_wert: { de: "Pumpe {v}", en: "Pump {v}", fr: "Pompe {v}", ja: "ポンプ {v}" },
@@ -552,7 +554,7 @@ export const TEXTE = {
 /** Zuordnung deutscher Gruppen und Hinweise zu Sprachschluesseln. */
 export const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9", "Erweiterte Einstellungen": "grp_10", "Heizkreis 3": "grp_11", "Heizkreis 4": "grp_12", "Zusatzwärme": "grp_13" };
 
-export const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle wählbar": "hnw_8", "eigene Entität, °C": "hnw_9", "eigener Schalter oder Sensor": "hnw_10" };
+export const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle wählbar": "hnw_8", "eigene Entität, °C": "hnw_9", "eigener Schalter oder Sensor": "hnw_10", "eigene Entität, °C; Kamin allein: TOP47": "hnw_11", "eigener Schalter oder Sensor; Kamin allein: OPT5": "hnw_12" };
 
 /** Setzt Werte in Platzhalter wie {n} ein. */
 export function tf(text, werte) {

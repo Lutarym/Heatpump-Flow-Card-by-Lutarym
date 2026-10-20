@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.3.0";
+var CARD_VERSION = "5.3.1";
 var L = {
   W: 1650,
   H: 700,
@@ -477,6 +477,8 @@ var TEXTE = {
   grp_13: { de: "Zusatzw\xE4rme", en: "Additional heat", fr: "Chaleur d'appoint", ja: "\u8FFD\u52A0\u71B1\u6E90" },
   hnw_9: { de: "eigene Entit\xE4t, \xB0C", en: "own entity, \xB0C", fr: "entit\xE9 propre, \xB0C", ja: "\u72EC\u81EA\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3\u3001\xB0C" },
   hnw_10: { de: "eigener Schalter oder Sensor", en: "own switch or sensor", fr: "interrupteur ou capteur propre", ja: "\u72EC\u81EA\u306E\u30B9\u30A4\u30C3\u30C1\u307E\u305F\u306F\u30BB\u30F3\u30B5\u30FC" },
+  hnw_11: { de: "eigene Entit\xE4t, \xB0C; Kamin allein: TOP47", en: "own entity, \xB0C; stove only: TOP47", fr: "entit\xE9 propre, \xB0C ; po\xEAle seul : TOP47", ja: "\u72EC\u81EA\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3\u3001\xB0C\u3002\u85AA\u30B9\u30C8\u30FC\u30D6\u306E\u307F\uFF1ATOP47" },
+  hnw_12: { de: "eigener Schalter oder Sensor; Kamin allein: OPT5", en: "own switch or sensor; stove only: OPT5", fr: "interrupteur ou capteur propre ; po\xEAle seul : OPT5", ja: "\u72EC\u81EA\u306E\u30B9\u30A4\u30C3\u30C1\u307E\u305F\u306F\u30BB\u30F3\u30B5\u30FC\u3002\u85AA\u30B9\u30C8\u30FC\u30D6\u306E\u307F\uFF1AOPT5" },
   kamin: { de: "Kamin", en: "Stove", fr: "Po\xEAle", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6" },
   solarthermie: { de: "Solarthermie", en: "Solar thermal", fr: "Solaire thermique", ja: "\u592A\u967D\u71B1" },
   pumpe_wert: { de: "Pumpe {v}", en: "Pump {v}", fr: "Pompe {v}", ja: "\u30DD\u30F3\u30D7 {v}" },
@@ -672,7 +674,7 @@ var TEXTE = {
   f_nur_lesbar: { de: " \u2013 nur lesbar", en: " \u2013 read only", fr: " \u2013 lecture seule", ja: "\uFF08\u8AAD\u307F\u53D6\u308A\u5C02\u7528\uFF09" }
 };
 var GRUPPEN_SCHLUESSEL = { "Au\xDFenf\xFChler": "grp_0", "Au\xDFenger\xE4t": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Prim\xE4rkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9", "Erweiterte Einstellungen": "grp_10", "Heizkreis 3": "grp_11", "Heizkreis 4": "grp_12", "Zusatzw\xE4rme": "grp_13" };
-var HINWEIS_SCHLUESSEL = { "gilt f\xFCr beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entit\xE4t, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle w\xE4hlbar": "hnw_8", "eigene Entit\xE4t, \xB0C": "hnw_9", "eigener Schalter oder Sensor": "hnw_10" };
+var HINWEIS_SCHLUESSEL = { "gilt f\xFCr beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entit\xE4t, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle w\xE4hlbar": "hnw_8", "eigene Entit\xE4t, \xB0C": "hnw_9", "eigener Schalter oder Sensor": "hnw_10", "eigene Entit\xE4t, \xB0C; Kamin allein: TOP47": "hnw_11", "eigener Schalter oder Sensor; Kamin allein: OPT5": "hnw_12" };
 function tf(text, werte) {
   return String(text).replace(
     /\{(\w+)\}/g,
@@ -1072,8 +1074,8 @@ var ENTITY_FIELDS = [
   { key: "hk4_water", label: "HK4 Wassertemperatur", group: "Heizkreis 4", hint: "eigene Entit\xE4t, \xB0C" },
   { key: "hk4_pump", label: "HK4 Pumpe l\xE4uft", group: "Heizkreis 4", hint: "eigener Schalter oder Sensor" },
   { key: "hk4_switch", label: "HK4 ein und aus", group: "Heizkreis 4", hint: "eigener Schalter, optional" },
-  { key: "kamin_temp", label: "Kamin Temperatur", group: "Zusatzw\xE4rme", hint: "eigene Entit\xE4t, \xB0C" },
-  { key: "kamin_pump", label: "Kamin Pumpe l\xE4uft", group: "Zusatzw\xE4rme", hint: "eigener Schalter oder Sensor" },
+  { key: "kamin_temp", label: "Kamin Temperatur", group: "Zusatzw\xE4rme", hint: "eigene Entit\xE4t, \xB0C; Kamin allein: TOP47" },
+  { key: "kamin_pump", label: "Kamin Pumpe l\xE4uft", group: "Zusatzw\xE4rme", hint: "eigener Schalter oder Sensor; Kamin allein: OPT5" },
   { key: "solar_temp", label: "Solarthermie Temperatur", group: "Zusatzw\xE4rme", hint: "TOP47" },
   { key: "solar_pump", label: "Solarthermie Pumpe l\xE4uft", group: "Zusatzw\xE4rme", hint: "OPT5" },
   { key: "dhw_installed", label: "Warmwasser vorhanden", group: "Warmwasser", hint: "TOP100" },
@@ -1500,6 +1502,15 @@ function detectIntegration(hass, profil) {
     result.devices = 1;
   }
   return result;
+}
+function quellenZuordnung(entities, extraHeat) {
+  if (extraHeat !== "kamin") return entities;
+  const out = { ...entities };
+  if (out.solar_temp && !out.kamin_temp) out.kamin_temp = out.solar_temp;
+  if (out.solar_pump && !out.kamin_pump) out.kamin_pump = out.solar_pump;
+  delete out.solar_temp;
+  delete out.solar_pump;
+  return out;
 }
 function defaultEntityMap() {
   const map = {};
@@ -2677,9 +2688,9 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     }
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
       const f = detectIntegration(this._hass, profilFuer(this._config));
-      if (f.found) applyMap(f.entities, true);
+      if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat), true);
     });
-    this.shadowRoot.getElementById("btn-default").addEventListener("click", () => applyMap(defaultEntityMap(), true));
+    this.shadowRoot.getElementById("btn-default").addEventListener("click", () => applyMap(quellenZuordnung(defaultEntityMap(), this._config.extra_heat), true));
     this.shadowRoot.getElementById("btn-clear").addEventListener("click", () => applyMap({}, false));
     this.shadowRoot.querySelectorAll("[data-entity]").forEach((input) => {
       input.addEventListener("change", () => {
@@ -3245,15 +3256,24 @@ var aktualisierenKarte = {
     for (let n = 1; n <= this._hkAnzahl(); n++) {
       kreisLaeuft.push(this._circuitUpdate(n, col, animate, buf, laeuft));
     }
-    const hk2Laeuft = kreisLaeuft.slice(1).some(Boolean);
     const sekundaer = kreisLaeuft.some(Boolean);
     const d = this._direkt;
     const farbeVL = d ? d.vl : col(buf);
     const farbeRL = d ? d.rl : col(buf);
     stroemt(["dots-sf-a"], sekundaer, farbeVL);
     stroemt(["dots-sr-a"], sekundaer, farbeRL);
-    stroemt(["dots-sf-b"], hk2Laeuft, farbeVL);
-    stroemt(["dots-sr-b"], hk2Laeuft, farbeRL);
+    [2, 3, 4].forEach((k) => {
+      const id = k === 2 ? "" : String(k);
+      const dahinter = kreisLaeuft.slice(k - 1).some(Boolean);
+      stroemt([`dots-sf-b${id}`], dahinter, farbeVL);
+      stroemt([`dots-sr-b${id}`], dahinter, farbeRL);
+    });
+    const spalten = Math.min(kreisLaeuft.length, 2);
+    const reihe1 = kreisLaeuft.slice(0, spalten).some(Boolean);
+    const reihe2 = kreisLaeuft.slice(spalten).some(Boolean);
+    stroemt(["dots-sf-z2"], reihe2, farbeVL);
+    stroemt(["dots-sr-z1"], reihe1, farbeRL);
+    stroemt(["dots-sr-z2"], reihe2, farbeRL);
     const primaer = pumpRpm !== null && pumpRpm > 0 || flowRate !== null && flowRate > 0;
     stroemt(["dots-vl-a"], primaer, col(flow));
     stroemt(["dots-heiz-vl"], primaer && !zuWarmwasser, col(flow));
@@ -4853,9 +4873,13 @@ var grafikHochKarte = {
       ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${letzt.vy}`)}
       ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${letzt.ry}`)}
       <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${a1.vy}"/>
-      <path class="flowdots" id="dots-sf-b" d="M${P.S_VL} ${a1.vy} V ${letzt.vy}"/>
       <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
-      <path class="flowdots" id="dots-sr-b" d="M${P.S_RL} ${letzt.ry} V ${a1.ry}"/>`;
+      ${an.slice(1).map((z, i) => {
+      const k = i + 2;
+      const id = k === 2 ? "" : String(k);
+      return `<path class="flowdots" id="dots-sf-b${id}" d="M${P.S_VL} ${an[i].vy} V ${z.vy}"/>
+      <path class="flowdots" id="dots-sr-b${id}" d="M${P.S_RL} ${z.ry} V ${an[i].ry}"/>`;
+    }).join("")}`;
     const heizkreis = (n, y1, y2) => {
       const kr = P.U1 + 180;
       const tx = Math.round((kr + P.U2) / 2) + 4;
@@ -5871,6 +5895,9 @@ ${this._defs()}
       </g>`;
     }
     const letzterAst = Math.max(...aeste);
+    const r1 = ruecks[0];
+    const r2 = zeilen > 1 ? ruecks[spalten] : null;
+    let punkteSammel;
     let vlPfad;
     let rlPfad;
     if (M.puffer) {
@@ -5878,9 +5905,20 @@ ${this._defs()}
       vlPfad = `M${M.BR} ${VLY} H ${vorl} V ${letzterAst}`;
       const teile = ruecks.map((y) => `M${rueck} ${y} V ${RLY}`);
       rlPfad = `${[...new Set(teile)].join(" ")} M${rueck} ${RLY} H ${M.BR}`;
+      punkteSammel = `
+      <path class="flowdots duenn" id="dots-sf-a" d="M${M.BR} ${VLY} H ${vorl}"/>
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="M${vorl} ${VLY} V ${letzterAst}"/>` : ""}
+      <path class="flowdots duenn" id="dots-sr-z1" d="M${rueck} ${r1} V ${RLY}"/>
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sr-z2" d="M${rueck} ${r2} V ${RLY}"/>` : ""}
+      <path class="flowdots duenn" id="dots-sr-a" d="M${rueck} ${RLY} H ${M.BR}"/>`;
     } else {
       vlPfad = `M${vorl} ${F} V ${letzterAst}`;
       rlPfad = `M${rueck} ${Math.min(...ruecks)} V ${R}`;
+      punkteSammel = `
+      <path class="flowdots duenn" id="dots-sf-a" d="M${vorl} ${F} V ${VLY}"/>
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="M${vorl} ${VLY} V ${letzterAst}"/>` : ""}
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sr-z1" d="M${rueck} ${r1} V ${r2}"/>` : ""}
+      <path class="flowdots duenn" id="dots-sr-a" d="M${rueck} ${zeilen > 1 ? r2 : r1} V ${R}"/>`;
     }
     const rohre = `
       <!-- Sammelleitungen der Heizkreise -->
@@ -5889,9 +5927,7 @@ ${this._defs()}
       <path class="pipe duenn" id="pipe-sec-ret" d="${rlPfad}"/>`;
     kreise = `
       <!-- Leitungen der Heizkreise -->${leitungen}
-      <!-- Laufpunkte der Sammelleitungen und Heizkreise -->
-      <path class="flowdots duenn" id="dots-sf-a" d="${vlPfad}"/>
-      <path class="flowdots duenn" id="dots-sr-a" d="${rlPfad}"/>${punkte}
+      <!-- Laufpunkte der Sammelleitungen und Heizkreise -->${punkteSammel}${punkte}
 ${kreise}`;
     return { rohre, kreise, vorl, rueck };
   },
@@ -8564,7 +8600,10 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     const configured = eintraege[key] || eintraege[alias[key]];
     if (configured) return configured;
     if (!this._auto) {
-      this._auto = detectIntegration(this._quelle, eigenesProfil(this._config) || void 0).entities;
+      this._auto = quellenZuordnung(
+        detectIntegration(this._quelle, eigenesProfil(this._config) || void 0).entities,
+        this._config.extra_heat
+      );
     }
     return this._auto[key] || "";
   }

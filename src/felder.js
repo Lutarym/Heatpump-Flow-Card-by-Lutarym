@@ -100,8 +100,8 @@ export const ENTITY_FIELDS = [
   { key: "hk4_pump", label: "HK4 Pumpe läuft", group: "Heizkreis 4", hint: "eigener Schalter oder Sensor" },
   { key: "hk4_switch", label: "HK4 ein und aus", group: "Heizkreis 4", hint: "eigener Schalter, optional" },
 
-  { key: "kamin_temp", label: "Kamin Temperatur", group: "Zusatzwärme", hint: "eigene Entität, °C" },
-  { key: "kamin_pump", label: "Kamin Pumpe läuft", group: "Zusatzwärme", hint: "eigener Schalter oder Sensor" },
+  { key: "kamin_temp", label: "Kamin Temperatur", group: "Zusatzwärme", hint: "eigene Entität, °C; Kamin allein: TOP47" },
+  { key: "kamin_pump", label: "Kamin Pumpe läuft", group: "Zusatzwärme", hint: "eigener Schalter oder Sensor; Kamin allein: OPT5" },
   { key: "solar_temp", label: "Solarthermie Temperatur", group: "Zusatzwärme", hint: "TOP47" },
   { key: "solar_pump", label: "Solarthermie Pumpe läuft", group: "Zusatzwärme", hint: "OPT5" },
 

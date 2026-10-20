@@ -2,6 +2,17 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.3.1
+
+- English: Fixed: the moving dots of the collector pipes ran along to heating circuits 3 and 4 even when these were off. The collector pipes are now split into sections. In landscape the part to the second row runs only when circuit 3 or 4 runs, the return of each row only with its circuits. In portrait each section between two circuits runs only when a circuit behind it runs.
+- English: Stove only: the Aquarea has a single solar input. If only the stove is selected, the card reads the HeishaMon entities TOP47 (temperature) and OPT5 (pump) for the stove. Own stove entities take precedence. With solar thermal alone or both, TOP47 and OPT5 stay with solar thermal.
+- Deutsch: Behoben: Die Laufpunkte der Sammelleitungen liefen bis zu Heizkreis 3 und 4 mit, auch wenn diese aus waren. Die Sammelleitungen sind jetzt in Abschnitte geteilt. Im Querformat läuft der Teil zur zweiten Reihe nur, wenn Heizkreis 3 oder 4 läuft, der Rücklauf jeder Reihe nur mit ihren Kreisen. Im Hochformat läuft jeder Abschnitt zwischen zwei Heizkreisen nur, wenn ein Kreis dahinter läuft.
+- Deutsch: Kamin allein: Die Aquarea hat nur einen Solareingang. Ist nur der Kamin gewählt, liest die Karte für den Kamin die HeishaMon-Entitäten TOP47 (Temperatur) und OPT5 (Pumpe). Eigene Kamin-Entitäten haben Vorrang. Bei Solarthermie allein oder beidem bleiben TOP47 und OPT5 bei der Solarthermie.
+- Français : corrigé : les points animés des collecteurs allaient jusqu'aux circuits 3 et 4 même à l'arrêt. Les collecteurs sont désormais divisés en tronçons. En paysage, la partie vers la deuxième rangée ne s'anime que si le circuit 3 ou 4 tourne, le retour de chaque rangée seulement avec ses circuits. En portrait, chaque tronçon entre deux circuits ne s'anime que si un circuit situé après tourne.
+- Français : poêle seul : l'Aquarea n'a qu'une entrée solaire. Si seul le poêle est choisi, la carte lit pour le poêle les entités HeishaMon TOP47 (température) et OPT5 (pompe). Les entités propres du poêle sont prioritaires. Avec le solaire thermique seul ou les deux, TOP47 et OPT5 restent au solaire thermique.
+- 日本語：修正：暖房回路 3 と 4 が停止していても、ヘッダー配管の流れの点がそこまで動いていました。ヘッダー配管を区間に分けました。横レイアウトでは 2 段目への区間は回路 3 または 4 の運転時のみ、各段の戻りはその段の回路の運転時のみ動きます。縦レイアウトでは 2 つの回路の間の各区間は、その先の回路が運転しているときのみ動きます。
+- 日本語：薪ストーブのみ：Aquarea の太陽熱入力は 1 つだけです。薪ストーブのみを選択した場合、薪ストーブには HeishaMon の TOP47（温度）と OPT5（ポンプ）を使います。独自の薪ストーブ用エンティティが優先されます。太陽熱のみ、または両方の場合、TOP47 と OPT5 は太陽熱に使われます。
+
 ## v5.3.0
 
 - English: Solar thermal now offers three styles, selectable in the editor (option `solar_style`): light rays and cell wave (default, rays fall from the sun onto the collector, the cells light up as a wave, heat rises), warming and sparkle (the collector warms from the top, the glass sparkles, heat shimmers above it), tube collector (vacuum tubes in which glowing heat rises). All three appear from the set collector temperature; with animation off they show a still image.

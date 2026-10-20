@@ -178,8 +178,8 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `hk3_water, hk4_water` | Water temperature circuit 3, 4 | own entity, °C |
 | `hk3_pump, hk4_pump` | Pump circuit 3, 4 running | own switch or sensor |
 | `hk3_switch, hk4_switch` | Circuit 3, 4 on and off | own switch, optional |
-| `kamin_temp` | Stove temperature | own entity, °C |
-| `kamin_pump` | Stove pump running | own switch or sensor |
+| `kamin_temp` | Stove temperature | own entity, °C; stove only: TOP47 |
+| `kamin_pump` | Stove pump running | own switch or sensor; stove only: OPT5 |
 | `solar_temp` | Solar thermal temperature | TOP47 |
 | `solar_pump` | Solar thermal pump running | OPT5 |
 | **Hot water** | | |
