@@ -74,7 +74,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 
 | Option | Default | Meaning |
 |---|---|---|
-| `layout` | `quer` | `quer` landscape, `hoch` portrait |
+| `layout` | `quer` | `quer` landscape, `hoch` portrait, `klassisch` landscape as up to version 4.9 (at most 2 circuits, no additional heat) |
 | `hk_count` | `2` | Number of heating circuits, 1 to 4. Circuits 3 and 4 need own entities, the Aquarea controls only two zones |
 | `fan_count` | `2` | Number of fans, 1 or 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` or `ja` |

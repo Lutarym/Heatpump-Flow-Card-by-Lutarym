@@ -10,6 +10,7 @@ import { demoKarte } from "./demo.js";
 import { diagrammeKarte } from "./diagramme.js";
 import { dialogKarte } from "./dialog.js";
 import { grafikHochKarte } from "./grafik-hoch.js";
+import { grafikKlassischKarte } from "./grafik-klassisch.js";
 import { grafikQuerKarte } from "./grafik-quer.js";
 import { heizkurveKarte } from "./heizkurve.js";
 import { hilfeKarte } from "./hilfe.js";
@@ -610,6 +611,7 @@ Object.assign(
   hilfeKarte,
   tuerKarte,
   grafikQuerKarte,
+  grafikKlassischKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte

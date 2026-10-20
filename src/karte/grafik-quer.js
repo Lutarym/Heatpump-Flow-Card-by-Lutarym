@@ -13,7 +13,9 @@ export const grafikQuerKarte = {
    * derselben Zeichnung, nur um 90 Grad gedreht.
    */
   _svg() {
-    return this._config.layout === "hoch" ? this._svgHoch() : this._svgQuer();
+    if (this._config.layout === "hoch") return this._svgHoch();
+    if (this._config.layout === "klassisch") return this._svgQuerKlassisch();
+    return this._svgQuer();
   },
 
   /** Farbverlaeufe und Filter, von beiden Anordnungen genutzt. */
@@ -70,13 +72,13 @@ export const grafikQuerKarte = {
     const puffer = this._hatPuffer();
     const quellen = this._quellen();
     const XW = 615;
-    const ZIRK_X = 734;
+    const ZIRK_X = 760;
     let XB = null;
-    if (puffer) XB = quellen.length ? 1135 : 875;
+    if (puffer) XB = quellen.length ? 1087 : 900;
     const BL = XB === null ? null : XB - 95;
     const BR = XB === null ? null : XB + 95;
     const ZX0 = puffer ? BR + 45 : 900;
-    const PRESS_X = quellen.length ? 880 : 790;
+    const PRESS_X = 790;
     return { puffer, quellen, XW, ZIRK_X, XB, BL, BR, ZX0, ZX1: 1640, PRESS_X };
   },
 
@@ -431,7 +433,8 @@ ${this._defs()}
    */
   _heizkreisZone(M) {
     const n = this._hkAnzahl();
-    const spalten = M.quellen.length && n >= 3 ? 2 : n;
+    // HK1 und HK2 nebeneinander, HK3 und HK4 eine Ebene darunter.
+    const spalten = Math.min(n, 2);
     const zeilen = Math.ceil(n / spalten);
     const breite = M.ZX1 - M.ZX0;
     const zw = breite / spalten;
@@ -521,7 +524,8 @@ ${this._defs()}
    */
   _quellenMarkup(M) {
     if (!M.quellen.length) return "";
-    const lagen = M.quellen.length === 2 ? [385, 590] : [470];
+    // Name und Werte stehen unter dem Geraet, darum mehr Abstand.
+    const lagen = M.quellen.length === 2 ? [350, 555] : [430];
     const cx = M.BL - 122;
     return M.quellen
       .map((art, i) => {
@@ -529,7 +533,7 @@ ${this._defs()}
         const rand = art === "kamin" ? cx + 55 : cx + 58;
         const vl = `M${rand} ${yc - 18} H ${M.BL}`;
         const rl = `M${M.BL} ${yc + 18} H ${rand}`;
-        const tx = cx - 66;
+        const ly = yc + (art === "kamin" ? 80 : 72);
         return `
       <g class="quelle" id="${art}-group">
         <path class="pipe-shell duenn" d="${vl} ${rl}"/>
@@ -545,9 +549,9 @@ ${this._defs()}
           </g>
         </g>
         ${art === "kamin" ? this._kaminBild(cx, yc) : this._solarBild(cx, yc)}
-        <text class="cap" id="${art}-name" x="${tx}" y="${yc - 16}" text-anchor="end">${this._t(art === "kamin" ? "kamin" : "solarthermie")}</text>
-        <text class="tag-v hk-wert" id="${art}-v" x="${tx}" y="${yc + 10}" text-anchor="end">--</text>
-        <text class="value-s" id="${art}-pump-v" x="${tx}" y="${yc + 32}" text-anchor="end">--</text>
+        <text class="cap" id="${art}-name" x="${cx}" y="${ly}" text-anchor="middle">${this._t(art === "kamin" ? "kamin" : "solarthermie")}</text>
+        <text class="tag-v hk-wert" id="${art}-v" x="${cx}" y="${ly + 26}" text-anchor="middle">--</text>
+        <text class="value-s" id="${art}-pump-v" x="${cx}" y="${ly + 48}" text-anchor="middle">--</text>
       </g>`;
       })
       .join("");

@@ -74,7 +74,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 
 | Option | Vorgabe | Bedeutung |
 |---|---|---|
-| `layout` | `quer` | `quer` Querformat, `hoch` Hochformat |
+| `layout` | `quer` | `quer` Querformat, `hoch` Hochformat, `klassisch` Querformat wie bis Version 4.9 (höchstens 2 Heizkreise, ohne Zusatzwärme) |
 | `hk_count` | `2` | Anzahl der Heizkreise, 1 bis 4. HK3 und HK4 brauchen eigene Entitäten, die Aquarea regelt nur zwei Zonen |
 | `fan_count` | `2` | Anzahl der Lüfter, 1 oder 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` oder `ja` |

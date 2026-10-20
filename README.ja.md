@@ -74,7 +74,7 @@ entities:
 
 | オプション | 既定値 | 内容 |
 |---|---|---|
-| `layout` | `quer` | `quer` 横長、`hoch` 縦長 |
+| `layout` | `quer` | `quer` 横長、`hoch` 縦長、`klassisch` バージョン 4.9 までの横長（最大 2 回路、追加熱源なし） |
 | `hk_count` | `2` | 暖房回路の数、1 から 4。回路 3 と 4 は独自エンティティが必要（Aquarea が制御するのは 2 ゾーンのみ） |
 | `fan_count` | `2` | ファンの数、1 または 2 |
 | `language` | `auto` | `auto`、`de`、`en`、`fr`、`ja` |

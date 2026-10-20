@@ -74,7 +74,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 
 | Option | Défaut | Signification |
 |---|---|---|
-| `layout` | `quer` | `quer` paysage, `hoch` portrait |
+| `layout` | `quer` | `quer` paysage, `hoch` portrait, `klassisch` paysage comme jusqu'à la version 4.9 (au plus 2 circuits, sans chaleur d'appoint) |
 | `hk_count` | `2` | Nombre de circuits, 1 à 4. Les circuits 3 et 4 nécessitent des entités propres, l'Aquarea ne régule que deux zones |
 | `fan_count` | `2` | Nombre de ventilateurs, 1 ou 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` ou `ja` |

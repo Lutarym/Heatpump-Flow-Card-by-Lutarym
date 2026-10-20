@@ -146,6 +146,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <select id="opt-layout">
               <option value="quer">${this._t("e_quer")}</option>
               <option value="hoch">${this._t("e_hoch")}</option>
+              <option value="klassisch">${this._t("e_klassisch")}</option>
             </select>
           </label>
           <label class="ed-row">
