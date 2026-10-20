@@ -663,9 +663,8 @@ export const aktualisierenKarte = {
       if (tEl) tEl.textContent = temp === null ? "--" : `${fmt(temp, 1)} °C`;
       const pEl = this._animEl(`${art}-pump-v`);
       if (pEl) {
-        pEl.textContent = this._e(`${art}_pump`)
-          ? tf(this._t("pumpe_wert"), { v: wertText(pumpe ? "läuft" : "aus", this._sp()) })
-          : "";
+        // Wie bei den Heizkreisen nur der Zustand, direkt an der Pumpe.
+        pEl.textContent = this._e(`${art}_pump`) ? wertText(pumpe ? "läuft" : "aus", this._sp()) : "";
       }
       // Feuer im Kamin und Sonne ueber der Solarthermie haengen an der
       // Temperatur, ab der eingestellten Grenze.

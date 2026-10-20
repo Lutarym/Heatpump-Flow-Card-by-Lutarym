@@ -2,6 +2,17 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.2.2
+
+- English: Fixed: in landscape the moving dots of heating circuits 1 and 3 were hidden. The pipe of the circuit next to them lay on top of the shared section. Now all pipes are drawn first and all moving dots above them, for all 4 circuits.
+- English: Stove and solar thermal: the pump state now stands directly at the pump and only says "running" or "off".
+- Deutsch: Behoben: Im Querformat waren die Laufpunkte von Heizkreis 1 und 3 verdeckt. Das Rohr des Kreises daneben lag über dem gemeinsamen Abschnitt. Jetzt werden erst alle Rohre und darüber alle Laufpunkte gezeichnet, für alle 4 Heizkreise.
+- Deutsch: Kamin und Solarthermie: Der Pumpenzustand steht jetzt direkt an der Pumpe und lautet nur noch „läuft“ oder „aus“.
+- Français : corrigé : en paysage, les points animés des circuits 1 et 3 étaient masqués. La conduite du circuit voisin recouvrait le tronçon commun. Désormais toutes les conduites sont dessinées d'abord, puis tous les points animés par-dessus, pour les 4 circuits.
+- Français : poêle et solaire thermique : l'état de la pompe s'affiche directement à la pompe et indique seulement « en marche » ou « arrêt ».
+- 日本語：修正：横レイアウトで暖房回路 1 と 3 の流れの点が隠れていました。隣の回路の配管が共通区間の上に重なっていたためです。すべての配管を先に描き、その上に流れの点を描くようにしました（4 回路すべて）。
+- 日本語：薪ストーブと太陽熱：ポンプの状態をポンプのすぐそばに表示し、「運転中」または「停止」のみにしました。
+
 ## v5.2.1
 
 - English: Demo mode: when stove or solar thermal is selected, the demo bar offers a switch for its pump and a slider for its temperature. So the fire and the sun can be tried out.

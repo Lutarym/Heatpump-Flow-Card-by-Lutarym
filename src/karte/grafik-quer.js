@@ -455,6 +455,12 @@ ${this._defs()}
     const F = L.FLOW_Y;
     const R = L.RET_Y;
     let kreise = "";
+    // Leitungen und Laufpunkte getrennt sammeln. Die Zuleitungen der
+    // Heizkreise teilen sich Abschnitte. Erst alle Rohre, dann alle
+    // Laufpunkte, sonst verdeckt das Rohr eines spaeteren Kreises die
+    // Laufpunkte eines frueheren.
+    let leitungen = "";
+    let punkte = "";
     const aeste = [];
     const ruecks = [];
     for (let i = 0; i < n; i++) {
@@ -474,13 +480,15 @@ ${this._defs()}
       const zu = `M${vorl} ${ast} H ${dx} V ${top}`;
       const ab = `M${bx} ${unten} V ${unten + 14} H ${rueck}`;
       const tx = (a + b) / 2;
-      kreise += `
-      <g class="circuit" id="hk${nr}-group">
+      leitungen += `
         <path class="pipe-shell duenn" d="${zu} ${ab}"/>
         <path class="pipe duenn" id="pipe-hk${nr}-in" d="${zu}"/>
-        <path class="pipe duenn" id="pipe-hk${nr}-out" d="${ab}"/>
+        <path class="pipe duenn" id="pipe-hk${nr}-out" d="${ab}"/>`;
+      punkte += `
         <path class="flowdots duenn" id="dots-hk${nr}" d="${zu}"/>
-        <path class="flowdots duenn" id="dots-hk${nr}b" d="${ab}"/>
+        <path class="flowdots duenn" id="dots-hk${nr}b" d="${ab}"/>`;
+      kreise += `
+      <g class="circuit" id="hk${nr}-group">
         <g transform="translate(${dx} ${ast + 20})">
           <circle r="15" fill="#0D1219" stroke="#33415A" stroke-width="2"/>
           <g class="rotor" id="hk${nr}-rotor">
@@ -520,9 +528,15 @@ ${this._defs()}
       <!-- Sammelleitungen der Heizkreise -->
       <path class="pipe-shell duenn" d="${vlPfad} ${rlPfad}"/>
       <path class="pipe duenn" id="pipe-sec-flow" d="${vlPfad}"/>
-      <path class="pipe duenn" id="pipe-sec-ret" d="${rlPfad}"/>
+      <path class="pipe duenn" id="pipe-sec-ret" d="${rlPfad}"/>`;
+    // Reihenfolge: Rohre der Heizkreise, dann alle Laufpunkte samt
+    // Sammelleitungen, zuletzt Pumpen, Heizkoerper und Beschriftung.
+    kreise = `
+      <!-- Leitungen der Heizkreise -->${leitungen}
+      <!-- Laufpunkte der Sammelleitungen und Heizkreise -->
       <path class="flowdots duenn" id="dots-sf-a" d="${vlPfad}"/>
-      <path class="flowdots duenn" id="dots-sr-a" d="${rlPfad}"/>`;
+      <path class="flowdots duenn" id="dots-sr-a" d="${rlPfad}"/>${punkte}
+${kreise}`;
     return { rohre, kreise, vorl, rueck };
   },
 
@@ -556,10 +570,10 @@ ${this._defs()}
             <circle r="2.5" fill="#0D1219"/>
           </g>
         </g>
+        <text class="value-s" id="${art}-pump-v" x="${M.BL - 30}" y="${yc + 52}" text-anchor="middle">--</text>
         ${art === "kamin" ? this._kaminBild(cx, yc) : this._solarBild(cx, yc)}
         <text class="cap" id="${art}-name" x="${cx}" y="${ly}" text-anchor="middle">${this._t(art === "kamin" ? "kamin" : "solarthermie")}</text>
         <text class="tag-v hk-wert" id="${art}-v" x="${cx}" y="${ly + 26}" text-anchor="middle">--</text>
-        <text class="value-s" id="${art}-pump-v" x="${cx}" y="${ly + 48}" text-anchor="middle">--</text>
       </g>`;
       })
       .join("");

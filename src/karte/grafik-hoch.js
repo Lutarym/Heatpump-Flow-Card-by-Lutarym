@@ -401,10 +401,11 @@ export const grafikHochKarte = {
             <circle r="2.2" fill="#0D1219"/>
           </g>
         </g>
+        <text class="value-s" id="${art}-pump-v" x="${cx + 36}" y="${pumpY + 5}" text-anchor="start">--</text>
         ${art === "kamin" ? this._kaminBild(cx, yc) : this._solarBild(cx, yc)}
         <text class="cap" id="${art}-name" x="${cx}" y="${yc + 84}" text-anchor="middle">${this._t(art === "kamin" ? "kamin" : "solarthermie")}</text>
         <text class="tag-v hk-wert" id="${art}-v" x="${cx}" y="${yc + 110}" text-anchor="middle">--</text>
-        <text class="value-s" id="${art}-pump-v" x="${cx}" y="${yc + 132}" text-anchor="middle">--</text>
+
       </g>`;
       })
       .join("");
