@@ -2,7 +2,7 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
-## v5.1.1
+## v5.1.5
 
 - English: The previous view up to version 4.9 remains selectable as "Landscape classic" (option `layout: klassisch`): buffer, heating circuits 1 and 2, hot water tank on the right. It shows at most 2 heating circuits and no additional heat.
 - Deutsch: Die bisherige Ansicht bis Version 4.9 bleibt als „Querformat klassisch“ wählbar (Option `layout: klassisch`): Puffer, Heizkreis 1 und 2, Warmwasserspeicher rechts. Sie zeigt höchstens 2 Heizkreise und keine Zusatzwärme.

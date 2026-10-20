@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.1.1";
+var CARD_VERSION = "5.1.5";
 var L = {
   W: 1650,
   H: 700,
