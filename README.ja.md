@@ -101,7 +101,7 @@ entities:
 | `label_hk1` から `label_hk4`、`label_buffer, label_dhw, label_energy` | | 独自の名前。空欄ならカードの言語 |
 | `energy_daily` | `true` | メーター値から当日の使用量を計算 |
 | `animate` | `true` | アニメーション：`true` オン、`false` オフ、`auto` 端末の設定（視差効果を減らす）に従う |
-| `hk1_style` から `hk4_style` | `platte` | 暖房回路の図：`platte` パネルラジエーター、`glieder` セクショナルラジエーター、`fbh` 床暖房 |
+| `hk1_style` から `hk4_style` | `platte` | 暖房回路の図：`platte` パネルラジエーター、`glieder` セクショナルラジエーター、`fbh` 床暖房（床に蛇行配管のある部屋の隅） |
 | `extra_heat` | `aus` | バッファーの追加熱源：`aus`（オフ）、`kamin`（薪ストーブ）、`solar`（太陽熱）、`beide`（両方）。バッファーがある場合のみ |
 | `kamin_fire_temp` | `30` | 薪ストーブ温度（°C）がこの値以上になると炎を表示 |
 | `solar_sun_temp` | `30` | 集熱器温度（°C）がこの値以上になると太陽を表示 |

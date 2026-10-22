@@ -101,7 +101,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `label_hk1` à `label_hk4`, `label_buffer, label_dhw, label_energy` | | Noms personnalisés, vide = langue de la carte |
 | `energy_daily` | `true` | Calculer la consommation du jour à partir du compteur |
 | `animate` | `true` | Animation : `true` marche, `false` arrêt, `auto` l'appareil décide (réglage « réduire les animations ») |
-| `hk1_style` à `hk4_style` | `platte` | Image du circuit : `platte` radiateur à panneaux, `glieder` radiateur à éléments, `fbh` plancher chauffant |
+| `hk1_style` à `hk4_style` | `platte` | Image du circuit : `platte` radiateur à panneaux, `glieder` radiateur à éléments, `fbh` plancher chauffant (coin de pièce avec tube en serpentin dans le sol) |
 | `extra_heat` | `aus` | Chaleur d'appoint au ballon tampon : `aus` (arrêt), `kamin` (poêle), `solar`, `beide` (les deux). Uniquement avec ballon tampon |
 | `kamin_fire_temp` | `30` | À partir de cette température du poêle en °C, le feu brûle dans le poêle |
 | `solar_sun_temp` | `30` | À partir de cette température du capteur en °C, le soleil brille au-dessus du solaire thermique |

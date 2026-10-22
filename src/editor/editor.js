@@ -706,7 +706,11 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     check("opt-hilfe", this._config.show_help !== false);
     check("opt-tuer", this._config.show_door !== false);
     const anzahlHk = Number(this._config.hk_count) || 2;
-    [1, 2, 3, 4].forEach((n) => put(`opt-hk${n}-stil`, this._config[`hk${n}_style`] || "platte"));
+    // Fruehere Werte fbh_verteiler und fbh_raum stehen jetzt fuer fbh.
+    [1, 2, 3, 4].forEach((n) => {
+      const v = this._config[`hk${n}_style`] || "platte";
+      put(`opt-hk${n}-stil`, v === "fbh_verteiler" || v === "fbh_raum" ? "fbh" : v);
+    });
     // Nur die Zeilen der vorhandenen Heizkreise zeigen.
     sr.querySelectorAll("[data-hk-zeile]").forEach((z) => {
       z.style.display = Number(z.dataset.hkZeile) <= anzahlHk ? "" : "none";

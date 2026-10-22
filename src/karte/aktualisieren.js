@@ -798,6 +798,18 @@ export const aktualisierenKarte = {
       }
     });
 
+    // Aufsteigende Waerme ueber der Fussbodenheizung, solange Wasser fliesst.
+    const waerme = this._animEl(`hk${n}-waerme`);
+    if (waerme) {
+      const sichtbar = fluss && laeuft !== false;
+      if (sichtbar && animate) {
+        this._animState.set(`hk${n}-waerme`, { type: "pulse", duration: 2.4, min: 0.25, max: 0.85 });
+      } else {
+        this._animState.delete(`hk${n}-waerme`);
+        waerme.setAttribute("opacity", sichtbar ? "0.7" : "0");
+      }
+    }
+
     // Mit Puffer wie bisher der Pumpenzustand, ohne Puffer der Fluss.
     return d ? fluss : pumpOn;
   },

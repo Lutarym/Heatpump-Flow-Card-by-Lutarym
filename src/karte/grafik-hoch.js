@@ -45,9 +45,10 @@ export const grafikHochKarte = {
     // Hoehe der Anschluesse von Vor- und Ruecklauf je Heizkreis. Die
     // Fussbodenheizung schliesst an ihrer ersten und letzten Rohrreihe an.
     const anschluss = (n, y1, y2) => {
-      if (this._heizStil(n) !== "fbh") return { vy: y1 + 60, ry: y2 - 60 };
-      const r = this._fbhReihen(y1 + 10, y2 - 10);
-      return { vy: r[0], ry: r[r.length - 1] };
+      const stil = this._heizStil(n);
+      if (!this._istFbh(stil)) return { vy: y1 + 60, ry: y2 - 60 };
+      const g = this._fbhLage(stil, P.U1, P.U1 + 180, y1 + 10, y2 - 10);
+      return { vy: Math.round(g.vy), ry: Math.round(g.ry) };
     };
     const an = HKS.map((z, i) => anschluss(i + 1, z[0], z[1]));
     const a1 = an[0];

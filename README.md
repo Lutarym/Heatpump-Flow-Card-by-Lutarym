@@ -101,7 +101,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `label_hk1` to `label_hk4`, `label_buffer, label_dhw, label_energy` | | Own names, empty uses the card language |
 | `energy_daily` | `true` | Calculate daily energy from the meter reading |
 | `animate` | `true` | Animation: `true` on, `false` off, `auto` the device decides (setting "reduce motion") |
-| `hk1_style` to `hk4_style` | `platte` | Picture of the heating circuit: `platte` panel radiator, `glieder` column radiator, `fbh` underfloor heating |
+| `hk1_style` to `hk4_style` | `platte` | Picture of the heating circuit: `platte` panel radiator, `glieder` column radiator, `fbh` underfloor heating (room corner with pipe coil in the floor) |
 | `extra_heat` | `aus` | Additional heat at the buffer: `aus` (off), `kamin` (stove), `solar`, `beide` (both). Only with a heating buffer |
 | `kamin_fire_temp` | `30` | From this stove temperature in °C the fire burns in the stove |
 | `solar_sun_temp` | `30` | From this collector temperature in °C the sun shines above the solar thermal collector |

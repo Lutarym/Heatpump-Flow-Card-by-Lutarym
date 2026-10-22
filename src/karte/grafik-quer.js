@@ -485,8 +485,12 @@ ${this._defs()}
       const b = a + w;
       const top = ast + 40;
       const unten = top + h;
-      const dx = a + 18;
-      const bx = b - 18;
+      // Bei der Fussbodenheizung laufen Vor- und Ruecklauf aussen an den
+      // Waenden zur linken und rechten Bodenecke, sonst oben links hinein
+      // und unten rechts hinaus.
+      const fbh = this._heizStil(nr) === "fbh";
+      const dx = fbh ? a - 6 : a + 18;
+      const bx = fbh ? b + 6 : b - 18;
       aeste.push(ast);
       ruecks.push(unten + 14);
       const zu = `M${vorl} ${ast} H ${dx} V ${top}`;
@@ -652,18 +656,94 @@ ${kreise}`;
         <line x1="${fx + 10}" y1="${t + 86}" x2="${fx + 52}" y2="${t + 86}" stroke="#33415A" stroke-width="3" stroke-linecap="round"/>`;
   },
 
-  /** Bildart des Heizkreises: Platte, Glieder oder Fussbodenheizung. */
+  /**
+   * Bildart des Heizkreises: Platte, Glieder oder Fussbodenheizung.
+   * Fruehere Werte fbh_verteiler und fbh_raum zeigen die Fussbodenheizung.
+   */
   _heizStil(n) {
     const v = this._config[`hk${n}_style`];
+    if (v === "fbh_verteiler" || v === "fbh_raum") return "fbh";
     return v === "glieder" || v === "fbh" ? v : "platte";
   },
 
-  /** Reihen der Rohrschlange einer Fussbodenheizung, immer ungerade Anzahl. */
-  _fbhReihen(top, unten) {
-    const r = [];
-    for (let y = top + 16; y <= unten - 12; y += 13) r.push(y);
-    if (r.length % 2 === 0) r.pop();
-    return r;
+  /** Ist die Bildart eine Fussbodenheizung? */
+  _istFbh(stil) {
+    return stil === "fbh";
+  },
+
+  /**
+   * Lage der Fussbodenheizung im Rahmen a..b, top..unten: eine Zimmerecke
+   * mit zwei Waenden und dem Boden davor. Liefert die Eckpunkte und die
+   * Hoehe der Anschluesse an der linken und rechten Bodenecke.
+   */
+  _fbhLage(stil, a, b, top, unten) {
+    const L = a - 6;
+    const R = b + 6;
+    const cx = (L + R) / 2;
+    // In hohen Rahmen (Hochformat) nicht hoeher zeichnen als noetig, sonst
+    // wirkt die Zimmerecke wie ein Kasten.
+    top = Math.max(top, unten - (R - L) * 0.55);
+    const H = unten - top;
+    // Tiefe des Bodens: flach genug, dass die Waende Hoehe behalten.
+    const d1 = Math.min((R - L) * 0.22, H * 0.26);
+    const yC = unten - 2 * d1;
+    const C = [cx, yC];
+    const Lp = [L, yC + d1];
+    const Rp = [R, yC + d1];
+    const Fp = [cx, unten];
+    // Punkt auf dem Boden: u Richtung rechte Ecke, v Richtung linke Ecke.
+    const pt = (u, v) => [C[0] + u * (Rp[0] - C[0]) + v * (Lp[0] - C[0]), C[1] + u * (Rp[1] - C[1]) + v * (Lp[1] - C[1])];
+    return { L, R, cx, top, d1, C, Lp, Rp, Fp, pt, vy: Rp[1], ry: Lp[1] };
+  },
+
+  /** Aufsteigende Waerme ueber dem Boden, sichtbar wenn der Kreis laeuft. */
+  _fbhWaerme(n, x0, x1, y, anzahl) {
+    let w = "";
+    for (let i = 0; i < anzahl; i++) {
+      const x = x0 + ((i + 0.5) * (x1 - x0)) / anzahl;
+      w += `<path d="M${x.toFixed(1)} ${y} q4 -5 0 -10 q-4 -5 0 -10" fill="none" stroke="#FFB070" stroke-width="2" stroke-linecap="round"/>`;
+    }
+    return `<g id="hk${n}-waerme" opacity="0">${w}</g>`;
+  },
+
+  /**
+   * Fussbodenheizung als Zimmerecke: zwei Waende, davor der Boden mit der
+   * Rohrschlange, darueber steigt Waerme auf, solange Wasser fliesst.
+   */
+  _fbhBild(n, stil, a, b, top, unten, ein, aus) {
+    const fill = `url(#rad${n}Fill)`;
+    const g = this._fbhLage(stil, a, b, top, unten);
+    const { L, R, cx, C, Lp, Rp, Fp, pt, d1 } = g;
+    top = g.top;
+    const f = (p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+    const wandL = `M${f([cx, top])} L${f(C)} L${f(Lp)} L${f([L, top + d1])} Z`;
+    const wandR = `M${f([cx, top])} L${f(C)} L${f(Rp)} L${f([R, top + d1])} Z`;
+    const boden = `M${f(C)} L${f(Rp)} L${f(Fp)} L${f(Lp)} Z`;
+    // Rohrschlange: Bahnen parallel zur linken Wand, von links nach rechts.
+    const bahnen = 5;
+    let schlange = `M${f(Lp)} L${f(pt(0.1, 0.9))}`;
+    for (let i = 0; i < bahnen; i++) {
+      const u = 0.1 + (i * 0.8) / (bahnen - 1);
+      const [v0, v1] = i % 2 ? [0.12, 0.9] : [0.9, 0.12];
+      schlange += ` L${f(pt(u, v0))} L${f(pt(u, v1))}`;
+    }
+    schlange += ` L${f(Rp)}`;
+    // Anschluesse an der linken und rechten Bodenecke.
+    const vonRechts = ein.seite === "rechts";
+    const S = vonRechts ? Rp : Lp;
+    const E = vonRechts ? Lp : Rp;
+    // Von oben zuerst waagerecht zur Ecke, dann aussen an der Wand hinab.
+    const zu = ein.seite === "oben" ? `M${ein.x} ${top} H ${S[0].toFixed(1)} V ${S[1].toFixed(1)}` : `M${ein.x} ${S[1].toFixed(1)} H ${S[0].toFixed(1)}`;
+    const ab = aus.seite === "unten" ? `M${f(E)} H ${aus.x} V ${unten}` : `M${f(E)} H ${aus.x}`;
+    const rohr = (d, breite) =>
+      `<path d="${d}" fill="none" stroke="${fill}" stroke-width="${breite}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const mitte = pt(0.5, 0.5);
+    return `
+          <path d="${wandL}" fill="#1E2836" stroke="#33415A" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="${wandR}" fill="#232C3A" stroke="#33415A" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="${boden}" fill="#3A4658" stroke="#55637A" stroke-width="1.5" stroke-linejoin="round"/>
+          ${rohr(`${zu} ${schlange} ${ab}`, 2.6)}
+          ${this._fbhWaerme(n, mitte[0] - 26, mitte[0] + 26, mitte[1] - 2, 3)}`;
   },
 
   /**
@@ -687,27 +767,7 @@ ${kreise}`;
           <rect x="${a - 2}" y="${unten - 20}" width="${b - a + 4}" height="8" rx="4" fill="#33415A"/>
           <g fill="${fill}" stroke="#0D1219" stroke-width="1.5">${glieder}</g>`;
     }
-    if (stil === "fbh") {
-      const li = a + 18, re = b - 18;
-      const reihen = this._fbhReihen(top, unten);
-      let d, x;
-      if (ein.seite === "rechts") {
-        d = `M${ein.x} ${reihen[0]} H ${li}`;
-        x = li;
-      } else {
-        d = `M${ein.x} ${ein.y} V ${reihen[0]} H ${li} H ${re}`;
-        x = re;
-      }
-      reihen.slice(1).forEach((y) => {
-        x = x === li ? re : li;
-        d += ` V ${y} H ${x}`;
-      });
-      d += aus.seite === "links" ? ` H ${aus.x}` : ` H ${aus.x} V ${aus.y}`;
-      return `
-          <rect x="${a - 6}" y="${top}" width="${b - a + 12}" height="${unten - top}" rx="8"
-                fill="#0D1219" stroke="#33415A" stroke-width="2"/>
-          <path d="${d}" fill="none" stroke="${fill}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
-    }
+    if (this._istFbh(stil)) return this._fbhBild(n, stil, a, b, top, unten, ein, aus);
     let profil = "";
     for (let x = a + 8; x < b - 4; x += 9) {
       profil += `<line x1="${x}" y1="${top + 16}" x2="${x}" y2="${unten - 6}"/>`;

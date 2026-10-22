@@ -101,7 +101,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `label_hk1` bis `label_hk4`, `label_buffer, label_dhw, label_energy` | | Eigene Namen, leer nimmt die Kartensprache |
 | `energy_daily` | `true` | Tagesverbrauch aus dem Zählerstand rechnen |
 | `animate` | `true` | Animation: `true` ein, `false` aus, `auto` das Gerät entscheidet (Einstellung „Bewegung reduzieren“) |
-| `hk1_style` bis `hk4_style` | `platte` | Bild des Heizkreises: `platte` Plattenheizkörper, `glieder` Gliederheizkörper, `fbh` Fußbodenheizung |
+| `hk1_style` bis `hk4_style` | `platte` | Bild des Heizkreises: `platte` Plattenheizkörper, `glieder` Gliederheizkörper, `fbh` Fußbodenheizung (Zimmerecke mit Rohrschlange im Boden) |
 | `extra_heat` | `aus` | Zusatzwärme am Puffer: `aus`, `kamin`, `solar`, `beide`. Nur mit Heizungspuffer |
 | `kamin_fire_temp` | `30` | Ab dieser Kamintemperatur in °C lodert das Feuer im Kamin |
 | `solar_sun_temp` | `30` | Ab dieser Kollektortemperatur in °C scheint die Sonne über der Solarthermie |

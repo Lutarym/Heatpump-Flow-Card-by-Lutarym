@@ -2,6 +2,20 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.5.1
+
+- English: Underfloor heating redrawn so that it is recognisable without expert knowledge: a room corner with two walls, in the floor the pipe coil, above it heat rises while water flows through the circuit. Flow and return run along the outside of the walls to the left and right floor corner. The three pictures of v5.5.0 are replaced by this one; `fbh_verteiler` and `fbh_raum` now also show it.
+- Deutsch: Fußbodenheizung neu gezeichnet, damit sie auch ohne Fachwissen erkennbar ist: eine Zimmerecke mit zwei Wänden, im Boden die Rohrschlange, darüber steigt Wärme auf, solange Wasser durch den Kreis fließt. Vor- und Rücklauf laufen außen an den Wänden zur linken und rechten Bodenecke. Die drei Bilder aus v5.5.0 sind dadurch ersetzt; `fbh_verteiler` und `fbh_raum` zeigen ebenfalls dieses Bild.
+- Français : plancher chauffant redessiné pour être reconnaissable sans connaissances techniques : un coin de pièce avec deux murs, dans le sol le tube en serpentin, au-dessus la chaleur monte tant que l'eau circule. Départ et retour longent l'extérieur des murs jusqu'aux coins gauche et droit du sol. Les trois images de la v5.5.0 sont remplacées ; `fbh_verteiler` et `fbh_raum` affichent aussi cette image.
+- 日本語：専門知識がなくても分かるよう床暖房を描き直しました：2 つの壁がある部屋の隅で、床には蛇行配管、回路に水が流れている間は熱が立ち上ります。往きと還りは壁の外側を通って床の左右の角につながります。v5.5.0 の 3 種類の図はこれに置き換わり、`fbh_verteiler` と `fbh_raum` もこの図を表示します。
+
+## v5.5.0
+
+- English: Underfloor heating redrawn, three pictures selectable per heating circuit in the editor: cross-section (`fbh`, screed with pipes, insulation below), with manifold (`fbh_verteiler`, flow and return bar with pipe spiral) and room (`fbh_raum`, floor in perspective with meandering pipe). Cross-section and room show rising heat while water flows through the circuit. Existing cards with `fbh` get the cross-section.
+- Deutsch: Fußbodenheizung neu gezeichnet, drei Bilder je Heizkreis im Editor wählbar: Querschnitt (`fbh`, Estrich mit Rohren, darunter Dämmung), mit Verteiler (`fbh_verteiler`, Vor- und Rücklaufbalken mit Rohrschnecke) und Raum (`fbh_raum`, Boden in Perspektive mit Mäanderrohr). Querschnitt und Raum zeigen aufsteigende Wärme, solange Wasser durch den Kreis fließt. Bestehende Karten mit `fbh` bekommen den Querschnitt.
+- Français : plancher chauffant redessiné, trois images au choix par circuit dans l'éditeur : coupe (`fbh`, chape avec tubes, isolant dessous), avec collecteur (`fbh_verteiler`, barres départ et retour avec tube en spirale) et pièce (`fbh_raum`, sol en perspective avec tube en serpentin). La coupe et la pièce montrent la chaleur qui monte tant que l'eau circule. Les cartes existantes avec `fbh` reçoivent la coupe.
+- 日本語：床暖房を描き直しました。暖房回路ごとにエディターで 3 種類の図を選べます：断面（`fbh`、配管入りのモルタル層と下の断熱材）、ヘッダー付き（`fbh_verteiler`、往き・還りヘッダーと渦巻き配管）、室内（`fbh_raum`、遠近法の床と蛇行配管）。断面と室内では、回路に水が流れている間、熱が立ち上ります。既存の `fbh` 設定は断面になります。
+
 ## v5.4.0
 
 - English: Landscape: with one or two heating circuits they stand one below the other and the card ends right after them, without empty space on the right. Only from three heating circuits a second column follows and the card becomes wider. The chart buttons keep enough room on the narrower card.
