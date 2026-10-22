@@ -10,7 +10,9 @@ Un profil est un petit fichier texte au format JSON. Vous pouvez l'exporter, le 
 
 Modifier la carte et passer l'éditeur en **Avancé**. Le choix se trouve dans la section **Intégration**, les boutons dans la section **Import, export et personnalisation** :
 
-- **Profil du fabricant** : choix du profil
+- **Fabricant** : « Détection automatique » ou un fabricant (visible aussi en mode simple)
+- **Intégration / appareil** : apparaît quand un fabricant a plusieurs intégrations, avec le nom du développeur
+- **Plusieurs intégrations détectées** : apparaît avec « Détection automatique » quand plusieurs correspondent
 - **Exporter le profil** : enregistre le profil choisi comme fichier dans le dossier des téléchargements
 - **Importer un profil** : lit un fichier de profil et sélectionne le profil
 - **Supprimer le profil personnel** : n'apparaît que pour un profil personnel ou modifié
@@ -58,15 +60,71 @@ Les clés sont en allemand et doivent rester exactement ainsi.
 | `namensteil` | non | texte contenu dans tous les ID d'entité de la pompe, par exemple `"vaillant"` |
 | `felder` | oui | pour chaque champ de la carte une liste de règles de recherche |
 
+## Profils de fabricants intégrés
+
+La carte fournit des profils pour les intégrations suivantes. Les règles de recherche proviennent du code source de chaque intégration. Pour l'instant, seul HeishaMon by Lutarym a été testé sur de vraies installations ; tous les autres sont marqués « non testé ». Vos retours aident à les améliorer.
+
+**Détection automatique** (par défaut) parcourt tous les profils. Si une seule intégration est trouvée, elle est utilisée. Si plusieurs sont trouvées, l'éditeur demande laquelle la carte doit utiliser. En attendant, celle qui a le plus de champs correspondants est utilisée. Une intégration compte comme trouvée quand au moins deux champs correspondent.
+
+| Fabricant | Intégration | Développeur | Domaine | Champs |
+|---|---|---|---|---|
+| Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 76 |
+| Panasonic Aquarea | HeishaMon (MQTT) | | | 76 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
+| Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
+| Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
+| Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
+| Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
+| Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
+| Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
+| DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
+| Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
+| Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
+| iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
+| KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
+| Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
+| Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
+| Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
+| Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
+| NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
+| Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
+| Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
+| Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
+| Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
+| Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
+| Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
+| Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
+| Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
+| Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
+| Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
+| Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
+| Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
+| Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
+
+Sans profil, avec la raison :
+
+- `myuplink`: les noms d'entités viennent dynamiquement de l'appareil
+- `wolflink`: les noms d'entités viennent dynamiquement de l'appareil
+- `ebusd`: les noms dépendent de votre configuration ebusd
+- `stiebel_eltron`: ne fournit qu’une entité climat
+- `bosch`: les noms d'entités viennent dynamiquement de l'appareil
+- `tuya_heat_pump`: points de données différents selon l’appareil
+- `toshiba_modbus`: climatiseur
+- `midea_heatpump_hws`: pompe à chaleur eau chaude uniquement
+- `dimplex`: ne fournit pas de valeurs de PAC comme départ, retour ou compresseur
+
 ## Règles de recherche
 
-Chaque champ a une liste de règles. Une règle seule peut aussi s'écrire sans crochets. Il en existe trois sortes :
+Chaque champ a une liste de règles. Une règle seule peut aussi s'écrire sans crochets. Il en existe quatre sortes :
 
 | Règle | Exemple | Correspond à |
 |---|---|---|
 | avec un point | `"sensor.pac_depart"` | exactement cette entité |
 | avec une étoile `*` | `"sensor.*_depart"` | tout ID d'entité suivant ce modèle, l'étoile remplace n'importe quel texte |
 | sans point ni étoile | `"depart"` | les ID d'entité se terminant par `_depart`, ou les entités de l'intégration avec cette clé interne (translation_key) |
+| avec un domaine devant | `"sensor:depart"` | comme sans point ni étoile, mais seulement les entités de ce type, ici `sensor` |
 
 L'ID d'entité exact est le plus fiable. Les modèles et terminaisons sont utiles si un profil doit aussi fonctionner chez d'autres, dont les ID d'entité contiennent par exemple une autre adresse IP.
 
@@ -74,11 +132,12 @@ Autres règles :
 
 - Chaque champ n'accepte que certains types d'entité (colonne « Types d'entité autorisés » de la liste des champs). Si le type ne convient pas, l'entité n'y est pas inscrite.
 - Si une entité en lecture seule et une entité réglable correspondent au même champ, l'entité réglable l'emporte, afin que la valeur puisse être réglée dans la carte.
+- Si un champ a plusieurs règles, la première qui trouve quelque chose l'emporte. Une correspondance exacte (clé interne ou ID complet) passe avant une correspondance par la terminaison.
 - Majuscules et minuscules ne comptent pas pour les modèles et terminaisons.
 
 ## Comment la recherche fonctionne
 
-- **Avec `integration`** : la carte ne cherche que parmi les entités de cette intégration. Le nom apparaît dans la barre d'adresse quand vous ouvrez l'intégration sous **Settings → Devices & services** (noms du menu en anglais) : la partie après `/integration/`. Si rien n'est trouvé, la carte continue comme sans `integration`.
+- **Avec `integration`** : la carte ne cherche que parmi les entités de cette intégration. Le nom apparaît dans la barre d'adresse quand vous ouvrez l'intégration sous **Settings → Devices & services** (noms du menu en anglais) : la partie après `/integration/`. Si rien n'est trouvé, la carte ne continue comme sans `integration` que si `namensteil` est aussi renseigné. Ainsi, des clés générales comme `"outdoor_temperature"` ne touchent pas d'autres entités.
 - **Sans `integration`** : la carte cherche parmi toutes les entités. Avec `namensteil`, seulement celles dont l'ID contient ce texte. Sans `namensteil`, une terminaison comme `"depart"` peut aussi toucher d'autres entités ; utilisez alors des ID exacts ou des modèles.
 
 ## Adapter Panasonic

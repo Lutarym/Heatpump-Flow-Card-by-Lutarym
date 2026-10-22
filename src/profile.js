@@ -5,29 +5,45 @@
 import { COMMAND_TO_FIELD, COP_TO_FIELD, FIELD_DOMAIN, INTEGRATION_DOMAIN, TOPIC_TO_FIELD } from "./erkennung.js";
 import { ENTITY_FIELDS } from "./felder.js";
 import { stellbar } from "./hilfsfunktionen.js";
+import { HERSTELLER_PROFILE } from "./hersteller.js";
 
 /**
- * Herstellerprofile. Jedes Profil beschreibt, wie die Entitaeten einer
- * Integration heissen. Umgesetzt ist bisher HeishaMon, die uebrigen
- * sind vorgemerkt und werden ergaenzt, sobald die Namensschemata
- * geklaert sind.
+ * Auswahl der Profile. "auto" sucht alle bekannten Integrationen ab.
+ * Die HeishaMon-Profile stehen hier, die Profile anderer Hersteller
+ * kommen aus hersteller.js.
  */
+export const AUTO_PROFIL = "auto";
+
 export const PROFILE = [
   {
     id: "heishamon_lutarym",
+    hersteller: "Panasonic Aquarea",
     name: "Panasonic Aquarea, HeishaMon by Lutarym",
+    integrationName: "HeishaMon by Lutarym",
+    entwickler: "Lutarym",
     fertig: true,
+    getestet: true,
   },
   {
     id: "heishamon",
+    hersteller: "Panasonic Aquarea",
     name: "Panasonic Aquarea, HeishaMon über MQTT-Namensschema",
+    integrationName: "HeishaMon (MQTT)",
+    entwickler: "",
     fertig: true,
+    getestet: true,
   },
-  { id: "vaillant", name: "Vaillant, in Vorbereitung", fertig: false },
-  { id: "bosch", name: "Bosch, in Vorbereitung", fertig: false },
-  { id: "viessmann", name: "Viessmann, in Vorbereitung", fertig: false },
-  { id: "stiebel", name: "Stiebel Eltron, in Vorbereitung", fertig: false },
-];
+].concat(
+  HERSTELLER_PROFILE.map((p) => ({
+    id: p.id,
+    hersteller: p.hersteller,
+    name: `${p.hersteller}, ${p.name}`,
+    integrationName: p.name,
+    entwickler: p.entwickler,
+    fertig: true,
+    getestet: false,
+  }))
+);
 
 /* ------------------------------------------------------------------ *
  *  Geraeteprofile zum Exportieren und Importieren
@@ -46,6 +62,20 @@ export const PROFIL_VERSION = 1;
  *    "sensor.heishamon_top4").
  */
 export function eingebautesProfil(id) {
+  const hp = HERSTELLER_PROFILE.find((x) => x.id === id);
+  if (hp) {
+    return {
+      format: PROFIL_FORMAT,
+      version: PROFIL_VERSION,
+      id: hp.id,
+      name: `${hp.hersteller}, ${hp.name}`,
+      hersteller: hp.hersteller,
+      entwickler: hp.entwickler,
+      integration: hp.integration,
+      namensteil: hp.namensteil || "",
+      felder: JSON.parse(JSON.stringify(hp.felder)),
+    };
+  }
   const pr = PROFILE.find((x) => x.id === id);
   if (!pr || !pr.fertig) return null;
   const mqtt = id === "heishamon";
@@ -94,10 +124,7 @@ export function eigenesProfil(config) {
   return eigeneProfile(config).find((p) => p.id === id) || null;
 }
 
-/** Profil fuer die Erkennung: eigenes Objekt oder Kennung des eingebauten. */
-export function profilFuer(config) {
-  return eigenesProfil(config) || (config && config.profil);
-}
+
 
 /**
  * Prueft ein eingelesenes Profil. Unbekannte Felder werden gemeldet und
@@ -134,6 +161,7 @@ export function pruefeProfil(roh) {
       id,
       name: text(roh.name, 80) || id,
       hersteller: text(roh.hersteller, 60),
+      entwickler: text(roh.entwickler, 60),
       integration: text(roh.integration, 60),
       namensteil: text(roh.namensteil, 60),
       felder,
@@ -147,10 +175,18 @@ export function erkenneMitProfil(hass, p) {
   const result = { found: false, source: "keine", entities: {}, count: 0, devices: 0 };
   if (!hass || !p || !p.felder) return result;
   const regeln = [];
+  const rangZaehler = {};
   Object.keys(p.felder).forEach((feld) =>
     [].concat(p.felder[feld]).forEach((w) => {
       if (typeof w !== "string" || !w.trim()) return;
-      const r = { feld, w: w.trim(), klein: w.trim().toLowerCase() };
+      let text = w.trim();
+      let domain = "";
+      const m = text.match(/^([a-z_]+):(.+)$/);
+      if (m) {
+        domain = m[1];
+        text = m[2];
+      }
+      const r = { feld, w: text, klein: text.toLowerCase(), domain, rang: (rangZaehler[feld] = (rangZaehler[feld] || 0) + 1) };
       if (r.w.includes("*")) {
         r.re = new RegExp(
           "^" + r.w.split("*").map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$",
@@ -160,28 +196,44 @@ export function erkenneMitProfil(hass, p) {
       regeln.push(r);
     })
   );
+  // Liefert 0 bei keinem Treffer, 2 bei genauem Treffer (Schluessel
+  // der Integration, ganze Entity-ID), 1 bei Treffer ueber das Ende
+  // der Entity-ID oder ein Muster.
   const passt = (r, id, eintrag) => {
-    if (r.re) return r.re.test(id);
-    if (r.w.includes(".")) return id === r.w;
+    if (r.domain && id.split(".")[0] !== r.domain) return 0;
+    if (r.re) return r.re.test(id) ? 1 : 0;
+    if (r.w.includes(".")) return id === r.w ? 2 : 0;
     const klein = id.toLowerCase();
-    return (
-      Boolean(eintrag && eintrag.translation_key === r.w) ||
-      klein.endsWith(`_${r.klein}`) ||
-      klein.split(".")[1] === r.klein
-    );
+    if (eintrag && eintrag.translation_key === r.w) return 2;
+    if (klein.split(".")[1] === r.klein) return 2;
+    return klein.endsWith(`_${r.klein}`) ? 1 : 0;
   };
-  const assign = (feld, entityId) => {
+  const guete = {};
+  const assign = (feld, entityId, rang, art) => {
     const allowed = FIELD_DOMAIN[feld];
     if (allowed && !allowed.includes(entityId.split(".")[0])) return;
     const bisher = result.entities[feld];
-    if (bisher && stellbar(bisher) && !stellbar(entityId)) return;
+    if (bisher) {
+      // Stellbar vor nur lesbar, dann die fruehere Regel, dann der
+      // genauere Treffer. Bei Gleichstand bleibt der erste.
+      const sb = stellbar(bisher);
+      const sn = stellbar(entityId);
+      if (sb && !sn) return;
+      if (sb === sn) {
+        const g = guete[feld];
+        if (rang > g.rang) return;
+        if (rang === g.rang && art <= g.art) return;
+      }
+    }
     result.entities[feld] = entityId;
+    guete[feld] = { rang, art };
   };
   const pruefe = (id, eintrag) => {
     let treffer = false;
     regeln.forEach((r) => {
-      if (passt(r, id, eintrag)) {
-        assign(r.feld, id);
+      const art = passt(r, id, eintrag);
+      if (art) {
+        assign(r.feld, id, r.rang, art);
         treffer = true;
       }
     });
@@ -208,6 +260,10 @@ export function erkenneMitProfil(hass, p) {
     }
   }
   const teil = String(p.namensteil || "").toLowerCase();
+  // Ein Profil mit Integration, aber ohne Namensteil, sucht nur im
+  // Register. Sonst passten allgemeine Schluessel wie
+  // "outdoor_temperature" auf fremde Entitaeten.
+  if (p.integration && !teil) return result;
   let hits = 0;
   Object.keys(hass.states || {}).forEach((id) => {
     if (teil && !id.toLowerCase().includes(teil)) return;

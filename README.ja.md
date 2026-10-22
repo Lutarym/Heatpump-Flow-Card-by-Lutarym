@@ -14,7 +14,7 @@ Panasonic Aquarea ヒートポンプを HeishaMon 経由で接続し、動くシ
 - 回路1と回路2の暖房曲線を専用ウィンドウに表示。目盛り、運転点、調整可能な基準点つき
 - ヒートポンプの扉：右下のボタンで前面が扉のように左へ開き、その奥に詳細設定（休暇、週間スケジュール、スマート給湯、暖房の外気温限界、温度差、レジオネラ対策、ポンプ、静音モード、暖房と給湯の今日の COP、暖房・給湯・合計の 1 月 1 日からの年間性能係数（JAZ、熱量と電力 kWh 付き、HeishaMon の値から算出）、運転時間と起動回数）があります。「適用」で変更を送信し、扉が閉じます
 - ヘルプ画面（右下の「?」）：HeishaMon が読み書きできるすべての値と命令を分かりやすく説明。検索とグループ付き。各 TOP 値に対応するエンティティ ID 全体を表示し、クリックでコピー可能
-- デバイスプロファイル：Panasonic プロファイルをファイルに書き出し、調整したり他メーカーを記述したりして再び読み込めます。[デバイスプロファイルの説明](docs/GERAETEPROFIL.ja.md) を参照
+- 24 メーカー・34 統合のメーカープロファイル（Viessmann、NIBE、Daikin、Luxtronik、Stiebel Eltron、Vaillant など）を自動検出。複数見つかった場合はエディターがどれを使うか尋ねます。HeishaMon by Lutarym 以外は未検証です。デバイスプロファイルの書き出し・調整・読み込みも可能です。[デバイスプロファイルの説明](docs/GERAETEPROFIL.ja.md) を参照
 - 言語パック：言語をファイルに書き出し、自分で翻訳・調整して再び読み込めます。[言語パックの説明](docs/SPRACHPAKET.ja.md) を参照
 - 過去24時間の使用量グラフ。暖房、給湯、待機で色分けし、その下に SG Ready の履歴
 - 暖房バッファーのないシステムに対応。TOP99 で自動検出、または手動設定
@@ -78,7 +78,7 @@ entities:
 | `hk_count` | `2` | 暖房回路の数、1 から 4。回路 3 と 4 は独自エンティティが必要（Aquarea が制御するのは 2 ゾーンのみ） |
 | `fan_count` | `2` | ファンの数、1 または 2 |
 | `language` | `auto` | `auto`、`de`、`en`、`fr`、`ja` |
-| `profil` | `heishamon_lutarym` | `heishamon_lutarym`、または MQTT 命名規則の `heishamon` |
+| `profil` | `auto` | `auto` は統合を自動検出します。または `heishamon_lutarym`、`heishamon`（MQTT 命名規則）、`vicare`、`luxtronik2` などのプロファイル ID。一覧は[説明](docs/GERAETEPROFIL.ja.md)を参照 |
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
 | `show_history` | `knopf` | 24時間グラフ：`knopf` 右上の3つのボタンで使用量・SG Ready・温度をウィンドウ表示、`true` 使用量を常にカードに表示、`false` オフ |

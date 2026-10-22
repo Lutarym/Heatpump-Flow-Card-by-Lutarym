@@ -2,7 +2,7 @@
  * Verbrauchsverlauf der letzten 24 Stunden.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { clamp, fmt } from "../hilfsfunktionen.js";
+import { clamp, fmt, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { NEUTRAL, SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
 
@@ -194,7 +194,7 @@ export const verlaufKarte = {
         this._verdichterVerlauf = ((antwort && vd && antwort[vd]) || [])
           .map((pkt) => ({
             t: pkt.lu ? pkt.lu * 1000 : Date.parse(pkt.last_changed),
-            laeuft: parseFloat(pkt.s !== undefined ? pkt.s : pkt.state) > 0,
+            laeuft: zustandAn(pkt.s !== undefined ? pkt.s : pkt.state) === true,
           }))
           .filter((pkt) => !Number.isNaN(pkt.t));
 
@@ -202,7 +202,7 @@ export const verlaufKarte = {
         this._ventilVerlauf = ((antwort && vid && antwort[vid]) || [])
           .map((p) => ({
             t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-            ww: parseFloat(p.s !== undefined ? p.s : p.state) > 0,
+            ww: warmwasserZustand(p.s !== undefined ? p.s : p.state) === true,
           }))
           .filter((p) => !Number.isNaN(p.t));
         const reihe = (antwort && antwort[id]) || [];

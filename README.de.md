@@ -14,7 +14,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Heizkurve für Heizkreis 1 und 2 in einem eigenen Fenster, mit Skala, Betriebspunkt und einstellbaren Eckwerten
 - Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, COP von heute für Heizen und Warmwasser, Jahresarbeitszahl (JAZ) für Heizen, Warmwasser und gesamt seit 1. Januar, mit Wärme und Strom in kWh, aus den HeishaMon-Werten, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
 - Hilfefenster („?“ unten rechts): verständliche Erklärung aller Werte und Befehle, die HeishaMon lesen und schreiben kann, mit Suche und Gruppen; zu jedem TOP-Wert die vollständige Entität, per Klick kopierbar
-- Geräteprofile: das Panasonic-Profil als Datei exportieren, anpassen oder einen anderen Hersteller beschreiben und wieder importieren; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md)
+- Herstellerprofile für 34 Integrationen von 24 Herstellern (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant und weitere), automatisch erkannt; werden mehrere gefunden, fragt der Editor, welche gelten soll. Außer HeishaMon by Lutarym sind sie ungetestet. Geräteprofile lassen sich außerdem exportieren, anpassen und importieren; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md)
 - Sprachpakete: eine Sprache als Datei exportieren, selbst übersetzen oder anpassen und wieder importieren; siehe [Anleitung Sprachpakete](docs/SPRACHPAKET.de.md)
 - Verbrauchsverlauf der letzten 24 Stunden, gefärbt nach Heizung, Warmwasser und Standby, darunter der SG-Ready-Verlauf
 - Anlagen ohne Heizungspuffer, automatisch erkannt über TOP99 oder fest einstellbar
@@ -78,7 +78,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `hk_count` | `2` | Anzahl der Heizkreise, 1 bis 4. HK3 und HK4 brauchen eigene Entitäten, die Aquarea regelt nur zwei Zonen |
 | `fan_count` | `2` | Anzahl der Lüfter, 1 oder 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` oder `ja` |
-| `profil` | `heishamon_lutarym` | `heishamon_lutarym` oder `heishamon` für das MQTT-Namensschema |
+| `profil` | `auto` | `auto` erkennt die Integration selbst, sonst die Kennung eines Profils wie `heishamon_lutarym`, `heishamon` (MQTT-Namensschema), `vicare`, `luxtronik2`; Liste in der [Anleitung](docs/GERAETEPROFIL.de.md) |
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
 | `show_history` | `knopf` | Diagramme 24 Stunden: `knopf` drei Knöpfe oben rechts öffnen Verbrauch, SG Ready und Temperaturen im Fenster, `true` Verbrauch dauerhaft in der Karte, `false` aus |

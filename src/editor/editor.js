@@ -5,11 +5,10 @@
 import { bedienungEditor } from "./bedienung.js";
 import { stilEditor } from "./stil.js";
 import { werkzeugeEditor } from "./werkzeuge.js";
-import { FIELD_DOMAIN, defaultEntityMap, detectIntegration, quellenZuordnung } from "../erkennung.js";
+import { FIELD_DOMAIN, defaultEntityMap, detectIntegration, profilFuer, quellenZuordnung } from "../erkennung.js";
 import { DEFAULT_CONFIG, ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, friendly } from "../hilfsfunktionen.js";
 import { CARD_VERSION } from "../konstanten.js";
-import { profilFuer } from "../profile.js";
 import { EIGENE_SPRACHEN, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { feldText, gruppenText, hinweisText, t, tf } from "../texte.js";
 
@@ -95,7 +94,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
       .map((e) => `<option value="${e}">${escapeHtml(friendly(this._hass, e))}</option>`)
       .join("");
 
-    const found = detectIntegration(this._hass, profilFuer(this._config));
+    const found = detectIntegration(this._hass, profilFuer(this._config, this._hass));
 
     this.shadowRoot.innerHTML = `
       <style>${this._css()}</style>
@@ -123,9 +122,17 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_sprache")}${this._sp() === "en" ? "" : " / Language"}<em>${this._t("e_sprache_h")}</em></span>
             <select id="opt-sprache">${this._sprachOptionen()}</select>
           </label>
-          <label class="ed-row ed-breit nur-erweitert">
+          <label class="ed-row ed-breit">
             <span>${this._t("e_profil")}<em>${this._t("e_profil_h")}</em></span>
+            <select id="opt-hersteller">${this._herstellerOptionen()}</select>
+          </label>
+          <label class="ed-row ed-breit" id="ed-geraet-zeile">
+            <span>${this._t("e_geraet")}<em>${this._t("e_geraet_h")}</em></span>
             <select id="opt-profil">${this._profilOptionen()}</select>
+          </label>
+          <label class="ed-row ed-breit ed-profilwahl" id="ed-profil-wahl" hidden>
+            <span>${this._t("e_mehrere")}<em>${this._t("e_mehrere_h")}</em></span>
+            <select id="opt-profil-wahl"></select>
           </label>
         </div>
 
@@ -430,9 +437,20 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
       this._zeigeSprachKnoepfe();
     });
     this._bindeSprachen();
+    bind("opt-hersteller", (el) => {
+      // Ein Hersteller mit mehreren Integrationen startet mit der ersten,
+      // im zweiten Feld laesst sich dann die passende waehlen.
+      put({ profil: this._erstesProfilVon(el.value) });
+      this._zeigeProfilAuswahl();
+    });
     bind("opt-profil", (el) => {
       put({ profil: el.value });
-      this._zeigeProfilKnoepfe();
+      this._zeigeProfilAuswahl();
+    });
+    bind("opt-profil-wahl", (el) => {
+      if (!el.value) return;
+      put({ profil: el.value });
+      this._zeigeProfilAuswahl();
     });
     this._bindeProfile();
     bind("opt-vbreite", (el) => put({ history_width: parseInt(el.value, 10) || 450 }));
@@ -629,7 +647,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     }
 
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
-      const f = detectIntegration(this._hass, profilFuer(this._config));
+      const f = detectIntegration(this._hass, profilFuer(this._config, this._hass));
       if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat), true);
     });
     this.shadowRoot
@@ -678,10 +696,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     if (sprachWahl) sprachWahl.innerHTML = this._sprachOptionen();
     put("opt-sprache", this._config.language || "auto");
     this._zeigeSprachKnoepfe();
-    const profilWahl = this.shadowRoot.getElementById("opt-profil");
-    if (profilWahl) profilWahl.innerHTML = this._profilOptionen();
-    put("opt-profil", this._config.profil || "heishamon");
-    this._zeigeProfilKnoepfe();
+    this._zeigeProfilAuswahl();
     put("opt-vbreite", String(this._config.history_width || 450));
     put("opt-kxmin", String(this._config.curve_x_min));
     put("opt-kxmax", String(this._config.curve_x_max));

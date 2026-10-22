@@ -2,7 +2,7 @@
  * Die Karte: Lebenszyklus, Konfiguration, Aufbau und Animation.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { detectIntegration, quellenZuordnung } from "../erkennung.js";
+import { detectIntegration, profilFuer, quellenZuordnung } from "../erkennung.js";
 import { DEFAULT_CONFIG } from "../felder.js";
 import { animationAn, bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, numState, setzeDezimal } from "../hilfsfunktionen.js";
 import { aktualisierenKarte } from "./aktualisieren.js";
@@ -20,7 +20,7 @@ import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { verlaufKarte } from "./verlauf.js";
 import { HOLD_MS } from "../konstanten.js";
-import { eigenesProfil, profilFeldnamen } from "../profile.js";
+import { profilFeldnamen } from "../profile.js";
 import { EIGENE_SPRACHEN, SPRACH_STAND, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { gruppenText, t } from "../texte.js";
 
@@ -96,7 +96,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
   }
 
   static getStubConfig(hass) {
-    const found = detectIntegration(hass, DEFAULT_CONFIG.profil);
+    const found = detectIntegration(hass, profilFuer(DEFAULT_CONFIG, hass));
     return { ...DEFAULT_CONFIG, entities: found.found ? found.entities : {} };
   }
 
@@ -127,6 +127,12 @@ export class LutarymHeatpumpCard extends HTMLElement {
     const alt = this._hass;
     this._hass = hass;
     if (!this._config) return;
+    // Kommt das Entitaetsregister spaeter oder aendert es sich, wird die
+    // automatische Zuordnung neu bestimmt.
+    if (hass && alt && hass.entities !== alt.entities) {
+      this._auto = null;
+      this._beobachtet = null;
+    }
     // Home Assistant ruft das bei jeder Zustandsaenderung im ganzen System
     // auf. Aendert sich keine Entitaet der Karte, bleibt alles stehen.
     if (alt && hass && this._built && !this._config.demo && !this._relevantGeaendert(alt, hass)) {
@@ -194,7 +200,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     if (configured) return configured;
     if (!this._auto) {
       this._auto = quellenZuordnung(
-        detectIntegration(this._quelle, eigenesProfil(this._config) || undefined).entities,
+        detectIntegration(this._quelle, profilFuer(this._config, this._quelle)).entities,
         this._config.extra_heat
       );
     }

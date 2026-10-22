@@ -100,13 +100,61 @@ export function attr(hass, entityId, key, fallback) {
   return st.attributes[key];
 }
 
+/**
+ * Zustandstexte verschiedener Integrationen. Manche melden "on" und
+ * "off", andere "Running" und "Stopped" oder deutsche Woerter.
+ */
+const AN_TEXTE = ["on", "true", "running", "run", "an", "ein", "läuft", "laeuft", "active", "aktiv", "open", "yes", "ja"];
+const AUS_TEXTE = ["off", "false", "stopped", "stop", "aus", "inactive", "inaktiv", "closed", "no", "nein", "idle", "standby", "unknown", "unavailable", "none", ""];
+
+/** Wertet einen Zustandstext als an (true), aus (false) oder unklar (null). */
+export function zustandAn(s) {
+  if (s === null || s === undefined) return null;
+  const t = String(s).trim().toLowerCase();
+  if (AN_TEXTE.includes(t)) return true;
+  if (AUS_TEXTE.includes(t)) return false;
+  const n = parseFloat(t);
+  return Number.isNaN(n) ? null : n > 0;
+}
+
 export function isOn(hass, entityId) {
   const s = rawState(hass, entityId);
   if (s === null) return null;
-  if (s === "on" || s === "true") return true;
-  if (s === "off" || s === "false" || s === "unknown" || s === "unavailable") return false;
+  return zustandAn(s);
+}
+
+/**
+ * Ob ein Zustand des Dreiwegeventils "Warmwasser" bedeutet. Zahlen
+ * groesser 0 und "on" heissen Warmwasser, Texte werden nach Woertern
+ * wie "hot water" oder "Warmwasser" durchsucht.
+ */
+export function warmwasserZustand(s) {
+  if (s === null || s === undefined) return null;
+  const t = String(s).trim().toLowerCase();
+  if (t === "unknown" || t === "unavailable" || t === "") return null;
+  const n = parseFloat(t);
+  if (!Number.isNaN(n)) return n > 0;
+  if (/buffer|puffer|pool/.test(t)) return false;
+  if (/dhw|hot.?water|domestic|warmwasser|brauchwasser|trinkwasser|sanitary|tank|boiler|eau chaude|給湯/.test(t)) return true;
+  const an = zustandAn(t);
+  return an === null ? false : an;
+}
+
+/**
+ * Wert des Verdichters fuer Anzeige und Logik. Liefert die Zahl mit
+ * Einheit, oder bei Integrationen, die nur an und aus melden, 1 oder 0.
+ */
+export function verdichterWert(hass, entityId) {
+  const s = rawState(hass, entityId);
+  if (s === null) return { wert: null, einheit: "", nurAnAus: false };
   const n = parseFloat(s);
-  return Number.isNaN(n) ? null : n > 0;
+  if (!Number.isNaN(n)) {
+    const einheit = attr(hass, entityId, "unit_of_measurement", "Hz") || "";
+    return { wert: n, einheit, nurAnAus: false };
+  }
+  const an = zustandAn(s);
+  if (an === null) return { wert: null, einheit: "", nurAnAus: false };
+  return { wert: an ? 1 : 0, einheit: "", nurAnAus: true };
 }
 
 /**

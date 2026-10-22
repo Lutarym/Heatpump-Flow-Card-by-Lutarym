@@ -2,7 +2,7 @@
  * Aktualisiert Werte, Farben und Animationen bei jeder Aenderung.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { animationAn, attr, clamp, fmt, isOn, loadColor, numState, rawState, thermalColor } from "../hilfsfunktionen.js";
+import { animationAn, attr, clamp, fmt, isOn, loadColor, numState, rawState, thermalColor, verdichterWert, warmwasserZustand } from "../hilfsfunktionen.js";
 import { BUBBLE_COUNT, COMP_MAX_HZ, COMP_MIN_HZ, DRUCK_MAX, DRUCK_MIN, MODE_LABELS, NEUTRAL, PUMP_SECONDS, SG_STATES, VALVE_LABELS } from "../konstanten.js";
 import { tf, wertText } from "../texte.js";
 
@@ -61,8 +61,8 @@ export const aktualisierenKarte = {
    * "Nur Warmwasser".
    */
   _ladtWarmwasser(hass) {
-    const v = numState(hass, this._e("three_way_valve"));
-    if (v !== null) return v > 0;
+    const v = warmwasserZustand(rawState(hass, this._e("three_way_valve")));
+    if (v !== null) return v;
     return numState(hass, this._e("operating_mode")) === 3;
   },
 
@@ -154,10 +154,21 @@ export const aktualisierenKarte = {
     if (aussenEl) aussenEl.style.fill = outColor;
 
     /* Außengerät */
-    const comp = numState(hass, this._e("compressor"));
-    set("comp-v", comp === null ? "--" : `${fmt(comp, 0)} Hz`);
+    const vd = verdichterWert(hass, this._e("compressor"));
+    const comp = vd.wert;
+    let compText = "--";
+    if (comp !== null) {
+      compText = vd.nurAnAus
+        ? wertText(comp > 0 ? "läuft" : "aus", this._sp())
+        : `${fmt(comp, 0)}${vd.einheit ? ` ${vd.einheit}` : ""}`;
+    }
+    set("comp-v", compText);
     const compEl = this._animEl("comp-v");
-    if (compEl) compEl.style.fill = loadColor(comp, COMP_MIN_HZ, COMP_MAX_HZ);
+    if (compEl) {
+      const prozent = vd.einheit === "%";
+      const last = vd.nurAnAus ? (comp > 0 ? COMP_MAX_HZ : 0) : comp;
+      compEl.style.fill = loadColor(last, prozent ? 0 : COMP_MIN_HZ, prozent ? 100 : COMP_MAX_HZ);
+    }
 
     // Meldet die Waermepumpe ausdruecklich aus, steht alles still.
     // Bei unbekanntem Zustand wird nichts gesperrt, sonst waere die
@@ -449,7 +460,9 @@ export const aktualisierenKarte = {
     /* Dreiwegeventil, Klartext statt Room und DHW */
     const valveEntity = this._e("three_way_valve");
     const valveRoh = attr(hass, valveEntity, "beschreibung", null);
-    const valveNum = numState(hass, valveEntity);
+    // Bekannt ist das Ventil, wenn sein Zustand als Zahl, an/aus oder
+    // Text gedeutet werden kann. Manche Integrationen melden nur Text.
+    const valveNum = warmwasserZustand(rawState(hass, valveEntity));
     // Wohin gerade geladen wird. Das Dreiwegeventil ist die verlaessliche
     // Quelle. Fehlt es, hilft die Betriebsart weiter: Wert 3 heisst
     // "Nur Warmwasser". Ohne beides gilt Heizen, sonst laufen beide

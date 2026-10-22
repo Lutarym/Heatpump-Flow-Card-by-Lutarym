@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.5.1";
+var CARD_VERSION = "5.6.0";
 var L = {
   W: 1650,
   H: 700,
@@ -206,7 +206,7 @@ var TEXTE = {
   // Einstellungsdialog
   e_sprache: { de: "Sprache", en: "Language", fr: "Langue", ja: "\u8A00\u8A9E" },
   e_sprache_h: { de: "automatisch folgt der Spracheinstellung von Home Assistant", en: "automatic follows the Home Assistant language", fr: "automatique suit la langue de Home Assistant", ja: "\u81EA\u52D5\u306E\u5834\u5408\u306FHome Assistant\u306E\u8A00\u8A9E\u306B\u5F93\u3044\u307E\u3059" },
-  e_profil: { de: "Herstellerprofil", en: "Manufacturer profile", fr: "Profil du fabricant", ja: "\u30E1\u30FC\u30AB\u30FC\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB" },
+  e_profil: { de: "Hersteller", en: "Manufacturer", fr: "Fabricant", ja: "\u30E1\u30FC\u30AB\u30FC" },
   e_thema: { de: "Farbdarstellung", en: "Colour scheme", fr: "Jeu de couleurs", ja: "\u914D\u8272" },
   e_thema_h: { de: "Automatisch folgt hell oder dunkel von Home Assistant", en: "Automatic follows light or dark mode of Home Assistant", fr: "Automatique suit le mode clair ou sombre de Home Assistant", ja: "\u81EA\u52D5\u306F Home Assistant \u306E\u30E9\u30A4\u30C8\uFF0F\u30C0\u30FC\u30AF\u306B\u5F93\u3044\u307E\u3059" },
   o_th_auto: { de: "Automatisch (wie Home Assistant)", en: "Automatic (like Home Assistant)", fr: "Automatique (comme Home Assistant)", ja: "\u81EA\u52D5\uFF08Home Assistant \u306B\u5408\u308F\u305B\u308B\uFF09" },
@@ -258,6 +258,18 @@ var TEXTE = {
   e_p_export: { de: "Profil exportieren", en: "Export profile", fr: "Exporter le profil", ja: "\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u3092\u66F8\u304D\u51FA\u3059" },
   e_p_import: { de: "Profil importieren", en: "Import profile", fr: "Importer un profil", ja: "\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u3092\u8AAD\u307F\u8FBC\u3080" },
   e_p_entfernen: { de: "Eigenes Profil entfernen", en: "Remove own profile", fr: "Supprimer le profil personnel", ja: "\u72EC\u81EA\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u3092\u524A\u9664" },
+  e_geraet: { de: "Integration / Ger\xE4t", en: "Integration / device", fr: "Int\xE9gration / appareil", ja: "\u7D71\u5408 / \u6A5F\u5668" },
+  e_geraet_h: { de: "dieser Hersteller hat mehrere Integrationen", en: "this manufacturer has several integrations", fr: "ce fabricant a plusieurs int\xE9grations", ja: "\u3053\u306E\u30E1\u30FC\u30AB\u30FC\u306B\u306F\u8907\u6570\u306E\u7D71\u5408\u304C\u3042\u308A\u307E\u3059" },
+  e_mehrere: { de: "Mehrere Integrationen erkannt", en: "Several integrations detected", fr: "Plusieurs int\xE9grations d\xE9tect\xE9es", ja: "\u8907\u6570\u306E\u7D71\u5408\u3092\u691C\u51FA\u3057\u307E\u3057\u305F" },
+  e_mehrere_h: { de: "bitte w\xE4hlen, welche die Karte verwenden soll", en: "please choose which one the card should use", fr: "veuillez choisir celle que la carte doit utiliser", ja: "\u30AB\u30FC\u30C9\u3067\u4F7F\u7528\u3059\u308B\u7D71\u5408\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044" },
+  o_p_auto: { de: "Automatisch erkennen", en: "Detect automatically", fr: "D\xE9tection automatique", ja: "\u81EA\u52D5\u691C\u51FA" },
+  o_p_ungetestet: { de: "(ungetestet)", en: "(untested)", fr: "(non test\xE9)", ja: "\uFF08\u672A\u691C\u8A3C\uFF09" },
+  o_p_eigene_gruppe: { de: "Eigene Profile", en: "Own profiles", fr: "Profils personnels", ja: "\u72EC\u81EA\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB" },
+  o_p_von: { de: "von {n}", en: "by {n}", fr: "par {n}", ja: "\u4F5C\u6210\u8005 {n}" },
+  o_p_bitte: { de: "Bitte w\xE4hlen", en: "Please choose", fr: "Veuillez choisir", ja: "\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044" },
+  o_p_kandidat: { de: "{n}, {z} passende Felder", en: "{n}, {z} matching fields", fr: "{n}, {z} champs correspondants", ja: "{n}\u3001\u4E00\u81F4\u3059\u308B\u9805\u76EE {z} \u4EF6" },
+  m_erkannt_mehrere: { de: "{z} Integrationen erkannt. Bis zur Auswahl wird \u201E{n}\u201C verwendet.", en: "{z} integrations detected. Until you choose, \u201C{n}\u201D is used.", fr: "{z} int\xE9grations d\xE9tect\xE9es. En attendant votre choix, \xAB {n} \xBB est utilis\xE9.", ja: "{z} \u4EF6\u306E\u7D71\u5408\u3092\u691C\u51FA\u3057\u307E\u3057\u305F\u3002\u9078\u629E\u3059\u308B\u307E\u3067\u300C{n}\u300D\u3092\u4F7F\u7528\u3057\u307E\u3059\u3002" },
+  m_auto: { de: "Automatisch:", en: "Automatic:", fr: "Automatique :", ja: "\u81EA\u52D5\uFF1A" },
   o_p_eigen: { de: "(eigenes)", en: "(own)", fr: "(personnel)", ja: "\uFF08\u72EC\u81EA\uFF09" },
   o_p_angepasst: { de: "(angepasst)", en: "(customised)", fr: "(modifi\xE9)", ja: "\uFF08\u30AB\u30B9\u30BF\u30E0\uFF09" },
   m_p_export_ok: { de: "Profil \u201E{n}\u201C wurde als Datei gespeichert und steht im Download-Ordner", en: "Profile \u201C{n}\u201D has been saved as a file in your downloads folder", fr: "Le profil \xAB {n} \xBB a \xE9t\xE9 enregistr\xE9 dans le dossier des t\xE9l\xE9chargements", ja: "\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u300C{n}\u300D\u3092\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u30D5\u30A9\u30EB\u30C0\u306B\u4FDD\u5B58\u3057\u307E\u3057\u305F" },
@@ -271,7 +283,7 @@ var TEXTE = {
   m_p_leer: { de: "F\xFCr dieses Profil gibt es noch keine Beschreibung.", en: "There is no description for this profile yet.", fr: "Ce profil n'a pas encore de description.", ja: "\u3053\u306E\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u306B\u306F\u307E\u3060\u8A18\u8FF0\u304C\u3042\u308A\u307E\u305B\u3093\u3002" },
   m_p_entfernt: { de: "Eigenes Profil entfernt.", en: "Own profile removed.", fr: "Profil personnel supprim\xE9.", ja: "\u72EC\u81EA\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u3092\u524A\u9664\u3057\u307E\u3057\u305F\u3002" },
   m_p_zurueck: { de: "Anpassung entfernt, das eingebaute Profil gilt wieder.", en: "Customisation removed, the built-in profile applies again.", fr: "Modification supprim\xE9e, le profil int\xE9gr\xE9 s'applique de nouveau.", ja: "\u30AB\u30B9\u30BF\u30E0\u3092\u524A\u9664\u3057\u3001\u5185\u8535\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u306B\u623B\u3057\u307E\u3057\u305F\u3002" },
-  e_profil_h: { de: "legt fest, nach welchem Namensschema gesucht wird", en: "defines the entity naming scheme to search for", fr: "d\xE9finit le sch\xE9ma de nommage recherch\xE9", ja: "\u691C\u7D22\u3059\u308B\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3\u540D\u306E\u898F\u5247" },
+  e_profil_h: { de: "Automatisch sucht alle bekannten Integrationen ab", en: "Automatic searches all known integrations", fr: "Automatique recherche toutes les int\xE9grations connues", ja: "\u81EA\u52D5\u306F\u65E2\u77E5\u306E\u3059\u3079\u3066\u306E\u7D71\u5408\u3092\u691C\u7D22\u3057\u307E\u3059" },
   e_anordnung: { de: "Anordnung", en: "Layout", fr: "Disposition", ja: "\u30EC\u30A4\u30A2\u30A6\u30C8" },
   e_anordnung_h: { de: "quer, hochkant oder klassisch wie bis Version 4.9 (2 Heizkreise, ohne Zusatzw\xE4rme)", en: "landscape, portrait or classic as up to version 4.9 (2 circuits, no additional heat)", fr: "paysage, portrait ou classique comme jusqu'\xE0 la version 4.9 (2 circuits, sans chaleur d'appoint)", ja: "\u6A2A\u9577\u3001\u7E26\u9577\u3001\u307E\u305F\u306F\u30D0\u30FC\u30B8\u30E7\u30F3 4.9 \u307E\u3067\u306E\u30AF\u30E9\u30B7\u30C3\u30AF\uFF082 \u56DE\u8DEF\u3001\u8FFD\u52A0\u71B1\u6E90\u306A\u3057\uFF09" },
   e_klassisch: { de: "Querformat klassisch", en: "Landscape classic", fr: "Paysage classique", ja: "\u6A2A\u9577\uFF08\u30AF\u30E9\u30B7\u30C3\u30AF\uFF09" },
@@ -929,13 +941,43 @@ function attr(hass, entityId, key, fallback) {
   if (!st || st.attributes[key] === void 0) return fallback;
   return st.attributes[key];
 }
+var AN_TEXTE = ["on", "true", "running", "run", "an", "ein", "l\xE4uft", "laeuft", "active", "aktiv", "open", "yes", "ja"];
+var AUS_TEXTE = ["off", "false", "stopped", "stop", "aus", "inactive", "inaktiv", "closed", "no", "nein", "idle", "standby", "unknown", "unavailable", "none", ""];
+function zustandAn(s) {
+  if (s === null || s === void 0) return null;
+  const t2 = String(s).trim().toLowerCase();
+  if (AN_TEXTE.includes(t2)) return true;
+  if (AUS_TEXTE.includes(t2)) return false;
+  const n = parseFloat(t2);
+  return Number.isNaN(n) ? null : n > 0;
+}
 function isOn(hass, entityId) {
   const s = rawState(hass, entityId);
   if (s === null) return null;
-  if (s === "on" || s === "true") return true;
-  if (s === "off" || s === "false" || s === "unknown" || s === "unavailable") return false;
+  return zustandAn(s);
+}
+function warmwasserZustand(s) {
+  if (s === null || s === void 0) return null;
+  const t2 = String(s).trim().toLowerCase();
+  if (t2 === "unknown" || t2 === "unavailable" || t2 === "") return null;
+  const n = parseFloat(t2);
+  if (!Number.isNaN(n)) return n > 0;
+  if (/buffer|puffer|pool/.test(t2)) return false;
+  if (/dhw|hot.?water|domestic|warmwasser|brauchwasser|trinkwasser|sanitary|tank|boiler|eau chaude|給湯/.test(t2)) return true;
+  const an = zustandAn(t2);
+  return an === null ? false : an;
+}
+function verdichterWert(hass, entityId) {
+  const s = rawState(hass, entityId);
+  if (s === null) return { wert: null, einheit: "", nurAnAus: false };
   const n = parseFloat(s);
-  return Number.isNaN(n) ? null : n > 0;
+  if (!Number.isNaN(n)) {
+    const einheit = attr(hass, entityId, "unit_of_measurement", "Hz") || "";
+    return { wert: n, einheit, nurAnAus: false };
+  }
+  const an = zustandAn(s);
+  if (an === null) return { wert: null, einheit: "", nurAnAus: false };
+  return { wert: an ? 1 : 0, einheit: "", nurAnAus: true };
 }
 var DEZIMAL = ",";
 function setzeDezimal(z) {
@@ -1117,7 +1159,7 @@ var DEFAULT_CONFIG = {
   card_width: 0,
   pipe_inner_mm: 0,
   mqtt_prefix: "panasonic_heat_pump",
-  profil: "heishamon_lutarym",
+  profil: "auto",
   language: "auto",
   show_history: "knopf",
   show_target: true,
@@ -1160,26 +1202,748 @@ var DEFAULT_CONFIG = {
   entities: {}
 };
 
+// src/hersteller.js
+var HERSTELLER_PROFILE = [
+  /* ---------------------------- Viessmann ---------------------------- */
+  {
+    id: "vicare",
+    hersteller: "Viessmann",
+    name: "ViCare",
+    entwickler: "Home Assistant Core",
+    quelle: "https://www.home-assistant.io/integrations/vicare/",
+    integration: "vicare",
+    felder: {
+      outside_temp: ["outside_temperature"],
+      flow_temp: ["secondary_circuit_supply_temperature", "supply_temperature"],
+      return_temp: ["secondary_circuit_return_temperature", "return_temperature"],
+      dhw_temp: ["dhw_storage_temperature", "dhw_storage_top_temperature"],
+      dhw_setpoint: ["number:dhw_temperature"],
+      compressor: ["compressor_modulation"],
+      three_way_valve: ["domestic_hot_water_charging"],
+      pump_flow: ["volumetric_flow"],
+      pump_speed: ["primary_circuit_pump_rotation"],
+      power_now: ["inverter_power", "compressor_power"],
+      energy_today: ["power_consumption_today"],
+      buffer_temp: ["buffer_main_temperature", "buffer_top_temperature"],
+      solar_temp: ["collector_temperature"],
+      solar_pump: ["solar_pump"],
+      hk1_pump: ["circulation_pump"],
+      circulation_pump: ["domestic_hot_water_circulation_pump"],
+      compressor_starts: ["compressor_starts"],
+      operating_hours: ["compressor_hours"],
+      cop_heating: ["cop_heating"],
+      cop_dhw: ["cop_dhw"],
+      water_pressure: ["supply_pressure"]
+    }
+  },
+  /* ---------------------------- NIBE ---------------------------- */
+  {
+    id: "nibe_heatpump",
+    hersteller: "NIBE",
+    name: "Nibe Heat Pump",
+    entwickler: "Home Assistant Core",
+    quelle: "https://www.home-assistant.io/integrations/nibe_heatpump/",
+    integration: "nibe_heatpump",
+    felder: {
+      outside_temp: ["bt1_outdoor_temperature_40004"],
+      flow_temp: ["bt2_supply_temp_s1_40008", "eb100_ep14_bt12_condensor_out_40017"],
+      return_temp: ["eb100_ep14_bt3_return_temp_40012"],
+      dhw_temp: ["bt7_hw_top_40013", "bt6_hw_load_40014"],
+      compressor: ["compressor_frequency_actual_43136"],
+      three_way_valve: ["prio_43086"],
+      pump_flow: ["bf1_ep14_flow_40072"],
+      pump_speed: ["supply_pump_speed_ep14_43437"],
+      hk1_water: ["bt2_supply_temp_s1_40008"],
+      hk2_water: ["ep21_bt2_supply_temp_s2_40007"],
+      hk3_water: ["ep22_bt2_supply_temp_s3_40006"],
+      compressor_starts: ["compressor_starts_eb100_ep14_43416"],
+      operating_hours: ["tot_op_time_compr_eb100_ep14_43420"]
+    }
+  },
+  /* ---------------------------- Mitsubishi ---------------------------- */
+  {
+    id: "melcloud",
+    hersteller: "Mitsubishi Electric",
+    name: "MELCloud",
+    entwickler: "Home Assistant Core",
+    quelle: "https://www.home-assistant.io/integrations/melcloud/",
+    integration: "melcloud",
+    felder: {
+      outside_temp: ["outside_temperature"],
+      flow_temp: ["sensor:flow_temperature"],
+      return_temp: ["return_temperature"],
+      dhw_temp: ["tank_temperature"]
+    }
+  },
+  {
+    id: "melcloudhome",
+    hersteller: "Mitsubishi Electric",
+    name: "MELCloud Home",
+    entwickler: "andrew-blake",
+    quelle: "https://github.com/andrew-blake/melcloudhome",
+    integration: "melcloudhome",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      flow_temp: ["flow_temperature"],
+      return_temp: ["return_temperature"],
+      dhw_temp: ["tank_temperature"],
+      hk1_water: ["flow_temperature_zone1"],
+      hk2_water: ["flow_temperature_zone2"],
+      error: ["error_state"]
+    }
+  },
+  /* ---------------------------- Luxtronik ---------------------------- */
+  {
+    id: "luxtronik2",
+    hersteller: "Alpha Innotec, Novelan (Luxtronik)",
+    name: "Luxtronik",
+    entwickler: "BenPru",
+    quelle: "https://github.com/BenPru/luxtronik",
+    integration: "luxtronik2",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      flow_temp: ["flow_in_temperature"],
+      return_temp: ["flow_out_temperature"],
+      dhw_temp: ["dhw_temperature"],
+      dhw_setpoint: ["number:dhw_target_temperature"],
+      compressor: ["binary_sensor:compressor"],
+      three_way_valve: ["dhw_charging_pump"],
+      defrost: ["defrost_valve"],
+      error: ["error_reason"],
+      power_now: ["current_power_consumption"],
+      pump_flow: ["heat_amount_flow_rate"],
+      operating_hours: ["operation_hours"],
+      compressor_starts: ["compressor1_impulses"],
+      solar_temp: ["solar_collector_temperature"],
+      solar_pump: ["solar_pump"],
+      hk1_water: ["flow_in_circuit1_temperature"],
+      hk2_water: ["flow_in_circuit2_temperature"],
+      hk3_water: ["flow_in_circuit3_temperature"],
+      hk1_pump: ["circulation_pump_heating"],
+      circulation_pump: ["dhw_circulation_pump"],
+      cop_heating: ["cop_heating"],
+      cop_dhw: ["cop_dhw"]
+    }
+  },
+  {
+    id: "luxtronik",
+    hersteller: "Alpha Innotec, Novelan (Luxtronik)",
+    name: "Luxtronik",
+    entwickler: "Bouni",
+    quelle: "https://github.com/Bouni/luxtronik",
+    integration: "luxtronik",
+    felder: {
+      outside_temp: ["id_web_temperatur_ta"],
+      flow_temp: ["id_web_temperatur_tvl"],
+      return_temp: ["id_web_temperatur_trl"],
+      dhw_temp: ["id_web_temperatur_tbw"],
+      solar_temp: ["id_web_temperatur_tsk"],
+      hk1_water: ["id_web_temperatur_tfb1"],
+      compressor: ["id_web_freq_vd", "id_web_vd1out"],
+      three_way_valve: ["id_web_bupout"],
+      circulation_pump: ["id_web_zipout"],
+      hk1_pump: ["id_web_hupout"],
+      pump_flow: ["id_web_wmz_durchfluss"],
+      operating_hours: ["id_web_zaehler_betrzeitvd1"],
+      compressor_starts: ["id_web_zaehler_betrzeitimpvd1"]
+    }
+  },
+  {
+    id: "luxtronik2_hass",
+    hersteller: "Alpha Innotec, Novelan (Luxtronik)",
+    name: "Luxtronik 2",
+    entwickler: "notDIRK",
+    quelle: "https://github.com/notDIRK/luxtronik2-hass",
+    integration: "luxtronik2_hass",
+    felder: {
+      outside_temp: ["luxtronik_outside_temperature"],
+      flow_temp: ["luxtronik_flow_temperature"],
+      return_temp: ["luxtronik_return_temperature"],
+      dhw_temp: ["luxtronik_hot_water_temperature"],
+      dhw_setpoint: ["number:luxtronik_hot_water_setpoint"],
+      compressor: ["luxtronik_compressor"],
+      three_way_valve: ["luxtronik_hot_water_pump"],
+      hk1_pump: ["luxtronik_circulation_pump"],
+      circulation_pump: ["luxtronik_circulation_pump_zip"],
+      power_now: ["luxtronik_heat_pump_power"],
+      operating_hours: ["luxtronik_compressor_operating_hours", "luxtronik_heat_pump_operating_hours"]
+    }
+  },
+  /* ---------------------------- Lambda ---------------------------- */
+  {
+    id: "lambda_heat_pumps",
+    hersteller: "Lambda",
+    name: "Lambda Heat Pumps",
+    entwickler: "GuidoJeuken-6512",
+    quelle: "https://github.com/GuidoJeuken-6512/lambda_heat_pumps",
+    integration: "lambda_heat_pumps",
+    felder: {
+      outside_temp: ["sensor.*ambient_temperature"],
+      flow_temp: ["sensor.*_hp1_flow_line_temperature"],
+      return_temp: ["sensor.*_hp1_return_line_temperature"],
+      compressor: ["sensor.*_hp1_compressor_unit_rating"],
+      power_now: ["sensor.*_hp1_inverter_power_consumption"],
+      pump_flow: ["sensor.*_hp1_volume_flow_heat_sink"],
+      error: ["sensor.*_hp1_error_number"],
+      three_way_valve: ["sensor.*_hp1_request_type"],
+      dhw_temp: ["sensor.*_boil1_actual_high_temperature"],
+      buffer_temp: ["sensor.*_buff1_actual_high_temperature"],
+      solar_temp: ["sensor.*_sol1_collector_temperature"],
+      hk1_water: ["sensor.*_hc1_flow_line_temperature"],
+      hk2_water: ["sensor.*_hc2_flow_line_temperature"],
+      hk3_water: ["sensor.*_hc3_flow_line_temperature"],
+      hk4_water: ["sensor.*_hc4_flow_line_temperature"]
+    }
+  },
+  /* ---------------------------- iDM ---------------------------- */
+  {
+    id: "idm_heatpump",
+    hersteller: "iDM",
+    name: "IDM Heatpump",
+    entwickler: "Xerolux",
+    quelle: "https://github.com/Xerolux/idm-heatpump-hass",
+    integration: "idm_heatpump",
+    felder: {
+      outside_temp: ["outdoor_temp"],
+      flow_temp: ["hp_flow_temp"],
+      return_temp: ["hp_return_temp"],
+      dhw_temp: ["dhw_temp"],
+      three_way_valve: ["valve_heat_dhw"],
+      power_now: ["power_consumption_hp"],
+      pump_flow: ["heat_sink_flow_rate"],
+      solar_temp: ["solar_collector_temp"],
+      circulation_pump: ["circulation_pump"]
+    }
+  },
+  /* ---------------------------- Panasonic ---------------------------- */
+  {
+    id: "aquarea_heishamon",
+    hersteller: "Panasonic Aquarea",
+    name: "HeishaMon",
+    entwickler: "kamaradclimber",
+    quelle: "https://github.com/kamaradclimber/heishamon-homeassistant",
+    integration: "aquarea",
+    felder: {
+      outside_temp: ["main_outside_temp"],
+      compressor: ["main_compressor_freq"],
+      pump_flow: ["main_pump_flow"],
+      error: ["main_error"],
+      water_pressure: ["main_water_pressure"],
+      buffer_delta: ["main_buffer_tank_delta"],
+      fan1_rpm: ["main_fan1_motor_speed"],
+      fan2_rpm: ["main_fan2_motor_speed"],
+      flow_temp: ["main_main_outlet_temp"],
+      return_temp: ["main_main_inlet_temp"],
+      pump_speed: ["main_pump_speed"],
+      three_way_valve: ["main_threeway_valve_state"],
+      room_heater: ["main_room_heater_state"],
+      heater_internal: ["main_internal_heater_state"],
+      heater_external: ["main_external_heater_state"],
+      operating_hours: ["main_operations_hours"],
+      compressor_starts: ["main_operations_counter"],
+      room_heater_hours: ["main_room_heater_operations_hours"],
+      dhw_heater_hours: ["main_dhw_heater_operations_hours"],
+      buffer_temp: ["main_buffer_temp"],
+      buffer_target: ["main_main_target_temp"],
+      hk1_water: ["main_z1_water_temp"],
+      hk1_water_target: ["main_z1_water_target_temp"],
+      hk2_water: ["main_z2_water_temp"],
+      hk2_water_target: ["main_z2_water_target_temp"],
+      // Diese Integration benennt TOP123 als Zone 1 und TOP124 als
+      // Zone 2. Laut HeishaMon ist TOP124 Zone 1. Zugeordnet wird nach
+      // der Topic-Nummer.
+      hk1_pump: ["main_z2_pump_state"],
+      hk2_pump: ["main_z1_pump_state"],
+      dhw_temp: ["main_dhw_temp"],
+      dhw_heater: ["main_dhw_heater_state"],
+      solar_temp: ["main_solar_temp"]
+    }
+  },
+  {
+    id: "aquarea_cloud",
+    hersteller: "Panasonic Aquarea",
+    name: "Aquarea Smart Cloud",
+    entwickler: "wpatrik14",
+    quelle: "https://github.com/wpatrik14/home-assistant-aquarea",
+    integration: "aquarea",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      dhw_temp: ["tank_temperature"],
+      water_pressure: ["water_pressure"],
+      error: ["error_code"],
+      defrost: ["defrost"]
+    }
+  },
+  /* ---------------------------- Kronoterm ---------------------------- */
+  {
+    id: "kronoterm",
+    hersteller: "Kronoterm",
+    name: "Kronoterm",
+    entwickler: "Favio25",
+    quelle: "https://github.com/Favio25/Kronoterm-homeassistant",
+    integration: "kronoterm",
+    felder: {
+      outside_temp: ["temperature_outside"],
+      flow_temp: ["hp_outlet_temperature"],
+      return_temp: ["hp_inlet_temperature"],
+      dhw_temp: ["dhw_current_temperature"],
+      power_now: ["calculated_current_power"],
+      operating_hours: ["operating_hours_compressor_heating"],
+      compressor_starts: ["compressor_activations_heating"],
+      water_pressure: ["heating_system_pressure"],
+      hk1_water: ["loop_1_inlet_temperature"],
+      hk2_water: ["loop_2_inlet_temperature"],
+      hk3_water: ["loop_3_inlet_temperature"],
+      hk4_water: ["loop_4_inlet_temperature"],
+      circulation_pump: ["dhw_circulation_pump"],
+      defrost: ["binary_sensor:defrost_status"],
+      error: ["error_status"]
+    }
+  },
+  /* ---------------------------- Hitachi ---------------------------- */
+  {
+    id: "hitachi_yutaki",
+    hersteller: "Hitachi",
+    name: "Hitachi Yutaki",
+    entwickler: "alepee",
+    quelle: "https://github.com/alepee/hass-hitachi_yutaki",
+    integration: "hitachi_yutaki",
+    felder: {
+      outside_temp: ["outdoor_temp"],
+      flow_temp: ["water_outlet_temp"],
+      return_temp: ["water_inlet_temp"],
+      compressor: ["compressor_frequency"],
+      pump_flow: ["water_flow"],
+      pump_speed: ["pump_speed"],
+      power_now: ["electrical_power"],
+      defrost: ["defrost"],
+      error: ["alarm"],
+      hk1_pump: ["pump1"],
+      hk2_pump: ["pump2"],
+      cop_heating: ["cop_heating"],
+      cop_dhw: ["cop_dhw"]
+    }
+  },
+  /* ---------------------------- Daikin ---------------------------- */
+  {
+    id: "daikin_onecta",
+    hersteller: "Daikin",
+    name: "Daikin Onecta",
+    entwickler: "jwillemsen",
+    quelle: "https://github.com/jwillemsen/daikin_onecta",
+    integration: "daikin_onecta",
+    felder: {
+      outside_temp: ["outdoortemperature"],
+      flow_temp: ["leavingwatertemperature"],
+      dhw_temp: ["tanktemperature"],
+      error: ["isinerrorstate"]
+    }
+  },
+  {
+    id: "ha_daikin_altherma4_modbus",
+    hersteller: "Daikin",
+    name: "Altherma 4 Modbus",
+    entwickler: "joklee",
+    quelle: "https://github.com/joklee/ha_daikin_altherma4_modbus",
+    integration: "ha_daikin_altherma4_modbus",
+    felder: {
+      flow_temp: ["input_40"],
+      return_temp: ["input_42"],
+      dhw_temp: ["input_43"],
+      outside_temp: ["input_44"],
+      compressor: ["input_31"],
+      three_way_valve: ["input_37"],
+      defrost: ["input_35"],
+      pump_flow: ["input_49"],
+      power_now: ["input_51"],
+      water_pressure: ["input_79"]
+    }
+  },
+  {
+    id: "daikin_ha_ekrhh_modbus",
+    hersteller: "Daikin",
+    name: "Altherma EKRHH Modbus",
+    entwickler: "gerione",
+    quelle: "https://github.com/gerione/daikin-ha-ekrhh-modbus",
+    integration: "daikin_ha_ekrhh_modbus",
+    felder: {
+      flow_temp: ["leaving_water_temperature_phe", "leaving_water_temperature_pre_phe"],
+      return_temp: ["return_water_temperature"],
+      dhw_temp: ["domestic_hot_water_temperature"],
+      outside_temp: ["outside_air_temperature"],
+      pump_flow: ["flow_rate"],
+      power_now: ["heat_pump_power_consumption"],
+      compressor: ["compressor_run", "compressor_running"],
+      three_way_valve: ["3_way_valve"],
+      defrost: ["defrost_startup", "defrost"]
+    }
+  },
+  {
+    id: "daikin_altherma",
+    hersteller: "Daikin",
+    name: "Daikin Altherma",
+    entwickler: "tadasdanielius",
+    quelle: "https://github.com/tadasdanielius/daikin_altherma",
+    integration: "daikin_altherma",
+    felder: {
+      flow_temp: ["leaving_water_temperature"],
+      outside_temp: ["outdoor_temperature"]
+    }
+  },
+  /* ---------------------------- Qube ---------------------------- */
+  {
+    id: "qube_heatpump",
+    hersteller: "Qube",
+    name: "Qube Heat Pump",
+    entwickler: "MattieGit",
+    quelle: "https://github.com/MattieGit/qube_heatpump",
+    integration: "qube_heatpump",
+    felder: {
+      outside_temp: ["temp_outside"],
+      flow_temp: ["temp_supply"],
+      return_temp: ["temp_return"],
+      dhw_temp: ["temp_dhw"],
+      compressor: ["compressor_speed"],
+      three_way_valve: ["threeway_valve_status", "dout_threewayvlv_val"],
+      pump_flow: ["flow_rate"],
+      power_now: ["power_electric"],
+      hk1_pump: ["dout_usrpmp_val"]
+    }
+  },
+  /* ---------------------------- Solarfocus ---------------------------- */
+  {
+    id: "solarfocus",
+    hersteller: "Solarfocus",
+    name: "Solarfocus",
+    entwickler: "LavermanJJ",
+    quelle: "https://github.com/LavermanJJ/home-assistant-solarfocus",
+    integration: "solarfocus",
+    felder: {
+      outside_temp: ["hp_outdoor_temperature", "bb_outdoor_temperature"],
+      flow_temp: ["hp_supply_temperature"],
+      return_temp: ["hp_return_temperature"],
+      compressor: ["hp_compressor_speed"],
+      pump_flow: ["hp_flow_rate"],
+      power_now: ["hp_electrical_power"],
+      cop_heating: ["hp_cop_heating"],
+      defrost: ["hp_defrost_active"],
+      three_way_valve: ["hp_boiler_charge"],
+      solar_temp: ["so_collector_temperature_1"],
+      hk1_water: ["hc_supply_temperature"],
+      hk1_pump: ["hc_circulator_pump"],
+      circulation_pump: ["ci_pump"]
+    }
+  },
+  /* ---------------------------- Weishaupt ---------------------------- */
+  {
+    id: "weishaupt_modbus",
+    hersteller: "Weishaupt",
+    name: "Weishaupt Modbus",
+    entwickler: "OStrama",
+    quelle: "https://github.com/OStrama/weishaupt_modbus",
+    integration: "weishaupt_modbus",
+    felder: {
+      outside_temp: ["aussentemp"],
+      flow_temp: ["vl_temp"],
+      return_temp: ["rl_temp"],
+      dhw_temp: ["ww_temp"],
+      dhw_setpoint: ["number:ww_normal"],
+      buffer_temp: ["puffer_temp"],
+      hk1_water: ["hz_vl_temp"],
+      hk2_water: ["hz_vl_temp2"],
+      hk3_water: ["hz_vl_temp3"],
+      hk4_water: ["hz_vl_temp4"],
+      three_way_valve: ["wp_betrieb"],
+      error: ["wp_stoermeldung"]
+    }
+  },
+  /* ---------------------------- Stiebel Eltron ---------------------------- */
+  {
+    id: "stiebel_eltron_isg",
+    hersteller: "Stiebel Eltron",
+    name: "Stiebel Eltron ISG",
+    entwickler: "pail23",
+    quelle: "https://github.com/pail23/stiebel_eltron_isg_component",
+    integration: "stiebel_eltron_isg",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      flow_temp: ["flow_temperature_wp", "flow_temperature"],
+      return_temp: ["return_temperature"],
+      dhw_temp: ["actual_temperature_water"],
+      dhw_setpoint: ["number:comfort_water_temperature_target"],
+      compressor: ["compressor_speed", "compressor_on"],
+      three_way_valve: ["is_heating_water"],
+      buffer_temp: ["actual_temperature_buffer"],
+      solar_temp: ["solar_collector_temperature"],
+      hk1_pump: ["heating_circuit_1_pump", "pump_on_hk1"],
+      hk2_pump: ["heating_circuit_2_pump", "pump_on_hk2"],
+      hk3_pump: ["heating_circuit_3_pump"],
+      hk4_pump: ["heating_circuit_4_pump"],
+      circulation_pump: ["circulation_pump"],
+      defrost: ["evaporator_defrost"],
+      error: ["error_status"],
+      power_now: ["current_power_consumption"],
+      water_pressure: ["heater_pressure"],
+      compressor_starts: ["compressor_starts"]
+    }
+  },
+  {
+    id: "stiebel_eltron_http",
+    hersteller: "Stiebel Eltron",
+    name: "Stiebel Eltron ISG (HTTP)",
+    entwickler: "pmq",
+    quelle: "https://github.com/pmq/stiebel-eltron-http",
+    integration: "stiebel_eltron_http",
+    felder: {
+      outside_temp: ["outside_temperature"],
+      flow_temp: ["flow_temperature"],
+      dhw_temp: ["dhw_temperature"],
+      compressor: ["compressor_status"],
+      defrost: ["defrost_status"],
+      compressor_starts: ["compressor_starts"]
+    }
+  },
+  /* ---------------------------- Waterkotte ---------------------------- */
+  {
+    id: "waterkotte_heatpump",
+    hersteller: "Waterkotte",
+    name: "Waterkotte Heatpump",
+    entwickler: "marq24",
+    quelle: "https://github.com/marq24/ha-waterkotte",
+    integration: "waterkotte_heatpump",
+    felder: {
+      outside_temp: ["temperature_outside"],
+      flow_temp: ["temperature_flow"],
+      return_temp: ["temperature_return"],
+      dhw_temp: ["temperature_water"],
+      dhw_setpoint: ["number:temperature_water_setpoint"],
+      compressor: ["percent_compressor", "state_compressor"],
+      three_way_valve: ["state_water"],
+      buffer_temp: ["temperature_buffertank"],
+      solar_temp: ["temperature_solar"],
+      power_now: ["power_electric"],
+      cop_heating: ["cop_heating"],
+      hk1_pump: ["state_heating_circulation_pump_d425"],
+      operating_hours: ["operating_hours_compressor_1"],
+      water_pressure: ["pressure_water"],
+      error: ["state_alarm"]
+    }
+  },
+  /* ---------------------------- Batavia Heat ---------------------------- */
+  {
+    id: "batavia_heat",
+    hersteller: "Batavia Heat",
+    name: "Batavia Heat",
+    entwickler: "RSloot2000",
+    quelle: "https://github.com/RSloot2000/BataviaHeat-Heat-Pump",
+    integration: "batavia_heat",
+    felder: {
+      outside_temp: ["ambient_temperature"],
+      flow_temp: ["total_water_outlet_temperature", "water_outlet_temperature"],
+      return_temp: ["plate_hx_water_inlet_temperature"],
+      dhw_temp: ["hot_water_tank_temperature"],
+      dhw_setpoint: ["number:hot_water_setpoint"],
+      compressor: ["compressor_speed", "compressor_running"],
+      pump_flow: ["pump_flow_rate"],
+      buffer_temp: ["buffer_top_temperature"]
+    }
+  },
+  /* ---------------------------- Bosch, Buderus ---------------------------- */
+  {
+    id: "bosch_buderus_heating",
+    hersteller: "Bosch, Buderus",
+    name: "Bosch Buderus Heating",
+    entwickler: "SoftwareSchmied",
+    quelle: "https://github.com/SoftwareSchmied/ha-bosch-buderus-heating",
+    integration: "bosch_buderus_heating",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      flow_temp: ["supply_temperature"],
+      return_temp: ["return_temperature"],
+      dhw_temp: ["hot_water_temperature"],
+      compressor: ["compressor_status"],
+      water_pressure: ["system_pressure"],
+      error: ["active_faults"]
+    }
+  },
+  /* ---------------------------- Remeha ---------------------------- */
+  {
+    id: "remeha_modbus",
+    hersteller: "Remeha",
+    name: "Remeha Modbus",
+    entwickler: "houthacker",
+    quelle: "https://github.com/houthacker/remeha-modbus",
+    integration: "remeha_modbus",
+    felder: {
+      outside_temp: ["outside_temperature"],
+      flow_temp: ["heat_pump_flow_temperature", "flow_temperature"],
+      return_temp: ["heat_pump_return_temperature", "return_temperature"],
+      dhw_temp: ["dhw_tank_temperature_top"],
+      pump_flow: ["flow_rate"],
+      pump_speed: ["pump_speed"],
+      operating_hours: ["generator_hours_total"],
+      compressor_starts: ["generator_starts_total"],
+      water_pressure: ["actual_water_pressure"],
+      error: ["current_error"]
+    }
+  },
+  /* ---------------------------- DeWarmte ---------------------------- */
+  {
+    id: "dewarmte",
+    hersteller: "DeWarmte",
+    name: "DeWarmte",
+    entwickler: "ronald-willems",
+    quelle: "https://github.com/ronald-willems/dewarmte-homeassistant",
+    integration: "dewarmte",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      flow_temp: ["supply_temperature"],
+      dhw_temp: ["top_boiler_temperature", "top_boiler_temp"],
+      pump_flow: ["water_flow"]
+    }
+  },
+  /* ---------------------------- KEBA ---------------------------- */
+  {
+    id: "keba_heat_pump_modbus",
+    hersteller: "KEBA",
+    name: "KEBA Heat Pump Modbus",
+    entwickler: "johannesWen",
+    quelle: "https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration",
+    integration: "keba_heat_pump_modbus",
+    felder: {
+      flow_temp: ["flow_temperature"],
+      return_temp: ["reflux_temperature"],
+      dhw_temp: ["top_temperature"],
+      power_now: ["heat_power_consumption"],
+      pump_flow: ["flow_rate"]
+    }
+  },
+  /* ---------------------------- Thermia ---------------------------- */
+  {
+    id: "thermia",
+    hersteller: "Thermia",
+    name: "Thermia Heat Pump",
+    entwickler: "klejejs",
+    quelle: "https://github.com/klejejs/ha-thermia-heat-pump-integration",
+    integration: "thermia",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      flow_temp: ["supply_line_temperature"],
+      return_temp: ["return_line_temperature"],
+      dhw_temp: ["hot_water_temperature"],
+      buffer_temp: ["buffer_tank_temperature"],
+      operating_hours: ["compressor_operational_time"]
+    }
+  },
+  /* ---------------------------- Wolf ---------------------------- */
+  {
+    id: "wolf_ism8",
+    hersteller: "Wolf",
+    name: "Wolf ISM8",
+    entwickler: "marcschmiedchen",
+    quelle: "https://github.com/marcschmiedchen/home-assistant-wolf_ism8",
+    integration: "wolf",
+    felder: {
+      outside_temp: ["sensor.*waermepumpe*_aussentemperatur"],
+      return_temp: ["sensor.*waermepumpe*_ruecklauftemperatur"],
+      dhw_temp: ["sensor.*waermepumpe*_warmwassertemperatur"],
+      three_way_valve: ["*waermepumpe*_3w_umschaltventil_hz_ww"],
+      hk1_pump: ["*waermepumpe*_status_heizkreispumpe"],
+      power_now: ["sensor.*waermepumpe*_leistungsaufnahme"],
+      water_pressure: ["sensor.*waermepumpe*_anlagendruck"],
+      error: ["*waermepumpe*_stoerung"]
+    }
+  },
+  /* ---------------------------- Vaillant ---------------------------- */
+  {
+    id: "mypyllant",
+    hersteller: "Vaillant",
+    name: "myPyllant",
+    entwickler: "signalkraft",
+    quelle: "https://github.com/signalkraft/mypyllant-component",
+    integration: "mypyllant",
+    felder: {
+      outside_temp: ["outdoor_temperature"],
+      flow_temp: ["system_flow_temperature"],
+      dhw_temp: ["sensor.*_domestic_hot_water_0_tank_temperature"],
+      hk1_water: ["sensor.*_circuit_0_current_flow_temperature"],
+      hk2_water: ["sensor.*_circuit_1_current_flow_temperature"],
+      hk3_water: ["sensor.*_circuit_2_current_flow_temperature"],
+      water_pressure: ["system_water_pressure"]
+    }
+  },
+  /* ---------------------------- Heliotherm ---------------------------- */
+  {
+    id: "ha_heliotherm",
+    hersteller: "Heliotherm",
+    name: "Heliotherm",
+    entwickler: "mbuchber",
+    quelle: "https://github.com/mbuchber/ha_heliotherm",
+    integration: "ha_heliotherm",
+    felder: {
+      outside_temp: ["temp_aussen"],
+      flow_temp: ["temp_vorlauf"],
+      return_temp: ["temp_rucklauf", "temp_ruecklauf"],
+      dhw_temp: ["temp_brauchwasser"],
+      buffer_temp: ["temp_pufferspeicher"],
+      compressor: ["on_off_verdichter"],
+      hk1_pump: ["on_off_heizkreispumpe"],
+      power_now: ["stromz_leistung"],
+      pump_flow: ["wmz_durchfluss"],
+      error: ["on_off_stoerung"]
+    }
+  }
+];
+
 // src/profile.js
+var AUTO_PROFIL = "auto";
 var PROFILE = [
   {
     id: "heishamon_lutarym",
+    hersteller: "Panasonic Aquarea",
     name: "Panasonic Aquarea, HeishaMon by Lutarym",
-    fertig: true
+    integrationName: "HeishaMon by Lutarym",
+    entwickler: "Lutarym",
+    fertig: true,
+    getestet: true
   },
   {
     id: "heishamon",
+    hersteller: "Panasonic Aquarea",
     name: "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema",
-    fertig: true
-  },
-  { id: "vaillant", name: "Vaillant, in Vorbereitung", fertig: false },
-  { id: "bosch", name: "Bosch, in Vorbereitung", fertig: false },
-  { id: "viessmann", name: "Viessmann, in Vorbereitung", fertig: false },
-  { id: "stiebel", name: "Stiebel Eltron, in Vorbereitung", fertig: false }
-];
+    integrationName: "HeishaMon (MQTT)",
+    entwickler: "",
+    fertig: true,
+    getestet: true
+  }
+].concat(
+  HERSTELLER_PROFILE.map((p) => ({
+    id: p.id,
+    hersteller: p.hersteller,
+    name: `${p.hersteller}, ${p.name}`,
+    integrationName: p.name,
+    entwickler: p.entwickler,
+    fertig: true,
+    getestet: false
+  }))
+);
 var PROFIL_FORMAT = "lutarym-geraeteprofil";
 var PROFIL_VERSION = 1;
 function eingebautesProfil(id) {
+  const hp = HERSTELLER_PROFILE.find((x) => x.id === id);
+  if (hp) {
+    return {
+      format: PROFIL_FORMAT,
+      version: PROFIL_VERSION,
+      id: hp.id,
+      name: `${hp.hersteller}, ${hp.name}`,
+      hersteller: hp.hersteller,
+      entwickler: hp.entwickler,
+      integration: hp.integration,
+      namensteil: hp.namensteil || "",
+      felder: JSON.parse(JSON.stringify(hp.felder))
+    };
+  }
   const pr = PROFILE.find((x) => x.id === id);
   if (!pr || !pr.fertig) return null;
   const mqtt = id === "heishamon";
@@ -1218,9 +1982,6 @@ function eigenesProfil(config) {
   const id = config && config.profil;
   return eigeneProfile(config).find((p) => p.id === id) || null;
 }
-function profilFuer(config) {
-  return eigenesProfil(config) || config && config.profil;
-}
 function pruefeProfil(roh) {
   if (!roh || typeof roh !== "object" || Array.isArray(roh)) return { fehler: "m_p_format" };
   if (roh.format !== PROFIL_FORMAT) return { fehler: "m_p_format" };
@@ -1250,6 +2011,7 @@ function pruefeProfil(roh) {
       id,
       name: text(roh.name, 80) || id,
       hersteller: text(roh.hersteller, 60),
+      entwickler: text(roh.entwickler, 60),
       integration: text(roh.integration, 60),
       namensteil: text(roh.namensteil, 60),
       felder
@@ -1261,10 +2023,18 @@ function erkenneMitProfil(hass, p) {
   const result = { found: false, source: "keine", entities: {}, count: 0, devices: 0 };
   if (!hass || !p || !p.felder) return result;
   const regeln = [];
+  const rangZaehler = {};
   Object.keys(p.felder).forEach(
     (feld) => [].concat(p.felder[feld]).forEach((w) => {
       if (typeof w !== "string" || !w.trim()) return;
-      const r = { feld, w: w.trim(), klein: w.trim().toLowerCase() };
+      let text = w.trim();
+      let domain = "";
+      const m = text.match(/^([a-z_]+):(.+)$/);
+      if (m) {
+        domain = m[1];
+        text = m[2];
+      }
+      const r = { feld, w: text, klein: text.toLowerCase(), domain, rang: rangZaehler[feld] = (rangZaehler[feld] || 0) + 1 };
       if (r.w.includes("*")) {
         r.re = new RegExp(
           "^" + r.w.split("*").map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$",
@@ -1275,23 +2045,38 @@ function erkenneMitProfil(hass, p) {
     })
   );
   const passt = (r, id, eintrag) => {
-    if (r.re) return r.re.test(id);
-    if (r.w.includes(".")) return id === r.w;
+    if (r.domain && id.split(".")[0] !== r.domain) return 0;
+    if (r.re) return r.re.test(id) ? 1 : 0;
+    if (r.w.includes(".")) return id === r.w ? 2 : 0;
     const klein = id.toLowerCase();
-    return Boolean(eintrag && eintrag.translation_key === r.w) || klein.endsWith(`_${r.klein}`) || klein.split(".")[1] === r.klein;
+    if (eintrag && eintrag.translation_key === r.w) return 2;
+    if (klein.split(".")[1] === r.klein) return 2;
+    return klein.endsWith(`_${r.klein}`) ? 1 : 0;
   };
-  const assign = (feld, entityId) => {
+  const guete = {};
+  const assign = (feld, entityId, rang, art) => {
     const allowed = FIELD_DOMAIN[feld];
     if (allowed && !allowed.includes(entityId.split(".")[0])) return;
     const bisher = result.entities[feld];
-    if (bisher && stellbar(bisher) && !stellbar(entityId)) return;
+    if (bisher) {
+      const sb = stellbar(bisher);
+      const sn = stellbar(entityId);
+      if (sb && !sn) return;
+      if (sb === sn) {
+        const g = guete[feld];
+        if (rang > g.rang) return;
+        if (rang === g.rang && art <= g.art) return;
+      }
+    }
     result.entities[feld] = entityId;
+    guete[feld] = { rang, art };
   };
   const pruefe = (id, eintrag) => {
     let treffer = false;
     regeln.forEach((r) => {
-      if (passt(r, id, eintrag)) {
-        assign(r.feld, id);
+      const art = passt(r, id, eintrag);
+      if (art) {
+        assign(r.feld, id, r.rang, art);
         treffer = true;
       }
     });
@@ -1317,6 +2102,7 @@ function erkenneMitProfil(hass, p) {
     }
   }
   const teil = String(p.namensteil || "").toLowerCase();
+  if (p.integration && !teil) return result;
   let hits = 0;
   Object.keys(hass.states || {}).forEach((id) => {
     if (teil && !id.toLowerCase().includes(teil)) return;
@@ -1502,6 +2288,33 @@ function detectIntegration(hass, profil) {
     result.devices = 1;
   }
   return result;
+}
+function profilFuer(config, hass) {
+  const eigen = eigenesProfil(config);
+  if (eigen) return eigen;
+  const id = config && config.profil || AUTO_PROFIL;
+  if (id === AUTO_PROFIL) {
+    const liste = erkenneAlle(hass);
+    return liste.length ? profilFuer({ ...config, profil: liste[0].id }) : "heishamon_lutarym";
+  }
+  if (HERSTELLER_PROFILE.some((p) => p.id === id)) return eingebautesProfil(id);
+  return id;
+}
+var MIN_FELDER = 2;
+function erkenneAlle(hass) {
+  if (!hass) return [];
+  const treffer = [];
+  const hm = detectIntegration(hass, "heishamon_lutarym");
+  if (hm && hm.found && Object.keys(hm.entities).length >= MIN_FELDER) {
+    const id = hm.source === "register" ? "heishamon_lutarym" : "heishamon";
+    treffer.push({ id, felder: Object.keys(hm.entities).length, count: hm.count });
+  }
+  HERSTELLER_PROFILE.forEach((p) => {
+    const r = erkenneMitProfil(hass, eingebautesProfil(p.id));
+    const n = Object.keys(r.entities).length;
+    if (r.found && n >= MIN_FELDER) treffer.push({ id: p.id, felder: n, count: r.count });
+  });
+  return treffer.sort((a, b) => b.felder - a.felder);
 }
 function quellenZuordnung(entities, extraHeat) {
   if (extraHeat !== "kamin") return entities;
@@ -1796,7 +2609,8 @@ var stilEditor = {
       details.ed-klapp > summary h3 { margin: 0; flex: 1; display: flex; flex-direction: column; }
       details.ed-klapp[open] > summary { margin-bottom: 10px; }
       h3 em, .ed-block-kopf em { font-style: normal; font-weight: 400; font-size: 11px; color: var(--secondary-text-color, #8A94A6); }
-      details.ed-group[hidden], .ed-feld[hidden] { display: none; }
+      details.ed-group[hidden], .ed-feld[hidden], .ed-row[hidden] { display: none; }
+      .ed-profilwahl { border: 1px solid var(--warning-color, #F59E0B); border-radius: 8px; padding: 6px 8px; }
       .ed-zahl { font-size: 12px; color: #B07B2E; white-space: nowrap; }
       .ed-zahl.voll { color: #3E8E5A; }
       .ed-block { display: flex; flex-direction: column; gap: 10px; }
@@ -1976,19 +2790,98 @@ var werkzeugeEditor = {
     }
     this._zeigeSprachKnoepfe();
   },
-  /** Auswahlliste der Profile: eingebaute, angepasste und eigene. */
-  _profilOptionen() {
-    const eigene = eigeneProfile(this._config);
-    const html = PROFILE.map((pr) => {
-      const ersetzt = eigene.find((p) => p.id === pr.id);
-      const name = ersetzt ? `${ersetzt.name} ${this._t(pr.fertig ? "o_p_angepasst" : "o_p_eigen")}` : wertText(pr.name, this._sp());
-      const aktiv = pr.fertig || ersetzt;
-      return `<option value="${pr.id}"${aktiv ? "" : " disabled"}>${escapeHtml(name)}</option>`;
+  /** Kennung der Gruppe fuer eigene Profile ohne eingebautes Gegenstueck. */
+  _eigeneGruppe() {
+    return "__eigen";
+  },
+  /** Hersteller zu einer Profilkennung, "auto" bei automatischer Erkennung. */
+  _herstellerVon(id) {
+    if (!id || id === AUTO_PROFIL) return AUTO_PROFIL;
+    const pr = PROFILE.find((x) => x.id === id);
+    if (pr) return pr.hersteller;
+    return eigeneProfile(this._config).some((p) => p.id === id) ? this._eigeneGruppe() : AUTO_PROFIL;
+  },
+  /** Alle Profile eines Herstellers, eingebaute und eigene. */
+  _profileVon(hersteller) {
+    if (hersteller === this._eigeneGruppe()) {
+      return eigeneProfile(this._config).filter((p) => !PROFILE.some((pr) => pr.id === p.id)).map((p) => ({ id: p.id, name: p.name, integrationName: p.name, entwickler: p.entwickler || "", eigen: true }));
+    }
+    return PROFILE.filter((pr) => pr.hersteller === hersteller);
+  },
+  /** Erstes Profil eines Herstellers, bei "auto" bleibt es "auto". */
+  _erstesProfilVon(hersteller) {
+    if (hersteller === AUTO_PROFIL) return AUTO_PROFIL;
+    const liste = this._profileVon(hersteller);
+    return liste.length ? liste[0].id : AUTO_PROFIL;
+  },
+  /** Erstes Feld: automatisch oder ein Hersteller. */
+  _herstellerOptionen() {
+    const namen = [...new Set(PROFILE.map((pr) => pr.hersteller))].sort((x, y) => x.localeCompare(y));
+    const html = [`<option value="${AUTO_PROFIL}">${escapeHtml(this._t("o_p_auto"))}</option>`];
+    namen.forEach((n) => {
+      const ungetestet = PROFILE.filter((pr) => pr.hersteller === n).every((pr) => !pr.getestet);
+      const zusatz = ungetestet ? ` ${this._t("o_p_ungetestet")}` : "";
+      html.push(`<option value="${escapeHtml(n)}">${escapeHtml(n + zusatz)}</option>`);
     });
-    eigene.filter((p) => !PROFILE.some((pr) => pr.id === p.id)).forEach((p) => {
-      html.push(`<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} ${escapeHtml(this._t("o_p_eigen"))}</option>`);
-    });
+    if (this._profileVon(this._eigeneGruppe()).length) {
+      html.push(`<option value="${this._eigeneGruppe()}">${escapeHtml(this._t("o_p_eigene_gruppe"))}</option>`);
+    }
     return html.join("");
+  },
+  /** Text eines Profils im zweiten Feld: Integration und Entwickler. */
+  _profilBeschriftung(pr) {
+    const eigene = eigeneProfile(this._config);
+    const ersetzt = !pr.eigen && eigene.find((p) => p.id === pr.id);
+    let text = pr.integrationName || pr.name;
+    if (pr.entwickler) text += ` \xB7 ${tf(this._t("o_p_von"), { n: pr.entwickler })}`;
+    if (ersetzt) text += ` ${this._t("o_p_angepasst")}`;
+    else if (pr.eigen) text += ` ${this._t("o_p_eigen")}`;
+    else if (!pr.getestet) text += ` ${this._t("o_p_ungetestet")}`;
+    return text;
+  },
+  /** Zweites Feld: die Integrationen des gewaehlten Herstellers. */
+  _profilOptionen() {
+    const hersteller = this._herstellerVon(this._config.profil);
+    if (hersteller === AUTO_PROFIL) return `<option value="${AUTO_PROFIL}">${escapeHtml(this._t("o_p_auto"))}</option>`;
+    return this._profileVon(hersteller).map((pr) => `<option value="${escapeHtml(pr.id)}">${escapeHtml(this._profilBeschriftung(pr))}</option>`).join("");
+  },
+  /** Name eines Profils fuer Meldungen. */
+  _profilName(id) {
+    const eigen = eigeneProfile(this._config).find((p) => p.id === id);
+    if (eigen) return eigen.name;
+    const pr = PROFILE.find((x) => x.id === id);
+    if (!pr) return id;
+    return pr.entwickler ? `${pr.name} (${pr.entwickler})` : wertText(pr.name, this._sp());
+  },
+  /**
+   * Zeigt beide Felder passend zur Konfiguration. Bei "auto" und mehreren
+   * erkannten Integrationen erscheint eine Auswahl, welche gelten soll.
+   */
+  _zeigeProfilAuswahl() {
+    const sr = this.shadowRoot;
+    const id = this._config.profil || AUTO_PROFIL;
+    const hersteller = this._herstellerVon(id);
+    const hWahl = sr.getElementById("opt-hersteller");
+    if (hWahl) {
+      hWahl.innerHTML = this._herstellerOptionen();
+      hWahl.value = hersteller;
+    }
+    const pWahl = sr.getElementById("opt-profil");
+    if (pWahl) {
+      pWahl.innerHTML = this._profilOptionen();
+      pWahl.value = hersteller === AUTO_PROFIL ? AUTO_PROFIL : id;
+    }
+    const zeile = sr.getElementById("ed-geraet-zeile");
+    if (zeile) zeile.hidden = hersteller === AUTO_PROFIL || this._profileVon(hersteller).length < 2;
+    const wahlBox = sr.getElementById("ed-profil-wahl");
+    const wahl = sr.getElementById("opt-profil-wahl");
+    const kandidaten = id === AUTO_PROFIL && this._hass ? erkenneAlle(this._hass) : [];
+    if (wahlBox && wahl) {
+      wahlBox.hidden = kandidaten.length < 2;
+      wahl.innerHTML = [`<option value="">${escapeHtml(this._t("o_p_bitte"))}</option>`].concat(kandidaten.map((k) => `<option value="${escapeHtml(k.id)}">${escapeHtml(tf(this._t("o_p_kandidat"), { n: this._profilName(k.id), z: k.felder }))}</option>`)).join("");
+      wahl.value = "";
+    }
+    this._zeigeProfilKnoepfe();
   },
   /** Bedienung von Export, Import und Entfernen der Geraeteprofile. */
   _bindeProfile() {
@@ -1997,16 +2890,16 @@ var werkzeugeEditor = {
       const el = sr.getElementById("ed-profil-hinweis");
       if (el) el.textContent = text;
     };
-    const aktuell = () => this._config.profil || DEFAULT_CONFIG.profil;
+    const aktuell = () => {
+      const id = this._config.profil || DEFAULT_CONFIG.profil;
+      if (id !== AUTO_PROFIL) return id;
+      const gefunden = erkenneAlle(this._hass);
+      return gefunden.length ? gefunden[0].id : "heishamon_lutarym";
+    };
     const speichern = (liste, profilId) => {
       this._config = { ...this._config, profile_custom: liste, profil: profilId };
       this._emit();
-      const auswahl = sr.getElementById("opt-profil");
-      if (auswahl) {
-        auswahl.innerHTML = this._profilOptionen();
-        auswahl.value = profilId;
-      }
-      this._zeigeProfilKnoepfe();
+      this._zeigeProfilAuswahl();
     };
     const aus = sr.getElementById("btn-profil-aus");
     if (aus) {
@@ -2086,9 +2979,22 @@ var werkzeugeEditor = {
   /** Statuszeile der Erkennung, bei eigenem Profil mit dessen Namen. */
   _erkanntText(found) {
     if (!found.found) return this._t("m_nicht_erkannt");
-    const eigen = eigenesProfil(this._config);
     const werte = { a: found.count, b: Object.keys(found.entities).length };
-    return eigen ? tf(this._t("m_erkannt_p"), { ...werte, n: eigen.name }) : tf(this._t("m_erkannt"), werte);
+    let id = this._config.profil || AUTO_PROFIL;
+    let auto = false;
+    if (id === AUTO_PROFIL) {
+      const gefunden = erkenneAlle(this._hass);
+      id = gefunden.length ? gefunden[0].id : "heishamon_lutarym";
+      auto = true;
+      if (gefunden.length > 1) {
+        return tf(this._t("m_erkannt_mehrere"), { z: gefunden.length, n: this._profilName(id) });
+      }
+    }
+    if (id === "heishamon_lutarym" && !eigenesProfil(this._config)) {
+      return (auto ? `${this._t("m_auto")} ` : "") + tf(this._t("m_erkannt"), werte);
+    }
+    const text = tf(this._t("m_erkannt_p"), { ...werte, n: this._profilName(id) });
+    return (auto ? `${this._t("m_auto")} ` : "") + text;
   },
   /** "Entfernen" nur, wenn das gewaehlte Profil ein eigenes ist. */
   _zeigeProfilKnoepfe() {
@@ -2096,7 +3002,7 @@ var werkzeugeEditor = {
     const weg = sr.getElementById("btn-profil-weg");
     if (weg) weg.hidden = !eigenesProfil(this._config);
     if (!this._hass) return;
-    const found = detectIntegration(this._hass, profilFuer(this._config));
+    const found = detectIntegration(this._hass, profilFuer(this._config, this._hass));
     const gruppe = sr.querySelector(".ed-detect");
     if (gruppe) {
       gruppe.classList.toggle("is-found", found.found);
@@ -2177,7 +3083,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
         e
       )
     ).sort().map((e) => `<option value="${e}">${escapeHtml(friendly(this._hass, e))}</option>`).join("");
-    const found = detectIntegration(this._hass, profilFuer(this._config));
+    const found = detectIntegration(this._hass, profilFuer(this._config, this._hass));
     this.shadowRoot.innerHTML = `
       <style>${this._css()}</style>
       <div class="ed">
@@ -2200,9 +3106,17 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
             <span>${this._t("e_sprache")}${this._sp() === "en" ? "" : " / Language"}<em>${this._t("e_sprache_h")}</em></span>
             <select id="opt-sprache">${this._sprachOptionen()}</select>
           </label>
-          <label class="ed-row ed-breit nur-erweitert">
+          <label class="ed-row ed-breit">
             <span>${this._t("e_profil")}<em>${this._t("e_profil_h")}</em></span>
+            <select id="opt-hersteller">${this._herstellerOptionen()}</select>
+          </label>
+          <label class="ed-row ed-breit" id="ed-geraet-zeile">
+            <span>${this._t("e_geraet")}<em>${this._t("e_geraet_h")}</em></span>
             <select id="opt-profil">${this._profilOptionen()}</select>
+          </label>
+          <label class="ed-row ed-breit ed-profilwahl" id="ed-profil-wahl" hidden>
+            <span>${this._t("e_mehrere")}<em>${this._t("e_mehrere_h")}</em></span>
+            <select id="opt-profil-wahl"></select>
           </label>
         </div>
 
@@ -2496,9 +3410,18 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
       this._zeigeSprachKnoepfe();
     });
     this._bindeSprachen();
+    bind("opt-hersteller", (el) => {
+      put({ profil: this._erstesProfilVon(el.value) });
+      this._zeigeProfilAuswahl();
+    });
     bind("opt-profil", (el) => {
       put({ profil: el.value });
-      this._zeigeProfilKnoepfe();
+      this._zeigeProfilAuswahl();
+    });
+    bind("opt-profil-wahl", (el) => {
+      if (!el.value) return;
+      put({ profil: el.value });
+      this._zeigeProfilAuswahl();
     });
     this._bindeProfile();
     bind("opt-vbreite", (el) => put({ history_width: parseInt(el.value, 10) || 450 }));
@@ -2687,7 +3610,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
       });
     }
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
-      const f = detectIntegration(this._hass, profilFuer(this._config));
+      const f = detectIntegration(this._hass, profilFuer(this._config, this._hass));
       if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat), true);
     });
     this.shadowRoot.getElementById("btn-default").addEventListener("click", () => applyMap(quellenZuordnung(defaultEntityMap(), this._config.extra_heat), true));
@@ -2729,10 +3652,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
     if (sprachWahl) sprachWahl.innerHTML = this._sprachOptionen();
     put("opt-sprache", this._config.language || "auto");
     this._zeigeSprachKnoepfe();
-    const profilWahl = this.shadowRoot.getElementById("opt-profil");
-    if (profilWahl) profilWahl.innerHTML = this._profilOptionen();
-    put("opt-profil", this._config.profil || "heishamon");
-    this._zeigeProfilKnoepfe();
+    this._zeigeProfilAuswahl();
     put("opt-vbreite", String(this._config.history_width || 450));
     put("opt-kxmin", String(this._config.curve_x_min));
     put("opt-kxmax", String(this._config.curve_x_max));
@@ -2858,8 +3778,8 @@ var aktualisierenKarte = {
    * "Nur Warmwasser".
    */
   _ladtWarmwasser(hass) {
-    const v = numState(hass, this._e("three_way_valve"));
-    if (v !== null) return v > 0;
+    const v = warmwasserZustand(rawState(hass, this._e("three_way_valve")));
+    if (v !== null) return v;
     return numState(hass, this._e("operating_mode")) === 3;
   },
   /* -------------------- Aktualisierung -------------------- */
@@ -2942,10 +3862,19 @@ var aktualisierenKarte = {
     set("outside-v", outside === null ? "--" : `${fmt(outside)} \xB0C`);
     const aussenEl = this._animEl("outside-v");
     if (aussenEl) aussenEl.style.fill = outColor;
-    const comp = numState(hass, this._e("compressor"));
-    set("comp-v", comp === null ? "--" : `${fmt(comp, 0)} Hz`);
+    const vd = verdichterWert(hass, this._e("compressor"));
+    const comp = vd.wert;
+    let compText = "--";
+    if (comp !== null) {
+      compText = vd.nurAnAus ? wertText(comp > 0 ? "l\xE4uft" : "aus", this._sp()) : `${fmt(comp, 0)}${vd.einheit ? ` ${vd.einheit}` : ""}`;
+    }
+    set("comp-v", compText);
     const compEl = this._animEl("comp-v");
-    if (compEl) compEl.style.fill = loadColor(comp, COMP_MIN_HZ, COMP_MAX_HZ);
+    if (compEl) {
+      const prozent = vd.einheit === "%";
+      const last = vd.nurAnAus ? comp > 0 ? COMP_MAX_HZ : 0 : comp;
+      compEl.style.fill = loadColor(last, prozent ? 0 : COMP_MIN_HZ, prozent ? 100 : COMP_MAX_HZ);
+    }
     const anAus = (() => {
       const ausStatus = (feld) => {
         const id = this._e(feld);
@@ -3160,7 +4089,7 @@ var aktualisierenKarte = {
     }
     const valveEntity = this._e("three_way_valve");
     const valveRoh = attr(hass, valveEntity, "beschreibung", null);
-    const valveNum = numState(hass, valveEntity);
+    const valveNum = warmwasserZustand(rawState(hass, valveEntity));
     const zuWarmwasser = this._ladtWarmwasser(hass);
     const abtaut = isOn(hass, this._e("defrost")) === true;
     const art = numState(hass, this._e("operating_mode"));
@@ -8388,11 +9317,11 @@ var verlaufKarte = {
       }
       this._verdichterVerlauf = (antwort && vd && antwort[vd] || []).map((pkt) => ({
         t: pkt.lu ? pkt.lu * 1e3 : Date.parse(pkt.last_changed),
-        laeuft: parseFloat(pkt.s !== void 0 ? pkt.s : pkt.state) > 0
+        laeuft: zustandAn(pkt.s !== void 0 ? pkt.s : pkt.state) === true
       })).filter((pkt) => !Number.isNaN(pkt.t));
       this._ventilVerlauf = (antwort && vid && antwort[vid] || []).map((p) => ({
         t: p.lu ? p.lu * 1e3 : Date.parse(p.last_changed),
-        ww: parseFloat(p.s !== void 0 ? p.s : p.state) > 0
+        ww: warmwasserZustand(p.s !== void 0 ? p.s : p.state) === true
       })).filter((p) => !Number.isNaN(p.t));
       const reihe = antwort && antwort[id] || [];
       this._verlauf = reihe.map((p) => ({
@@ -8591,7 +9520,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     return document.createElement("heatpump-flow-card-by-lutarym-editor");
   }
   static getStubConfig(hass) {
-    const found = detectIntegration(hass, DEFAULT_CONFIG.profil);
+    const found = detectIntegration(hass, profilFuer(DEFAULT_CONFIG, hass));
     return { ...DEFAULT_CONFIG, entities: found.found ? found.entities : {} };
   }
   setConfig(config) {
@@ -8618,6 +9547,10 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     const alt = this._hass;
     this._hass = hass;
     if (!this._config) return;
+    if (hass && alt && hass.entities !== alt.entities) {
+      this._auto = null;
+      this._beobachtet = null;
+    }
     if (alt && hass && this._built && !this._config.demo && !this._relevantGeaendert(alt, hass)) {
       return;
     }
@@ -8675,7 +9608,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     if (configured) return configured;
     if (!this._auto) {
       this._auto = quellenZuordnung(
-        detectIntegration(this._quelle, eigenesProfil(this._config) || void 0).entities,
+        detectIntegration(this._quelle, profilFuer(this._config, this._quelle)).entities,
         this._config.extra_heat
       );
     }

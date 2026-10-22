@@ -14,7 +14,7 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 - Courbe de chauffe des circuits 1 et 2 dans une fenêtre dédiée, avec échelle, point de fonctionnement et points réglables
 - Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (vacances, programme hebdomadaire, Smart DHW, limites de chauffage, écart, anti-légionelles, pompe, mode silencieux, COP du jour pour chauffage et eau chaude, coefficient annuel (JAZ/SPF) pour chauffage, eau chaude et total depuis le 1er janvier, avec chaleur et électricité en kWh, à partir des valeurs HeishaMon, heures et démarrages) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
 - Fenêtre d'aide (« ? » en bas à droite) : explication simple de toutes les valeurs et commandes que HeishaMon peut lire et écrire, avec recherche et groupes ; pour chaque valeur TOP l'ID complet de l'entité, copiable d'un clic
-- Profils d'appareil : exporter le profil Panasonic dans un fichier, l'adapter ou décrire un autre fabricant et l'importer de nouveau ; voir le [guide des profils](docs/GERAETEPROFIL.fr.md)
+- Profils de fabricants pour 34 intégrations de 24 fabricants (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant et d'autres), détectés automatiquement ; si plusieurs sont trouvés, l'éditeur demande lequel utiliser. Hormis HeishaMon by Lutarym, ils ne sont pas testés. Les profils d'appareil peuvent aussi être exportés, adaptés et importés ; voir le [guide des profils](docs/GERAETEPROFIL.fr.md)
 - Packs de langue : exporter une langue dans un fichier, la traduire ou l'adapter et l'importer de nouveau ; voir le [guide des packs de langue](docs/SPRACHPAKET.fr.md)
 - Graphique de consommation sur 24 heures, coloré selon chauffage, eau chaude et veille, avec l'historique SG Ready en dessous
 - Installations sans ballon tampon, détectées automatiquement via TOP99 ou réglées manuellement
@@ -78,7 +78,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `hk_count` | `2` | Nombre de circuits, 1 à 4. Les circuits 3 et 4 nécessitent des entités propres, l'Aquarea ne régule que deux zones |
 | `fan_count` | `2` | Nombre de ventilateurs, 1 ou 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` ou `ja` |
-| `profil` | `heishamon_lutarym` | `heishamon_lutarym` ou `heishamon` pour le nommage MQTT |
+| `profil` | `auto` | `auto` détecte l'intégration automatiquement, sinon l'identifiant d'un profil comme `heishamon_lutarym`, `heishamon` (nommage MQTT), `vicare`, `luxtronik2` ; liste dans le [guide](docs/GERAETEPROFIL.fr.md) |
 | `buffer_present` | `auto` | Ballon tampon : `auto` via TOP99, `true` ou `false` |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
 | `show_history` | `knopf` | Graphiques 24 heures : `knopf` trois boutons en haut à droite ouvrent consommation, SG Ready et températures dans une fenêtre, `true` consommation toujours dans la carte, `false` désactivé |

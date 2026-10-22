@@ -81,7 +81,8 @@ export const stilEditor = {
       details.ed-klapp > summary h3 { margin: 0; flex: 1; display: flex; flex-direction: column; }
       details.ed-klapp[open] > summary { margin-bottom: 10px; }
       h3 em, .ed-block-kopf em { font-style: normal; font-weight: 400; font-size: 11px; color: var(--secondary-text-color, #8A94A6); }
-      details.ed-group[hidden], .ed-feld[hidden] { display: none; }
+      details.ed-group[hidden], .ed-feld[hidden], .ed-row[hidden] { display: none; }
+      .ed-profilwahl { border: 1px solid var(--warning-color, #F59E0B); border-radius: 8px; padding: 6px 8px; }
       .ed-zahl { font-size: 12px; color: #B07B2E; white-space: nowrap; }
       .ed-zahl.voll { color: #3E8E5A; }
       .ed-block { display: flex; flex-direction: column; gap: 10px; }

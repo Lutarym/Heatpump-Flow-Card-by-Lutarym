@@ -3,7 +3,8 @@
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
 import { stellbar } from "./hilfsfunktionen.js";
-import { erkenneMitProfil } from "./profile.js";
+import { AUTO_PROFIL, eigenesProfil, eingebautesProfil, erkenneMitProfil } from "./profile.js";
+import { HERSTELLER_PROFILE } from "./hersteller.js";
 
 /* ------------------------------------------------------------------ *
  *  Erkennung der Integration "Heishamon by Lutarym"
@@ -212,6 +213,48 @@ export function detectIntegration(hass, profil) {
  * beidem bleiben sie bei der Solarthermie. Selbst eingetragene
  * Kamin-Entitaeten haben Vorrang.
  */
+/**
+ * Profil fuer die Erkennung: eigenes Objekt, Objekt eines Herstellers
+ * oder Kennung eines HeishaMon-Profils. Bei "auto" entscheidet die
+ * Suche ueber alle Profile, bei mehreren Treffern der mit den meisten
+ * passenden Feldern, bis im Editor eines gewaehlt ist.
+ */
+export function profilFuer(config, hass) {
+  const eigen = eigenesProfil(config);
+  if (eigen) return eigen;
+  const id = (config && config.profil) || AUTO_PROFIL;
+  if (id === AUTO_PROFIL) {
+    const liste = erkenneAlle(hass);
+    return liste.length ? profilFuer({ ...config, profil: liste[0].id }) : "heishamon_lutarym";
+  }
+  if (HERSTELLER_PROFILE.some((p) => p.id === id)) return eingebautesProfil(id);
+  return id;
+}
+
+/** Wie viele Felder mindestens passen muessen, damit ein Profil als erkannt gilt. */
+const MIN_FELDER = 2;
+
+/**
+ * Sucht alle eingebauten Profile ab. Liefert die erkannten, sortiert
+ * nach der Zahl passender Felder. HeishaMon by Lutarym und HeishaMon
+ * ueber MQTT schliessen sich aus, je nachdem, wie gefunden wurde.
+ */
+export function erkenneAlle(hass) {
+  if (!hass) return [];
+  const treffer = [];
+  const hm = detectIntegration(hass, "heishamon_lutarym");
+  if (hm && hm.found && Object.keys(hm.entities).length >= MIN_FELDER) {
+    const id = hm.source === "register" ? "heishamon_lutarym" : "heishamon";
+    treffer.push({ id, felder: Object.keys(hm.entities).length, count: hm.count });
+  }
+  HERSTELLER_PROFILE.forEach((p) => {
+    const r = erkenneMitProfil(hass, eingebautesProfil(p.id));
+    const n = Object.keys(r.entities).length;
+    if (r.found && n >= MIN_FELDER) treffer.push({ id: p.id, felder: n, count: r.count });
+  });
+  return treffer.sort((a, b) => b.felder - a.felder);
+}
+
 export function quellenZuordnung(entities, extraHeat) {
   if (extraHeat !== "kamin") return entities;
   const out = { ...entities };

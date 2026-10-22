@@ -147,7 +147,7 @@ export const DEFAULT_CONFIG = {
   card_width: 0,
   pipe_inner_mm: 0,
   mqtt_prefix: "panasonic_heat_pump",
-  profil: "heishamon_lutarym",
+  profil: "auto",
   language: "auto",
   show_history: "knopf",
   show_target: true,

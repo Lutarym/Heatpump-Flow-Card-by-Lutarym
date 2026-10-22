@@ -10,7 +10,9 @@
 
 カードを編集し、エディターを **詳細** に切り替えます。選択は **統合** セクション、ボタンは **インポート・エクスポートとカスタマイズ** セクションにあります：
 
-- **メーカープロファイル**：プロファイルを選択
+- **メーカー**：「自動検出」またはメーカー（簡易モードでも表示）
+- **統合 / 機器**：メーカーに複数の統合がある場合に開発者名付きで表示
+- **複数の統合を検出しました**：「自動検出」で複数が一致した場合に表示
 - **プロファイルを書き出す**：選択中のプロファイルをファイルとしてダウンロードフォルダに保存
 - **プロファイルを読み込む**：プロファイルファイルを読み込んで選択
 - **独自プロファイルを削除**：独自またはカスタムのプロファイルの場合のみ表示
@@ -58,15 +60,71 @@
 | `namensteil` | いいえ | ヒートポンプのすべてのエンティティ ID に含まれる文字列。例：`"vaillant"` |
 | `felder` | はい | カードの各項目に対する検索ルールのリスト |
 
+## 組み込みのメーカープロファイル
+
+カードには次の統合用のプロファイルが含まれています。検索ルールは各統合のソースコードから作成しました。実機で検証済みなのは現在 HeishaMon by Lutarym のみで、ほかはすべて「未検証」と表示されます。フィードバックが改善に役立ちます。
+
+**自動検出**（既定）はすべてのプロファイルを検索します。統合が 1 つだけ見つかればそれを使います。複数見つかった場合は、カードで使う統合をエディターが尋ねます。選択するまでは一致する項目が最も多いものを使います。2 項目以上一致すると統合が見つかったとみなします。
+
+| メーカー | 統合 | 開発者 | ドメイン | 項目数 |
+|---|---|---|---|---|
+| Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 76 |
+| Panasonic Aquarea | HeishaMon (MQTT) | | | 76 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
+| Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
+| Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
+| Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
+| Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
+| Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
+| Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
+| DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
+| Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
+| Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
+| iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
+| KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
+| Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
+| Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
+| Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
+| Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
+| NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
+| Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
+| Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
+| Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
+| Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
+| Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
+| Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
+| Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
+| Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
+| Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
+| Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
+| Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
+| Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
+| Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
+
+プロファイルなし（理由）：
+
+- `myuplink`: エンティティ名が機器から動的に決まる
+- `wolflink`: エンティティ名が機器から動的に決まる
+- `ebusd`: 名前が各自の ebusd 設定に依存する
+- `stiebel_eltron`: climate エンティティのみ
+- `bosch`: エンティティ名が機器から動的に決まる
+- `tuya_heat_pump`: データポイントが機器ごとに異なる
+- `toshiba_modbus`: ルームエアコン
+- `midea_heatpump_hws`: 給湯専用ヒートポンプ
+- `dimplex`: 往き・還り・圧縮機などのヒートポンプ値がない
+
 ## 検索ルール
 
-各項目にはルールのリストを指定します。ルールが 1 つなら角かっこなしでもかまいません。種類は 3 つです：
+各項目にはルールのリストを指定します。ルールが 1 つなら角かっこなしでもかまいません。種類は 4 つです：
 
 | ルール | 例 | 一致するもの |
 |---|---|---|
 | ピリオドあり | `"sensor.hp_flow"` | このエンティティのみ |
 | アスタリスク `*` あり | `"sensor.*_flow"` | このパターンに合うすべてのエンティティ ID。`*` は任意の文字列 |
 | ピリオドもアスタリスクもなし | `"flow"` | `_flow` で終わるエンティティ ID、またはこの内部キー（translation_key）を持つ統合のエンティティ |
+| ドメインを前に付ける | `"sensor:flow"` | ピリオドもアスタリスクもなしと同じですが、この種類のエンティティのみ（ここでは `sensor`） |
 
 最も確実なのは正確なエンティティ ID です。パターンや末尾指定は、たとえば IP アドレスが異なる他の人の環境でもプロファイルを使えるようにしたい場合に便利です。
 
@@ -74,11 +132,12 @@
 
 - 各項目には使えるエンティティ種別が決まっています（項目一覧の「使用できるエンティティ種別」列）。種別が合わない場合は割り当てられません。
 - 読み取り専用と設定可能なエンティティの両方が一致した場合は、カードで値を設定できるよう、設定可能な方が優先されます。
+- 1 つの項目に複数のルールがある場合、最初に見つかったルールが優先されます。完全一致（内部キーまたはエンティティ ID 全体）は末尾一致より優先されます。
 - パターンと末尾指定では大文字・小文字を区別しません。
 
 ## 検索のしかた
 
-- **`integration` あり**：その統合のエンティティだけを検索します。名前は **Settings → Devices & services**（英語表示のメニュー名） で統合を開いたときのアドレスバーの `/integration/` の後ろの部分です。何も見つからない場合は `integration` なしと同じように検索を続けます。
+- **`integration` あり**：その統合のエンティティだけを検索します。名前は **Settings → Devices & services**（英語表示のメニュー名） で統合を開いたときのアドレスバーの `/integration/` の後ろの部分です。何も見つからない場合、`namensteil` も指定されているときに限り `integration` なしと同じように検索を続けます。これにより `"outdoor_temperature"` のような一般的なキーが無関係なエンティティに一致しません。
 - **`integration` なし**：すべてのエンティティを検索します。`namensteil` を指定すると、エンティティ ID にその文字列を含むものだけが対象です。`namensteil` がないと、`"flow"` のような末尾指定が無関係なエンティティにも一致することがあるため、正確な ID かパターンを使ってください。
 
 ## Panasonic の調整

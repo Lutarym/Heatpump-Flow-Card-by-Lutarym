@@ -10,7 +10,9 @@ A profile is a small text file in JSON format. You can export it, change it with
 
 Edit the card and switch the editor to **Advanced**. The selection is in the section **Integration**, the buttons in the section **Import, export and customisation**:
 
-- **Manufacturer profile**: selects the profile
+- **Manufacturer**: “Detect automatically” or a manufacturer (also visible in simple mode)
+- **Integration / device**: appears when a manufacturer has several integrations, with the developer name
+- **Several integrations detected**: appears with “Detect automatically” when several match
 - **Export profile**: saves the selected profile as a file in your downloads folder
 - **Import profile**: reads a profile file and selects the profile
 - **Remove own profile**: only appears for an own or customised profile
@@ -58,15 +60,71 @@ The keys are German and must stay exactly as shown.
 | `namensteil` | no | text that all entity IDs of the heat pump contain, for example `"vaillant"` |
 | `felder` | yes | for each field of the card a list of search rules |
 
+## Built-in manufacturer profiles
+
+The card ships profiles for the following integrations. The search rules come from the source code of each integration. So far only HeishaMon by Lutarym has been tested on real systems; all others are marked “untested”. Feedback helps to improve them.
+
+**Detect automatically** (default) searches all profiles. If exactly one integration is found, it is used. If several are found, the editor asks which one the card should use. Until then the one with the most matching fields is used. An integration counts as found when at least two fields match.
+
+| Manufacturer | Integration | Developer | Domain | Fields |
+|---|---|---|---|---|
+| Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 76 |
+| Panasonic Aquarea | HeishaMon (MQTT) | | | 76 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
+| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
+| Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
+| Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
+| Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
+| Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
+| Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
+| Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
+| DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
+| Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
+| Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
+| iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
+| KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
+| Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
+| Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
+| Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
+| Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
+| NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
+| Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
+| Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
+| Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
+| Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
+| Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
+| Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
+| Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
+| Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
+| Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
+| Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
+| Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
+| Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
+| Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
+
+No profile, with reason:
+
+- `myuplink`: entity names come dynamically from the device
+- `wolflink`: entity names come dynamically from the device
+- `ebusd`: names depend on your own ebusd configuration
+- `stiebel_eltron`: only provides a climate entity
+- `bosch`: entity names come dynamically from the device
+- `tuya_heat_pump`: data points differ per device
+- `toshiba_modbus`: room air conditioner
+- `midea_heatpump_hws`: hot water heat pump only
+- `dimplex`: provides no heat pump values such as flow, return or compressor
+
 ## Search rules
 
-Each field has a list of rules. A single rule may also be written without square brackets. There are three kinds:
+Each field has a list of rules. A single rule may also be written without square brackets. There are four kinds:
 
 | Rule | Example | Matches |
 |---|---|---|
 | with a dot | `"sensor.hp_flow"` | exactly this entity |
 | with a star `*` | `"sensor.*_flow"` | every entity ID following this pattern, the star stands for any text |
 | without dot or star | `"flow"` | entity IDs ending in `_flow`, or entities of the integration with this internal key (translation_key) |
+| with a domain in front | `"sensor:flow"` | like without dot or star, but only entities of this kind, here `sensor` |
 
 The exact entity ID is the most reliable. Patterns and endings are useful when a profile should also work for others whose entity IDs contain, for example, a different IP address.
 
@@ -74,11 +132,12 @@ Further rules:
 
 - Each field only accepts certain entity types (column "Allowed entity types" in the field list). If the type does not fit, the entity is not entered there.
 - If a read-only and a settable entity both match a field, the settable one wins so that the value can be set in the card.
+- If a field has several rules, the first one that finds something wins. An exact hit (internal key or full entity ID) beats a hit by ending.
 - Upper and lower case do not matter for patterns and endings.
 
 ## How the search works
 
-- **With `integration`**: the card only searches the entities of this integration. You see the name in the address bar when you open the integration under **Settings → Devices & services**: the part after `/integration/`. If nothing is found there, the card continues as without `integration`.
+- **With `integration`**: the card only searches the entities of this integration. You see the name in the address bar when you open the integration under **Settings → Devices & services**: the part after `/integration/`. If nothing is found there, the card only continues as without `integration` when `namensteil` is set as well. This way general keys such as `"outdoor_temperature"` do not hit unrelated entities.
 - **Without `integration`**: the card searches all entities. With `namensteil` only those whose entity ID contains this text. Without `namensteil` an ending such as `"flow"` can also hit unrelated entities; use exact entity IDs or patterns instead.
 
 ## Customising Panasonic

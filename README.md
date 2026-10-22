@@ -14,7 +14,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
 - Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, today's COP for heating and hot water, seasonal performance factor (JAZ) for heating, hot water and total since 1 January with heat and electricity in kWh, from HeishaMon values, operating hours and starts); changes are sent with “Apply” and the door closes
 - Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups; for every TOP value the full entity ID, copyable with one click
-- Device profiles: export the Panasonic profile as a file, adapt it or describe another manufacturer and import it again; see the [device profile guide](docs/GERAETEPROFIL.md)
+- Manufacturer profiles for 34 integrations of 24 manufacturers (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant and more), detected automatically; if several are found, the editor asks which one to use. Apart from HeishaMon by Lutarym they are untested. Device profiles can also be exported, adapted and imported; see the [device profile guide](docs/GERAETEPROFIL.md)
 - Language packs: export a language as a file, translate it yourself or adjust it and import it again; see the [language pack guide](docs/SPRACHPAKET.md)
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
@@ -78,7 +78,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `hk_count` | `2` | Number of heating circuits, 1 to 4. Circuits 3 and 4 need own entities, the Aquarea controls only two zones |
 | `fan_count` | `2` | Number of fans, 1 or 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` or `ja` |
-| `profil` | `heishamon_lutarym` | `heishamon_lutarym` or `heishamon` for the MQTT naming scheme |
+| `profil` | `auto` | `auto` detects the integration automatically, or the ID of a profile such as `heishamon_lutarym`, `heishamon` (MQTT naming), `vicare`, `luxtronik2`; list in the [guide](docs/GERAETEPROFIL.md) |
 | `buffer_present` | `auto` | Heating buffer: `auto` from TOP99, `true` or `false` |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
 | `show_history` | `knopf` | 24 hour charts: `knopf` three buttons at the top right open energy, SG Ready and temperatures in a window, `true` energy always in the card, `false` off |
