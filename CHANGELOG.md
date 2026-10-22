@@ -2,6 +2,36 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.6.2
+
+- English: The help (“?”) describes the values and commands of HeishaMon. It now only appears with HeishaMon profiles (HeishaMon by Lutarym, HeishaMon via MQTT, HeishaMon by kamaradclimber) and in demo mode; with other manufacturers the button is hidden.
+- Deutsch: Die Hilfe („?“) beschreibt die Werte und Befehle von HeishaMon. Sie erscheint jetzt nur noch bei HeishaMon-Profilen (HeishaMon by Lutarym, HeishaMon über MQTT, HeishaMon von kamaradclimber) und im Demomodus; bei anderen Herstellern ist der Knopf ausgeblendet.
+- Français : l'aide (« ? ») décrit les valeurs et commandes de HeishaMon. Elle n'apparaît désormais qu'avec les profils HeishaMon (HeishaMon by Lutarym, HeishaMon via MQTT, HeishaMon de kamaradclimber) et en mode démo ; chez les autres fabricants, le bouton est masqué.
+- 日本語：ヘルプ（「?」）は HeishaMon の値とコマンドを説明するものです。HeishaMon のプロファイル（HeishaMon by Lutarym、MQTT 経由の HeishaMon、kamaradclimber の HeishaMon）とデモモードでのみ表示し、ほかのメーカーではボタンを非表示にしました。
+
+## v5.6.1
+
+- English: Fixed: the badges “heater”, “boost” and “legionella” were sized for the German word. In French the text overflowed the badge, now the width follows the displayed text.
+- English: Fixed: long histories could make the charts fail in Safari and the Home Assistant iOS app, which only allow about 65,000 values in one call. Minimum and maximum are now computed without that limit.
+- English: Fixed: a removed card kept listening to the system setting “reduce motion”. A card without data source no longer remembers an empty assignment.
+- English: The assignment of the solar input to the stove applies only to Panasonic; with other manufacturers a solar collector stays a solar collector.
+- English: Cleaned up: unused texts, styles and the unused field `fault_reset` removed.
+- Deutsch: Behoben: Die Abzeichen „Heizstab“, „Aufheizen“ und „Legionellen“ waren für das deutsche Wort bemessen. Auf Französisch lief der Text über das Abzeichen hinaus, jetzt richtet sich die Breite nach dem angezeigten Text.
+- Deutsch: Behoben: Lange Verläufe konnten die Diagramme in Safari und der Home-Assistant-App für iOS scheitern lassen, die nur etwa 65.000 Werte in einem Aufruf erlauben. Kleinster und größter Wert werden jetzt ohne diese Grenze berechnet.
+- Deutsch: Behoben: Eine entfernte Karte hörte weiter auf die Systemeinstellung „Bewegung reduzieren“. Eine Karte ohne Datenquelle merkt sich keine leere Zuordnung mehr.
+- Deutsch: Die Zuordnung des Solareingangs zum Kamin gilt nur noch für Panasonic; bei anderen Herstellern bleibt ein Solarkollektor ein Solarkollektor.
+- Deutsch: Bereinigt: ungenutzte Texte, Stile und das ungenutzte Feld `fault_reset` entfernt.
+- Français : corrigé : les badges « appoint », « chauffe » et « légionelles » étaient dimensionnés pour le mot allemand. En français le texte dépassait du badge, la largeur suit maintenant le texte affiché.
+- Français : corrigé : de longs historiques pouvaient faire échouer les graphiques dans Safari et l'application iOS de Home Assistant, qui n'acceptent qu'environ 65 000 valeurs par appel. Minimum et maximum sont maintenant calculés sans cette limite.
+- Français : corrigé : une carte retirée restait à l'écoute du réglage système « réduire les animations ». Une carte sans source de données ne mémorise plus une affectation vide.
+- Français : l'affectation de l'entrée solaire au poêle ne s'applique plus qu'à Panasonic ; chez les autres fabricants, un capteur solaire reste un capteur solaire.
+- Français : nettoyage : textes, styles et champ `fault_reset` inutilisés supprimés.
+- 日本語：修正：「ヒーター」「加熱」「レジオネラ」のバッジの幅がドイツ語の単語に合わせて計算されていました。フランス語では文字がはみ出していたため、表示する文字に合わせた幅にしました。
+- 日本語：修正：長い履歴があると、1 回の呼び出しで約 65,000 個の値しか扱えない Safari と Home Assistant iOS アプリでグラフが失敗することがありました。最小値と最大値をこの制限なしで計算するようにしました。
+- 日本語：修正：削除したカードが「視差効果を減らす」のシステム設定を監視し続けていました。データソースがないカードは空の割り当てを保持しなくなりました。
+- 日本語：太陽熱入力を薪ストーブに割り当てる処理は Panasonic のみに適用します。ほかのメーカーでは集熱器は集熱器のままです。
+- 日本語：整理：使われていないテキスト、スタイル、未使用の項目 `fault_reset` を削除しました。
+
 ## v5.6.0
 
 - English: Manufacturer profiles for 32 further integrations from Home Assistant and HACS, among them Viessmann ViCare, NIBE, MELCloud, Luxtronik (three integrations), Lambda, iDM, Daikin (four integrations), Stiebel Eltron (two), Vaillant myPyllant, Kronoterm, Hitachi Yutaki, Waterkotte, Weishaupt, Wolf ISM8 and more. The search rules come from the source code of each integration; apart from HeishaMon by Lutarym they are marked “untested”. The full list with developer and source is in the device profile guide.

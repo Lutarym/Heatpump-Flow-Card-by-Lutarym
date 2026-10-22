@@ -249,3 +249,20 @@ export function copMittel(reihe, start, ende) {
   }
   return dauer > 0 ? summe / dauer : null;
 }
+
+/**
+ * Kleinster und groesster Wert einer Liste ohne Spread. Math.min(...liste)
+ * scheitert bei sehr langen Listen, Safari erlaubt nur etwa 65000
+ * Argumente. Ein Tagesverlauf mit Sekundenwerten liegt darueber.
+ */
+export function kleinster(liste) {
+  let m = Infinity;
+  for (const v of liste) if (v < m) m = v;
+  return m;
+}
+
+export function groesster(liste) {
+  let m = -Infinity;
+  for (const v of liste) if (v > m) m = v;
+  return m;
+}

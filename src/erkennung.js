@@ -89,7 +89,6 @@ export const COMMAND_TO_FIELD = {
   setholidaymode: "holiday_mode",
   setmainschedule: "main_schedule",
   setsmartdhw: "smart_dhw",
-  setreset: "fault_reset",
 };
 
 /**
@@ -102,7 +101,7 @@ export const COP_TO_FIELD = {
   cop_dhw: "cop_dhw",
 };
 
-export const COP_MUSTER = /_(cop_(?:heating|dhw))$/;
+const COP_MUSTER = /_(cop_(?:heating|dhw))$/;
 
 export const FIELD_DOMAIN = {
   hk1_setpoint: ["number", "input_number"],
@@ -129,7 +128,6 @@ export const FIELD_DOMAIN = {
   holiday_mode: ["switch", "input_boolean"],
   main_schedule: ["switch", "input_boolean"],
   smart_dhw: ["select", "input_select"],
-  fault_reset: ["button", "input_button"],
   circulation_pump: ["switch", "input_boolean", "binary_sensor", "sensor"],
   circ_switch: ["switch", "input_boolean"],
   sg_k1: ["switch", "input_boolean", "binary_sensor", "sensor"],
@@ -207,13 +205,6 @@ export function detectIntegration(hass, profil) {
 }
 
 /**
- * Die Aquarea kennt nur einen Solareingang (TOP47 Temperatur, OPT5 Pumpe).
- * Ist nur ein Kamin gewaehlt, haengt er an diesem Eingang. Dann gehoeren
- * die erkannten Solar-Entitaeten zum Kamin. Bei Solarthermie allein oder
- * beidem bleiben sie bei der Solarthermie. Selbst eingetragene
- * Kamin-Entitaeten haben Vorrang.
- */
-/**
  * Profil fuer die Erkennung: eigenes Objekt, Objekt eines Herstellers
  * oder Kennung eines HeishaMon-Profils. Bei "auto" entscheidet die
  * Suche ueber alle Profile, bei mehreren Treffern der mit den meisten
@@ -255,8 +246,20 @@ export function erkenneAlle(hass) {
   return treffer.sort((a, b) => b.felder - a.felder);
 }
 
-export function quellenZuordnung(entities, extraHeat) {
+/**
+ * Die Aquarea kennt nur einen Solareingang (TOP47 Temperatur, OPT5 Pumpe).
+ * Ist nur ein Kamin gewaehlt, haengt er an diesem Eingang. Dann gehoeren
+ * die erkannten Solar-Entitaeten zum Kamin. Bei Solarthermie allein oder
+ * beidem bleiben sie bei der Solarthermie. Selbst eingetragene
+ * Kamin-Entitaeten haben Vorrang.
+ * Das gilt nur fuer Panasonic. Bei Profilen anderer Hersteller ist ein
+ * Solarkollektor kein Kamin.
+ */
+export function quellenZuordnung(entities, extraHeat, profil) {
   if (extraHeat !== "kamin") return entities;
+  if (profil && typeof profil === "object" && HERSTELLER_PROFILE.some((p) => p.id === profil.id)) {
+    return entities;
+  }
   const out = { ...entities };
   if (out.solar_temp && !out.kamin_temp) out.kamin_temp = out.solar_temp;
   if (out.solar_pump && !out.kamin_pump) out.kamin_pump = out.solar_pump;

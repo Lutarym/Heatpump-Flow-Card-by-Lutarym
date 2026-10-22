@@ -2,7 +2,7 @@
  * Verbrauchsverlauf der letzten 24 Stunden.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { clamp, fmt, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
+import { clamp, fmt, groesster, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { NEUTRAL, SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
 
@@ -239,7 +239,7 @@ export const verlaufKarte = {
     const t0 = daten[0].t;
     const t1 = daten[daten.length - 1].t;
     const spanne = t1 - t0 || 1;
-    const hoechst = Math.max(...daten.map((d) => d.v), 0.1);
+    const hoechst = Math.max(groesster(daten.map((d) => d.v)), 0.1);
     const px = (d) => links + ((d.t - t0) / spanne) * (rechts - links);
     const py = (d) => unten - (d.v / hoechst) * (unten - oben);
     let linie = "";
@@ -275,7 +275,7 @@ export const verlaufKarte = {
     // Verlaeufen und melden ihre Wechsel nicht im selben Augenblick. Steigt
     // die Leistung schon, waehrend der Verdichter noch mit 0 im Verlauf
     // steht, gilt der Punkt trotzdem als Betrieb.
-    const grund = Math.min(...daten.map((d) => d.v));
+    const grund = kleinster(daten.map((d) => d.v));
     const schwelle = grund + Math.max((hoechst - grund) * 0.08, hoechst * 0.02);
     const pfade = { heiz: "", ww: "", standby: "" };
     if (ventil.length || verdichter.length) {

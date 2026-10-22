@@ -144,9 +144,9 @@ export const grafikQuerKarte = {
           this._name(schluessel)
         )}</text>`;
     };
-    const badge = (id, cx, y, wort, fill, stroke, text) => `
+    const badge = (id, cx, y, fill, stroke, text) => `
         <g id="${id}" class="badge" transform="translate(${cx} ${y})">
-          <rect x="${-abzeichenBreite(wort) / 2}" y="-15" width="${abzeichenBreite(wort)}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(text) / 2}" y="-15" width="${abzeichenBreite(text)}" height="30" rx="15"
                 fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${text}</text>
         </g>`;
@@ -289,9 +289,9 @@ ${this._defs()}
         <text class="value-l" id="dhw-v" x="${XW}" y="430" text-anchor="middle">--</text>
         <text class="value-sp" id="dhw-sp" x="${XW}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="dhw-delta" x="${XW}" y="482" text-anchor="middle"></text>
-        ${badge("dhwforce-badge", XW, 536, "Aufheizen", "#08243A", "#3B9BE0", this._t("aufheizen"))}
-        ${badge("sterilization-badge", XW, 570, "Legionellen", "#2B1240", "#A855F7", this._t("legionellen"))}
-        ${badge("dhwheater-badge", XW, 604, "Heizstab", "#3A1B08", "#E0762E", this._t("heizstab"))}
+        ${badge("dhwforce-badge", XW, 536, "#08243A", "#3B9BE0", this._t("aufheizen"))}
+        ${badge("sterilization-badge", XW, 570, "#2B1240", "#A855F7", this._t("legionellen"))}
+        ${badge("dhwheater-badge", XW, 604, "#3A1B08", "#E0762E", this._t("heizstab"))}
         <g id="dhw-name">${schild(XW, "label_dhw")}</g>`)}
       </g>
 
@@ -302,7 +302,7 @@ ${this._defs()}
         <text class="value-l" id="buf-v" x="${XB}" y="430" text-anchor="middle">--</text>
         <text class="value-sp" id="buf-sp" x="${XB}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="buf-delta" x="${XB}" y="482" text-anchor="middle"></text>
-        ${badge("roomheater-badge", XB, 604, "Heizstab", "#3A1B08", "#E0762E", this._t("heizstab"))}
+        ${badge("roomheater-badge", XB, 604, "#3A1B08", "#E0762E", this._t("heizstab"))}
         <g id="buf-name">${schild(XB, "label_buffer")}</g>`)}
       </g>` : ""}
 

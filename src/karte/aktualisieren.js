@@ -384,7 +384,7 @@ export const aktualisierenKarte = {
         this._config.show_door !== false && this._tuerFelder().length ? "" : "none";
     }
     const hilfeKnopf = this.shadowRoot.getElementById("hilfe-knopf");
-    if (hilfeKnopf) hilfeKnopf.style.display = this._config.show_help === false ? "none" : "";
+    if (hilfeKnopf) hilfeKnopf.style.display = this._config.show_help === false || !this._hilfePasst() ? "none" : "";
     this._speicherZeilen("buf");
     this._speicherZeilen("dhw");
     // TOP2 meldet das einmalige Aufheizen, TOP69 den Legionellenschutz.

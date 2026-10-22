@@ -159,7 +159,9 @@ export const bedienungEditor = {
       if (!customElements.get(name)) {
         await Promise.race([
           customElements.whenDefined(name),
-          new Promise((_, nein) => setTimeout(() => nein(new Error("zeit")), 3000)),
+          new Promise((_, nein) => {
+            setTimeout(() => nein(new Error("zeit")), 3000);
+          }),
         ]);
       }
     } catch {

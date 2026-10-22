@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.6.0";
+var CARD_VERSION = "5.6.2";
 var L = {
   W: 1650,
   H: 700,
@@ -493,7 +493,6 @@ var TEXTE = {
   hnw_12: { de: "eigener Schalter oder Sensor; Kamin allein: OPT5", en: "own switch or sensor; stove only: OPT5", fr: "interrupteur ou capteur propre ; po\xEAle seul : OPT5", ja: "\u72EC\u81EA\u306E\u30B9\u30A4\u30C3\u30C1\u307E\u305F\u306F\u30BB\u30F3\u30B5\u30FC\u3002\u85AA\u30B9\u30C8\u30FC\u30D6\u306E\u307F\uFF1AOPT5" },
   kamin: { de: "Kamin", en: "Stove", fr: "Po\xEAle", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6" },
   solarthermie: { de: "Solarthermie", en: "Solar thermal", fr: "Solaire thermique", ja: "\u592A\u967D\u71B1" },
-  pumpe_wert: { de: "Pumpe {v}", en: "Pump {v}", fr: "Pompe {v}", ja: "\u30DD\u30F3\u30D7 {v}" },
   e_zusatz: { de: "Zusatzw\xE4rme am Puffer", en: "Additional heat at the buffer", fr: "Chaleur d'appoint au ballon tampon", ja: "\u30D0\u30C3\u30D5\u30A1\u30FC\u306E\u8FFD\u52A0\u71B1\u6E90" },
   e_zusatz_h: { de: "nur mit Heizungspuffer", en: "only with a heating buffer", fr: "uniquement avec ballon tampon", ja: "\u30D0\u30C3\u30D5\u30A1\u30FC\u304C\u3042\u308B\u5834\u5408\u306E\u307F" },
   e_feuer_ab: { de: "Feuer im Kamin ab", en: "Fire in the stove from", fr: "Feu dans le po\xEAle \xE0 partir de", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u306E\u708E\u306E\u8868\u793A\u6E29\u5EA6" },
@@ -543,7 +542,6 @@ var TEXTE = {
   fld_holiday_mode: { de: "Urlaubsmodus", en: "Holiday mode", fr: "Mode vacances", ja: "\u4F11\u6687\u30E2\u30FC\u30C9" },
   fld_main_schedule: { de: "Wochenprogramm", en: "Weekly schedule", fr: "Programme hebdomadaire", ja: "\u9031\u9593\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB" },
   fld_smart_dhw: { de: "Smart DHW Warmwasser", en: "Smart DHW", fr: "Smart DHW eau chaude", ja: "\u30B9\u30DE\u30FC\u30C8\u7D66\u6E6F" },
-  fld_fault_reset: { de: "St\xF6rung quittieren", en: "Reset fault", fr: "Acquitter le d\xE9faut", ja: "\u7570\u5E38\u30EA\u30BB\u30C3\u30C8" },
   fld_operating_hours: { de: "Betriebsstunden", en: "Operating hours", fr: "Heures de fonctionnement", ja: "\u904B\u8EE2\u6642\u9593" },
   fld_compressor_starts: { de: "Verdichterstarts", en: "Compressor starts", fr: "D\xE9marrages du compresseur", ja: "\u5727\u7E2E\u6A5F\u8D77\u52D5\u56DE\u6570" },
   fld_room_heater_hours: { de: "Heizstab Heizen Betriebsstunden", en: "Heater hours, heating", fr: "Heures appoint chauffage", ja: "\u6696\u623F\u30D2\u30FC\u30BF\u30FC\u904B\u8EE2\u6642\u9593" },
@@ -551,7 +549,6 @@ var TEXTE = {
   k_holiday_mode: { de: "Urlaub", en: "Holiday", fr: "Vacances", ja: "\u4F11\u6687" },
   k_main_schedule: { de: "Wochenprogramm", en: "Weekly schedule", fr: "Programme hebdo", ja: "\u9031\u9593\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB" },
   k_smart_dhw: { de: "Smart DHW", en: "Smart DHW", fr: "Smart DHW", ja: "\u30B9\u30DE\u30FC\u30C8\u7D66\u6E6F" },
-  k_fault_reset: { de: "Fehler", en: "Error", fr: "Erreur", ja: "\u30A8\u30E9\u30FC" },
   k_operating_hours: { de: "Betriebsstunden", en: "Operating hours", fr: "Heures", ja: "\u904B\u8EE2\u6642\u9593" },
   k_compressor_starts: { de: "Verdichterstarts", en: "Compressor starts", fr: "D\xE9marrages", ja: "\u8D77\u52D5\u56DE\u6570" },
   k_room_heater_hours: { de: "Heizstab Heizen", en: "Heater, heating", fr: "Appoint chauffage", ja: "\u6696\u623F\u30D2\u30FC\u30BF\u30FC" },
@@ -562,11 +559,9 @@ var TEXTE = {
   o_standard: { de: "Standard", en: "Standard", fr: "Standard", ja: "\u6A19\u6E96" },
   t_quittieren: { de: "Quittieren", en: "Reset", fr: "Acquitter", ja: "\u30EA\u30BB\u30C3\u30C8" },
   t_betrieb: { de: "Betrieb", en: "Operation", fr: "Fonctionnement", ja: "\u904B\u8EE2" },
-  t_stoerung: { de: "St\xF6rung", en: "Fault", fr: "D\xE9faut", ja: "\u7570\u5E38" },
   t_cop: { de: "Leistungszahl (COP)", en: "Coefficient of performance (COP)", fr: "Coefficient de performance (COP)", ja: "\u6210\u7E3E\u4FC2\u6570\uFF08COP\uFF09" },
   j_cop_heute: { de: "Heute COP {v}", en: "Today COP {v}", fr: "Aujourd'hui COP {v}", ja: "\u4ECA\u65E5\u306E COP {v}" },
   t_jaz: { de: "Jahresarbeitszahl (JAZ)", en: "Seasonal performance (SPF)", fr: "Coefficient annuel (SPF)", ja: "\u5E74\u9593\u6027\u80FD\u4FC2\u6570\uFF08SPF\uFF09" },
-  k_jaz_12: { de: "Letzte 12 Monate", en: "Last 12 months", fr: "12 derniers mois", ja: "\u76F4\u8FD1 12 \u304B\u6708" },
   j_gesamt: { de: "Gesamt", en: "Total", fr: "Total", ja: "\u5408\u8A08" },
   j_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "\u6696\u623F" },
   j_ww: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "\u7D66\u6E6F" },
@@ -574,7 +569,6 @@ var TEXTE = {
   j_kstrom: { de: "Strom", en: "Electricity", fr: "\xC9lectricit\xE9", ja: "\u96FB\u529B" },
   j_kjaz: { de: "JAZ", en: "SPF", fr: "SPF", ja: "SPF" },
   j_unter: { de: "Seit 1. Januar, W\xE4rme und Strom in kWh", en: "Since 1 January, heat and electricity in kWh", fr: "Depuis le 1er janvier, chaleur et \xE9lectricit\xE9 en kWh", ja: "1 \u6708 1 \u65E5\u304B\u3089\u3001\u71B1\u91CF\u3068\u96FB\u529B\u306F kWh" },
-  k_jaz_jahr: { de: "Seit 1. Januar", en: "Since 1 January", fr: "Depuis le 1er janvier", ja: "1 \u6708 1 \u65E5\u304B\u3089" },
   j_seit: { de: "Daten erst seit {v}", en: "data only since {v}", fr: "donn\xE9es depuis le {v} seulement", ja: "{v} \u4EE5\u964D\u306E\u30C7\u30FC\u30BF\u306E\u307F" },
   j_titel: { de: "W\xE4rme {w} kWh geteilt durch Strom {s} kWh", en: "Heat {w} kWh divided by electricity {s} kWh", fr: "Chaleur {w} kWh divis\xE9e par \xE9lectricit\xE9 {s} kWh", ja: "\u71B1 {w} kWh \xF7 \u96FB\u529B {s} kWh" },
   t_info: { de: "Info", en: "Info", fr: "Infos", ja: "\u60C5\u5831" },
@@ -591,21 +585,18 @@ var TEXTE = {
   s_temperatur: { de: "Temperatur", en: "Temperature", fr: "Temp\xE9rature", ja: "\u6E29\u5EA6" },
   h_kopieren: { de: "Klicken zum Kopieren", en: "Click to copy", fr: "Cliquer pour copier", ja: "\u30AF\u30EA\u30C3\u30AF\u3057\u3066\u30B3\u30D4\u30FC" },
   h_kopiert: { de: "Kopiert", en: "Copied", fr: "Copi\xE9", ja: "\u30B3\u30D4\u30FC\u3057\u307E\u3057\u305F" },
-  h_entitaet: { de: "Entit\xE4t", en: "Entity", fr: "Entit\xE9", ja: "\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3" },
   h_keine_entitaet: { de: "Keine passende Entit\xE4t in Home Assistant gefunden", en: "No matching entity found in Home Assistant", fr: "Aucune entit\xE9 correspondante trouv\xE9e dans Home Assistant", ja: "Home Assistant \u306B\u8A72\u5F53\u3059\u308B\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3\u304C\u3042\u308A\u307E\u305B\u3093" },
   h_anzahl1: { de: "1 Eintrag", en: "1 entry", fr: "1 entr\xE9e", ja: "1 \u4EF6" },
   h_keine: { de: "Nichts gefunden. Anderes Suchwort versuchen.", en: "Nothing found. Try another search term.", fr: "Aucun r\xE9sultat. Essayez un autre mot.", ja: "\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002\u5225\u306E\u8A9E\u3067\u691C\u7D22\u3057\u3066\u304F\u3060\u3055\u3044\u3002" },
   h_quelle: { de: "Grundlage: HeishaMon-Dokumentation und Panasonic-Anleitung. Was dort nicht beschrieben ist, steht hier auch nicht.", en: "Based on: HeishaMon documentation and Panasonic manual. What is not described there is not stated here either.", fr: "Sources : documentation HeishaMon et notice Panasonic. Ce qui n'y est pas d\xE9crit n'est pas affirm\xE9 ici.", ja: "\u51FA\u5178\uFF1AHeishaMon \u306E\u8AAC\u660E\u66F8\u3068 Panasonic \u306E\u53D6\u6271\u8AAC\u660E\u66F8\u3002\u305D\u3053\u306B\u66F8\u304B\u308C\u3066\u3044\u306A\u3044\u3053\u3068\u306F\u3053\u3053\u3067\u3082\u8FF0\u3079\u3066\u3044\u307E\u305B\u3093\u3002" },
   t_oeffnen: { de: "Erweiterte Einstellungen \xF6ffnen", en: "Open advanced settings", fr: "Ouvrir les r\xE9glages avanc\xE9s", ja: "\u8A73\u7D30\u8A2D\u5B9A\u3092\u958B\u304F" },
   t_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "\u6696\u623F" },
-  t_warmwasser: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "\u7D66\u6E6F" },
   t_pumpe: { de: "Pumpe", en: "Pump", fr: "Pompe", ja: "\u30DD\u30F3\u30D7" },
   t_uebernehmen: { de: "\xDCbernehmen", en: "Apply", fr: "Appliquer", ja: "\u9069\u7528" },
   t_abbrechen: { de: "Abbrechen", en: "Cancel", fr: "Annuler", ja: "\u30AD\u30E3\u30F3\u30BB\u30EB" },
   t_nur_lesbar: { de: "nur lesbar", en: "read only", fr: "lecture seule", ja: "\u8AAD\u307F\u53D6\u308A\u5C02\u7528" },
   s_versch: { de: "Verschiebung der Heizkurve", en: "Heat curve shift", fr: "D\xE9calage de la courbe", ja: "\u6696\u623F\u66F2\u7DDA\u306E\u30B7\u30D5\u30C8" },
   r_verlauf_zeigen: { de: "Verlauf anzeigen", en: "Show history", fr: "Afficher l'historique", ja: "\u5C65\u6B74\u3092\u8868\u793A" },
-  s_cop: { de: "\xD8 COP heute {v}", en: "\xD8 COP today {v}", fr: "\xD8 COP jour {v}", ja: "\u672C\u65E5 \xD8 COP {v}" },
   // Auswahl- und Zustandswerte
   w_0: { de: "Nur Heizen", en: "Heat only", fr: "Chauffage seul", ja: "\u6696\u623F\u306E\u307F" },
   w_1: { de: "Nur K\xFChlen", en: "Cool only", fr: "Refroidissement seul", ja: "\u51B7\u623F\u306E\u307F" },
@@ -630,7 +621,6 @@ var TEXTE = {
   w_20: { de: "W\xE4rmepumpe", en: "Heat pump", fr: "Pompe \xE0 chaleur", ja: "\u30D2\u30FC\u30C8\u30DD\u30F3\u30D7" },
   w_21: { de: "Pumpe HK1", en: "Pump circuit 1", fr: "Pompe circuit 1", ja: "\u56DE\u8DEF1\u30DD\u30F3\u30D7" },
   w_22: { de: "Pumpe HK2", en: "Pump circuit 2", fr: "Pompe circuit 2", ja: "\u56DE\u8DEF2\u30DD\u30F3\u30D7" },
-  w_23: { de: "Heizstab Heizung", en: "Heater, heating", fr: "Appoint chauffage", ja: "\u6696\u623F\u30D2\u30FC\u30BF\u30FC" },
   w_43: { de: "Heizstab l\xE4uft", en: "Heater running", fr: "Appoint en marche", ja: "\u30D2\u30FC\u30BF\u30FC\u904B\u8EE2\u4E2D" },
   w_44: { de: "Pumpe Kamin", en: "Stove pump", fr: "Pompe po\xEAle", ja: "\u85AA\u30B9\u30C8\u30FC\u30D6\u30DD\u30F3\u30D7" },
   w_45: { de: "Pumpe Solarthermie", en: "Solar thermal pump", fr: "Pompe solaire thermique", ja: "\u592A\u967D\u71B1\u30DD\u30F3\u30D7" },
@@ -638,7 +628,6 @@ var TEXTE = {
   w_47: { de: "Pumpe HK4", en: "Pump circuit 4", fr: "Pompe circuit 4", ja: "\u56DE\u8DEF4\u30DD\u30F3\u30D7" },
   w_48: { de: "HK3 Wasser", en: "Circuit 3 water", fr: "Circuit 3 eau", ja: "\u56DE\u8DEF3 \u6C34\u6E29" },
   w_49: { de: "HK4 Wasser", en: "Circuit 4 water", fr: "Circuit 4 eau", ja: "\u56DE\u8DEF4 \u6C34\u6E29" },
-  w_24: { de: "Heizstab Warmwasser", en: "Heater, hot water", fr: "Appoint eau chaude", ja: "\u7D66\u6E6F\u30D2\u30FC\u30BF\u30FC" },
   w_25: { de: "Abtauung", en: "Defrost", fr: "D\xE9givrage", ja: "\u9664\u971C" },
   w_26: { de: "Zirkulation Status", en: "Circulation", fr: "Circulation", ja: "\u5FAA\u74B0" },
   w_27: { de: "Aufheizen", en: "Boost", fr: "Chauffe", ja: "\u52A0\u71B1" },
@@ -653,10 +642,6 @@ var TEXTE = {
   w_36: { de: "Verdichter", en: "Compressor", fr: "Compresseur", ja: "\u5727\u7E2E\u6A5F" },
   w_37: { de: "Durchfluss", en: "Flow rate", fr: "D\xE9bit", ja: "\u6D41\u91CF" },
   w_38: { de: "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema", en: "Panasonic Aquarea, HeishaMon via MQTT naming", fr: "Panasonic Aquarea, HeishaMon via nommage MQTT", ja: "Panasonic Aquarea\u3001MQTT\u547D\u540D\u898F\u5247\u306EHeishaMon" },
-  w_39: { de: "Vaillant, in Vorbereitung", en: "Vaillant, in preparation", fr: "Vaillant, en pr\xE9paration", ja: "Vaillant\uFF08\u6E96\u5099\u4E2D\uFF09" },
-  w_40: { de: "Bosch, in Vorbereitung", en: "Bosch, in preparation", fr: "Bosch, en pr\xE9paration", ja: "Bosch\uFF08\u6E96\u5099\u4E2D\uFF09" },
-  w_41: { de: "Viessmann, in Vorbereitung", en: "Viessmann, in preparation", fr: "Viessmann, en pr\xE9paration", ja: "Viessmann\uFF08\u6E96\u5099\u4E2D\uFF09" },
-  w_42: { de: "Stiebel Eltron, in Vorbereitung", en: "Stiebel Eltron, in preparation", fr: "Stiebel Eltron, en pr\xE9paration", ja: "Stiebel Eltron\uFF08\u6E96\u5099\u4E2D\uFF09" },
   r_demo_hinweis: { de: "Erfundene Werte, die Anlage bleibt unber\xFChrt", en: "Sample values, the system is not touched", fr: "Valeurs fictives, l'installation n'est pas modifi\xE9e", ja: "\u4EEE\u306E\u5024\u3067\u3059\u3002\u6A5F\u5668\u306B\u306F\u5F71\u97FF\u3057\u307E\u305B\u3093" },
   r_stoerung: { de: "St\xF6rung", en: "Fault", fr: "D\xE9faut", ja: "\u7570\u5E38" },
   r_zurueck: { de: "Zur\xFCcksetzen", en: "Reset", fr: "R\xE9initialiser", ja: "\u30EA\u30BB\u30C3\u30C8" },
@@ -693,7 +678,7 @@ function tf(text, werte) {
     (_, k) => werte && werte[k] !== void 0 ? werte[k] : `{${k}}`
   );
 }
-var WERT_SCHLUESSEL = { "W\xE4rmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab Heizung": "w_23", "Heizstab Warmwasser": "w_24", "Heizstab l\xE4uft": "w_43", "Pumpe Kamin": "w_44", "Pumpe Solarthermie": "w_45", "Pumpe HK3": "w_46", "Pumpe HK4": "w_47", "HK3 Wasser": "w_48", "HK4 Wasser": "w_49", "Kamin": "kamin", "Solarthermie": "solarthermie", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Au\xDFen": "w_30", "Vorlauf": "w_31", "R\xFCcklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema": "w_38", "Vaillant, in Vorbereitung": "w_39", "Bosch, in Vorbereitung": "w_40", "Viessmann, in Vorbereitung": "w_41", "Stiebel Eltron, in Vorbereitung": "w_42", "Nur Heizen": "w_0", "Nur K\xFChlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "K\xFChlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik K\xFChlen": "w_7", "Automatik K\xFChlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "l\xE4uft": "w_18", "aus": "w_19" };
+var WERT_SCHLUESSEL = { "W\xE4rmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab l\xE4uft": "w_43", "Pumpe Kamin": "w_44", "Pumpe Solarthermie": "w_45", "Pumpe HK3": "w_46", "Pumpe HK4": "w_47", "HK3 Wasser": "w_48", "HK4 Wasser": "w_49", "Kamin": "kamin", "Solarthermie": "solarthermie", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Au\xDFen": "w_30", "Vorlauf": "w_31", "R\xFCcklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema": "w_38", "Nur Heizen": "w_0", "Nur K\xFChlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "K\xFChlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik K\xFChlen": "w_7", "Automatik K\xFChlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "l\xE4uft": "w_18", "aus": "w_19" };
 function wertText(wert, sprache) {
   const k = WERT_SCHLUESSEL[wert];
   return k ? t(k, sprache) : wert;
@@ -1033,6 +1018,16 @@ function copMittel(reihe, start, ende) {
     }
   }
   return dauer > 0 ? summe / dauer : null;
+}
+function kleinster(liste) {
+  let m = Infinity;
+  for (const v of liste) if (v < m) m = v;
+  return m;
+}
+function groesster(liste) {
+  let m = -Infinity;
+  for (const v of liste) if (v > m) m = v;
+  return m;
 }
 
 // src/felder.js
@@ -2195,8 +2190,7 @@ var COMMAND_TO_FIELD = {
   setquietmodepriority: "quiet_priority",
   setholidaymode: "holiday_mode",
   setmainschedule: "main_schedule",
-  setsmartdhw: "smart_dhw",
-  setreset: "fault_reset"
+  setsmartdhw: "smart_dhw"
 };
 var COP_TO_FIELD = {
   cop_heating: "cop_heating",
@@ -2228,7 +2222,6 @@ var FIELD_DOMAIN = {
   holiday_mode: ["switch", "input_boolean"],
   main_schedule: ["switch", "input_boolean"],
   smart_dhw: ["select", "input_select"],
-  fault_reset: ["button", "input_button"],
   circulation_pump: ["switch", "input_boolean", "binary_sensor", "sensor"],
   circ_switch: ["switch", "input_boolean"],
   sg_k1: ["switch", "input_boolean", "binary_sensor", "sensor"],
@@ -2316,8 +2309,11 @@ function erkenneAlle(hass) {
   });
   return treffer.sort((a, b) => b.felder - a.felder);
 }
-function quellenZuordnung(entities, extraHeat) {
+function quellenZuordnung(entities, extraHeat, profil) {
   if (extraHeat !== "kamin") return entities;
+  if (profil && typeof profil === "object" && HERSTELLER_PROFILE.some((p) => p.id === profil.id)) {
+    return entities;
+  }
   const out = { ...entities };
   if (out.solar_temp && !out.kamin_temp) out.kamin_temp = out.solar_temp;
   if (out.solar_pump && !out.kamin_pump) out.kamin_pump = out.solar_pump;
@@ -2480,7 +2476,9 @@ var bedienungEditor = {
       if (!customElements.get(name)) {
         await Promise.race([
           customElements.whenDefined(name),
-          new Promise((_, nein) => setTimeout(() => nein(new Error("zeit")), 3e3))
+          new Promise((_, nein) => {
+            setTimeout(() => nein(new Error("zeit")), 3e3);
+          })
         ]);
       }
     } catch {
@@ -3610,8 +3608,9 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
       });
     }
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
-      const f = detectIntegration(this._hass, profilFuer(this._config, this._hass));
-      if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat), true);
+      const profil = profilFuer(this._config, this._hass);
+      const f = detectIntegration(this._hass, profil);
+      if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat, profil), true);
     });
     this.shadowRoot.getElementById("btn-default").addEventListener("click", () => applyMap(quellenZuordnung(defaultEntityMap(), this._config.extra_heat), true));
     this.shadowRoot.getElementById("btn-clear").addEventListener("click", () => applyMap({}, false));
@@ -4025,7 +4024,7 @@ var aktualisierenKarte = {
       tuerKnopf.style.display = this._config.show_door !== false && this._tuerFelder().length ? "" : "none";
     }
     const hilfeKnopf = this.shadowRoot.getElementById("hilfe-knopf");
-    if (hilfeKnopf) hilfeKnopf.style.display = this._config.show_help === false ? "none" : "";
+    if (hilfeKnopf) hilfeKnopf.style.display = this._config.show_help === false || !this._hilfePasst() ? "none" : "";
     this._speicherZeilen("buf");
     this._speicherZeilen("dhw");
     abzeichen("dhwforce-badge", isOn(hass, this._e("dhw_force_state")) === true);
@@ -4483,7 +4482,6 @@ var demoKarte = {
       dhw_heater_hours: 11,
       holiday_mode: "off",
       main_schedule: "off",
-      fault_reset: "unknown",
       heating_off_temp: 18,
       heater_on_temp: -8,
       heat_delta: 5,
@@ -5023,10 +5021,10 @@ var diagrammeKarte = {
     }
     this._diaLeer(false);
     const alle = arten.flatMap(([f]) => reihen[f].map((p) => p.v));
-    const roh = (Math.max(...alle) - Math.min(...alle)) / 4;
+    const roh = (groesster(alle) - kleinster(alle)) / 4;
     const schritt = roh <= 5 ? 5 : roh <= 10 ? 10 : 20;
-    const min = Math.floor(Math.min(...alle) / schritt) * schritt;
-    let max = Math.ceil(Math.max(...alle) / schritt) * schritt;
+    const min = Math.floor(kleinster(alle) / schritt) * schritt;
+    let max = Math.ceil(groesster(alle) / schritt) * schritt;
     if (max - min < schritt * 2) max = min + schritt * 2;
     const t1 = Date.now();
     const t0 = t1 - 864e5;
@@ -5056,7 +5054,7 @@ var diagrammeKarte = {
       return `<div class="lhc-dia-zeile"><span class="lhc-dia-farbe" style="background:${farbe}"></span>
           <span>${escapeHtml(name)}</span>
           <b>${fmt(jetzt, 1)} \xB0C</b>
-          <em>${fmt(Math.min(...werte), 1)} \u2026 ${fmt(Math.max(...werte), 1)} \xB0C</em></div>`;
+          <em>${fmt(kleinster(werte), 1)} \u2026 ${fmt(groesster(werte), 1)} \xB0C</em></div>`;
     }).join("");
   }
 };
@@ -5794,24 +5792,24 @@ var grafikHochKarte = {
     const puffer = stutzenVL(P.X_VL, PUF[0] + 60) + stutzenRL(P.X_RL, PUF[1] - 60) + `<path class="flowdots" id="dots-buf" d="M${P.X_VL} ${PUF[0] + 60} H ${P.U2 + 9}"/>
        <path class="flowdots" id="dots-buf2" d="M${P.U1 - 9} ${PUF[1] - 60} H ${P.X_RL}"/>` + speicher("buffer-group", PUF[0], PUF[1], "buf", "bufferFill", 150, "label_buffer", `
         <g id="roomheater-badge" class="badge" transform="translate(${UM} ${PUF[0] + 70})">
-          <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("heizstab")) / 2}" y="-15" width="${abzeichenBreite(this._t("heizstab"))}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>`);
     const warmwasser = stutzenVL(P.X_VL, WW[0] + 40) + stutzenRL(P.X_RL, WW[1] - 20) + `<path class="flowdots" id="dots-dhw" d="M${P.X_VL} ${WW[0] + 40} H ${P.U2 + 9}"/>
        <path class="flowdots" id="dots-dhw2" d="M${P.U1 - 9} ${WW[1] - 20} H ${P.X_RL}"/>` + speicher("dhw-group", WW[0], WW[1], "dhw", "dhwFill", 134, "label_dhw", `
         <g id="dhwforce-badge" class="badge" transform="translate(${UM - 120} ${WW[0] + 70})">
-          <rect x="${-abzeichenBreite("Aufheizen") / 2}" y="-15" width="${abzeichenBreite("Aufheizen")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("aufheizen")) / 2}" y="-15" width="${abzeichenBreite(this._t("aufheizen"))}" height="30" rx="15"
                 fill="#08243A" stroke="#3B9BE0" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("aufheizen")}</text>
         </g>
         <g id="sterilization-badge" class="badge" transform="translate(${UM} ${WW[0] + 70})">
-          <rect x="${-abzeichenBreite("Legionellen") / 2}" y="-15" width="${abzeichenBreite("Legionellen")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("legionellen")) / 2}" y="-15" width="${abzeichenBreite(this._t("legionellen"))}" height="30" rx="15"
                 fill="#2B1240" stroke="#A855F7" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("legionellen")}</text>
         </g>
         <g id="dhwheater-badge" class="badge" transform="translate(${UM + 120} ${WW[0] + 70})">
-          <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("heizstab")) / 2}" y="-15" width="${abzeichenBreite(this._t("heizstab"))}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>`);
@@ -6191,7 +6189,7 @@ ${this._defs()}
         <text class="value-sp" id="buf-sp" x="${L.X_BUF_C}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="buf-delta" x="${L.X_BUF_C}" y="482" text-anchor="middle"></text>
         <g id="roomheater-badge" class="badge" transform="translate(${L.X_BUF_C} 604)">
-          <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("heizstab")) / 2}" y="-15" width="${abzeichenBreite(this._t("heizstab"))}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>
@@ -6284,17 +6282,17 @@ ${this._defs()}
         <text class="value-sp" id="dhw-sp" x="${L.X_DHW_C}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="dhw-delta" x="${L.X_DHW_C}" y="482" text-anchor="middle"></text>
         <g id="dhwforce-badge" class="badge" transform="translate(${L.X_DHW_C} 536)">
-          <rect x="${-abzeichenBreite("Aufheizen") / 2}" y="-15" width="${abzeichenBreite("Aufheizen")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("aufheizen")) / 2}" y="-15" width="${abzeichenBreite(this._t("aufheizen"))}" height="30" rx="15"
                 fill="#08243A" stroke="#3B9BE0" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("aufheizen")}</text>
         </g>
         <g id="sterilization-badge" class="badge" transform="translate(${L.X_DHW_C} 570)">
-          <rect x="${-abzeichenBreite("Legionellen") / 2}" y="-15" width="${abzeichenBreite("Legionellen")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("legionellen")) / 2}" y="-15" width="${abzeichenBreite(this._t("legionellen"))}" height="30" rx="15"
                 fill="#2B1240" stroke="#A855F7" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("legionellen")}</text>
         </g>
         <g id="dhwheater-badge" class="badge" transform="translate(${L.X_DHW_C} 604)">
-          <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("heizstab")) / 2}" y="-15" width="${abzeichenBreite(this._t("heizstab"))}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>
@@ -6480,9 +6478,9 @@ var grafikQuerKarte = {
         this._name(schluessel)
       )}</text>`;
     };
-    const badge = (id, cx, y, wort, fill, stroke, text) => `
+    const badge = (id, cx, y, fill, stroke, text) => `
         <g id="${id}" class="badge" transform="translate(${cx} ${y})">
-          <rect x="${-abzeichenBreite(wort) / 2}" y="-15" width="${abzeichenBreite(wort)}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(text) / 2}" y="-15" width="${abzeichenBreite(text)}" height="30" rx="15"
                 fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${text}</text>
         </g>`;
@@ -6616,9 +6614,9 @@ ${this._defs()}
         <text class="value-l" id="dhw-v" x="${XW}" y="430" text-anchor="middle">--</text>
         <text class="value-sp" id="dhw-sp" x="${XW}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="dhw-delta" x="${XW}" y="482" text-anchor="middle"></text>
-        ${badge("dhwforce-badge", XW, 536, "Aufheizen", "#08243A", "#3B9BE0", this._t("aufheizen"))}
-        ${badge("sterilization-badge", XW, 570, "Legionellen", "#2B1240", "#A855F7", this._t("legionellen"))}
-        ${badge("dhwheater-badge", XW, 604, "Heizstab", "#3A1B08", "#E0762E", this._t("heizstab"))}
+        ${badge("dhwforce-badge", XW, 536, "#08243A", "#3B9BE0", this._t("aufheizen"))}
+        ${badge("sterilization-badge", XW, 570, "#2B1240", "#A855F7", this._t("legionellen"))}
+        ${badge("dhwheater-badge", XW, 604, "#3A1B08", "#E0762E", this._t("heizstab"))}
         <g id="dhw-name">${schild(XW, "label_dhw")}</g>`)}
       </g>
 
@@ -6629,7 +6627,7 @@ ${this._defs()}
         <text class="value-l" id="buf-v" x="${XB}" y="430" text-anchor="middle">--</text>
         <text class="value-sp" id="buf-sp" x="${XB}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="buf-delta" x="${XB}" y="482" text-anchor="middle"></text>
-        ${badge("roomheater-badge", XB, 604, "Heizstab", "#3A1B08", "#E0762E", this._t("heizstab"))}
+        ${badge("roomheater-badge", XB, 604, "#3A1B08", "#E0762E", this._t("heizstab"))}
         <g id="buf-name">${schild(XB, "label_buffer")}</g>`)}
       </g>` : ""}
 
@@ -8320,19 +8318,12 @@ var stilKarte = {
       /* Werte der Heizkreise stehen frei unter dem Heizkoerper. */
       .lhc .hk-wert { fill: var(--c-e8edf4); font-size: 22px; }
       .lhc .value-sp.verlauf-text { fill: var(--c-e8edf4); }
-      .lhc rect.fest-dunkel { fill: #0B1017; }
       /* Namensschilder liegen auf farbigen Flaechen, nachts nicht zu dunkel. */
       .lhc.thema-nacht .cap { fill: #A3ADBD; }
       /* Auf hellem Grund sind gelbe und hellgruene Werte zu blass. Farbige
          Texte werden dort dunkler, weisse Texte auf den Speichern nicht. */
       .lhc.thema-hell svg text:not(.value-l):not(.value-sp):not(.tag-v):not(.cap) {
         filter: brightness(0.72) saturate(1.25);
-      }
-      /* Weiss mit dunklem Rand wie die Temperatur, damit der Wert auf
-         jeder Speicherfarbe lesbar bleibt. */
-      .value-cop {
-        fill: #FFFFFF; font-size: 17px; font-weight: 700;
-        paint-order: stroke; stroke: rgba(0,0,0,0.5); stroke-width: 4px;
       }
       /* Aufsteigende Blasen. Je waermer der Speicher, desto mehr
          davon werden sichtbar geschaltet. */
@@ -9353,7 +9344,7 @@ var verlaufKarte = {
     const t0 = daten[0].t;
     const t1 = daten[daten.length - 1].t;
     const spanne = t1 - t0 || 1;
-    const hoechst = Math.max(...daten.map((d) => d.v), 0.1);
+    const hoechst = Math.max(groesster(daten.map((d) => d.v)), 0.1);
     const px = (d) => links + (d.t - t0) / spanne * (rechts - links);
     const py = (d) => unten - d.v / hoechst * (unten - oben);
     let linie = "";
@@ -9379,7 +9370,7 @@ var verlaufKarte = {
       }
       return stand;
     };
-    const grund = Math.min(...daten.map((d) => d.v));
+    const grund = kleinster(daten.map((d) => d.v));
     const schwelle = grund + Math.max((hoechst - grund) * 0.08, hoechst * 0.02);
     const pfade = { heiz: "", ww: "", standby: "" };
     if (ventil.length || verdichter.length) {
@@ -9469,6 +9460,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     this._config = null;
     this._hass = null;
     this._auto = null;
+    this._profilId = null;
     this._dragging = null;
     this._animLoop = null;
     this._animTime = 0;
@@ -9481,6 +9473,11 @@ var LutarymHeatpumpCard = class extends HTMLElement {
       this._sichtBeobachter.disconnect();
       this._sichtBeobachter = null;
     }
+    if (this._bewegungMq && this._bewegungRuf) {
+      this._bewegungMq.removeEventListener("change", this._bewegungRuf);
+    }
+    this._bewegungMq = null;
+    this._bewegungRuf = null;
   }
   /**
    * Home Assistant haengt die Karte beim Speichern der Konfiguration
@@ -9500,7 +9497,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     if (!this._bewegungMq && window.matchMedia) {
       try {
         this._bewegungMq = window.matchMedia("(prefers-reduced-motion: reduce)");
-        this._bewegungMq.addEventListener("change", () => {
+        this._bewegungRuf = () => {
           if (!this._config || this._config.animate !== "auto") return;
           if (this._hass) this._render();
           if (bewegungReduziert()) {
@@ -9509,7 +9506,8 @@ var LutarymHeatpumpCard = class extends HTMLElement {
           } else if (this._built && !this._animLoop) {
             this._startAnimationLoop();
           }
-        });
+        };
+        this._bewegungMq.addEventListener("change", this._bewegungRuf);
       } catch {
         this._bewegungMq = null;
       }
@@ -9535,6 +9533,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     this._config.hk_count = Math.min(4, Math.max(1, parseInt(this._config.hk_count, 10) || 2));
     this._built = false;
     this._auto = null;
+    this._profilId = null;
     if (this._config.demo) this._demoAufbauen();
     else this._demo = null;
     this._tagStart = void 0;
@@ -9549,6 +9548,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     if (!this._config) return;
     if (hass && alt && hass.entities !== alt.entities) {
       this._auto = null;
+      this._profilId = null;
       this._beobachtet = null;
     }
     if (alt && hass && this._built && !this._config.demo && !this._relevantGeaendert(alt, hass)) {
@@ -9606,13 +9606,35 @@ var LutarymHeatpumpCard = class extends HTMLElement {
     const alias = { power_state: "power_switch", buffer_temp: "buffer_top" };
     const configured = eintraege[key] || eintraege[alias[key]];
     if (configured) return configured;
+    if (!this._quelle) return "";
     if (!this._auto) {
+      const profil = profilFuer(this._config, this._quelle);
       this._auto = quellenZuordnung(
-        detectIntegration(this._quelle, profilFuer(this._config, this._quelle)).entities,
-        this._config.extra_heat
+        detectIntegration(this._quelle, profil).entities,
+        this._config.extra_heat,
+        profil
       );
     }
     return this._auto[key] || "";
+  }
+  /**
+   * Kennung des gerade gueltigen Profils. Bei "auto" wird einmal gesucht
+   * und gemerkt, bis sich Konfiguration oder Register aendern.
+   */
+  _aktivesProfil() {
+    if (this._profilId) return this._profilId;
+    if (!this._hass) return "";
+    const p = profilFuer(this._config, this._hass);
+    this._profilId = typeof p === "object" && p ? p.id : String(p || "");
+    return this._profilId;
+  }
+  /**
+   * Die Hilfe beschreibt die Werte und Befehle von HeishaMon. Sie passt
+   * nur zu Profilen, die auf HeishaMon beruhen, und zum Demomodus.
+   */
+  _hilfePasst() {
+    if (this._config.demo) return true;
+    return ["heishamon_lutarym", "heishamon", "aquarea_heishamon"].includes(this._aktivesProfil());
   }
   /**
    * Merkt einen gerade gesetzten Wert kurz vor.

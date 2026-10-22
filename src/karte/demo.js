@@ -35,7 +35,7 @@ export const demoKarte = {
       kamin_temp: 72.4, kamin_pump: 1, solar_temp: 41.0, solar_pump: 0,
       cop_heating: 4.3, cop_dhw: 3.1, heater_internal: 0, heater_external: 0,
       operating_hours: 1462, compressor_starts: 2381, room_heater_hours: 3, dhw_heater_hours: 11,
-      holiday_mode: "off", main_schedule: "off", fault_reset: "unknown",
+      holiday_mode: "off", main_schedule: "off",
       heating_off_temp: 18, heater_on_temp: -8, heat_delta: 5, steril_temp: 65, steril_time: 10, pump_max_duty: 160,
     };
     const states = {};

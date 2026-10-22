@@ -84,7 +84,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `show_history` | `knopf` | 24 hour charts: `knopf` three buttons at the top right open energy, SG Ready and temperatures in a window, `true` energy always in the card, `false` off |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
 | `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
-| `show_help` | `true` | Show the “?” help button at the bottom right of the card |
+| `show_help` | `true` | Show the “?” help button at the bottom right of the card; the help describes HeishaMon and only appears with HeishaMon profiles and in demo mode |
 | `show_door` | `true` | Show the advanced settings button at the bottom right of the heat pump |
 | `theme` | `auto` | Colour scheme: `auto` (follows light/dark mode of Home Assistant), `dunkel` (dark), `hell` (light), `kontrast` (high contrast), `nacht` (night, dimmed), `ha` (colours of the Home Assistant theme) |
 | `profile_custom` | `[]` | Imported device profiles (set by the editor, see [guide](docs/GERAETEPROFIL.md)) |

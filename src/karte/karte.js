@@ -35,6 +35,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._config = null;
     this._hass = null;
     this._auto = null;
+    this._profilId = null;
     this._dragging = null;
 
     // Animation Engine (GData-kompatibel)
@@ -50,6 +51,13 @@ export class LutarymHeatpumpCard extends HTMLElement {
       this._sichtBeobachter.disconnect();
       this._sichtBeobachter = null;
     }
+    // Der Beobachter der Systemeinstellung wird abgemeldet, sonst haelt
+    // er eine entfernte Karte im Speicher und zeichnet sie weiter.
+    if (this._bewegungMq && this._bewegungRuf) {
+      this._bewegungMq.removeEventListener("change", this._bewegungRuf);
+    }
+    this._bewegungMq = null;
+    this._bewegungRuf = null;
   }
 
   /**
@@ -74,7 +82,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     if (!this._bewegungMq && window.matchMedia) {
       try {
         this._bewegungMq = window.matchMedia("(prefers-reduced-motion: reduce)");
-        this._bewegungMq.addEventListener("change", () => {
+        this._bewegungRuf = () => {
           if (!this._config || this._config.animate !== "auto") return;
           if (this._hass) this._render();
           if (bewegungReduziert()) {
@@ -83,7 +91,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
           } else if (this._built && !this._animLoop) {
             this._startAnimationLoop();
           }
-        });
+        };
+        this._bewegungMq.addEventListener("change", this._bewegungRuf);
       } catch {
         this._bewegungMq = null;
       }
@@ -114,6 +123,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._config.hk_count = Math.min(4, Math.max(1, parseInt(this._config.hk_count, 10) || 2));
     this._built = false;
     this._auto = null;
+    this._profilId = null;
     if (this._config.demo) this._demoAufbauen();
     else this._demo = null;
     this._tagStart = undefined;
@@ -131,6 +141,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     // automatische Zuordnung neu bestimmt.
     if (hass && alt && hass.entities !== alt.entities) {
       this._auto = null;
+      this._profilId = null;
       this._beobachtet = null;
     }
     // Home Assistant ruft das bei jeder Zustandsaenderung im ganzen System
@@ -198,13 +209,38 @@ export class LutarymHeatpumpCard extends HTMLElement {
     const alias = { power_state: "power_switch", buffer_temp: "buffer_top" };
     const configured = eintraege[key] || eintraege[alias[key]];
     if (configured) return configured;
+    // Ohne Datenquelle wird nichts gemerkt, sonst bliebe die Zuordnung leer.
+    if (!this._quelle) return "";
     if (!this._auto) {
+      const profil = profilFuer(this._config, this._quelle);
       this._auto = quellenZuordnung(
-        detectIntegration(this._quelle, profilFuer(this._config, this._quelle)).entities,
-        this._config.extra_heat
+        detectIntegration(this._quelle, profil).entities,
+        this._config.extra_heat,
+        profil
       );
     }
     return this._auto[key] || "";
+  }
+
+  /**
+   * Kennung des gerade gueltigen Profils. Bei "auto" wird einmal gesucht
+   * und gemerkt, bis sich Konfiguration oder Register aendern.
+   */
+  _aktivesProfil() {
+    if (this._profilId) return this._profilId;
+    if (!this._hass) return "";
+    const p = profilFuer(this._config, this._hass);
+    this._profilId = typeof p === "object" && p ? p.id : String(p || "");
+    return this._profilId;
+  }
+
+  /**
+   * Die Hilfe beschreibt die Werte und Befehle von HeishaMon. Sie passt
+   * nur zu Profilen, die auf HeishaMon beruhen, und zum Demomodus.
+   */
+  _hilfePasst() {
+    if (this._config.demo) return true;
+    return ["heishamon_lutarym", "heishamon", "aquarea_heishamon"].includes(this._aktivesProfil());
   }
 
   /**

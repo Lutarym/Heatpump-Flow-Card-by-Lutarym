@@ -727,19 +727,3 @@ export const HERSTELLER_PROFILE = [
     },
   },
 ];
-
-/**
- * Integrationen, die bewusst kein Profil haben, mit Grund. Wird nur in
- * der Dokumentation genannt.
- */
-export const OHNE_PROFIL = [
-  { integration: "myuplink", grund: "Entitaetsnamen kommen dynamisch vom Geraet" },
-  { integration: "wolflink", grund: "Entitaetsnamen kommen dynamisch vom Geraet" },
-  { integration: "ebusd", grund: "Namen haengen von der eigenen ebusd-Konfiguration ab" },
-  { integration: "stiebel_eltron", grund: "liefert nur eine Klima-Entitaet" },
-  { integration: "bosch", grund: "Entitaetsnamen kommen dynamisch vom Geraet" },
-  { integration: "tuya_heat_pump", grund: "Datenpunkte je Geraet verschieden" },
-  { integration: "toshiba_modbus", grund: "Raumklimageraet" },
-  { integration: "midea_heatpump_hws", grund: "nur Warmwasser-Waermepumpe" },
-  { integration: "dimplex", grund: "liefert keine Waermepumpenwerte wie Vorlauf, Ruecklauf oder Verdichter" },
-];

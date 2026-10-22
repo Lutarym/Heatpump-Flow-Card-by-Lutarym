@@ -370,7 +370,6 @@ export const TEXTE = {
   hnw_12: { de: "eigener Schalter oder Sensor; Kamin allein: OPT5", en: "own switch or sensor; stove only: OPT5", fr: "interrupteur ou capteur propre ; poêle seul : OPT5", ja: "独自のスイッチまたはセンサー。薪ストーブのみ：OPT5" },
   kamin: { de: "Kamin", en: "Stove", fr: "Poêle", ja: "薪ストーブ" },
   solarthermie: { de: "Solarthermie", en: "Solar thermal", fr: "Solaire thermique", ja: "太陽熱" },
-  pumpe_wert: { de: "Pumpe {v}", en: "Pump {v}", fr: "Pompe {v}", ja: "ポンプ {v}" },
   e_zusatz: { de: "Zusatzwärme am Puffer", en: "Additional heat at the buffer", fr: "Chaleur d'appoint au ballon tampon", ja: "バッファーの追加熱源" },
   e_zusatz_h: { de: "nur mit Heizungspuffer", en: "only with a heating buffer", fr: "uniquement avec ballon tampon", ja: "バッファーがある場合のみ" },
   e_feuer_ab: { de: "Feuer im Kamin ab", en: "Fire in the stove from", fr: "Feu dans le poêle à partir de", ja: "薪ストーブの炎の表示温度" },
@@ -420,7 +419,6 @@ export const TEXTE = {
   fld_holiday_mode: { de: "Urlaubsmodus", en: "Holiday mode", fr: "Mode vacances", ja: "休暇モード" },
   fld_main_schedule: { de: "Wochenprogramm", en: "Weekly schedule", fr: "Programme hebdomadaire", ja: "週間スケジュール" },
   fld_smart_dhw: { de: "Smart DHW Warmwasser", en: "Smart DHW", fr: "Smart DHW eau chaude", ja: "スマート給湯" },
-  fld_fault_reset: { de: "Störung quittieren", en: "Reset fault", fr: "Acquitter le défaut", ja: "異常リセット" },
   fld_operating_hours: { de: "Betriebsstunden", en: "Operating hours", fr: "Heures de fonctionnement", ja: "運転時間" },
   fld_compressor_starts: { de: "Verdichterstarts", en: "Compressor starts", fr: "Démarrages du compresseur", ja: "圧縮機起動回数" },
   fld_room_heater_hours: { de: "Heizstab Heizen Betriebsstunden", en: "Heater hours, heating", fr: "Heures appoint chauffage", ja: "暖房ヒーター運転時間" },
@@ -428,7 +426,6 @@ export const TEXTE = {
   k_holiday_mode: { de: "Urlaub", en: "Holiday", fr: "Vacances", ja: "休暇" },
   k_main_schedule: { de: "Wochenprogramm", en: "Weekly schedule", fr: "Programme hebdo", ja: "週間スケジュール" },
   k_smart_dhw: { de: "Smart DHW", en: "Smart DHW", fr: "Smart DHW", ja: "スマート給湯" },
-  k_fault_reset: { de: "Fehler", en: "Error", fr: "Erreur", ja: "エラー" },
   k_operating_hours: { de: "Betriebsstunden", en: "Operating hours", fr: "Heures", ja: "運転時間" },
   k_compressor_starts: { de: "Verdichterstarts", en: "Compressor starts", fr: "Démarrages", ja: "起動回数" },
   k_room_heater_hours: { de: "Heizstab Heizen", en: "Heater, heating", fr: "Appoint chauffage", ja: "暖房ヒーター" },
@@ -439,11 +436,9 @@ export const TEXTE = {
   o_standard: { de: "Standard", en: "Standard", fr: "Standard", ja: "標準" },
   t_quittieren: { de: "Quittieren", en: "Reset", fr: "Acquitter", ja: "リセット" },
   t_betrieb: { de: "Betrieb", en: "Operation", fr: "Fonctionnement", ja: "運転" },
-  t_stoerung: { de: "Störung", en: "Fault", fr: "Défaut", ja: "異常" },
   t_cop: { de: "Leistungszahl (COP)", en: "Coefficient of performance (COP)", fr: "Coefficient de performance (COP)", ja: "成績係数（COP）" },
   j_cop_heute: { de: "Heute COP {v}", en: "Today COP {v}", fr: "Aujourd'hui COP {v}", ja: "今日の COP {v}" },
   t_jaz: { de: "Jahresarbeitszahl (JAZ)", en: "Seasonal performance (SPF)", fr: "Coefficient annuel (SPF)", ja: "年間性能係数（SPF）" },
-  k_jaz_12: { de: "Letzte 12 Monate", en: "Last 12 months", fr: "12 derniers mois", ja: "直近 12 か月" },
   j_gesamt: { de: "Gesamt", en: "Total", fr: "Total", ja: "合計" },
   j_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "暖房" },
   j_ww: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "給湯" },
@@ -451,7 +446,6 @@ export const TEXTE = {
   j_kstrom: { de: "Strom", en: "Electricity", fr: "Électricité", ja: "電力" },
   j_kjaz: { de: "JAZ", en: "SPF", fr: "SPF", ja: "SPF" },
   j_unter: { de: "Seit 1. Januar, Wärme und Strom in kWh", en: "Since 1 January, heat and electricity in kWh", fr: "Depuis le 1er janvier, chaleur et électricité en kWh", ja: "1 月 1 日から、熱量と電力は kWh" },
-  k_jaz_jahr: { de: "Seit 1. Januar", en: "Since 1 January", fr: "Depuis le 1er janvier", ja: "1 月 1 日から" },
   j_seit: { de: "Daten erst seit {v}", en: "data only since {v}", fr: "données depuis le {v} seulement", ja: "{v} 以降のデータのみ" },
   j_titel: { de: "Wärme {w} kWh geteilt durch Strom {s} kWh", en: "Heat {w} kWh divided by electricity {s} kWh", fr: "Chaleur {w} kWh divisée par électricité {s} kWh", ja: "熱 {w} kWh ÷ 電力 {s} kWh" },
   t_info: { de: "Info", en: "Info", fr: "Infos", ja: "情報" },
@@ -468,21 +462,18 @@ export const TEXTE = {
   s_temperatur: { de: "Temperatur", en: "Temperature", fr: "Température", ja: "温度" },
   h_kopieren: { de: "Klicken zum Kopieren", en: "Click to copy", fr: "Cliquer pour copier", ja: "クリックしてコピー" },
   h_kopiert: { de: "Kopiert", en: "Copied", fr: "Copié", ja: "コピーしました" },
-  h_entitaet: { de: "Entität", en: "Entity", fr: "Entité", ja: "エンティティ" },
   h_keine_entitaet: { de: "Keine passende Entität in Home Assistant gefunden", en: "No matching entity found in Home Assistant", fr: "Aucune entité correspondante trouvée dans Home Assistant", ja: "Home Assistant に該当するエンティティがありません" },
   h_anzahl1: { de: "1 Eintrag", en: "1 entry", fr: "1 entrée", ja: "1 件" },
   h_keine: { de: "Nichts gefunden. Anderes Suchwort versuchen.", en: "Nothing found. Try another search term.", fr: "Aucun résultat. Essayez un autre mot.", ja: "見つかりません。別の語で検索してください。" },
   h_quelle: { de: "Grundlage: HeishaMon-Dokumentation und Panasonic-Anleitung. Was dort nicht beschrieben ist, steht hier auch nicht.", en: "Based on: HeishaMon documentation and Panasonic manual. What is not described there is not stated here either.", fr: "Sources : documentation HeishaMon et notice Panasonic. Ce qui n'y est pas décrit n'est pas affirmé ici.", ja: "出典：HeishaMon の説明書と Panasonic の取扱説明書。そこに書かれていないことはここでも述べていません。" },
   t_oeffnen: { de: "Erweiterte Einstellungen öffnen", en: "Open advanced settings", fr: "Ouvrir les réglages avancés", ja: "詳細設定を開く" },
   t_heizen: { de: "Heizen", en: "Heating", fr: "Chauffage", ja: "暖房" },
-  t_warmwasser: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "給湯" },
   t_pumpe: { de: "Pumpe", en: "Pump", fr: "Pompe", ja: "ポンプ" },
   t_uebernehmen: { de: "Übernehmen", en: "Apply", fr: "Appliquer", ja: "適用" },
   t_abbrechen: { de: "Abbrechen", en: "Cancel", fr: "Annuler", ja: "キャンセル" },
   t_nur_lesbar: { de: "nur lesbar", en: "read only", fr: "lecture seule", ja: "読み取り専用" },
   s_versch: { de: "Verschiebung der Heizkurve", en: "Heat curve shift", fr: "Décalage de la courbe", ja: "暖房曲線のシフト" },
   r_verlauf_zeigen: { de: "Verlauf anzeigen", en: "Show history", fr: "Afficher l'historique", ja: "履歴を表示" },
-  s_cop: { de: "Ø COP heute {v}", en: "Ø COP today {v}", fr: "Ø COP jour {v}", ja: "本日 Ø COP {v}" },
   // Auswahl- und Zustandswerte
   w_0: { de: "Nur Heizen", en: "Heat only", fr: "Chauffage seul", ja: "暖房のみ" },
   w_1: { de: "Nur Kühlen", en: "Cool only", fr: "Refroidissement seul", ja: "冷房のみ" },
@@ -507,7 +498,6 @@ export const TEXTE = {
   w_20: { de: "Wärmepumpe", en: "Heat pump", fr: "Pompe à chaleur", ja: "ヒートポンプ" },
   w_21: { de: "Pumpe HK1", en: "Pump circuit 1", fr: "Pompe circuit 1", ja: "回路1ポンプ" },
   w_22: { de: "Pumpe HK2", en: "Pump circuit 2", fr: "Pompe circuit 2", ja: "回路2ポンプ" },
-  w_23: { de: "Heizstab Heizung", en: "Heater, heating", fr: "Appoint chauffage", ja: "暖房ヒーター" },
   w_43: { de: "Heizstab läuft", en: "Heater running", fr: "Appoint en marche", ja: "ヒーター運転中" },
   w_44: { de: "Pumpe Kamin", en: "Stove pump", fr: "Pompe poêle", ja: "薪ストーブポンプ" },
   w_45: { de: "Pumpe Solarthermie", en: "Solar thermal pump", fr: "Pompe solaire thermique", ja: "太陽熱ポンプ" },
@@ -515,7 +505,6 @@ export const TEXTE = {
   w_47: { de: "Pumpe HK4", en: "Pump circuit 4", fr: "Pompe circuit 4", ja: "回路4ポンプ" },
   w_48: { de: "HK3 Wasser", en: "Circuit 3 water", fr: "Circuit 3 eau", ja: "回路3 水温" },
   w_49: { de: "HK4 Wasser", en: "Circuit 4 water", fr: "Circuit 4 eau", ja: "回路4 水温" },
-  w_24: { de: "Heizstab Warmwasser", en: "Heater, hot water", fr: "Appoint eau chaude", ja: "給湯ヒーター" },
   w_25: { de: "Abtauung", en: "Defrost", fr: "Dégivrage", ja: "除霜" },
   w_26: { de: "Zirkulation Status", en: "Circulation", fr: "Circulation", ja: "循環" },
   w_27: { de: "Aufheizen", en: "Boost", fr: "Chauffe", ja: "加熱" },
@@ -530,10 +519,6 @@ export const TEXTE = {
   w_36: { de: "Verdichter", en: "Compressor", fr: "Compresseur", ja: "圧縮機" },
   w_37: { de: "Durchfluss", en: "Flow rate", fr: "Débit", ja: "流量" },
   w_38: { de: "Panasonic Aquarea, HeishaMon über MQTT-Namensschema", en: "Panasonic Aquarea, HeishaMon via MQTT naming", fr: "Panasonic Aquarea, HeishaMon via nommage MQTT", ja: "Panasonic Aquarea、MQTT命名規則のHeishaMon" },
-  w_39: { de: "Vaillant, in Vorbereitung", en: "Vaillant, in preparation", fr: "Vaillant, en préparation", ja: "Vaillant（準備中）" },
-  w_40: { de: "Bosch, in Vorbereitung", en: "Bosch, in preparation", fr: "Bosch, en préparation", ja: "Bosch（準備中）" },
-  w_41: { de: "Viessmann, in Vorbereitung", en: "Viessmann, in preparation", fr: "Viessmann, en préparation", ja: "Viessmann（準備中）" },
-  w_42: { de: "Stiebel Eltron, in Vorbereitung", en: "Stiebel Eltron, in preparation", fr: "Stiebel Eltron, en préparation", ja: "Stiebel Eltron（準備中）" },
   r_demo_hinweis: { de: "Erfundene Werte, die Anlage bleibt unberührt", en: "Sample values, the system is not touched", fr: "Valeurs fictives, l'installation n'est pas modifiée", ja: "仮の値です。機器には影響しません" },
   r_stoerung: { de: "Störung", en: "Fault", fr: "Défaut", ja: "異常" },
   r_zurueck: { de: "Zurücksetzen", en: "Reset", fr: "Réinitialiser", ja: "リセット" },
@@ -564,9 +549,9 @@ export const TEXTE = {
 };
 
 /** Zuordnung deutscher Gruppen und Hinweise zu Sprachschluesseln. */
-export const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9", "Erweiterte Einstellungen": "grp_10", "Heizkreis 3": "grp_11", "Heizkreis 4": "grp_12", "Zusatzwärme": "grp_13" };
+const GRUPPEN_SCHLUESSEL = { "Außenfühler": "grp_0", "Außengerät": "grp_1", "Heizkreis 1": "grp_2", "Heizkreis 2": "grp_3", "Heizkurve": "grp_4", "Heizungspuffer": "grp_5", "Primärkreis": "grp_6", "SG Ready": "grp_7", "Steuerung": "grp_8", "Warmwasser": "grp_9", "Erweiterte Einstellungen": "grp_10", "Heizkreis 3": "grp_11", "Heizkreis 4": "grp_12", "Zusatzwärme": "grp_13" };
 
-export const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle wählbar": "hnw_8", "eigene Entität, °C": "hnw_9", "eigener Schalter oder Sensor": "hnw_10", "eigene Entität, °C; Kamin allein: TOP47": "hnw_11", "eigener Schalter oder Sensor; Kamin allein: OPT5": "hnw_12" };
+const HINWEIS_SCHLUESSEL = { "gilt für beide": "hnw_0", "eigener Schalter, optional": "hnw_1", "Shelly, Relais oder Eingang": "hnw_2", "eigene Entität, Watt": "hnw_3", "Soll Vorlauf": "hnw_4", "Shelly oder eigener Schalter": "hnw_5", "Switch zum Ein/Ausschalten der Zirkulation": "hnw_6", "SetHeatpump oder TOP0": "hnw_7", "Quelle in der Integration unter COP Quelle wählbar": "hnw_8", "eigene Entität, °C": "hnw_9", "eigener Schalter oder Sensor": "hnw_10", "eigene Entität, °C; Kamin allein: TOP47": "hnw_11", "eigener Schalter oder Sensor; Kamin allein: OPT5": "hnw_12" };
 
 /** Setzt Werte in Platzhalter wie {n} ein. */
 export function tf(text, werte) {
@@ -576,7 +561,7 @@ export function tf(text, werte) {
 }
 
 /** Zuordnung deutscher Auswahl- und Zustandswerte zu Sprachschluesseln. */
-export const WERT_SCHLUESSEL = { "Wärmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab Heizung": "w_23", "Heizstab Warmwasser": "w_24", "Heizstab läuft": "w_43", "Pumpe Kamin": "w_44", "Pumpe Solarthermie": "w_45", "Pumpe HK3": "w_46", "Pumpe HK4": "w_47", "HK3 Wasser": "w_48", "HK4 Wasser": "w_49", "Kamin": "kamin", "Solarthermie": "solarthermie", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Außen": "w_30", "Vorlauf": "w_31", "Rücklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon über MQTT-Namensschema": "w_38", "Vaillant, in Vorbereitung": "w_39", "Bosch, in Vorbereitung": "w_40", "Viessmann, in Vorbereitung": "w_41", "Stiebel Eltron, in Vorbereitung": "w_42", "Nur Heizen": "w_0", "Nur Kühlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "Kühlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik Kühlen": "w_7", "Automatik Kühlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "läuft": "w_18", "aus": "w_19" };
+const WERT_SCHLUESSEL = { "Wärmepumpe": "w_20", "Pumpe HK1": "w_21", "Pumpe HK2": "w_22", "Heizstab läuft": "w_43", "Pumpe Kamin": "w_44", "Pumpe Solarthermie": "w_45", "Pumpe HK3": "w_46", "Pumpe HK4": "w_47", "HK3 Wasser": "w_48", "HK4 Wasser": "w_49", "Kamin": "kamin", "Solarthermie": "solarthermie", "Abtauung": "w_25", "Zirkulation Status": "w_26", "Aufheizen": "w_27", "Legionellenschutz": "w_28", "PV Leistung": "w_29", "Außen": "w_30", "Vorlauf": "w_31", "Rücklauf": "w_32", "Puffer": "w_33", "HK1 Wasser": "w_34", "HK2 Wasser": "w_35", "Verdichter": "w_36", "Durchfluss": "w_37", "Panasonic Aquarea, HeishaMon über MQTT-Namensschema": "w_38", "Nur Heizen": "w_0", "Nur Kühlen": "w_1", "Automatik Heizen": "w_2", "Nur Warmwasser": "w_3", "Heizen und Warmwasser": "w_4", "Kühlen und Warmwasser": "w_5", "Automatik Heizen und Warmwasser": "w_6", "Automatik Kühlen": "w_7", "Automatik Kühlen und Warmwasser": "w_8", "Aus": "w_9", "Stufe 1": "w_10", "Stufe 2": "w_11", "Stufe 3": "w_12", "30 Minuten": "w_13", "60 Minuten": "w_14", "90 Minuten": "w_15", "Heizung": "w_16", "Warmwasser": "w_17", "läuft": "w_18", "aus": "w_19" };
 
 /** Auswahl- oder Zustandswert in der gewuenschten Sprache. */
 export function wertText(wert, sprache) {

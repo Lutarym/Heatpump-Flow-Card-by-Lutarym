@@ -84,7 +84,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `show_history` | `knopf` | Graphiques 24 heures : `knopf` trois boutons en haut à droite ouvrent consommation, SG Ready et températures dans une fenêtre, `true` consommation toujours dans la carte, `false` désactivé |
 | `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |
 | `show_reload` | `true` | Afficher la ligne « Recharge à … » dans le ballon tampon et l'eau chaude |
-| `show_help` | `true` | Afficher le bouton « ? » de l'aide en bas à droite de la carte |
+| `show_help` | `true` | Afficher le bouton « ? » de l'aide en bas à droite de la carte ; l'aide décrit HeishaMon et n'apparaît qu'avec les profils HeishaMon et en mode démo |
 | `show_door` | `true` | Afficher le bouton des réglages avancés en bas à droite de la pompe à chaleur |
 | `theme` | `auto` | Jeu de couleurs : `auto` (suit le mode clair/sombre de Home Assistant), `dunkel` (sombre), `hell` (clair), `kontrast` (contraste élevé), `nacht` (nuit, atténué), `ha` (couleurs du thème Home Assistant) |
 | `profile_custom` | `[]` | Profils d'appareil importés (définis par l'éditeur, voir le [guide](docs/GERAETEPROFIL.fr.md)) |

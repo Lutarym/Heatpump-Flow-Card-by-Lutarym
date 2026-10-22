@@ -48,9 +48,9 @@ export const PROFILE = [
 /* ------------------------------------------------------------------ *
  *  Geraeteprofile zum Exportieren und Importieren
  * ------------------------------------------------------------------ */
-export const PROFIL_FORMAT = "lutarym-geraeteprofil";
+const PROFIL_FORMAT = "lutarym-geraeteprofil";
 
-export const PROFIL_VERSION = 1;
+const PROFIL_VERSION = 1;
 
 /**
  * Beschreibt ein eingebautes Profil im Austauschformat. Je Feld der Karte

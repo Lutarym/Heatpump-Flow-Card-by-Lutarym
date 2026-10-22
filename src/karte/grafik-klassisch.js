@@ -257,7 +257,7 @@ ${this._defs()}
         <text class="value-sp" id="buf-sp" x="${L.X_BUF_C}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="buf-delta" x="${L.X_BUF_C}" y="482" text-anchor="middle"></text>
         <g id="roomheater-badge" class="badge" transform="translate(${L.X_BUF_C} 604)">
-          <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("heizstab")) / 2}" y="-15" width="${abzeichenBreite(this._t("heizstab"))}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>
@@ -350,17 +350,17 @@ ${this._defs()}
         <text class="value-sp" id="dhw-sp" x="${L.X_DHW_C}" y="458" text-anchor="middle"></text>
         <text class="value-sp" id="dhw-delta" x="${L.X_DHW_C}" y="482" text-anchor="middle"></text>
         <g id="dhwforce-badge" class="badge" transform="translate(${L.X_DHW_C} 536)">
-          <rect x="${-abzeichenBreite("Aufheizen") / 2}" y="-15" width="${abzeichenBreite("Aufheizen")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("aufheizen")) / 2}" y="-15" width="${abzeichenBreite(this._t("aufheizen"))}" height="30" rx="15"
                 fill="#08243A" stroke="#3B9BE0" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("aufheizen")}</text>
         </g>
         <g id="sterilization-badge" class="badge" transform="translate(${L.X_DHW_C} 570)">
-          <rect x="${-abzeichenBreite("Legionellen") / 2}" y="-15" width="${abzeichenBreite("Legionellen")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("legionellen")) / 2}" y="-15" width="${abzeichenBreite(this._t("legionellen"))}" height="30" rx="15"
                 fill="#2B1240" stroke="#A855F7" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("legionellen")}</text>
         </g>
         <g id="dhwheater-badge" class="badge" transform="translate(${L.X_DHW_C} 604)">
-          <rect x="${-abzeichenBreite("Heizstab") / 2}" y="-15" width="${abzeichenBreite("Heizstab")}" height="30" rx="15"
+          <rect x="${-abzeichenBreite(this._t("heizstab")) / 2}" y="-15" width="${abzeichenBreite(this._t("heizstab"))}" height="30" rx="15"
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>

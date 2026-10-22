@@ -10,9 +10,9 @@ import { SPRACHEN, TEXTE, t } from "./texte.js";
 /* ------------------------------------------------------------------ *
  *  Eigene Sprachen zum Exportieren und Importieren
  * ------------------------------------------------------------------ */
-export const SPRACH_FORMAT = "lutarym-sprachpaket";
+const SPRACH_FORMAT = "lutarym-sprachpaket";
 
-export const SPRACH_VERSION = 1;
+const SPRACH_VERSION = 1;
 
 export const SPRACH_NAMEN = { de: "Deutsch", en: "English", fr: "Français", ja: "日本語" };
 
@@ -27,7 +27,7 @@ export let SPRACH_STAND = 0;
  * ein fremder Text Markup oder Attribute einschleusen koennte, sind in
  * Sprachpaketen deshalb nicht erlaubt.
  */
-export const SPRACH_VERBOTEN = /[<>"`]/;
+const SPRACH_VERBOTEN = /[<>"`]/;
 
 /**
  * Uebernimmt die Pakete einer Kartenkonfiguration in die gemeinsame
@@ -102,7 +102,7 @@ export function sprachpaketFuer(code) {
 }
 
 /** Platzhalter wie {v} in einem Text. */
-export function platzhalter(text) {
+function platzhalter(text) {
   return (String(text).match(/\{\w+\}/g) || []).sort().join(",");
 }
 

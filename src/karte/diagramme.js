@@ -3,7 +3,7 @@
  * Verbrauch, SG Ready und Temperaturen.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { escapeHtml, fmt } from "../hilfsfunktionen.js";
+import { escapeHtml, fmt, groesster, kleinster } from "../hilfsfunktionen.js";
 import { SG_STATES } from "../konstanten.js";
 
 /** Abmessungen der Zeichenflaeche im Fenster. */
@@ -319,10 +319,10 @@ export const diagrammeKarte = {
     this._diaLeer(false);
     const alle = arten.flatMap(([f]) => reihen[f].map((p) => p.v));
     // Runde Schritte von 5, 10 oder 20 Grad, damit die Achse lesbar bleibt.
-    const roh = (Math.max(...alle) - Math.min(...alle)) / 4;
+    const roh = (groesster(alle) - kleinster(alle)) / 4;
     const schritt = roh <= 5 ? 5 : roh <= 10 ? 10 : 20;
-    const min = Math.floor(Math.min(...alle) / schritt) * schritt;
-    let max = Math.ceil(Math.max(...alle) / schritt) * schritt;
+    const min = Math.floor(kleinster(alle) / schritt) * schritt;
+    let max = Math.ceil(groesster(alle) / schritt) * schritt;
     if (max - min < schritt * 2) max = min + schritt * 2;
     const t1 = Date.now();
     const t0 = t1 - 86400000;
@@ -363,7 +363,7 @@ export const diagrammeKarte = {
         return `<div class="lhc-dia-zeile"><span class="lhc-dia-farbe" style="background:${farbe}"></span>
           <span>${escapeHtml(name)}</span>
           <b>${fmt(jetzt, 1)} °C</b>
-          <em>${fmt(Math.min(...werte), 1)} … ${fmt(Math.max(...werte), 1)} °C</em></div>`;
+          <em>${fmt(kleinster(werte), 1)} … ${fmt(groesster(werte), 1)} °C</em></div>`;
       })
       .join("");
   },

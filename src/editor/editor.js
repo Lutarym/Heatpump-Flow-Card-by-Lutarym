@@ -647,8 +647,9 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     }
 
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
-      const f = detectIntegration(this._hass, profilFuer(this._config, this._hass));
-      if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat), true);
+      const profil = profilFuer(this._config, this._hass);
+      const f = detectIntegration(this._hass, profil);
+      if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat, profil), true);
     });
     this.shadowRoot
       .getElementById("btn-default")

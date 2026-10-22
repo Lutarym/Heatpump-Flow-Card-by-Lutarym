@@ -84,7 +84,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `show_history` | `knopf` | Diagramme 24 Stunden: `knopf` drei Knöpfe oben rechts öffnen Verbrauch, SG Ready und Temperaturen im Fenster, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
 | `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
-| `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen |
+| `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen; die Hilfe beschreibt HeishaMon und erscheint nur bei HeishaMon-Profilen und im Demomodus |
 | `show_door` | `true` | Knopf für die erweiterten Einstellungen unten rechts an der Wärmepumpe anzeigen |
 | `theme` | `auto` | Farbdarstellung: `auto` (folgt hell/dunkel von Home Assistant), `dunkel`, `hell`, `kontrast` (hoher Kontrast), `nacht` (gedimmt), `ha` (Farben des Home-Assistant-Designs) |
 | `profile_custom` | `[]` | Importierte Geräteprofile (setzt der Editor, siehe [Anleitung](docs/GERAETEPROFIL.de.md)) |

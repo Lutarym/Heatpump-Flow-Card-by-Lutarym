@@ -276,19 +276,12 @@ export const stilKarte = {
       /* Werte der Heizkreise stehen frei unter dem Heizkoerper. */
       .lhc .hk-wert { fill: var(--c-e8edf4); font-size: 22px; }
       .lhc .value-sp.verlauf-text { fill: var(--c-e8edf4); }
-      .lhc rect.fest-dunkel { fill: #0B1017; }
       /* Namensschilder liegen auf farbigen Flaechen, nachts nicht zu dunkel. */
       .lhc.thema-nacht .cap { fill: #A3ADBD; }
       /* Auf hellem Grund sind gelbe und hellgruene Werte zu blass. Farbige
          Texte werden dort dunkler, weisse Texte auf den Speichern nicht. */
       .lhc.thema-hell svg text:not(.value-l):not(.value-sp):not(.tag-v):not(.cap) {
         filter: brightness(0.72) saturate(1.25);
-      }
-      /* Weiss mit dunklem Rand wie die Temperatur, damit der Wert auf
-         jeder Speicherfarbe lesbar bleibt. */
-      .value-cop {
-        fill: #FFFFFF; font-size: 17px; font-weight: 700;
-        paint-order: stroke; stroke: rgba(0,0,0,0.5); stroke-width: 4px;
       }
       /* Aufsteigende Blasen. Je waermer der Speicher, desto mehr
          davon werden sichtbar geschaltet. */
