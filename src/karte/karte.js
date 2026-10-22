@@ -84,7 +84,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
             this._startAnimationLoop();
           }
         });
-      } catch (e) {
+      } catch {
         this._bewegungMq = null;
       }
     }

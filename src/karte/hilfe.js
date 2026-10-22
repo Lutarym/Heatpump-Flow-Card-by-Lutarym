@@ -148,7 +148,7 @@ export const hilfeKarte = {
         await navigator.clipboard.writeText(text);
         return true;
       }
-    } catch (err) {
+    } catch {
       // weiter mit dem Ersatzweg
     }
     const feld = document.createElement("textarea");
@@ -161,7 +161,7 @@ export const hilfeKarte = {
     let ok = false;
     try {
       ok = document.execCommand("copy");
-    } catch (err) {
+    } catch {
       ok = false;
     }
     feld.remove();

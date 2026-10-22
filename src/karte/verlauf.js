@@ -48,7 +48,7 @@ export const verlaufKarte = {
         this._tagStartTag = mitternacht;
         this._render();
       }
-    } catch (err) {
+    } catch {
       // Keine Historie verfuegbar, es bleibt beim Gesamtstand.
     }
   },
@@ -270,21 +270,32 @@ export const verlaufKarte = {
       }
       return stand;
     };
+    // Leistung, ab der die Anlage sicher arbeitet: etwas ueber dem
+    // Standby. Leistung, Verdichter und Ventil kommen aus getrennten
+    // Verlaeufen und melden ihre Wechsel nicht im selben Augenblick. Steigt
+    // die Leistung schon, waehrend der Verdichter noch mit 0 im Verlauf
+    // steht, gilt der Punkt trotzdem als Betrieb.
+    const grund = Math.min(...daten.map((d) => d.v));
+    const schwelle = grund + Math.max((hoechst - grund) * 0.08, hoechst * 0.02);
     const pfade = { heiz: "", ww: "", standby: "" };
     if (ventil.length || verdichter.length) {
-      let vorher = null;
-      daten.forEach((d) => {
-        const stueck = `${px(d).toFixed(1)} ${py(d).toFixed(1)}`;
-        const ziel = !laeuftZu(d.t) ? "standby" : wwZu(d.t) ? "ww" : "heiz";
-        if (vorher && vorher.ziel === ziel) {
-          pfade[ziel] += `L${stueck}`;
-        } else {
-          // Am Wechsel beginnt ein neuer Abschnitt beim vorigen Punkt,
-          // damit keine Luecke entsteht.
-          pfade[ziel] += vorher ? `M${vorher.stueck}L${stueck}` : `M${stueck}`;
-        }
-        vorher = { ziel, stueck };
-      });
+      const ziele = daten.map((d) =>
+        !laeuftZu(d.t) && d.v <= schwelle ? "standby" : wwZu(d.t) ? "ww" : "heiz"
+      );
+      // Jedes Teilstueck bekommt die Farbe seines hoeheren Endpunkts. Sonst
+      // faerbt beim Abfall nach einer Warmwasserladung schon das Ventil,
+      // das gerade zurueck auf Heizung stellt, die fallende Flanke rot.
+      let letztes = null;
+      for (let i = 1; i < daten.length; i++) {
+        const a = daten[i - 1];
+        const b = daten[i];
+        const ziel = b.v > a.v ? ziele[i] : ziele[i - 1];
+        const von = `${px(a).toFixed(1)} ${py(a).toFixed(1)}`;
+        const bis = `${px(b).toFixed(1)} ${py(b).toFixed(1)}`;
+        if (letztes === ziel) pfade[ziel] += `L${bis}`;
+        else pfade[ziel] += `M${von}L${bis}`;
+        letztes = ziel;
+      }
     }
     const heiz = pfade.heiz;
     const ww = pfade.ww;

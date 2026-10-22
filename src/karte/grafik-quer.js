@@ -79,7 +79,13 @@ export const grafikQuerKarte = {
     const BR = XB === null ? null : XB + 95;
     const ZX0 = puffer ? BR + 45 : 900;
     const PRESS_X = 790;
-    return { puffer, quellen, XW, ZIRK_X, XB, BL, BR, ZX0, ZX1: 1640, PRESS_X };
+    // Bis zu zwei Heizkreise stehen untereinander in einer Spalte, die
+    // Karte endet direkt dahinter. Erst ab drei Heizkreisen kommt eine
+    // zweite Spalte, dann wird die Karte breiter.
+    const spalten = this._hkAnzahl() > 2 ? 2 : 1;
+    const ZX1 = spalten === 2 ? 1640 : ZX0 + 200;
+    const W = ZX1 + 10;
+    return { puffer, quellen, XW, ZIRK_X, XB, BL, BR, ZX0, ZX1, W, spalten, PRESS_X };
   },
 
   /** Welche Zusatzwaerme am Puffer haengt. Ohne Puffer gibt es keine. */
@@ -146,7 +152,7 @@ export const grafikQuerKarte = {
         </g>`;
 
     return `
-    <svg viewBox="0 ${80 - LUFT} ${L.W} ${L.H + LUFT}" class="lhc-svg" role="img"
+    <svg viewBox="0 ${80 - LUFT} ${M.W} ${L.H + LUFT}" class="lhc-svg" role="img"
          aria-label="${this._t("s_schema")}">
 ${this._defs()}
 
@@ -212,8 +218,13 @@ ${this._defs()}
       </g>
 
       ${(() => {
-        const rand = L.W - 10;
-        const w = clamp(Number(this._config.history_width) || 450, 250, Math.min(700, rand - 700));
+        const rand = M.W - 10;
+        // Die schmale Karte mit bis zu zwei Heizkreisen braucht trotzdem Platz
+        // fuer drei lesbare Knoepfe. Links davon steht nur die Kopfzeile.
+        // Das dauerhafte Diagramm ist hoeher und muss rechts vom Umschaltventil
+        // bleiben.
+        const links = this._verlaufAlsKnopf() ? 450 : 700;
+        const w = clamp(Number(this._config.history_width) || 450, 250, Math.min(700, rand - links));
         // Als Knopf stehen oben rechts nur drei kleine Knoepfe, das
         // Diagramm oeffnet sich im Fenster.
         return this._verlaufAlsKnopf()
@@ -441,8 +452,9 @@ ${this._defs()}
    */
   _heizkreisZone(M) {
     const n = this._hkAnzahl();
-    // HK1 und HK2 nebeneinander, HK3 und HK4 eine Ebene darunter.
-    const spalten = Math.min(n, 2);
+    // Bis zu zwei Heizkreise untereinander. Ab drei: HK1 und HK2
+    // nebeneinander, HK3 und HK4 eine Ebene darunter.
+    const spalten = M.spalten;
     const zeilen = Math.ceil(n / spalten);
     const breite = M.ZX1 - M.ZX0;
     const zw = breite / spalten;
@@ -478,7 +490,13 @@ ${this._defs()}
       aeste.push(ast);
       ruecks.push(unten + 14);
       const zu = `M${vorl} ${ast} H ${dx} V ${top}`;
-      const ab = `M${bx} ${unten} V ${unten + 14} H ${rueck}`;
+      // Ruecklauf der oberen Reihe kreuzt bei zwei Reihen die senkrechte
+      // Vorlauf-Sammelleitung. Dort springt er mit einem kleinen Bogen
+      // darueber, damit keine Verbindung vorgetaeuscht wird.
+      const kreuzt = zeilen > 1 && ze === 0;
+      const ab = kreuzt
+        ? `M${bx} ${unten} V ${unten + 14} H ${vorl + 7} A 7 7 0 0 0 ${vorl - 7} ${unten + 14} H ${rueck}`
+        : `M${bx} ${unten} V ${unten + 14} H ${rueck}`;
       const tx = (a + b) / 2;
       leitungen += `
         <path class="pipe-shell duenn" d="${zu} ${ab}"/>

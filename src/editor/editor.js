@@ -517,7 +517,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           link.click();
           if (aufraeumen) setTimeout(aufraeumen, 1000);
           sagen(this._t("m_datei_ok"));
-        } catch (e) {
+        } catch {
           sagen(this._t("m_datei_fehler"));
         }
       });
@@ -548,7 +548,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
         let gelesen;
         try {
           gelesen = JSON.parse(feld.value);
-        } catch (e) {
+        } catch {
           sagen(this._t("m_json"));
           return;
         }

@@ -75,7 +75,7 @@ export const kennzahlenKarte = {
       this._copTagStart = mitternacht;
       this._copTagIds = schluessel;
       this._update();
-    } catch (err) {
+    } catch {
       // Keine Historie verfuegbar, die Zeile bleibt leer.
     } finally {
       this._copLaeuft = false;
@@ -191,7 +191,7 @@ export const kennzahlenKarte = {
       this._jazSchluessel = schluessel;
       this._jazZeit = jetzt;
       if (this._tuerListe) this._tuerListe.forEach((f, i) => f.jaz && this._tuerZeige(i));
-    } catch (err) {
+    } catch {
       // Keine Langzeitstatistik, die Zeilen bleiben bei "--".
       this._jaz = null;
     } finally {
@@ -210,7 +210,7 @@ export const kennzahlenKarte = {
     let ganz;
     try {
       ganz = new Intl.NumberFormat(this._sp(), { maximumFractionDigits: 0 });
-    } catch (err) {
+    } catch {
       ganz = { format: (v) => fmt(v, 0) };
     }
     let frueh = null;

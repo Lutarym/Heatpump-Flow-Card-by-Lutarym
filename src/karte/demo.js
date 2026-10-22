@@ -185,7 +185,7 @@ export const demoKarte = {
         <button type="button" class="lhc-demo-knopf" id="demo-zurueck">${this._t("r_zurueck")}</button>
       </div>
       <div class="lhc-demo-regler">
-        ${regler.map(([feld, text, lo, hi], i) => `
+        ${regler.map(([feld, text, lo, hi]) => `
           <label class="lhc-demo-schieber">
             <span>${escapeHtml(wertText(text, this._sp()))} <b data-regler="${feld}">--</b></span>
             <input type="range" data-feld="${feld}" min="${lo}" max="${hi}" step="0.5">

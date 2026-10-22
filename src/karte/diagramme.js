@@ -8,7 +8,7 @@ import { SG_STATES } from "../konstanten.js";
 
 /** Abmessungen der Zeichenflaeche im Fenster. */
 const DW = 640;
-const DH = 300;
+const DH = 200;
 
 /** Kleine Symbole fuer die Knoepfe, gezeichnet um den Nullpunkt. */
 const SYMBOLE = {
@@ -341,10 +341,16 @@ export const diagrammeKarte = {
     }
     const linien = arten
       .map(([f, farbe]) => {
-        const d = reihen[f]
-          .filter((p) => p.t >= t0)
-          .map((p, i) => `${i ? "L" : "M"}${px(p.t).toFixed(1)} ${py(p.v).toFixed(1)}`)
-          .join("");
+        // Treppenlinie: Home Assistant speichert nur Wechsel, ein Wert gilt
+        // bis zum naechsten. Eine schraege Verbindung wuerde Zwischenwerte
+        // vortaeuschen, und Vor- und Ruecklauf koennten sich scheinbar
+        // kreuzen, weil sie zu verschiedenen Zeitpunkten wechseln.
+        const pkt = reihen[f].filter((p) => p.t >= t0);
+        const d = pkt
+          .map((p, i) =>
+            i ? `H${px(p.t).toFixed(1)}V${py(p.v).toFixed(1)}` : `M${px(p.t).toFixed(1)} ${py(p.v).toFixed(1)}`
+          )
+          .join("") + (pkt.length ? `H${rechts}` : "");
         return `<path d="${d}" fill="none" stroke="${farbe}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
       })
       .join("");

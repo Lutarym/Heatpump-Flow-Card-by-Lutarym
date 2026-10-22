@@ -16,7 +16,7 @@ export const bedienungEditor = {
     try {
       if (v === undefined) return window.localStorage.getItem(`lhc-editor-${k}`);
       window.localStorage.setItem(`lhc-editor-${k}`, v);
-    } catch (e) {
+    } catch {
       // Speicher nicht verfuegbar, dann eben nur fuer diese Sitzung.
     }
     return null;
@@ -54,7 +54,7 @@ export const bedienungEditor = {
         // Beim ersten Mal ist die Darstellung offen, das ist im einfachen
         // Modus der eigentliche Inhalt.
         JSON.parse(gemerkt || '["darstellung","d-allgemein"]').forEach((k) => this._offen.add(k));
-      } catch (e) {
+      } catch {
         this._offen.add("darstellung");
         this._offen.add("d-allgemein");
       }
@@ -162,7 +162,7 @@ export const bedienungEditor = {
           new Promise((_, nein) => setTimeout(() => nein(new Error("zeit")), 3000)),
         ]);
       }
-    } catch (e) {
+    } catch {
       return;
     }
     if (!customElements.get(name) || !this.shadowRoot) return;
@@ -180,7 +180,7 @@ export const bedienungEditor = {
           "input_boolean", "select", "input_select", "button", "input_button",
         ];
         picker.allowCustomEntity = true;
-      } catch (e) {
+      } catch {
         return;
       }
       picker.dataset.entity = key;

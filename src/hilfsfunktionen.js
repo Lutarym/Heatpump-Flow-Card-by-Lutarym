@@ -9,7 +9,7 @@ import { EIGENE_SPRACHEN } from "./sprachen.js";
 export function bewegungReduziert() {
   try {
     return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  } catch (e) {
+  } catch {
     return false;
   }
 }

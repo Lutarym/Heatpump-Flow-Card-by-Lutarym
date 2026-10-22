@@ -42,6 +42,21 @@ export const grafikHochKarte = {
     const WW = [HKS[anzahl - 1][1] + 20, HKS[anzahl - 1][1] + 280];
     // Hoehe, auf der der Sekundaerkreis abzweigt
     const ABZW = mitPuffer ? PUF[1] - 20 : HK1[0] - 40;
+    // Hoehe der Anschluesse von Vor- und Ruecklauf je Heizkreis. Die
+    // Fussbodenheizung schliesst an ihrer ersten und letzten Rohrreihe an.
+    const anschluss = (n, y1, y2) => {
+      if (this._heizStil(n) !== "fbh") return { vy: y1 + 60, ry: y2 - 60 };
+      const r = this._fbhReihen(y1 + 10, y2 - 10);
+      return { vy: r[0], ry: r[r.length - 1] };
+    };
+    const an = HKS.map((z, i) => anschluss(i + 1, z[0], z[1]));
+    const a1 = an[0];
+    const letzt = an[anzahl - 1];
+    // Ohne Puffer zweigen Vor- und Ruecklauf erst auf Hoehe der Anschluesse
+    // von HK1 ab. Sonst liefen die Sammelleitungen durch die Beschriftung
+    // von Umschaltventil und Primaerpumpe.
+    const ABZW_VL = mitPuffer ? ABZW : a1.vy;
+    const ABZW_RL = mitPuffer ? ABZW : a1.ry;
     const UNTEN = WW[1] + 40;
     const HOEHE = WW[1] + 60;
 
@@ -151,10 +166,10 @@ export const grafikHochKarte = {
     const leitungen = `
       ${rohr(`M260 680 V ${P.OBEN} H ${P.X_VL} V ${WW[0] + 40}`)}
       ${rohr(`M${P.X_RL} ${WW[1] - 20} V 680`)}
-      <path class="flowdots" id="dots-vl-a" d="M260 680 V ${P.OBEN} H ${P.X_VL} V ${mitPuffer ? PUF[0] + 60 : ABZW}"/>
-      <path class="flowdots" id="dots-ww-vl" d="M${P.X_VL} ${mitPuffer ? PUF[0] + 60 : ABZW} V ${WW[0] + 40}"/>
-      <path class="flowdots" id="dots-rl-a" d="M${P.X_RL} ${mitPuffer ? PUF[1] - 60 : ABZW} V 680"/>
-      <path class="flowdots" id="dots-ww-rl" d="M${P.X_RL} ${WW[1] - 20} V ${mitPuffer ? PUF[1] - 60 : ABZW}"/>
+      <path class="flowdots" id="dots-vl-a" d="M260 680 V ${P.OBEN} H ${P.X_VL} V ${mitPuffer ? PUF[0] + 60 : ABZW_VL}"/>
+      <path class="flowdots" id="dots-ww-vl" d="M${P.X_VL} ${mitPuffer ? PUF[0] + 60 : ABZW_VL} V ${WW[0] + 40}"/>
+      <path class="flowdots" id="dots-rl-a" d="M${P.X_RL} ${mitPuffer ? PUF[1] - 60 : ABZW_RL} V 680"/>
+      <path class="flowdots" id="dots-ww-rl" d="M${P.X_RL} ${WW[1] - 20} V ${mitPuffer ? PUF[1] - 60 : ABZW_RL}"/>
 
       <g id="vl-schild">
         <rect x="${P.X_VL - schildBreite("Vorlauf", 92) / 2}" y="${P.OBEN + 40}" width="${schildBreite("Vorlauf", 92)}" height="28" rx="8"
@@ -276,21 +291,11 @@ export const grafikHochKarte = {
         </g>`);
 
     /* ---------------- Sekundaerkreis und Heizkreise ---------------- */
-    // Hoehe der Anschluesse von Vor- und Ruecklauf je Heizkreis. Die
-    // Fussbodenheizung schliesst an ihrer ersten und letzten Rohrreihe an.
-    const anschluss = (n, y1, y2) => {
-      if (this._heizStil(n) !== "fbh") return { vy: y1 + 60, ry: y2 - 60 };
-      const r = this._fbhReihen(y1 + 10, y2 - 10);
-      return { vy: r[0], ry: r[r.length - 1] };
-    };
-    const an = HKS.map((z, i) => anschluss(i + 1, z[0], z[1]));
-    const a1 = an[0];
-    const letzt = an[anzahl - 1];
     const sekundaer = `
-      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${letzt.vy}`)}
-      ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${letzt.ry}`)}
-      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${a1.vy}"/>
-      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
+      ${mitPuffer ? rohr(`M${P.U2} ${ABZW_VL} H ${P.S_VL} V ${letzt.vy}`) : anzahl > 1 ? rohr(`M${P.S_VL} ${a1.vy} V ${letzt.vy}`) : ""}
+      ${mitPuffer ? rohr(`M${P.U1} ${ABZW_RL} H ${P.S_RL} V ${letzt.ry}`) : anzahl > 1 ? rohr(`M${P.S_RL} ${a1.ry} V ${letzt.ry}`) : ""}
+      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW_VL} H ${P.S_VL} V ${a1.vy}"/>
+      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW_RL} H ${mitPuffer ? P.U1 : P.X_RL}"/>
       ${an.slice(1).map((z, i) => {
         // Abschnitt vom vorigen zum naechsten Heizkreis. Er laeuft nur,
         // wenn dieser oder ein weiter unten liegender Kreis laeuft.
@@ -307,11 +312,14 @@ export const grafikHochKarte = {
       // Die Fussbodenheizung bekommt ihre Anschluesse auf Hoehe der
       // ersten und letzten Rohrreihe, sonst laeuft das Rohr doppelt.
       const { vy, ry } = anschluss(n, y1, y2);
+      // Ohne Puffer haengt HK1 direkt am Primaerkreis. Ein durchgehendes
+      // Rohr vermeidet die Naht zwischen zwei Rohrstuecken.
+      const direkt = !mitPuffer && n === 1;
       const koerper = this._heizkoerper(n, P.U1, kr, y1 + 10, y2 - 10,
         { x: kr + 6, y: vy, seite: "rechts" }, { x: P.U1 - 6, y: ry, seite: "links" });
       return `
-        ${rohr(`M${P.S_VL} ${vy} H ${kr + 9}`)}
-        ${rohr(`M${P.U1 - 9} ${ry} H ${P.S_RL}`)}
+        ${rohr(`M${direkt ? P.X_VL : P.S_VL} ${vy} H ${kr + 9}`)}
+        ${rohr(`M${P.U1 - 9} ${ry} H ${direkt ? P.X_RL : P.S_RL}`)}
         <path class="flowdots" id="dots-hk${n}" d="M${P.S_VL} ${vy} H ${kr + 9}"/>
         <path class="flowdots" id="dots-hk${n}b" d="M${P.U1 - 9} ${ry} H ${P.S_RL}"/>
         <g class="circuit klickbar" id="hk${n}-group">

@@ -68,7 +68,7 @@ export const werkzeugeEditor = {
           link.click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
           sagen(tf(this._t("m_s_export_ok"), { n: paket.name }));
-        } catch (e) {
+        } catch {
           sagen(this._t("m_datei_fehler"));
         }
       });
@@ -86,7 +86,7 @@ export const werkzeugeEditor = {
           let roh;
           try {
             roh = JSON.parse(String(leser.result || ""));
-          } catch (e) {
+          } catch {
             sagen(this._t("m_json"));
             return;
           }
@@ -199,7 +199,7 @@ export const werkzeugeEditor = {
           link.click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
           sagen(tf(this._t("m_p_export_ok"), { n: daten.name }));
-        } catch (e) {
+        } catch {
           sagen(this._t("m_datei_fehler"));
         }
       });
@@ -217,7 +217,7 @@ export const werkzeugeEditor = {
           let roh;
           try {
             roh = JSON.parse(String(leser.result || ""));
-          } catch (e) {
+          } catch {
             sagen(this._t("m_json"));
             return;
           }

@@ -70,7 +70,6 @@ export const aktualisierenKarte = {
   _update() {
     const hass = this._quelle;
     if (!hass) return;
-    const sr = this.shadowRoot;
     const min = Number(this._config.scale_min);
     const max = Number(this._config.scale_max);
     const col = (v) => thermalColor(v, min, max);
@@ -594,8 +593,10 @@ export const aktualisierenKarte = {
       stroemt([`dots-sf-b${id}`], dahinter, farbeVL);
       stroemt([`dots-sr-b${id}`], dahinter, farbeRL);
     });
-    // Querformat: HK1 und HK2 bilden die erste Reihe, HK3 und HK4 die zweite.
-    const spalten = Math.min(kreisLaeuft.length, 2);
+    // Querformat: bis zu zwei Heizkreise stehen untereinander, jeder in
+    // einer eigenen Reihe. Ab drei bilden HK1 und HK2 die erste Reihe,
+    // HK3 und HK4 die zweite. Muss zu _querMasse passen.
+    const spalten = kreisLaeuft.length > 2 ? 2 : 1;
     const reihe1 = kreisLaeuft.slice(0, spalten).some(Boolean);
     const reihe2 = kreisLaeuft.slice(spalten).some(Boolean);
     stroemt(["dots-sf-z2"], reihe2, farbeVL);
@@ -736,7 +737,6 @@ export const aktualisierenKarte = {
 
   _circuitUpdate(n, col, animate, buf, laeuft) {
     const hass = this._quelle;
-    const sr = this.shadowRoot;
     const water = numState(hass, this._e(`hk${n}_water`));
     const pumpOn = isOn(hass, this._e(`hk${n}_pump`)) === true;
 

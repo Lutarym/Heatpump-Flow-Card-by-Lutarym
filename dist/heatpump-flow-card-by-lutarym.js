@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.3.1";
+var CARD_VERSION = "5.4.0";
 var L = {
   W: 1650,
   H: 700,
@@ -855,7 +855,7 @@ function pruefeSprache(roh) {
 function bewegungReduziert() {
   try {
     return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -1534,7 +1534,7 @@ var bedienungEditor = {
     try {
       if (v === void 0) return window.localStorage.getItem(`lhc-editor-${k}`);
       window.localStorage.setItem(`lhc-editor-${k}`, v);
-    } catch (e) {
+    } catch {
     }
     return null;
   },
@@ -1566,7 +1566,7 @@ var bedienungEditor = {
       const gemerkt = this._merke("offen");
       try {
         JSON.parse(gemerkt || '["darstellung","d-allgemein"]').forEach((k) => this._offen.add(k));
-      } catch (e) {
+      } catch {
         this._offen.add("darstellung");
         this._offen.add("d-allgemein");
       }
@@ -1670,7 +1670,7 @@ var bedienungEditor = {
           new Promise((_, nein) => setTimeout(() => nein(new Error("zeit")), 3e3))
         ]);
       }
-    } catch (e) {
+    } catch {
       return;
     }
     if (!customElements.get(name) || !this.shadowRoot) return;
@@ -1696,7 +1696,7 @@ var bedienungEditor = {
           "input_button"
         ];
         picker.allowCustomEntity = true;
-      } catch (e) {
+      } catch {
         return;
       }
       picker.dataset.entity = key;
@@ -1907,7 +1907,7 @@ var werkzeugeEditor = {
           link.click();
           setTimeout(() => URL.revokeObjectURL(url), 1e3);
           sagen(tf(this._t("m_s_export_ok"), { n: paket.name }));
-        } catch (e) {
+        } catch {
           sagen(this._t("m_datei_fehler"));
         }
       });
@@ -1924,7 +1924,7 @@ var werkzeugeEditor = {
           let roh;
           try {
             roh = JSON.parse(String(leser.result || ""));
-          } catch (e) {
+          } catch {
             sagen(this._t("m_json"));
             return;
           }
@@ -2026,7 +2026,7 @@ var werkzeugeEditor = {
           link.click();
           setTimeout(() => URL.revokeObjectURL(url), 1e3);
           sagen(tf(this._t("m_p_export_ok"), { n: daten.name }));
-        } catch (e) {
+        } catch {
           sagen(this._t("m_datei_fehler"));
         }
       });
@@ -2043,7 +2043,7 @@ var werkzeugeEditor = {
           let roh;
           try {
             roh = JSON.parse(String(leser.result || ""));
-          } catch (e) {
+          } catch {
             sagen(this._t("m_json"));
             return;
           }
@@ -2587,7 +2587,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
           link.click();
           if (aufraeumen) setTimeout(aufraeumen, 1e3);
           sagen(this._t("m_datei_ok"));
-        } catch (e) {
+        } catch {
           sagen(this._t("m_datei_fehler"));
         }
       });
@@ -2617,7 +2617,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
         let gelesen;
         try {
           gelesen = JSON.parse(feld.value);
-        } catch (e) {
+        } catch {
           sagen(this._t("m_json"));
           return;
         }
@@ -2863,7 +2863,6 @@ var aktualisierenKarte = {
   _update() {
     const hass = this._quelle;
     if (!hass) return;
-    const sr = this.shadowRoot;
     const min = Number(this._config.scale_min);
     const max = Number(this._config.scale_max);
     const col = (v) => thermalColor(v, min, max);
@@ -3268,7 +3267,7 @@ var aktualisierenKarte = {
       stroemt([`dots-sf-b${id}`], dahinter, farbeVL);
       stroemt([`dots-sr-b${id}`], dahinter, farbeRL);
     });
-    const spalten = Math.min(kreisLaeuft.length, 2);
+    const spalten = kreisLaeuft.length > 2 ? 2 : 1;
     const reihe1 = kreisLaeuft.slice(0, spalten).some(Boolean);
     const reihe2 = kreisLaeuft.slice(spalten).some(Boolean);
     stroemt(["dots-sf-z2"], reihe2, farbeVL);
@@ -3377,7 +3376,6 @@ var aktualisierenKarte = {
   },
   _circuitUpdate(n, col, animate, buf, laeuft) {
     const hass = this._quelle;
-    const sr = this.shadowRoot;
     const water = numState(hass, this._e(`hk${n}_water`));
     const pumpOn = isOn(hass, this._e(`hk${n}_pump`)) === true;
     const set = (id, text) => {
@@ -3683,7 +3681,7 @@ var demoKarte = {
         <button type="button" class="lhc-demo-knopf" id="demo-zurueck">${this._t("r_zurueck")}</button>
       </div>
       <div class="lhc-demo-regler">
-        ${regler.map(([feld, text, lo, hi], i) => `
+        ${regler.map(([feld, text, lo, hi]) => `
           <label class="lhc-demo-schieber">
             <span>${escapeHtml(wertText(text, this._sp()))} <b data-regler="${feld}">--</b></span>
             <input type="range" data-feld="${feld}" min="${lo}" max="${hi}" step="0.5">
@@ -3801,7 +3799,7 @@ var demoKarte = {
 
 // src/karte/diagramme.js
 var DW = 640;
-var DH = 300;
+var DH = 200;
 var SYMBOLE = {
   verbrauch: `<path d="M2 -9 L-5 1 H0 L-2 9 L5 -1 H0 Z" fill="currentColor"/>`,
   sg: `<rect x="-8" y="-6" width="16" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
@@ -4103,7 +4101,10 @@ var diagrammeKarte = {
         <text class="value-sp verlauf-text" x="${links - 8}" y="${y}" text-anchor="end" dominant-baseline="middle">${fmt(v, 0)}\xB0</text>`;
     }
     const linien = arten.map(([f, farbe]) => {
-      const d = reihen[f].filter((p) => p.t >= t0).map((p, i) => `${i ? "L" : "M"}${px(p.t).toFixed(1)} ${py(p.v).toFixed(1)}`).join("");
+      const pkt = reihen[f].filter((p) => p.t >= t0);
+      const d = pkt.map(
+        (p, i) => i ? `H${px(p.t).toFixed(1)}V${py(p.v).toFixed(1)}` : `M${px(p.t).toFixed(1)} ${py(p.v).toFixed(1)}`
+      ).join("") + (pkt.length ? `H${rechts}` : "");
       return `<path d="${d}" fill="none" stroke="${farbe}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
     }).join("");
     g.innerHTML = `${raster}${linien}${this._diaZeitachse(links, rechts, DH - 12)}`;
@@ -4666,6 +4667,16 @@ var grafikHochKarte = {
     const HK1 = HKS[0];
     const WW = [HKS[anzahl - 1][1] + 20, HKS[anzahl - 1][1] + 280];
     const ABZW = mitPuffer ? PUF[1] - 20 : HK1[0] - 40;
+    const anschluss = (n, y1, y2) => {
+      if (this._heizStil(n) !== "fbh") return { vy: y1 + 60, ry: y2 - 60 };
+      const r = this._fbhReihen(y1 + 10, y2 - 10);
+      return { vy: r[0], ry: r[r.length - 1] };
+    };
+    const an = HKS.map((z, i) => anschluss(i + 1, z[0], z[1]));
+    const a1 = an[0];
+    const letzt = an[anzahl - 1];
+    const ABZW_VL = mitPuffer ? ABZW : a1.vy;
+    const ABZW_RL = mitPuffer ? ABZW : a1.ry;
     const UNTEN = WW[1] + 40;
     const HOEHE = WW[1] + 60;
     const rohr = (d) => `<path class="pipe-shell" d="${d}"/><path class="pipe" d="${d}"/>`;
@@ -4751,10 +4762,10 @@ var grafikHochKarte = {
     const leitungen = `
       ${rohr(`M260 680 V ${P.OBEN} H ${P.X_VL} V ${WW[0] + 40}`)}
       ${rohr(`M${P.X_RL} ${WW[1] - 20} V 680`)}
-      <path class="flowdots" id="dots-vl-a" d="M260 680 V ${P.OBEN} H ${P.X_VL} V ${mitPuffer ? PUF[0] + 60 : ABZW}"/>
-      <path class="flowdots" id="dots-ww-vl" d="M${P.X_VL} ${mitPuffer ? PUF[0] + 60 : ABZW} V ${WW[0] + 40}"/>
-      <path class="flowdots" id="dots-rl-a" d="M${P.X_RL} ${mitPuffer ? PUF[1] - 60 : ABZW} V 680"/>
-      <path class="flowdots" id="dots-ww-rl" d="M${P.X_RL} ${WW[1] - 20} V ${mitPuffer ? PUF[1] - 60 : ABZW}"/>
+      <path class="flowdots" id="dots-vl-a" d="M260 680 V ${P.OBEN} H ${P.X_VL} V ${mitPuffer ? PUF[0] + 60 : ABZW_VL}"/>
+      <path class="flowdots" id="dots-ww-vl" d="M${P.X_VL} ${mitPuffer ? PUF[0] + 60 : ABZW_VL} V ${WW[0] + 40}"/>
+      <path class="flowdots" id="dots-rl-a" d="M${P.X_RL} ${mitPuffer ? PUF[1] - 60 : ABZW_RL} V 680"/>
+      <path class="flowdots" id="dots-ww-rl" d="M${P.X_RL} ${WW[1] - 20} V ${mitPuffer ? PUF[1] - 60 : ABZW_RL}"/>
 
       <g id="vl-schild">
         <rect x="${P.X_VL - schildBreite("Vorlauf", 92) / 2}" y="${P.OBEN + 40}" width="${schildBreite("Vorlauf", 92)}" height="28" rx="8"
@@ -4861,19 +4872,11 @@ var grafikHochKarte = {
                 fill="#3A1B08" stroke="#E0762E" stroke-width="1.5"/>
           <text class="badge-t" x="0" y="5" text-anchor="middle">${this._t("heizstab")}</text>
         </g>`);
-    const anschluss = (n, y1, y2) => {
-      if (this._heizStil(n) !== "fbh") return { vy: y1 + 60, ry: y2 - 60 };
-      const r = this._fbhReihen(y1 + 10, y2 - 10);
-      return { vy: r[0], ry: r[r.length - 1] };
-    };
-    const an = HKS.map((z, i) => anschluss(i + 1, z[0], z[1]));
-    const a1 = an[0];
-    const letzt = an[anzahl - 1];
     const sekundaer = `
-      ${rohr(`M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${letzt.vy}`)}
-      ${rohr(`M${mitPuffer ? P.U1 : P.X_RL} ${ABZW} H ${P.S_RL} V ${letzt.ry}`)}
-      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW} H ${P.S_VL} V ${a1.vy}"/>
-      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW} H ${mitPuffer ? P.U1 : P.X_RL}"/>
+      ${mitPuffer ? rohr(`M${P.U2} ${ABZW_VL} H ${P.S_VL} V ${letzt.vy}`) : anzahl > 1 ? rohr(`M${P.S_VL} ${a1.vy} V ${letzt.vy}`) : ""}
+      ${mitPuffer ? rohr(`M${P.U1} ${ABZW_RL} H ${P.S_RL} V ${letzt.ry}`) : anzahl > 1 ? rohr(`M${P.S_RL} ${a1.ry} V ${letzt.ry}`) : ""}
+      <path class="flowdots" id="dots-sf-a" d="M${mitPuffer ? P.U2 : P.X_VL} ${ABZW_VL} H ${P.S_VL} V ${a1.vy}"/>
+      <path class="flowdots" id="dots-sr-a" d="M${P.S_RL} ${a1.ry} V ${ABZW_RL} H ${mitPuffer ? P.U1 : P.X_RL}"/>
       ${an.slice(1).map((z, i) => {
       const k = i + 2;
       const id = k === 2 ? "" : String(k);
@@ -4884,6 +4887,7 @@ var grafikHochKarte = {
       const kr = P.U1 + 180;
       const tx = Math.round((kr + P.U2) / 2) + 4;
       const { vy, ry } = anschluss(n, y1, y2);
+      const direkt = !mitPuffer && n === 1;
       const koerper = this._heizkoerper(
         n,
         P.U1,
@@ -4894,8 +4898,8 @@ var grafikHochKarte = {
         { x: P.U1 - 6, y: ry, seite: "links" }
       );
       return `
-        ${rohr(`M${P.S_VL} ${vy} H ${kr + 9}`)}
-        ${rohr(`M${P.U1 - 9} ${ry} H ${P.S_RL}`)}
+        ${rohr(`M${direkt ? P.X_VL : P.S_VL} ${vy} H ${kr + 9}`)}
+        ${rohr(`M${P.U1 - 9} ${ry} H ${direkt ? P.X_RL : P.S_RL}`)}
         <path class="flowdots" id="dots-hk${n}" d="M${P.S_VL} ${vy} H ${kr + 9}"/>
         <path class="flowdots" id="dots-hk${n}b" d="M${P.U1 - 9} ${ry} H ${P.S_RL}"/>
         <g class="circuit klickbar" id="hk${n}-group">
@@ -5483,7 +5487,10 @@ var grafikQuerKarte = {
     const BR = XB === null ? null : XB + 95;
     const ZX0 = puffer ? BR + 45 : 900;
     const PRESS_X = 790;
-    return { puffer, quellen, XW, ZIRK_X, XB, BL, BR, ZX0, ZX1: 1640, PRESS_X };
+    const spalten = this._hkAnzahl() > 2 ? 2 : 1;
+    const ZX1 = spalten === 2 ? 1640 : ZX0 + 200;
+    const W = ZX1 + 10;
+    return { puffer, quellen, XW, ZIRK_X, XB, BL, BR, ZX0, ZX1, W, spalten, PRESS_X };
   },
   /** Welche Zusatzwaerme am Puffer haengt. Ohne Puffer gibt es keine. */
   _quellen() {
@@ -5537,7 +5544,7 @@ var grafikQuerKarte = {
           <text class="badge-t" x="0" y="5" text-anchor="middle">${text}</text>
         </g>`;
     return `
-    <svg viewBox="0 ${80 - LUFT} ${L.W} ${L.H + LUFT}" class="lhc-svg" role="img"
+    <svg viewBox="0 ${80 - LUFT} ${M.W} ${L.H + LUFT}" class="lhc-svg" role="img"
          aria-label="${this._t("s_schema")}">
 ${this._defs()}
 
@@ -5603,8 +5610,9 @@ ${this._defs()}
       </g>
 
       ${(() => {
-      const rand = L.W - 10;
-      const w = clamp(Number(this._config.history_width) || 450, 250, Math.min(700, rand - 700));
+      const rand = M.W - 10;
+      const links = this._verlaufAlsKnopf() ? 450 : 700;
+      const w = clamp(Number(this._config.history_width) || 450, 250, Math.min(700, rand - links));
       return this._verlaufAlsKnopf() ? this._diaKnoepfe(rand - w, 84 - LUFT + 8, w) : this._verlaufRahmen(rand - w, 84 - LUFT, w, 144);
     })()}
 
@@ -5823,7 +5831,7 @@ ${this._defs()}
    */
   _heizkreisZone(M) {
     const n = this._hkAnzahl();
-    const spalten = Math.min(n, 2);
+    const spalten = M.spalten;
     const zeilen = Math.ceil(n / spalten);
     const breite = M.ZX1 - M.ZX0;
     const zw = breite / spalten;
@@ -5855,7 +5863,8 @@ ${this._defs()}
       aeste.push(ast);
       ruecks.push(unten + 14);
       const zu = `M${vorl} ${ast} H ${dx} V ${top}`;
-      const ab = `M${bx} ${unten} V ${unten + 14} H ${rueck}`;
+      const kreuzt = zeilen > 1 && ze === 0;
+      const ab = kreuzt ? `M${bx} ${unten} V ${unten + 14} H ${vorl + 7} A 7 7 0 0 0 ${vorl - 7} ${unten + 14} H ${rueck}` : `M${bx} ${unten} V ${unten + 14} H ${rueck}`;
       const tx = (a + b) / 2;
       leitungen += `
         <path class="pipe-shell duenn" d="${zu} ${ab}"/>
@@ -6542,7 +6551,7 @@ var hilfeKarte = {
         await navigator.clipboard.writeText(text);
         return true;
       }
-    } catch (err) {
+    } catch {
     }
     const feld = document.createElement("textarea");
     feld.value = text;
@@ -6554,7 +6563,7 @@ var hilfeKarte = {
     let ok = false;
     try {
       ok = document.execCommand("copy");
-    } catch (err) {
+    } catch {
       ok = false;
     }
     feld.remove();
@@ -6695,7 +6704,7 @@ var kennzahlenKarte = {
       this._copTagStart = mitternacht;
       this._copTagIds = schluessel;
       this._update();
-    } catch (err) {
+    } catch {
     } finally {
       this._copLaeuft = false;
     }
@@ -6796,7 +6805,7 @@ var kennzahlenKarte = {
       this._jazSchluessel = schluessel;
       this._jazZeit = jetzt;
       if (this._tuerListe) this._tuerListe.forEach((f, i) => f.jaz && this._tuerZeige(i));
-    } catch (err) {
+    } catch {
       this._jaz = null;
     } finally {
       this._jazLaeuft = false;
@@ -6812,7 +6821,7 @@ var kennzahlenKarte = {
     let ganz;
     try {
       ganz = new Intl.NumberFormat(this._sp(), { maximumFractionDigits: 0 });
-    } catch (err) {
+    } catch {
       ganz = { format: (v) => fmt(v, 0) };
     }
     let frueh = null;
@@ -8189,7 +8198,7 @@ var verlaufKarte = {
         this._tagStartTag = mitternacht;
         this._render();
       }
-    } catch (err) {
+    } catch {
     }
   },
   /**
@@ -8381,19 +8390,24 @@ var verlaufKarte = {
       }
       return stand;
     };
+    const grund = Math.min(...daten.map((d) => d.v));
+    const schwelle = grund + Math.max((hoechst - grund) * 0.08, hoechst * 0.02);
     const pfade = { heiz: "", ww: "", standby: "" };
     if (ventil.length || verdichter.length) {
-      let vorher = null;
-      daten.forEach((d) => {
-        const stueck = `${px(d).toFixed(1)} ${py(d).toFixed(1)}`;
-        const ziel = !laeuftZu(d.t) ? "standby" : wwZu(d.t) ? "ww" : "heiz";
-        if (vorher && vorher.ziel === ziel) {
-          pfade[ziel] += `L${stueck}`;
-        } else {
-          pfade[ziel] += vorher ? `M${vorher.stueck}L${stueck}` : `M${stueck}`;
-        }
-        vorher = { ziel, stueck };
-      });
+      const ziele = daten.map(
+        (d) => !laeuftZu(d.t) && d.v <= schwelle ? "standby" : wwZu(d.t) ? "ww" : "heiz"
+      );
+      let letztes = null;
+      for (let i = 1; i < daten.length; i++) {
+        const a = daten[i - 1];
+        const b = daten[i];
+        const ziel = b.v > a.v ? ziele[i] : ziele[i - 1];
+        const von = `${px(a).toFixed(1)} ${py(a).toFixed(1)}`;
+        const bis = `${px(b).toFixed(1)} ${py(b).toFixed(1)}`;
+        if (letztes === ziel) pfade[ziel] += `L${bis}`;
+        else pfade[ziel] += `M${von}L${bis}`;
+        letztes = ziel;
+      }
     }
     const heiz = pfade.heiz;
     const ww = pfade.ww;
@@ -8507,7 +8521,7 @@ var LutarymHeatpumpCard = class extends HTMLElement {
             this._startAnimationLoop();
           }
         });
-      } catch (e) {
+      } catch {
         this._bewegungMq = null;
       }
     }

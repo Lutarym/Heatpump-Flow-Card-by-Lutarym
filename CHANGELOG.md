@@ -2,6 +2,46 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.4.0
+
+- English: Landscape: with one or two heating circuits they stand one below the other and the card ends right after them, without empty space on the right. Only from three heating circuits a second column follows and the card becomes wider. The chart buttons keep enough room on the narrower card.
+- Deutsch: Querformat: Bei einem oder zwei Heizkreisen stehen diese untereinander, und die Karte endet direkt dahinter, ohne freie Fläche rechts. Erst ab drei Heizkreisen folgt eine zweite Spalte, und die Karte wird breiter. Die Diagrammknöpfe behalten auf der schmaleren Karte genug Platz.
+- Français : paysage : avec un ou deux circuits, ceux-ci sont placés l'un sous l'autre et la carte se termine juste après, sans espace vide à droite. Ce n'est qu'à partir de trois circuits qu'une deuxième colonne apparaît et que la carte s'élargit. Les boutons des graphiques gardent assez de place sur la carte plus étroite.
+- 日本語：横レイアウト：暖房回路が 1 つまたは 2 つの場合は縦に並べ、カードはその直後で終わり右側に空白を残しません。3 つ以上の場合のみ 2 列目を追加し、カードの幅が広がります。幅の狭いカードでもグラフのボタンに十分な余白を確保します。
+
+## v5.3.4
+
+- English: The chart window is lower again: the drawing area for energy and temperatures is about a third less tall.
+- English: Temperatures are drawn as a step line. Home Assistant stores only changes, each value applies until the next one. Sloped connections suggested intermediate values, and flow and return could appear to cross because they change at different moments.
+- Deutsch: Das Diagrammfenster ist wieder flacher: Die Zeichenfläche für Verbrauch und Temperaturen ist etwa ein Drittel niedriger.
+- Deutsch: Temperaturen werden als Treppenlinie gezeichnet. Home Assistant speichert nur Wechsel, jeder Wert gilt bis zum nächsten. Schräge Verbindungen täuschten Zwischenwerte vor, und Vor- und Rücklauf konnten sich scheinbar kreuzen, weil sie zu verschiedenen Zeitpunkten wechseln.
+- Français : la fenêtre des graphiques est de nouveau plus basse : la zone de tracé de la consommation et des températures est réduite d'environ un tiers.
+- Français : les températures sont tracées en escalier. Home Assistant n'enregistre que les changements, chaque valeur reste valable jusqu'à la suivante. Les liaisons obliques suggéraient des valeurs intermédiaires, et départ et retour pouvaient sembler se croiser parce qu'ils changent à des moments différents.
+- 日本語：グラフのウィンドウを低くしました。使用量と温度の描画領域の高さを約 3 分の 1 減らしました。
+- 日本語：温度を階段状の線で描くようにしました。Home Assistant は変化した時点だけを記録し、各値は次の値まで有効です。斜めの線は存在しない中間値を示し、往きと還りの変化時刻がずれるため交差して見えることがありました。
+
+## v5.3.3
+
+- English: Fixed: the energy chart mixed heating, hot water and standby at the edges of each cycle. Power, compressor and diverter valve come from separate histories and do not report their changes at the same moment. The rising edge was therefore grey (standby) and the falling edge after a hot water charge red (heating). Now a point counts as running as soon as the power is clearly above standby, and each section takes the colour of its higher end point.
+- Deutsch: Behoben: Das Verbrauchsdiagramm vermischte an den Flanken jedes Takts Heizung, Warmwasser und Standby. Leistung, Verdichter und Umschaltventil kommen aus getrennten Verläufen und melden ihre Wechsel nicht im selben Augenblick. Dadurch war die steigende Flanke grau (Standby) und die fallende Flanke nach einer Warmwasserladung rot (Heizung). Jetzt gilt ein Punkt als Betrieb, sobald die Leistung deutlich über dem Standby liegt, und jedes Teilstück bekommt die Farbe seines höheren Endpunkts.
+- Français : corrigé : le graphique de consommation mélangeait chauffage, eau chaude et veille sur les flancs de chaque cycle. Puissance, compresseur et vanne trois voies proviennent d'historiques séparés et ne signalent pas leurs changements au même instant. Le flanc montant apparaissait donc en gris (veille) et le flanc descendant après une charge d'eau chaude en rouge (chauffage). Désormais un point compte comme fonctionnement dès que la puissance dépasse nettement la veille, et chaque tronçon prend la couleur de son extrémité la plus haute.
+- 日本語：修正：使用量グラフで、各運転サイクルの立ち上がりと立ち下がりで暖房・給湯・待機が混在していました。消費電力、圧縮機、三方弁はそれぞれ別の履歴から取得され、変化の記録時刻が一致しないためです。そのため立ち上がりが灰色（待機）、給湯後の立ち下がりが赤（暖房）になっていました。消費電力が待機を明確に上回った時点で運転とみなし、各区間は高い方の端点の色で描くようにしました。
+
+## v5.3.2
+
+- English: Fixed: in portrait without a buffer, the collector pipes ran through the labels of the diverter valve and the primary pump. They now branch off at the height of heating circuit 1, and heating circuit 1 is drawn with one continuous pipe.
+- English: Fixed: with 3 or 4 heating circuits, the return of the upper row crossed the vertical flow collector as if both were connected. It now jumps over it with a small arc (with and without buffer).
+- English: Code cleanup: all 21 warnings of the code check removed (unused variables). No change in function.
+- Deutsch: Behoben: Im Hochformat ohne Puffer liefen die Sammelleitungen durch die Beschriftung von Umschaltventil und Primärpumpe. Sie zweigen jetzt auf Höhe von Heizkreis 1 ab, und Heizkreis 1 wird mit einem durchgehenden Rohr gezeichnet.
+- Deutsch: Behoben: Bei 3 oder 4 Heizkreisen kreuzte der Rücklauf der oberen Reihe die senkrechte Vorlauf-Sammelleitung, als wären beide verbunden. Er springt jetzt mit einem kleinen Bogen darüber (mit und ohne Puffer).
+- Deutsch: Code bereinigt: alle 21 Warnungen der Codeprüfung entfernt (unbenutzte Variablen). Keine Änderung der Funktion.
+- Français : corrigé : en portrait sans ballon tampon, les collecteurs traversaient les libellés de la vanne trois voies et de la pompe primaire. Ils se raccordent désormais à la hauteur du circuit 1, dessiné avec une conduite continue.
+- Français : corrigé : avec 3 ou 4 circuits, le retour de la rangée supérieure croisait le collecteur de départ vertical comme s'ils étaient reliés. Il le franchit maintenant par un petit arc (avec et sans ballon tampon).
+- Français : code nettoyé : les 21 avertissements de la vérification du code ont été supprimés (variables inutilisées). Aucun changement de fonction.
+- 日本語：修正：縦レイアウトでバッファーがない場合、ヘッダー配管が三方弁と一次ポンプの表示を横切っていました。暖房回路 1 の高さで分岐するようにし、回路 1 は 1 本の連続した配管で描きます。
+- 日本語：修正：暖房回路が 3 または 4 の場合、上段の戻り配管が縦の往きヘッダーとつながっているように交差していました。小さな弧で飛び越えるようにしました（バッファーの有無を問わず）。
+- 日本語：コード整理：コードチェックの警告 21 件（未使用の変数）をすべて解消しました。機能の変更はありません。
+
 ## v5.3.1
 
 - English: Fixed: the moving dots of the collector pipes ran along to heating circuits 3 and 4 even when these were off. The collector pipes are now split into sections. In landscape the part to the second row runs only when circuit 3 or 4 runs, the return of each row only with its circuits. In portrait each section between two circuits runs only when a circuit behind it runs.
