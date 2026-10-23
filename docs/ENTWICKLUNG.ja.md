@@ -2,7 +2,7 @@
 
 **日本語** · [English](ENTWICKLUNG.md) · [Deutsch](ENTWICKLUNG.de.md) · [Français](ENTWICKLUNG.fr.md)
 
-HACS でインストールする場合、ここに書かれていることは不要です。HACS は完成したファイル `dist/heatpump-flow-card-by-lutarym.js` だけを読み込みます。
+HACS でインストールする場合、ここに書かれていることは不要です。HACS は `dist` の完成したファイル `heatpump-flow-card-by-lutarym.js` と、必要なときにカードが読み込むヘルプ `heatpump-flow-card-by-lutarym-hilfe.js` だけを読み込みます。
 
 ## 構成
 

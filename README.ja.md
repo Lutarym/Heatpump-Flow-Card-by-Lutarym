@@ -40,8 +40,8 @@ Panasonic Aquarea ヒートポンプを HeishaMon 経由で接続し、動くシ
 
 ### 手動
 
-1. 最新リリースから `heatpump-flow-card-by-lutarym.js` をダウンロード
-2. `<config>/www/community/heatpump-flow-card-by-lutarym/` にコピー
+1. 最新リリースの `dist` フォルダから `heatpump-flow-card-by-lutarym.js` と `heatpump-flow-card-by-lutarym-hilfe.js` をダウンロード
+2. 両方を `<config>/www/community/heatpump-flow-card-by-lutarym/` にコピー。2 つ目のファイルはヘルプを含み、必要なときだけ読み込まれます。リソースとして登録するのは 1 つ目だけです。
 3. 設定、ダッシュボード、三点メニュー、リソース、リソースを追加
 4. URL `/local/community/heatpump-flow-card-by-lutarym/heatpump-flow-card-by-lutarym.js`、種類 **JavaScript モジュール**
 

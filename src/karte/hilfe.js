@@ -3,8 +3,8 @@
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
 import { INTEGRATION_DOMAIN } from "../erkennung.js";
-import { HILFE } from "../hilfe-daten.js";
-import { escapeHtml } from "../hilfsfunktionen.js";
+import { hilfeDaten, ladeHilfe } from "../hilfe-laden.js";
+import { escapeHtml, kopiereText } from "../hilfsfunktionen.js";
 import { hilfeText } from "../sprachen.js";
 import { tf } from "../texte.js";
 
@@ -36,9 +36,25 @@ export const hilfeKarte = {
     if (!fenster) return;
     this._hilfeGruppe = this._hilfeGruppe || "";
     this._hilfeIndex = this._hilfeEntitaeten();
-    this._hilfeChips();
-    this._zeigeHilfe();
     fenster.hidden = false;
+    if (hilfeDaten()) {
+      this._hilfeChips();
+      this._zeigeHilfe();
+    } else {
+      // Die Hilfe liegt in einer eigenen Datei und kommt beim ersten
+      // Oeffnen nach. Bis dahin steht ein Hinweis im Fenster.
+      const liste = sr.getElementById("hilfe-liste");
+      if (liste) liste.innerHTML = `<p class="keine">${escapeHtml(this._t("h_laedt"))}</p>`;
+      ladeHilfe()
+        .then(() => {
+          if (fenster.hidden) return;
+          this._hilfeChips();
+          this._zeigeHilfe();
+        })
+        .catch(() => {
+          if (liste) liste.innerHTML = `<p class="keine">${escapeHtml(this._t("h_fehler"))}</p>`;
+        });
+    }
     const suche = sr.getElementById("hilfe-suche");
     // Ins Suchfeld nur mit Maus. Auf Handy und Tablet ginge sonst sofort
     // die Tastatur auf, auch im Querformat oder auf grossen Geraeten.
@@ -65,7 +81,7 @@ export const hilfeKarte = {
     if (!host) return;
     const sp = this._sp();
     const chips = [{ id: "", titel: this._t("h_alle") }].concat(
-      HILFE.map((g) => ({ id: g.id, titel: hilfeText(sp, g.id, g.titel) }))
+      (hilfeDaten() || []).map((g) => ({ id: g.id, titel: hilfeText(sp, g.id, g.titel) }))
     );
     host.innerHTML = chips
       .map(
@@ -142,30 +158,8 @@ export const hilfeKarte = {
   },
 
   /** Kopiert Text, auch ohne gesicherte Verbindung (http im Heimnetz). */
-  async _kopiere(text) {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
-        return true;
-      }
-    } catch {
-      // weiter mit dem Ersatzweg
-    }
-    const feld = document.createElement("textarea");
-    feld.value = text;
-    feld.setAttribute("readonly", "");
-    feld.style.position = "fixed";
-    feld.style.opacity = "0";
-    document.body.appendChild(feld);
-    feld.select();
-    let ok = false;
-    try {
-      ok = document.execCommand("copy");
-    } catch {
-      ok = false;
-    }
-    feld.remove();
-    return ok;
+  _kopiere(text) {
+    return kopiereText(text);
   },
 
   /** Liste nach Gruppe und Suchwort. */
@@ -190,7 +184,7 @@ export const hilfeKarte = {
     const schreiben = escapeHtml(this._t("h_schreiben"));
     let anzahl = 0;
     let html = "";
-    HILFE.forEach((g) => {
+    (hilfeDaten() || []).forEach((g) => {
       if (this._hilfeGruppe && g.id !== this._hilfeGruppe) return;
       const treffer = g.e.filter((e) => {
         if (!woerter.length) return true;

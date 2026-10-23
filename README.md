@@ -40,8 +40,8 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 
 ### Manual
 
-1. Download `heatpump-flow-card-by-lutarym.js` from the latest release
-2. Copy it to `<config>/www/community/heatpump-flow-card-by-lutarym/`
+1. Download `heatpump-flow-card-by-lutarym.js` and `heatpump-flow-card-by-lutarym-hilfe.js` from the `dist` folder of the latest release
+2. Copy both to `<config>/www/community/heatpump-flow-card-by-lutarym/`. The second file contains the help and is only loaded when needed; only the first one is added as a resource.
 3. Settings, Dashboards, menu with the three dots, Resources, add resource
 4. URL `/local/community/heatpump-flow-card-by-lutarym/heatpump-flow-card-by-lutarym.js`, type **JavaScript module**
 

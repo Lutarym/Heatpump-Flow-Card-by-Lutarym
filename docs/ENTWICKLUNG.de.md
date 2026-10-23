@@ -2,7 +2,7 @@
 
 **Deutsch** · [English](ENTWICKLUNG.md) · [Français](ENTWICKLUNG.fr.md) · [日本語](ENTWICKLUNG.ja.md)
 
-Für die Installation über HACS ist nichts davon nötig. HACS lädt nur die fertige Datei `dist/heatpump-flow-card-by-lutarym.js`.
+Für die Installation über HACS ist nichts davon nötig. HACS lädt nur die fertigen Dateien aus `dist`: `heatpump-flow-card-by-lutarym.js` und die Hilfe `heatpump-flow-card-by-lutarym-hilfe.js`, die die Karte bei Bedarf nachlädt.
 
 ## Aufbau
 

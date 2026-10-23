@@ -6,6 +6,7 @@ import { bedienungEditor } from "./bedienung.js";
 import { stilEditor } from "./stil.js";
 import { werkzeugeEditor } from "./werkzeuge.js";
 import { FIELD_DOMAIN, defaultEntityMap, detectIntegration, profilFuer, quellenZuordnung } from "../erkennung.js";
+import { hilfeDaten, ladeHilfe } from "../hilfe-laden.js";
 import { DEFAULT_CONFIG, ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, friendly } from "../hilfsfunktionen.js";
 import { CARD_VERSION } from "../konstanten.js";
@@ -72,6 +73,21 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
 
   _render() {
     if (!this._config || !this._hass) return;
+    // Die Erklaerungen zu den Feldern stammen aus der Hilfe. Sie wird
+    // einmal nachgeladen, danach baut sich der Editor auf. Klappt das
+    // nicht, erscheint der Editor ohne Erklaerungen.
+    if (!hilfeDaten() && this._hilfeStand !== "fertig") {
+      if (this._hilfeStand !== "laedt") {
+        this._hilfeStand = "laedt";
+        ladeHilfe()
+          .catch(() => null)
+          .then(() => {
+            this._hilfeStand = "fertig";
+            this._render();
+          });
+      }
+      return;
+    }
     if (this._built) {
       this._syncValues();
       return;

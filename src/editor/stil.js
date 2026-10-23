@@ -93,6 +93,8 @@ export const stilEditor = {
       .ed-profilinfo .nein { color: var(--warning-color, #F59E0B); }
       .ed-profilinfo .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
       .ed-profilinfo .chips b { font-weight: 400; font-size: 12px; border-radius: 10px; padding: 2px 8px; background: rgba(127, 140, 160, 0.18); }
+      .ed-profilinfo .ed-bericht { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .ed-profilinfo .ed-meldung { margin: 6px 0 0; font-size: 12px; color: var(--secondary-text-color, #9AA6B8); }
       .ed-profilinfo a { color: var(--primary-color, #7CC4FF); }
       .ed-profilwahl { border: 1px solid var(--warning-color, #F59E0B); border-radius: 8px; padding: 6px 8px; }
       .ed-zahl { font-size: 12px; color: #B07B2E; white-space: nowrap; }

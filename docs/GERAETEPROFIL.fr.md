@@ -13,6 +13,7 @@ Modifier la carte et passer l'éditeur en **Avancé**. Le choix se trouve dans l
 - **Fabricant** : « Détection automatique » ou un fabricant (visible aussi en mode simple)
 - **Intégration / appareil** : apparaît quand un fabricant a plusieurs intégrations, avec le nom du développeur
 - **Plusieurs intégrations détectées** : apparaît avec « Détection automatique » quand plusieurs correspondent
+- **Retour sur GitHub** et **Copier le rapport** dans le cadre « À propos de ce profil » : le rapport contient les champs attribués, manquants et modifiés à la main ainsi que les entités inutilisées de l'intégration. Cela aide à améliorer un profil. Il contient des ID d'entités et des valeurs actuelles ; sur GitHub, vous le voyez et le modifiez avant l'envoi.
 - **À propos de ce profil** : intégration, développeur avec lien vers la source, version, dernière modification, domaines couverts, ce qui a été trouvé dans Home Assistant, si la carte peut commander, si l'aide existe et si le profil est testé. Version et dernière modification ont été relevées lors de la création de cette version de la carte et ne se mettent pas à jour toutes seules.
 - **Exporter le profil** : enregistre le profil choisi comme fichier dans le dossier des téléchargements
 - **Importer un profil** : lit un fichier de profil et sélectionne le profil

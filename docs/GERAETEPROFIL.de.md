@@ -13,6 +13,7 @@ Karte bearbeiten, Editor auf **Erweitert** stellen. Die Auswahl steht im Abschni
 - **Hersteller**: „Automatisch erkennen“ oder ein Hersteller (auch im einfachen Modus sichtbar)
 - **Integration / Gerät**: erscheint, wenn ein Hersteller mehrere Integrationen hat, mit dem Namen des Entwicklers
 - **Mehrere Integrationen erkannt**: erscheint bei „Automatisch erkennen“, wenn mehrere passen
+- **Rückmeldung auf GitHub** und **Bericht kopieren** im Kasten „Über dieses Profil“: Der Bericht enthält zugeordnete, fehlende und von Hand geänderte Felder sowie die ungenutzten Entitäten der Integration. Damit lässt sich ein Profil verbessern. Er enthält Entity-IDs und aktuelle Werte; auf GitHub siehst und änderst du ihn vor dem Absenden.
 - **Über dieses Profil**: Integration, Entwickler mit Link zur Quelle, Version, letzte Änderung, die beschriebenen Bereiche, was in Home Assistant gefunden wurde, ob die Karte steuern kann, ob es die Hilfe gibt und ob das Profil getestet ist. Version und letzte Änderung sind beim Erstellen der Kartenversion abgelesen und aktualisieren sich nicht von selbst.
 - **Profil exportieren**: speichert das gewählte Profil als Datei im Download-Ordner
 - **Profil importieren**: liest eine Profildatei ein und wählt das Profil aus

@@ -92,7 +92,8 @@ Facultatif, pour que d'autres trouvent la carte sans dépôt personnalisé. HACS
 ```
 Heatpump-Flow-Card-by-Lutarym/
 ├── dist/
-│   └── heatpump-flow-card-by-lutarym.js
+│   ├── heatpump-flow-card-by-lutarym.js
+│   └── heatpump-flow-card-by-lutarym-hilfe.js
 ├── docs/
 │   └── screenshot-en.png, screenshot-de.png, screenshot-fr.png, screenshot-ja.png
 ├── hacs.json

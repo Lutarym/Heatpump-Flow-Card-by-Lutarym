@@ -92,7 +92,8 @@ git push origin vX.Y.Z
 ```
 Heatpump-Flow-Card-by-Lutarym/
 ├── dist/
-│   └── heatpump-flow-card-by-lutarym.js
+│   ├── heatpump-flow-card-by-lutarym.js
+│   └── heatpump-flow-card-by-lutarym-hilfe.js
 ├── docs/
 │   └── screenshot-en.png, screenshot-de.png, screenshot-fr.png, screenshot-ja.png
 ├── hacs.json

@@ -40,8 +40,8 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 
 ### Manuelle
 
-1. Télécharger `heatpump-flow-card-by-lutarym.js` depuis la dernière version publiée
-2. La copier dans `<config>/www/community/heatpump-flow-card-by-lutarym/`
+1. Télécharger `heatpump-flow-card-by-lutarym.js` et `heatpump-flow-card-by-lutarym-hilfe.js` depuis le dossier `dist` de la dernière version publiée
+2. Copier les deux dans `<config>/www/community/heatpump-flow-card-by-lutarym/`. Le second fichier contient l'aide et n'est chargé qu'en cas de besoin ; seul le premier est ajouté comme ressource.
 3. Paramètres, Tableaux de bord, menu à trois points, Ressources, ajouter une ressource
 4. URL `/local/community/heatpump-flow-card-by-lutarym/heatpump-flow-card-by-lutarym.js`, type **module JavaScript**
 

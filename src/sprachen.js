@@ -2,7 +2,7 @@
  * Eigene Sprachpakete: Ablage, Pruefung, Export.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { HILFE } from "./hilfe-daten.js";
+import { hilfeDaten } from "./hilfe-laden.js";
 import { dezimalFuer } from "./hilfsfunktionen.js";
 import { CARD_VERSION } from "./konstanten.js";
 import { SPRACHEN, TEXTE, t } from "./texte.js";
@@ -81,7 +81,7 @@ export function sprachpaketFuer(code) {
     texte[k] = t(k, sp);
   });
   const hilfe = {};
-  HILFE.forEach((g) => {
+  (hilfeDaten() || []).forEach((g) => {
     hilfe[g.id] = hilfeText(sp, g.id, g.titel);
     g.e.forEach((e, i) => {
       hilfe[`${g.id}.${i}.n`] = hilfeText(sp, `${g.id}.${i}.n`, e.n);
@@ -144,7 +144,7 @@ export function pruefeSprache(roh) {
   });
   const hilfe = {};
   const gueltig = new Set();
-  HILFE.forEach((g) => {
+  (hilfeDaten() || []).forEach((g) => {
     gueltig.add(g.id);
     g.e.forEach((e, i) => {
       gueltig.add(`${g.id}.${i}.n`);

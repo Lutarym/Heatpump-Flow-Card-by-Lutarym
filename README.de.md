@@ -40,8 +40,8 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 
 ### Manuell
 
-1. `heatpump-flow-card-by-lutarym.js` aus dem neuesten Release herunterladen
-2. Nach `<config>/www/community/heatpump-flow-card-by-lutarym/` kopieren
+1. `heatpump-flow-card-by-lutarym.js` und `heatpump-flow-card-by-lutarym-hilfe.js` aus dem Ordner `dist` des neuesten Release herunterladen
+2. Beide nach `<config>/www/community/heatpump-flow-card-by-lutarym/` kopieren. Die zweite Datei enthält die Hilfe und wird nur bei Bedarf geladen; als Ressource eingetragen wird nur die erste.
 3. Einstellungen, Dashboards, Menü mit den drei Punkten, Ressourcen, Ressource hinzufügen
 4. URL `/local/community/heatpump-flow-card-by-lutarym/heatpump-flow-card-by-lutarym.js`, Typ **JavaScript-Modul**
 

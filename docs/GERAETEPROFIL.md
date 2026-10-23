@@ -13,6 +13,7 @@ Edit the card and switch the editor to **Advanced**. The selection is in the sec
 - **Manufacturer**: “Detect automatically” or a manufacturer (also visible in simple mode)
 - **Integration / device**: appears when a manufacturer has several integrations, with the developer name
 - **Several integrations detected**: appears with “Detect automatically” when several match
+- **Feedback on GitHub** and **Copy report** in the box “About this profile”: the report contains assigned, missing and hand-changed fields and the unused entities of the integration. This helps to improve a profile. It contains entity IDs and current values; on GitHub you see and edit it before submitting.
 - **About this profile**: integration, developer with a link to the source, version, last change, the areas covered, what was found in Home Assistant, whether the card can control, whether help exists and whether the profile is tested. Version and last change were read when this card version was built and do not update by themselves.
 - **Export profile**: saves the selected profile as a file in your downloads folder
 - **Import profile**: reads a profile file and selects the profile

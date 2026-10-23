@@ -4,7 +4,8 @@
  */
 import { FIELD_DOMAIN, detectIntegration, erkenneAlle, profilFuer } from "../erkennung.js";
 import { DEFAULT_CONFIG } from "../felder.js";
-import { escapeHtml } from "../hilfsfunktionen.js";
+import { escapeHtml, kopiereText, rawState, attr } from "../hilfsfunktionen.js";
+import { CARD_VERSION } from "../konstanten.js";
 import { AUTO_PROFIL, PROFILE, eigeneProfile, eigenesProfil, eingebautesProfil, erkenneMitProfil, profilBereiche, pruefeProfil } from "../profile.js";
 import { PROFIL_STAND } from "../hersteller.js";
 import { SPRACH_NAMEN, pruefeSprache, registriereSprachen, sprachpaketFuer } from "../sprachen.js";
@@ -354,8 +355,163 @@ export const werkzeugeEditor = {
     const getestet = Boolean(pr && pr.getestet && !eigen);
     zeile("pi_getestet", jaNein(getestet, "pi_ja", eigen ? "pi_getestet_eigen" : "pi_getestet_nein"));
 
-    box.innerHTML = `<h5>${e(this._t(auto ? "pi_titel_auto" : "pi_titel"))}</h5><dl>${zeilen.join("")}</dl>`;
+    box.innerHTML = `<h5>${e(this._t(auto ? "pi_titel_auto" : "pi_titel"))}</h5><dl>${zeilen.join("")}</dl>
+      <div class="ed-bericht">
+        <button type="button" id="btn-bericht-github">${e(this._t("pr_github"))}</button>
+        <button type="button" id="btn-bericht-kopie" class="is-quiet">${e(this._t("pr_kopieren"))}</button>
+      </div>
+      <p class="ed-meldung" id="ed-bericht-hinweis">${e(this._t("pr_hinweis"))}</p>`;
     box.hidden = false;
+    const hinweis = box.querySelector("#ed-bericht-hinweis");
+    box.querySelector("#btn-bericht-github").addEventListener("click", () => {
+      const r = this._profilBericht(id, auto);
+      const titel = tf(this._t("pr_titel"), { n: this._profilName(id) });
+      const { url, gekuerzt } = this._berichtUrl(titel, r);
+      window.open(url, "_blank", "noopener,noreferrer");
+      if (gekuerzt) hinweis.textContent = this._t("pr_gekuerzt");
+    });
+    box.querySelector("#btn-bericht-kopie").addEventListener("click", async () => {
+      const ok = await kopiereText(this._berichtText(this._profilBericht(id, auto), Infinity));
+      hinweis.textContent = this._t(ok ? "pr_kopiert" : "m_datei_fehler");
+    });
+  },
+
+  /**
+   * Sammelt die Daten fuer eine Rueckmeldung zum Profil: was zugeordnet
+   * wurde, was fehlt, was von Hand geaendert wurde und welche Entitaeten
+   * der Integration ungenutzt sind. Daraus laesst sich das Profil
+   * verbessern, ohne die Anlage zu kennen.
+   */
+  _profilBericht(id, auto) {
+    const hass = this._hass || {};
+    const eigen = eigeneProfile(this._config).find((p) => p.id === id);
+    const pr = PROFILE.find((x) => x.id === id);
+    const daten = eigen || eingebautesProfil(id);
+    const felder = daten ? Object.keys(daten.felder) : [];
+    const integration = (eigen && eigen.integration) || (pr && pr.integration) || "";
+    const gefunden = daten
+      ? detectIntegration(hass, eigen || (pr && !pr.mqtt && id !== "heishamon_lutarym") ? daten : id).entities || {}
+      : {};
+    const wert = (eid) => {
+      const st = rawState(hass, eid);
+      return st === null ? "" : String(st).slice(0, 40);
+    };
+    const einheit = (eid) => String(attr(hass, eid, "unit_of_measurement", "") || "");
+    const zugeordnet = felder
+      .filter((f) => gefunden[f])
+      .map((f) => ({ feld: f, id: gefunden[f], wert: wert(gefunden[f]), einheit: einheit(gefunden[f]) }));
+    const fehlt = felder.filter((f) => !gefunden[f]);
+    const konfig = this._config.entities || {};
+    const vonHand = Object.keys(konfig)
+      .filter((f) => konfig[f] && konfig[f] !== gefunden[f])
+      .map((f) => ({ feld: f, id: konfig[f], vorschlag: gefunden[f] || "" }));
+    const benutzt = new Set(Object.values(gefunden).concat(Object.values(konfig)));
+    const reg = hass.entities || {};
+    const uebrig = integration
+      ? Object.keys(reg)
+        .filter((k) => reg[k] && reg[k].platform === integration && !benutzt.has(k))
+        .sort()
+        .map((k) => ({ id: k, schluessel: reg[k].translation_key || "", wert: wert(k), einheit: einheit(k) }))
+      : [];
+    return {
+      karte: CARD_VERSION,
+      ha: (hass.config && hass.config.version) || "",
+      sprache: this._sp(),
+      id,
+      name: this._profilName(id),
+      integration,
+      getestet: Boolean(pr && pr.getestet && !eigen),
+      eigen: Boolean(eigen),
+      auto,
+      anzahl: integration ? Object.keys(reg).filter((k) => reg[k] && reg[k].platform === integration).length : 0,
+      felder: felder.length,
+      zugeordnet,
+      fehlt,
+      vonHand,
+      uebrig,
+    };
+  },
+
+  /**
+   * Bericht als Markdown fuer ein GitHub-Issue. Ueberschriften sind
+   * englisch, damit jeder Entwickler sie lesen kann. "grenze" begrenzt
+   * die Liste der ungenutzten Entitaeten.
+   */
+  _berichtText(r, grenze, stufe = 0) {
+    const z = (t) => String(t).replace(/\|/g, "\\|").replace(/[\r\n]+/g, " ");
+    const teile = [
+      "### Profile report",
+      "",
+      `- Card version: ${r.karte}`,
+      `- Home Assistant: ${r.ha || "unknown"}`,
+      `- Language: ${r.sprache}`,
+      `- Profile: \`${r.id}\` (${z(r.name)})${r.eigen ? ", own profile" : ""}`,
+      `- Selected: ${r.auto ? "automatically" : "manually"}`,
+      `- Tested: ${r.getestet ? "yes" : "no"}`,
+      `- Integration: ${r.integration ? `\`${r.integration}\`, ${r.anzahl} entities` : "none (MQTT naming)"}`,
+      "",
+      `### Assigned fields (${r.zugeordnet.length} of ${r.felder})`,
+      "",
+    ];
+    if (!r.zugeordnet.length) {
+      teile.push("none");
+    } else if (stufe >= 2) {
+      teile.push("_List left out because the link would be too long. Please paste the copied report._");
+    } else if (stufe === 1) {
+      r.zugeordnet.forEach((a) => teile.push(`- ${a.feld}: ${z(a.id)}`));
+    } else {
+      teile.push("| Field | Entity | State | Unit |", "|---|---|---|---|");
+      r.zugeordnet.forEach((a) => teile.push(`| ${a.feld} | ${z(a.id)} | ${z(a.wert)} | ${z(a.einheit)} |`));
+    }
+    teile.push("", "### Fields not found", "", r.fehlt.length ? r.fehlt.join(", ") : "none");
+    if (r.vonHand.length) {
+      teile.push("", "### Changed by hand in the card", "", "| Field | Entity set by user | Profile suggestion |", "|---|---|---|");
+      r.vonHand.forEach((a) => teile.push(`| ${a.feld} | ${z(a.id)} | ${z(a.vorschlag || "-")} |`));
+    }
+    if (r.uebrig.length) {
+      const liste = r.uebrig.slice(0, grenze);
+      teile.push("", `### Unused entities of the integration (${r.uebrig.length})`, "");
+      if (liste.length) teile.push("| Entity | translation_key | State | Unit |", "|---|---|---|---|");
+      liste.forEach((a) => teile.push(`| ${z(a.id)} | ${z(a.schluessel)} | ${z(a.wert)} | ${z(a.einheit)} |`));
+      if (liste.length < r.uebrig.length) {
+        teile.push("", `_${r.uebrig.length - liste.length} more not listed (shortened)._`);
+      }
+    }
+    teile.push(
+      "",
+      "### What is wrong or missing?",
+      "",
+      "<!-- Which values are wrong, missing or assigned to the wrong field? Which heat pump model? -->",
+      ""
+    );
+    return teile.join("\n");
+  },
+
+  /**
+   * Adresse fuer ein neues Issue. GitHub nimmt nur Adressen bis etwa
+   * 8000 Zeichen an. Ist der Bericht zu lang, wird die Liste der
+   * ungenutzten Entitaeten gekuerzt. Der volle Bericht bleibt ueber
+   * "Bericht kopieren" erreichbar.
+   */
+  _berichtUrl(titel, r) {
+    const basis = "https://github.com/Lutarym/Heatpump-Flow-Card-by-Lutarym/issues/new";
+    const GRENZE = 7500;
+    const bau = (grenze, stufe) =>
+      `${basis}?title=${encodeURIComponent(titel)}&body=${encodeURIComponent(this._berichtText(r, grenze, stufe))}`;
+    // Erst die Liste der ungenutzten Entitaeten kuerzen, dann die
+    // Zuordnung knapper schreiben, zuletzt die Zuordnung weglassen.
+    let grenze = r.uebrig.length;
+    let stufe = 0;
+    let url = bau(grenze, stufe);
+    while (url.length > GRENZE && grenze > 0) {
+      grenze = Math.max(0, grenze - 10);
+      url = bau(grenze, stufe);
+    }
+    while (url.length > GRENZE && stufe < 2) {
+      stufe++;
+      url = bau(grenze, stufe);
+    }
+    return { url, gekuerzt: grenze < r.uebrig.length || stufe > 0 };
   },
 
   /** Bedienung von Export, Import und Entfernen der Geraeteprofile. */

@@ -266,3 +266,30 @@ export function groesster(liste) {
   for (const v of liste) if (v > m) m = v;
   return m;
 }
+
+/** Kopiert Text, auch ohne gesicherte Verbindung (http im Heimnetz). */
+export async function kopiereText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // weiter mit dem Ersatzweg
+  }
+  const feld = document.createElement("textarea");
+  feld.value = text;
+  feld.setAttribute("readonly", "");
+  feld.style.position = "fixed";
+  feld.style.opacity = "0";
+  document.body.appendChild(feld);
+  feld.select();
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  feld.remove();
+  return ok;
+}

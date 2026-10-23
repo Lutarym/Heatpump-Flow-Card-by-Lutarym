@@ -92,7 +92,8 @@ Optional, damit andere die Karte ohne benutzerdefiniertes Repository finden. HAC
 ```
 Heatpump-Flow-Card-by-Lutarym/
 ├── dist/
-│   └── heatpump-flow-card-by-lutarym.js
+│   ├── heatpump-flow-card-by-lutarym.js
+│   └── heatpump-flow-card-by-lutarym-hilfe.js
 ├── docs/
 │   └── screenshot-en.png, screenshot-de.png, screenshot-fr.png, screenshot-ja.png
 ├── hacs.json

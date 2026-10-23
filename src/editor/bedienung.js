@@ -4,7 +4,7 @@
  */
 import { FIELD_DOMAIN } from "../erkennung.js";
 import { ENTITY_FIELDS } from "../felder.js";
-import { HILFE } from "../hilfe-daten.js";
+import { hilfeDaten } from "../hilfe-laden.js";
 import { hilfeText } from "../sprachen.js";
 import { tf } from "../texte.js";
 
@@ -34,7 +34,7 @@ export const bedienungEditor = {
     const befehle = (hint.match(/\bSet\w+\b/g) || []).map((x) => x.toLowerCase());
     if (!tops.length && !befehle.length) return "";
     const sp = this._sp();
-    for (const g of HILFE) {
+    for (const g of hilfeDaten() || []) {
       for (let i = 0; i < g.e.length; i++) {
         const e = g.e[i];
         if ((e.l && tops.includes(e.l.toUpperCase())) || (e.s && befehle.includes(e.s.toLowerCase()))) {
