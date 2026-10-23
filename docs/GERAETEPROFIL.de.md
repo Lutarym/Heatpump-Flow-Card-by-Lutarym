@@ -13,6 +13,7 @@ Karte bearbeiten, Editor auf **Erweitert** stellen. Die Auswahl steht im Abschni
 - **Hersteller**: „Automatisch erkennen“ oder ein Hersteller (auch im einfachen Modus sichtbar)
 - **Integration / Gerät**: erscheint, wenn ein Hersteller mehrere Integrationen hat, mit dem Namen des Entwicklers
 - **Mehrere Integrationen erkannt**: erscheint bei „Automatisch erkennen“, wenn mehrere passen
+- **Über dieses Profil**: Integration, Entwickler mit Link zur Quelle, Version, letzte Änderung, die beschriebenen Bereiche, was in Home Assistant gefunden wurde, ob die Karte steuern kann, ob es die Hilfe gibt und ob das Profil getestet ist. Version und letzte Änderung sind beim Erstellen der Kartenversion abgelesen und aktualisieren sich nicht von selbst.
 - **Profil exportieren**: speichert das gewählte Profil als Datei im Download-Ordner
 - **Profil importieren**: liest eine Profildatei ein und wählt das Profil aus
 - **Eigenes Profil entfernen**: erscheint nur bei einem eigenen oder angepassten Profil

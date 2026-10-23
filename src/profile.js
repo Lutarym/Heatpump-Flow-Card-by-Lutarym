@@ -21,8 +21,13 @@ export const PROFILE = [
     name: "Panasonic Aquarea, HeishaMon by Lutarym",
     integrationName: "HeishaMon by Lutarym",
     entwickler: "Lutarym",
+    quelle: "https://github.com/Lutarym/Heishamon-by-Lutarym",
+    integration: "heishamon_lutarym",
+    version: "1.3.1",
+    aktualisiert: "2026-10-18",
     fertig: true,
     getestet: true,
+    hilfe: true,
   },
   {
     id: "heishamon",
@@ -30,8 +35,11 @@ export const PROFILE = [
     name: "Panasonic Aquarea, HeishaMon über MQTT-Namensschema",
     integrationName: "HeishaMon (MQTT)",
     entwickler: "",
+    quelle: "https://github.com/heishamon/HeishaMon",
+    mqtt: true,
     fertig: true,
     getestet: true,
+    hilfe: true,
   },
 ].concat(
   HERSTELLER_PROFILE.map((p) => ({
@@ -40,8 +48,14 @@ export const PROFILE = [
     name: `${p.hersteller}, ${p.name}`,
     integrationName: p.name,
     entwickler: p.entwickler,
+    quelle: p.quelle,
+    integration: p.integration,
+    version: p.version || "",
+    aktualisiert: p.aktualisiert || "",
+    core: Boolean(p.core),
     fertig: true,
     getestet: false,
+    hilfe: p.id === "aquarea_heishamon",
   }))
 );
 
@@ -276,4 +290,36 @@ export function erkenneMitProfil(hass, p) {
     result.devices = 1;
   }
   return result;
+}
+
+/**
+ * Bereiche der Karte, nach denen die Felder eines Profils zusammengefasst
+ * werden. So bleibt die Profilinfo auch bei vielen Feldern kurz.
+ */
+const BEREICHE = [
+  ["b_temp", /^(outside_temp|flow_temp|return_temp|dhw_temp)$/],
+  ["b_verdichter", /^(compressor|fan\d_rpm)$/],
+  ["b_ventil", /^three_way_valve$/],
+  ["b_pumpe", /^(pump_flow|pump_speed|circulation_pump|circ_switch|pump_flow_mode|pump_max_duty)$/],
+  ["b_heizkreise", /^(hk\d_|zones_)/],
+  ["b_puffer", /^buffer_/],
+  ["b_warmwasser", /^(dhw_|sterilization|force_sterilization|steril_)/],
+  ["b_zusatz", /^(solar_|kamin_|heater_|room_heater)/],
+  ["b_energie", /^(power_now|energy_today|pv_power|cop_|jaz)/],
+  ["b_zaehler", /(_hours|_starts)$/],
+  ["b_status", /^(error|defrost|water_pressure|heatpump_state|operating_mode|power_state|mode_select)$/],
+  ["b_kurve", /^curve/],
+  ["b_sg", /^sg_/],
+];
+
+/** Liefert die Bereiche (Textschluessel) zu einer Liste von Feldern. */
+export function profilBereiche(felder) {
+  const out = [];
+  felder.forEach((f) => {
+    const b = BEREICHE.find(([, re]) => re.test(f));
+    const k = b ? b[0] : "b_sonstige";
+    if (!out.includes(k)) out.push(k);
+  });
+  const reihe = BEREICHE.map((b) => b[0]).concat("b_sonstige");
+  return out.sort((a, b) => reihe.indexOf(a) - reihe.indexOf(b));
 }

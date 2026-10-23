@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.7.0
+
+- English: New box “About this profile” below the profile selection: integration, developer with a link to the source, version from manifest.json, last change in the repository (checked on 22 Oct 2026), the areas the profile covers instead of every field name, how many entities of the integration were found in Home Assistant and how many fields were assigned, whether the card can control values, whether the help exists and whether the profile is tested. With “Detect automatically” it shows the detected profile.
+- Deutsch: Neuer Kasten „Über dieses Profil“ unter der Profilauswahl: Integration, Entwickler mit Link zur Quelle, Version aus der manifest.json, letzte Änderung im Repository (Stand 22.10.2026), die Bereiche, die das Profil beschreibt, statt aller Feldnamen, wie viele Entitäten der Integration in Home Assistant gefunden und wie viele Felder zugeordnet wurden, ob die Karte Werte steuern kann, ob es die Hilfe gibt und ob das Profil getestet ist. Bei „Automatisch erkennen“ zeigt er das erkannte Profil.
+- Français : nouveau cadre « À propos de ce profil » sous le choix du profil : intégration, développeur avec lien vers la source, version issue du manifest.json, dernière modification du dépôt (vérifiée le 22/10/2026), les domaines couverts au lieu de tous les noms de champs, combien d'entités de l'intégration ont été trouvées dans Home Assistant et combien de champs attribués, si la carte peut commander des valeurs, si l'aide existe et si le profil est testé. Avec « Détection automatique », il montre le profil détecté.
+- 日本語：プロファイル選択の下に「このプロファイルについて」を追加しました：統合、出典リンク付きの開発者、manifest.json のバージョン、リポジトリの最終更新（2026 年 10 月 22 日時点）、全項目名の代わりに対象範囲、Home Assistant で見つかった統合のエンティティ数と割り当てた項目数、カードから操作できるか、ヘルプの有無、検証済みか。「自動検出」では検出したプロファイルを表示します。
+
 ## v5.6.2
 
 - English: The help (“?”) describes the values and commands of HeishaMon. It now only appears with HeishaMon profiles (HeishaMon by Lutarym, HeishaMon via MQTT, HeishaMon by kamaradclimber) and in demo mode; with other manufacturers the button is hidden.

@@ -134,6 +134,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_mehrere")}<em>${this._t("e_mehrere_h")}</em></span>
             <select id="opt-profil-wahl"></select>
           </label>
+          <div class="ed-breit ed-profilinfo" id="ed-profil-info" hidden></div>
         </div>
 
         <details class="ed-group ed-klapp" data-klapp="darstellung">

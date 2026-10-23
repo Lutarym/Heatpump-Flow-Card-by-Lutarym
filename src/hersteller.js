@@ -7,16 +7,23 @@
  * (Uebersetzungsschluessel oder Entity-ID). Getestet an echten Anlagen
  * ist bisher keines dieser Profile, daher "getestet: false".
  *
+ * "version" stammt aus der manifest.json, "aktualisiert" ist der letzte
+ * Commit im Repository, beides abgelesen am Stand PROFIL_STAND.
+ *
  * Regeln je Feld, die erste passende gewinnt:
  *  - "schluessel": translation_key oder Ende der Entity-ID,
  *  - "sensor:schluessel": wie oben, nur in dieser Domain,
  *  - "sensor.*_muster": Muster ueber die ganze Entity-ID,
  *  - "sensor.genau": genau diese Entitaet.
  */
+/** Tag, an dem Version und letzte Aenderung abgelesen wurden. */
+export const PROFIL_STAND = "2026-10-22";
+
 export const HERSTELLER_PROFILE = [
   /* ---------------------------- Viessmann ---------------------------- */
   {
     id: "vicare",
+    core: true,
     hersteller: "Viessmann",
     name: "ViCare",
     entwickler: "Home Assistant Core",
@@ -50,6 +57,7 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- NIBE ---------------------------- */
   {
     id: "nibe_heatpump",
+    core: true,
     hersteller: "NIBE",
     name: "Nibe Heat Pump",
     entwickler: "Home Assistant Core",
@@ -75,6 +83,7 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Mitsubishi ---------------------------- */
   {
     id: "melcloud",
+    core: true,
     hersteller: "Mitsubishi Electric",
     name: "MELCloud",
     entwickler: "Home Assistant Core",
@@ -89,6 +98,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "melcloudhome",
+    version: "2.6.1",
+    aktualisiert: "2026-10-19",
     hersteller: "Mitsubishi Electric",
     name: "MELCloud Home",
     entwickler: "andrew-blake",
@@ -108,6 +119,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Luxtronik ---------------------------- */
   {
     id: "luxtronik2",
+    version: "2026.10.18",
+    aktualisiert: "2026-10-22",
     hersteller: "Alpha Innotec, Novelan (Luxtronik)",
     name: "Luxtronik",
     entwickler: "BenPru",
@@ -140,6 +153,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "luxtronik",
+    version: "2022.12.01",
+    aktualisiert: "2023-09-11",
     hersteller: "Alpha Innotec, Novelan (Luxtronik)",
     name: "Luxtronik",
     entwickler: "Bouni",
@@ -163,6 +178,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "luxtronik2_hass",
+    version: "1.2.7",
+    aktualisiert: "2026-10-08",
     hersteller: "Alpha Innotec, Novelan (Luxtronik)",
     name: "Luxtronik 2",
     entwickler: "notDIRK",
@@ -186,6 +203,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Lambda ---------------------------- */
   {
     id: "lambda_heat_pumps",
+    version: "2.8.6",
+    aktualisiert: "2026-10-17",
     hersteller: "Lambda",
     name: "Lambda Heat Pumps",
     entwickler: "GuidoJeuken-6512",
@@ -213,6 +232,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- iDM ---------------------------- */
   {
     id: "idm_heatpump",
+    version: "0.23.1",
+    aktualisiert: "2026-10-22",
     hersteller: "iDM",
     name: "IDM Heatpump",
     entwickler: "Xerolux",
@@ -234,6 +255,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Panasonic ---------------------------- */
   {
     id: "aquarea_heishamon",
+    version: "2.11.7",
+    aktualisiert: "2026-10-22",
     hersteller: "Panasonic Aquarea",
     name: "HeishaMon",
     entwickler: "kamaradclimber",
@@ -277,6 +300,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "aquarea_cloud",
+    version: "1.8.2",
+    aktualisiert: "2026-10-22",
     hersteller: "Panasonic Aquarea",
     name: "Aquarea Smart Cloud",
     entwickler: "wpatrik14",
@@ -294,6 +319,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Kronoterm ---------------------------- */
   {
     id: "kronoterm",
+    version: "1.7.2",
+    aktualisiert: "2026-08-05",
     hersteller: "Kronoterm",
     name: "Kronoterm",
     entwickler: "Favio25",
@@ -321,6 +348,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Hitachi ---------------------------- */
   {
     id: "hitachi_yutaki",
+    version: "2.2.0-beta.13",
+    aktualisiert: "2026-10-22",
     hersteller: "Hitachi",
     name: "Hitachi Yutaki",
     entwickler: "alepee",
@@ -346,6 +375,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Daikin ---------------------------- */
   {
     id: "daikin_onecta",
+    version: "5.0.2",
+    aktualisiert: "2026-10-14",
     hersteller: "Daikin",
     name: "Daikin Onecta",
     entwickler: "jwillemsen",
@@ -360,6 +391,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "ha_daikin_altherma4_modbus",
+    version: "0.7.2",
+    aktualisiert: "2026-10-22",
     hersteller: "Daikin",
     name: "Altherma 4 Modbus",
     entwickler: "joklee",
@@ -380,6 +413,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "daikin_ha_ekrhh_modbus",
+    version: "1.0.7",
+    aktualisiert: "2026-10-07",
     hersteller: "Daikin",
     name: "Altherma EKRHH Modbus",
     entwickler: "gerione",
@@ -399,6 +434,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "daikin_altherma",
+    version: "1.5.3",
+    aktualisiert: "2024-10-30",
     hersteller: "Daikin",
     name: "Daikin Altherma",
     entwickler: "tadasdanielius",
@@ -413,6 +450,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Qube ---------------------------- */
   {
     id: "qube_heatpump",
+    version: "2026.10.11",
+    aktualisiert: "2026-10-21",
     hersteller: "Qube",
     name: "Qube Heat Pump",
     entwickler: "MattieGit",
@@ -434,6 +473,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Solarfocus ---------------------------- */
   {
     id: "solarfocus",
+    version: "7.0.1",
+    aktualisiert: "2026-10-11",
     hersteller: "Solarfocus",
     name: "Solarfocus",
     entwickler: "LavermanJJ",
@@ -459,6 +500,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Weishaupt ---------------------------- */
   {
     id: "weishaupt_modbus",
+    version: "1.0.20",
+    aktualisiert: "2026-10-08",
     hersteller: "Weishaupt",
     name: "Weishaupt Modbus",
     entwickler: "OStrama",
@@ -483,6 +526,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Stiebel Eltron ---------------------------- */
   {
     id: "stiebel_eltron_isg",
+    version: "2025.10.0",
+    aktualisiert: "2026-10-21",
     hersteller: "Stiebel Eltron",
     name: "Stiebel Eltron ISG",
     entwickler: "pail23",
@@ -512,6 +557,8 @@ export const HERSTELLER_PROFILE = [
   },
   {
     id: "stiebel_eltron_http",
+    version: "0.1.0",
+    aktualisiert: "2026-10-04",
     hersteller: "Stiebel Eltron",
     name: "Stiebel Eltron ISG (HTTP)",
     entwickler: "pmq",
@@ -530,6 +577,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Waterkotte ---------------------------- */
   {
     id: "waterkotte_heatpump",
+    version: "2026.10.2",
+    aktualisiert: "2026-10-18",
     hersteller: "Waterkotte",
     name: "Waterkotte Heatpump",
     entwickler: "marq24",
@@ -557,6 +606,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Batavia Heat ---------------------------- */
   {
     id: "batavia_heat",
+    version: "0.5.5",
+    aktualisiert: "2026-10-18",
     hersteller: "Batavia Heat",
     name: "Batavia Heat",
     entwickler: "RSloot2000",
@@ -577,6 +628,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Bosch, Buderus ---------------------------- */
   {
     id: "bosch_buderus_heating",
+    version: "0.8.2-beta.4",
+    aktualisiert: "2026-10-22",
     hersteller: "Bosch, Buderus",
     name: "Bosch Buderus Heating",
     entwickler: "SoftwareSchmied",
@@ -596,6 +649,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Remeha ---------------------------- */
   {
     id: "remeha_modbus",
+    version: "2.2.3",
+    aktualisiert: "2026-10-22",
     hersteller: "Remeha",
     name: "Remeha Modbus",
     entwickler: "houthacker",
@@ -618,6 +673,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- DeWarmte ---------------------------- */
   {
     id: "dewarmte",
+    version: "2.3.4",
+    aktualisiert: "2026-10-02",
     hersteller: "DeWarmte",
     name: "DeWarmte",
     entwickler: "ronald-willems",
@@ -634,6 +691,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- KEBA ---------------------------- */
   {
     id: "keba_heat_pump_modbus",
+    version: "1.5.0",
+    aktualisiert: "2026-10-09",
     hersteller: "KEBA",
     name: "KEBA Heat Pump Modbus",
     entwickler: "johannesWen",
@@ -651,6 +710,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Thermia ---------------------------- */
   {
     id: "thermia",
+    version: "1.0",
+    aktualisiert: "2025-12-04",
     hersteller: "Thermia",
     name: "Thermia Heat Pump",
     entwickler: "klejejs",
@@ -669,6 +730,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Wolf ---------------------------- */
   {
     id: "wolf_ism8",
+    version: "4.6",
+    aktualisiert: "2026-10-12",
     hersteller: "Wolf",
     name: "Wolf ISM8",
     entwickler: "marcschmiedchen",
@@ -689,6 +752,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Vaillant ---------------------------- */
   {
     id: "mypyllant",
+    version: "v0.9.19",
+    aktualisiert: "2026-07-22",
     hersteller: "Vaillant",
     name: "myPyllant",
     entwickler: "signalkraft",
@@ -708,6 +773,8 @@ export const HERSTELLER_PROFILE = [
   /* ---------------------------- Heliotherm ---------------------------- */
   {
     id: "ha_heliotherm",
+    version: "v1.0.43",
+    aktualisiert: "2025-09-07",
     hersteller: "Heliotherm",
     name: "Heliotherm",
     entwickler: "mbuchber",

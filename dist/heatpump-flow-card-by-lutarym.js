@@ -1,5 +1,5 @@
 // src/konstanten.js
-var CARD_VERSION = "5.6.2";
+var CARD_VERSION = "5.7.0";
 var L = {
   W: 1650,
   H: 700,
@@ -270,6 +270,44 @@ var TEXTE = {
   o_p_kandidat: { de: "{n}, {z} passende Felder", en: "{n}, {z} matching fields", fr: "{n}, {z} champs correspondants", ja: "{n}\u3001\u4E00\u81F4\u3059\u308B\u9805\u76EE {z} \u4EF6" },
   m_erkannt_mehrere: { de: "{z} Integrationen erkannt. Bis zur Auswahl wird \u201E{n}\u201C verwendet.", en: "{z} integrations detected. Until you choose, \u201C{n}\u201D is used.", fr: "{z} int\xE9grations d\xE9tect\xE9es. En attendant votre choix, \xAB {n} \xBB est utilis\xE9.", ja: "{z} \u4EF6\u306E\u7D71\u5408\u3092\u691C\u51FA\u3057\u307E\u3057\u305F\u3002\u9078\u629E\u3059\u308B\u307E\u3067\u300C{n}\u300D\u3092\u4F7F\u7528\u3057\u307E\u3059\u3002" },
   m_auto: { de: "Automatisch:", en: "Automatic:", fr: "Automatique :", ja: "\u81EA\u52D5\uFF1A" },
+  pi_titel: { de: "\xDCber dieses Profil", en: "About this profile", fr: "\xC0 propos de ce profil", ja: "\u3053\u306E\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u306B\u3064\u3044\u3066" },
+  pi_titel_auto: { de: "\xDCber das erkannte Profil", en: "About the detected profile", fr: "\xC0 propos du profil d\xE9tect\xE9", ja: "\u691C\u51FA\u3055\u308C\u305F\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u306B\u3064\u3044\u3066" },
+  pi_integration: { de: "Integration", en: "Integration", fr: "Int\xE9gration", ja: "\u7D71\u5408" },
+  pi_entwickler: { de: "Entwickler, Quelle", en: "Developer, source", fr: "D\xE9veloppeur, source", ja: "\u958B\u767A\u8005\u30FB\u51FA\u5178" },
+  pi_version: { de: "Version", en: "Version", fr: "Version", ja: "\u30D0\u30FC\u30B8\u30E7\u30F3" },
+  pi_aenderung: { de: "Letzte \xC4nderung", en: "Last change", fr: "Derni\xE8re modification", ja: "\u6700\u7D42\u66F4\u65B0" },
+  pi_stand: { de: "Stand der Pr\xFCfung {d}", en: "checked on {d}", fr: "v\xE9rifi\xE9 le {d}", ja: "{d} \u6642\u70B9" },
+  pi_eigen: { de: "eigenes Profil, unbekannt", en: "own profile, unknown", fr: "profil personnel, inconnue", ja: "\u72EC\u81EA\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u306E\u305F\u3081\u4E0D\u660E" },
+  pi_core: { de: "Bestandteil von Home Assistant Core", en: "Part of Home Assistant Core", fr: "Fait partie de Home Assistant Core", ja: "Home Assistant Core \u306B\u542B\u307E\u308C\u308B" },
+  pi_mqtt: { de: "HeishaMon-Firmware \xFCber MQTT, keine Integration", en: "HeishaMon firmware via MQTT, no integration", fr: "Firmware HeishaMon via MQTT, sans int\xE9gration", ja: "MQTT \u7D4C\u7531\u306E HeishaMon \u30D5\u30A1\u30FC\u30E0\u30A6\u30A7\u30A2\uFF08\u7D71\u5408\u306A\u3057\uFF09" },
+  pi_beschreibt: { de: "Profil beschreibt", en: "Profile covers", fr: "Le profil couvre", ja: "\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u306E\u5185\u5BB9" },
+  pi_felder: { de: "{z} Felder", en: "{z} fields", fr: "{z} champs", ja: "{z} \u9805\u76EE" },
+  pi_ha: { de: "In Home Assistant", en: "In Home Assistant", fr: "Dans Home Assistant", ja: "Home Assistant \u5185" },
+  pi_ha_text: { de: "{a} Entit\xE4ten der Integration, {b} von {c} Feldern zugeordnet", en: "{a} entities of the integration, {b} of {c} fields assigned", fr: "{a} entit\xE9s de l'int\xE9gration, {b} champs sur {c} attribu\xE9s", ja: "\u7D71\u5408\u306E\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3 {a} \u4EF6\u3001{c} \u9805\u76EE\u4E2D {b} \u9805\u76EE\u3092\u5272\u308A\u5F53\u3066" },
+  pi_ha_keine: { de: "nicht gefunden", en: "not found", fr: "introuvable", ja: "\u898B\u3064\u304B\u308A\u307E\u305B\u3093" },
+  pi_steuern: { de: "Steuern aus der Karte", en: "Control from the card", fr: "Commande depuis la carte", ja: "\u30AB\u30FC\u30C9\u304B\u3089\u64CD\u4F5C" },
+  pi_steuern_ja: { de: "ja, stellbar: {z}", en: "yes, settable: {z}", fr: "oui, r\xE9glables : {z}", ja: "\u53EF\u80FD\uFF08\u64CD\u4F5C\u9805\u76EE {z}\uFF09" },
+  pi_steuern_nein: { de: "nein, nur Anzeige", en: "no, display only", fr: "non, affichage seul", ja: "\u4E0D\u53EF\uFF08\u8868\u793A\u306E\u307F\uFF09" },
+  pi_hilfe: { de: "Hilfe in der Karte", en: "Help in the card", fr: "Aide dans la carte", ja: "\u30AB\u30FC\u30C9\u5185\u306E\u30D8\u30EB\u30D7" },
+  pi_hilfe_nein: { de: "nein, nur bei HeishaMon", en: "no, only with HeishaMon", fr: "non, seulement avec HeishaMon", ja: "\u306A\u3057\uFF08HeishaMon \u306E\u307F\uFF09" },
+  pi_getestet: { de: "Getestet", en: "Tested", fr: "Test\xE9", ja: "\u691C\u8A3C" },
+  pi_getestet_nein: { de: "nein, aus dem Quelltext abgeleitet", en: "no, derived from the source code", fr: "non, d\xE9duit du code source", ja: "\u672A\u691C\u8A3C\uFF08\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9\u304B\u3089\u4F5C\u6210\uFF09" },
+  pi_getestet_eigen: { de: "eigenes Profil", en: "own profile", fr: "profil personnel", ja: "\u72EC\u81EA\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB" },
+  pi_ja: { de: "ja", en: "yes", fr: "oui", ja: "\u3042\u308A" },
+  b_temp: { de: "Temperaturen", en: "Temperatures", fr: "Temp\xE9ratures", ja: "\u6E29\u5EA6" },
+  b_verdichter: { de: "Verdichter", en: "Compressor", fr: "Compresseur", ja: "\u5727\u7E2E\u6A5F" },
+  b_ventil: { de: "Umschaltventil", en: "Diverter valve", fr: "Vanne d'inversion", ja: "\u4E09\u65B9\u5F01" },
+  b_pumpe: { de: "Pumpe, Durchfluss", en: "Pump, flow", fr: "Pompe, d\xE9bit", ja: "\u30DD\u30F3\u30D7\u30FB\u6D41\u91CF" },
+  b_heizkreise: { de: "Heizkreise", en: "Heating circuits", fr: "Circuits de chauffage", ja: "\u6696\u623F\u56DE\u8DEF" },
+  b_puffer: { de: "Puffer", en: "Buffer tank", fr: "Ballon tampon", ja: "\u30D0\u30C3\u30D5\u30A1\u30BF\u30F3\u30AF" },
+  b_warmwasser: { de: "Warmwasser", en: "Hot water", fr: "Eau chaude", ja: "\u7D66\u6E6F" },
+  b_zusatz: { de: "Zusatzw\xE4rme", en: "Additional heat", fr: "Chaleur d'appoint", ja: "\u88DC\u52A9\u71B1\u6E90" },
+  b_energie: { de: "Leistung, Energie, COP", en: "Power, energy, COP", fr: "Puissance, \xE9nergie, COP", ja: "\u96FB\u529B\u30FB\u30A8\u30CD\u30EB\u30AE\u30FC\u30FBCOP" },
+  b_zaehler: { de: "Z\xE4hler", en: "Counters", fr: "Compteurs", ja: "\u30AB\u30A6\u30F3\u30BF\u30FC" },
+  b_status: { de: "Status, St\xF6rung", en: "Status, fault", fr: "\xC9tat, d\xE9faut", ja: "\u72B6\u614B\u30FB\u7570\u5E38" },
+  b_kurve: { de: "Heizkurve", en: "Heating curve", fr: "Courbe de chauffe", ja: "\u6696\u623F\u66F2\u7DDA" },
+  b_sg: { de: "SG Ready", en: "SG Ready", fr: "SG Ready", ja: "SG Ready" },
+  b_sonstige: { de: "Einstellungen", en: "Settings", fr: "R\xE9glages", ja: "\u8A2D\u5B9A" },
   o_p_eigen: { de: "(eigenes)", en: "(own)", fr: "(personnel)", ja: "\uFF08\u72EC\u81EA\uFF09" },
   o_p_angepasst: { de: "(angepasst)", en: "(customised)", fr: "(modifi\xE9)", ja: "\uFF08\u30AB\u30B9\u30BF\u30E0\uFF09" },
   m_p_export_ok: { de: "Profil \u201E{n}\u201C wurde als Datei gespeichert und steht im Download-Ordner", en: "Profile \u201C{n}\u201D has been saved as a file in your downloads folder", fr: "Le profil \xAB {n} \xBB a \xE9t\xE9 enregistr\xE9 dans le dossier des t\xE9l\xE9chargements", ja: "\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u300C{n}\u300D\u3092\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u30D5\u30A9\u30EB\u30C0\u306B\u4FDD\u5B58\u3057\u307E\u3057\u305F" },
@@ -1198,10 +1236,12 @@ var DEFAULT_CONFIG = {
 };
 
 // src/hersteller.js
+var PROFIL_STAND = "2026-10-22";
 var HERSTELLER_PROFILE = [
   /* ---------------------------- Viessmann ---------------------------- */
   {
     id: "vicare",
+    core: true,
     hersteller: "Viessmann",
     name: "ViCare",
     entwickler: "Home Assistant Core",
@@ -1234,6 +1274,7 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- NIBE ---------------------------- */
   {
     id: "nibe_heatpump",
+    core: true,
     hersteller: "NIBE",
     name: "Nibe Heat Pump",
     entwickler: "Home Assistant Core",
@@ -1258,6 +1299,7 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Mitsubishi ---------------------------- */
   {
     id: "melcloud",
+    core: true,
     hersteller: "Mitsubishi Electric",
     name: "MELCloud",
     entwickler: "Home Assistant Core",
@@ -1272,6 +1314,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "melcloudhome",
+    version: "2.6.1",
+    aktualisiert: "2026-10-19",
     hersteller: "Mitsubishi Electric",
     name: "MELCloud Home",
     entwickler: "andrew-blake",
@@ -1290,6 +1334,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Luxtronik ---------------------------- */
   {
     id: "luxtronik2",
+    version: "2026.10.18",
+    aktualisiert: "2026-10-22",
     hersteller: "Alpha Innotec, Novelan (Luxtronik)",
     name: "Luxtronik",
     entwickler: "BenPru",
@@ -1322,6 +1368,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "luxtronik",
+    version: "2022.12.01",
+    aktualisiert: "2023-09-11",
     hersteller: "Alpha Innotec, Novelan (Luxtronik)",
     name: "Luxtronik",
     entwickler: "Bouni",
@@ -1345,6 +1393,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "luxtronik2_hass",
+    version: "1.2.7",
+    aktualisiert: "2026-10-08",
     hersteller: "Alpha Innotec, Novelan (Luxtronik)",
     name: "Luxtronik 2",
     entwickler: "notDIRK",
@@ -1367,6 +1417,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Lambda ---------------------------- */
   {
     id: "lambda_heat_pumps",
+    version: "2.8.6",
+    aktualisiert: "2026-10-17",
     hersteller: "Lambda",
     name: "Lambda Heat Pumps",
     entwickler: "GuidoJeuken-6512",
@@ -1393,6 +1445,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- iDM ---------------------------- */
   {
     id: "idm_heatpump",
+    version: "0.23.1",
+    aktualisiert: "2026-10-22",
     hersteller: "iDM",
     name: "IDM Heatpump",
     entwickler: "Xerolux",
@@ -1413,6 +1467,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Panasonic ---------------------------- */
   {
     id: "aquarea_heishamon",
+    version: "2.11.7",
+    aktualisiert: "2026-10-22",
     hersteller: "Panasonic Aquarea",
     name: "HeishaMon",
     entwickler: "kamaradclimber",
@@ -1456,6 +1512,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "aquarea_cloud",
+    version: "1.8.2",
+    aktualisiert: "2026-10-22",
     hersteller: "Panasonic Aquarea",
     name: "Aquarea Smart Cloud",
     entwickler: "wpatrik14",
@@ -1472,6 +1530,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Kronoterm ---------------------------- */
   {
     id: "kronoterm",
+    version: "1.7.2",
+    aktualisiert: "2026-08-05",
     hersteller: "Kronoterm",
     name: "Kronoterm",
     entwickler: "Favio25",
@@ -1498,6 +1558,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Hitachi ---------------------------- */
   {
     id: "hitachi_yutaki",
+    version: "2.2.0-beta.13",
+    aktualisiert: "2026-10-22",
     hersteller: "Hitachi",
     name: "Hitachi Yutaki",
     entwickler: "alepee",
@@ -1522,6 +1584,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Daikin ---------------------------- */
   {
     id: "daikin_onecta",
+    version: "5.0.2",
+    aktualisiert: "2026-10-14",
     hersteller: "Daikin",
     name: "Daikin Onecta",
     entwickler: "jwillemsen",
@@ -1536,6 +1600,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "ha_daikin_altherma4_modbus",
+    version: "0.7.2",
+    aktualisiert: "2026-10-22",
     hersteller: "Daikin",
     name: "Altherma 4 Modbus",
     entwickler: "joklee",
@@ -1556,6 +1622,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "daikin_ha_ekrhh_modbus",
+    version: "1.0.7",
+    aktualisiert: "2026-10-07",
     hersteller: "Daikin",
     name: "Altherma EKRHH Modbus",
     entwickler: "gerione",
@@ -1575,6 +1643,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "daikin_altherma",
+    version: "1.5.3",
+    aktualisiert: "2024-10-30",
     hersteller: "Daikin",
     name: "Daikin Altherma",
     entwickler: "tadasdanielius",
@@ -1588,6 +1658,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Qube ---------------------------- */
   {
     id: "qube_heatpump",
+    version: "2026.10.11",
+    aktualisiert: "2026-10-21",
     hersteller: "Qube",
     name: "Qube Heat Pump",
     entwickler: "MattieGit",
@@ -1608,6 +1680,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Solarfocus ---------------------------- */
   {
     id: "solarfocus",
+    version: "7.0.1",
+    aktualisiert: "2026-10-11",
     hersteller: "Solarfocus",
     name: "Solarfocus",
     entwickler: "LavermanJJ",
@@ -1632,6 +1706,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Weishaupt ---------------------------- */
   {
     id: "weishaupt_modbus",
+    version: "1.0.20",
+    aktualisiert: "2026-10-08",
     hersteller: "Weishaupt",
     name: "Weishaupt Modbus",
     entwickler: "OStrama",
@@ -1655,6 +1731,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Stiebel Eltron ---------------------------- */
   {
     id: "stiebel_eltron_isg",
+    version: "2025.10.0",
+    aktualisiert: "2026-10-21",
     hersteller: "Stiebel Eltron",
     name: "Stiebel Eltron ISG",
     entwickler: "pail23",
@@ -1684,6 +1762,8 @@ var HERSTELLER_PROFILE = [
   },
   {
     id: "stiebel_eltron_http",
+    version: "0.1.0",
+    aktualisiert: "2026-10-04",
     hersteller: "Stiebel Eltron",
     name: "Stiebel Eltron ISG (HTTP)",
     entwickler: "pmq",
@@ -1701,6 +1781,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Waterkotte ---------------------------- */
   {
     id: "waterkotte_heatpump",
+    version: "2026.10.2",
+    aktualisiert: "2026-10-18",
     hersteller: "Waterkotte",
     name: "Waterkotte Heatpump",
     entwickler: "marq24",
@@ -1727,6 +1809,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Batavia Heat ---------------------------- */
   {
     id: "batavia_heat",
+    version: "0.5.5",
+    aktualisiert: "2026-10-18",
     hersteller: "Batavia Heat",
     name: "Batavia Heat",
     entwickler: "RSloot2000",
@@ -1746,6 +1830,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Bosch, Buderus ---------------------------- */
   {
     id: "bosch_buderus_heating",
+    version: "0.8.2-beta.4",
+    aktualisiert: "2026-10-22",
     hersteller: "Bosch, Buderus",
     name: "Bosch Buderus Heating",
     entwickler: "SoftwareSchmied",
@@ -1764,6 +1850,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Remeha ---------------------------- */
   {
     id: "remeha_modbus",
+    version: "2.2.3",
+    aktualisiert: "2026-10-22",
     hersteller: "Remeha",
     name: "Remeha Modbus",
     entwickler: "houthacker",
@@ -1785,6 +1873,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- DeWarmte ---------------------------- */
   {
     id: "dewarmte",
+    version: "2.3.4",
+    aktualisiert: "2026-10-02",
     hersteller: "DeWarmte",
     name: "DeWarmte",
     entwickler: "ronald-willems",
@@ -1800,6 +1890,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- KEBA ---------------------------- */
   {
     id: "keba_heat_pump_modbus",
+    version: "1.5.0",
+    aktualisiert: "2026-10-09",
     hersteller: "KEBA",
     name: "KEBA Heat Pump Modbus",
     entwickler: "johannesWen",
@@ -1816,6 +1908,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Thermia ---------------------------- */
   {
     id: "thermia",
+    version: "1.0",
+    aktualisiert: "2025-12-04",
     hersteller: "Thermia",
     name: "Thermia Heat Pump",
     entwickler: "klejejs",
@@ -1833,6 +1927,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Wolf ---------------------------- */
   {
     id: "wolf_ism8",
+    version: "4.6",
+    aktualisiert: "2026-10-12",
     hersteller: "Wolf",
     name: "Wolf ISM8",
     entwickler: "marcschmiedchen",
@@ -1852,6 +1948,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Vaillant ---------------------------- */
   {
     id: "mypyllant",
+    version: "v0.9.19",
+    aktualisiert: "2026-07-22",
     hersteller: "Vaillant",
     name: "myPyllant",
     entwickler: "signalkraft",
@@ -1870,6 +1968,8 @@ var HERSTELLER_PROFILE = [
   /* ---------------------------- Heliotherm ---------------------------- */
   {
     id: "ha_heliotherm",
+    version: "v1.0.43",
+    aktualisiert: "2025-09-07",
     hersteller: "Heliotherm",
     name: "Heliotherm",
     entwickler: "mbuchber",
@@ -1899,8 +1999,13 @@ var PROFILE = [
     name: "Panasonic Aquarea, HeishaMon by Lutarym",
     integrationName: "HeishaMon by Lutarym",
     entwickler: "Lutarym",
+    quelle: "https://github.com/Lutarym/Heishamon-by-Lutarym",
+    integration: "heishamon_lutarym",
+    version: "1.3.1",
+    aktualisiert: "2026-10-18",
     fertig: true,
-    getestet: true
+    getestet: true,
+    hilfe: true
   },
   {
     id: "heishamon",
@@ -1908,8 +2013,11 @@ var PROFILE = [
     name: "Panasonic Aquarea, HeishaMon \xFCber MQTT-Namensschema",
     integrationName: "HeishaMon (MQTT)",
     entwickler: "",
+    quelle: "https://github.com/heishamon/HeishaMon",
+    mqtt: true,
     fertig: true,
-    getestet: true
+    getestet: true,
+    hilfe: true
   }
 ].concat(
   HERSTELLER_PROFILE.map((p) => ({
@@ -1918,8 +2026,14 @@ var PROFILE = [
     name: `${p.hersteller}, ${p.name}`,
     integrationName: p.name,
     entwickler: p.entwickler,
+    quelle: p.quelle,
+    integration: p.integration,
+    version: p.version || "",
+    aktualisiert: p.aktualisiert || "",
+    core: Boolean(p.core),
     fertig: true,
-    getestet: false
+    getestet: false,
+    hilfe: p.id === "aquarea_heishamon"
   }))
 );
 var PROFIL_FORMAT = "lutarym-geraeteprofil";
@@ -2110,6 +2224,31 @@ function erkenneMitProfil(hass, p) {
     result.devices = 1;
   }
   return result;
+}
+var BEREICHE = [
+  ["b_temp", /^(outside_temp|flow_temp|return_temp|dhw_temp)$/],
+  ["b_verdichter", /^(compressor|fan\d_rpm)$/],
+  ["b_ventil", /^three_way_valve$/],
+  ["b_pumpe", /^(pump_flow|pump_speed|circulation_pump|circ_switch|pump_flow_mode|pump_max_duty)$/],
+  ["b_heizkreise", /^(hk\d_|zones_)/],
+  ["b_puffer", /^buffer_/],
+  ["b_warmwasser", /^(dhw_|sterilization|force_sterilization|steril_)/],
+  ["b_zusatz", /^(solar_|kamin_|heater_|room_heater)/],
+  ["b_energie", /^(power_now|energy_today|pv_power|cop_|jaz)/],
+  ["b_zaehler", /(_hours|_starts)$/],
+  ["b_status", /^(error|defrost|water_pressure|heatpump_state|operating_mode|power_state|mode_select)$/],
+  ["b_kurve", /^curve/],
+  ["b_sg", /^sg_/]
+];
+function profilBereiche(felder) {
+  const out = [];
+  felder.forEach((f) => {
+    const b = BEREICHE.find(([, re]) => re.test(f));
+    const k = b ? b[0] : "b_sonstige";
+    if (!out.includes(k)) out.push(k);
+  });
+  const reihe = BEREICHE.map((b) => b[0]).concat("b_sonstige");
+  return out.sort((a, b) => reihe.indexOf(a) - reihe.indexOf(b));
 }
 
 // src/erkennung.js
@@ -2608,6 +2747,18 @@ var stilEditor = {
       details.ed-klapp[open] > summary { margin-bottom: 10px; }
       h3 em, .ed-block-kopf em { font-style: normal; font-weight: 400; font-size: 11px; color: var(--secondary-text-color, #8A94A6); }
       details.ed-group[hidden], .ed-feld[hidden], .ed-row[hidden] { display: none; }
+      .ed-profilinfo { border: 1px solid var(--divider-color, #33415A); border-radius: 10px; padding: 10px 12px; margin-top: 6px; font-size: 13px; }
+      .ed-profilinfo[hidden] { display: none; }
+      .ed-profilinfo h5 { margin: 0 0 8px; font-size: 14px; color: var(--primary-color, #9FC6FF); }
+      .ed-profilinfo dl { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 5px 10px; margin: 0; }
+      .ed-profilinfo dt { color: var(--secondary-text-color, #9AA6B8); }
+      .ed-profilinfo dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+      .ed-profilinfo .grau { color: var(--secondary-text-color, #9AA6B8); }
+      .ed-profilinfo .ja { color: var(--success-color, #4ADE80); }
+      .ed-profilinfo .nein { color: var(--warning-color, #F59E0B); }
+      .ed-profilinfo .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+      .ed-profilinfo .chips b { font-weight: 400; font-size: 12px; border-radius: 10px; padding: 2px 8px; background: rgba(127, 140, 160, 0.18); }
+      .ed-profilinfo a { color: var(--primary-color, #7CC4FF); }
       .ed-profilwahl { border: 1px solid var(--warning-color, #F59E0B); border-radius: 8px; padding: 6px 8px; }
       .ed-zahl { font-size: 12px; color: #B07B2E; white-space: nowrap; }
       .ed-zahl.voll { color: #3E8E5A; }
@@ -2879,7 +3030,93 @@ var werkzeugeEditor = {
       wahl.innerHTML = [`<option value="">${escapeHtml(this._t("o_p_bitte"))}</option>`].concat(kandidaten.map((k) => `<option value="${escapeHtml(k.id)}">${escapeHtml(tf(this._t("o_p_kandidat"), { n: this._profilName(k.id), z: k.felder }))}</option>`)).join("");
       wahl.value = "";
     }
+    this._zeigeProfilInfo(id === AUTO_PROFIL ? kandidaten[0] && kandidaten[0].id || "" : id, id === AUTO_PROFIL);
     this._zeigeProfilKnoepfe();
+  },
+  /** Datum JJJJ-MM-TT in der Schreibweise der Sprache. */
+  _datum(text) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(text || ""));
+    if (!m) return "";
+    try {
+      return new Intl.DateTimeFormat(this._sp(), { dateStyle: "medium", timeZone: "UTC" }).format(new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))));
+    } catch {
+      return text;
+    }
+  },
+  /**
+   * Kasten "Ueber dieses Profil": Integration, Entwickler, Quelle, Version,
+   * letzte Aenderung, beschriebene Bereiche, was in Home Assistant
+   * gefunden wurde, Steuerung, Hilfe und ob das Profil getestet ist.
+   */
+  _zeigeProfilInfo(id, auto) {
+    const box = this.shadowRoot.getElementById("ed-profil-info");
+    if (!box) return;
+    if (!id) {
+      box.hidden = true;
+      box.innerHTML = "";
+      return;
+    }
+    const e = escapeHtml;
+    const eigen = eigeneProfile(this._config).find((p) => p.id === id);
+    const pr = PROFILE.find((x) => x.id === id);
+    const daten = eigen || eingebautesProfil(id);
+    const felder = daten ? Object.keys(daten.felder) : [];
+    const zeilen = [];
+    const zeile = (titel, inhalt) => zeilen.push(`<dt>${e(this._t(titel))}</dt><dd>${inhalt}</dd>`);
+    const jaNein = (ja, textJa, textNein) => `<span class="${ja ? "ja" : "nein"}">${e(this._t(ja ? textJa : textNein))}</span>`;
+    const integration = eigen && eigen.integration || pr && pr.integration || "";
+    const name = eigen ? eigen.name : pr ? pr.integrationName || pr.name : id;
+    zeile("pi_integration", `${e(name)}${integration ? ` <span class="grau">(${e(integration)})</span>` : ""}`);
+    const entwickler = eigen && eigen.entwickler || pr && pr.entwickler || "";
+    const quelle = !eigen && pr && pr.quelle && /^https:\/\//.test(pr.quelle) ? pr.quelle : "";
+    if (entwickler || quelle) {
+      const link = quelle ? `<a href="${e(quelle)}" target="_blank" rel="noopener noreferrer">${e(quelle.replace(/^https:\/\//, ""))}</a>` : "";
+      zeile("pi_entwickler", [e(entwickler), link].filter(Boolean).join(" \xB7 "));
+    }
+    if (eigen) {
+      zeile("pi_version", `<span class="grau">${e(this._t("pi_eigen"))}</span>`);
+    } else if (pr && pr.core) {
+      zeile("pi_version", e(this._t("pi_core")));
+    } else if (pr && pr.mqtt) {
+      zeile("pi_version", e(this._t("pi_mqtt")));
+    } else if (pr) {
+      if (pr.version) zeile("pi_version", `${e(pr.version)} <span class="grau">(manifest.json)</span>`);
+      if (pr.aktualisiert) {
+        zeile("pi_aenderung", `${e(this._datum(pr.aktualisiert))} <span class="grau">\xB7 ${e(tf(this._t("pi_stand"), { d: this._datum(PROFIL_STAND) }))}</span>`);
+      }
+    }
+    const bereiche = profilBereiche(felder);
+    zeile(
+      "pi_beschreibt",
+      `${e(tf(this._t("pi_felder"), { z: felder.length }))}<div class="chips">${bereiche.map((b) => `<b>${e(this._t(b))}</b>`).join("")}</div>`
+    );
+    if (this._hass && daten) {
+      const gefunden = detectIntegration(this._hass, eigen || pr && !pr.mqtt && id !== "heishamon_lutarym" ? daten : id);
+      let anzahl = 0;
+      if (integration) {
+        const reg = this._hass.entities || {};
+        anzahl = Object.keys(reg).filter((k) => reg[k] && reg[k].platform === integration).length;
+      } else {
+        anzahl = gefunden.count || 0;
+      }
+      const zugeordnet = Object.keys(gefunden.entities || {}).filter((f) => felder.includes(f)).length;
+      zeile(
+        "pi_ha",
+        anzahl ? e(tf(this._t("pi_ha_text"), { a: anzahl, b: zugeordnet, c: felder.length })) : `<span class="nein">${e(this._t("pi_ha_keine"))}</span>`
+      );
+    }
+    const steuerArten = ["number", "input_number", "switch", "input_boolean", "select", "input_select", "button", "input_button"];
+    const steuerbar = felder.filter((f) => FIELD_DOMAIN[f] && FIELD_DOMAIN[f].every((d) => steuerArten.includes(d))).length;
+    zeile(
+      "pi_steuern",
+      steuerbar ? `<span class="ja">${e(tf(this._t("pi_steuern_ja"), { z: steuerbar }))}</span>` : `<span class="nein">${e(this._t("pi_steuern_nein"))}</span>`
+    );
+    const hilfe = Boolean(pr && pr.hilfe);
+    zeile("pi_hilfe", jaNein(hilfe, "pi_ja", "pi_hilfe_nein"));
+    const getestet = Boolean(pr && pr.getestet && !eigen);
+    zeile("pi_getestet", jaNein(getestet, "pi_ja", eigen ? "pi_getestet_eigen" : "pi_getestet_nein"));
+    box.innerHTML = `<h5>${e(this._t(auto ? "pi_titel_auto" : "pi_titel"))}</h5><dl>${zeilen.join("")}</dl>`;
+    box.hidden = false;
   },
   /** Bedienung von Export, Import und Entfernen der Geraeteprofile. */
   _bindeProfile() {
@@ -3116,6 +3353,7 @@ var LutarymHeatpumpCardEditor = class extends HTMLElement {
             <span>${this._t("e_mehrere")}<em>${this._t("e_mehrere_h")}</em></span>
             <select id="opt-profil-wahl"></select>
           </label>
+          <div class="ed-breit ed-profilinfo" id="ed-profil-info" hidden></div>
         </div>
 
         <details class="ed-group ed-klapp" data-klapp="darstellung">
@@ -9634,7 +9872,8 @@ var LutarymHeatpumpCard = class extends HTMLElement {
    */
   _hilfePasst() {
     if (this._config.demo) return true;
-    return ["heishamon_lutarym", "heishamon", "aquarea_heishamon"].includes(this._aktivesProfil());
+    const pr = PROFILE.find((x) => x.id === this._aktivesProfil());
+    return Boolean(pr && pr.hilfe);
   }
   /**
    * Merkt einen gerade gesetzten Wert kurz vor.

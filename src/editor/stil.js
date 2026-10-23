@@ -82,6 +82,18 @@ export const stilEditor = {
       details.ed-klapp[open] > summary { margin-bottom: 10px; }
       h3 em, .ed-block-kopf em { font-style: normal; font-weight: 400; font-size: 11px; color: var(--secondary-text-color, #8A94A6); }
       details.ed-group[hidden], .ed-feld[hidden], .ed-row[hidden] { display: none; }
+      .ed-profilinfo { border: 1px solid var(--divider-color, #33415A); border-radius: 10px; padding: 10px 12px; margin-top: 6px; font-size: 13px; }
+      .ed-profilinfo[hidden] { display: none; }
+      .ed-profilinfo h5 { margin: 0 0 8px; font-size: 14px; color: var(--primary-color, #9FC6FF); }
+      .ed-profilinfo dl { display: grid; grid-template-columns: minmax(110px, 38%) 1fr; gap: 5px 10px; margin: 0; }
+      .ed-profilinfo dt { color: var(--secondary-text-color, #9AA6B8); }
+      .ed-profilinfo dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+      .ed-profilinfo .grau { color: var(--secondary-text-color, #9AA6B8); }
+      .ed-profilinfo .ja { color: var(--success-color, #4ADE80); }
+      .ed-profilinfo .nein { color: var(--warning-color, #F59E0B); }
+      .ed-profilinfo .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+      .ed-profilinfo .chips b { font-weight: 400; font-size: 12px; border-radius: 10px; padding: 2px 8px; background: rgba(127, 140, 160, 0.18); }
+      .ed-profilinfo a { color: var(--primary-color, #7CC4FF); }
       .ed-profilwahl { border: 1px solid var(--warning-color, #F59E0B); border-radius: 8px; padding: 6px 8px; }
       .ed-zahl { font-size: 12px; color: #B07B2E; white-space: nowrap; }
       .ed-zahl.voll { color: #3E8E5A; }

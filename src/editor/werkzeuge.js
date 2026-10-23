@@ -2,10 +2,11 @@
  * Import und Export von Sprachen und Geraeteprofilen.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { detectIntegration, erkenneAlle, profilFuer } from "../erkennung.js";
+import { FIELD_DOMAIN, detectIntegration, erkenneAlle, profilFuer } from "../erkennung.js";
 import { DEFAULT_CONFIG } from "../felder.js";
 import { escapeHtml } from "../hilfsfunktionen.js";
-import { AUTO_PROFIL, PROFILE, eigeneProfile, eigenesProfil, eingebautesProfil, erkenneMitProfil, pruefeProfil } from "../profile.js";
+import { AUTO_PROFIL, PROFILE, eigeneProfile, eigenesProfil, eingebautesProfil, erkenneMitProfil, profilBereiche, pruefeProfil } from "../profile.js";
+import { PROFIL_STAND } from "../hersteller.js";
 import { SPRACH_NAMEN, pruefeSprache, registriereSprachen, sprachpaketFuer } from "../sprachen.js";
 import { SPRACHEN, t, tf, wertText } from "../texte.js";
 
@@ -249,7 +250,112 @@ export const werkzeugeEditor = {
         .join("");
       wahl.value = "";
     }
+    this._zeigeProfilInfo(id === AUTO_PROFIL ? (kandidaten[0] && kandidaten[0].id) || "" : id, id === AUTO_PROFIL);
     this._zeigeProfilKnoepfe();
+  },
+
+  /** Datum JJJJ-MM-TT in der Schreibweise der Sprache. */
+  _datum(text) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(text || ""));
+    if (!m) return "";
+    try {
+      return new Intl.DateTimeFormat(this._sp(), { dateStyle: "medium", timeZone: "UTC" })
+        .format(new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))));
+    } catch {
+      return text;
+    }
+  },
+
+  /**
+   * Kasten "Ueber dieses Profil": Integration, Entwickler, Quelle, Version,
+   * letzte Aenderung, beschriebene Bereiche, was in Home Assistant
+   * gefunden wurde, Steuerung, Hilfe und ob das Profil getestet ist.
+   */
+  _zeigeProfilInfo(id, auto) {
+    const box = this.shadowRoot.getElementById("ed-profil-info");
+    if (!box) return;
+    if (!id) {
+      box.hidden = true;
+      box.innerHTML = "";
+      return;
+    }
+    const e = escapeHtml;
+    const eigen = eigeneProfile(this._config).find((p) => p.id === id);
+    const pr = PROFILE.find((x) => x.id === id);
+    const daten = eigen || eingebautesProfil(id);
+    const felder = daten ? Object.keys(daten.felder) : [];
+    const zeilen = [];
+    const zeile = (titel, inhalt) => zeilen.push(`<dt>${e(this._t(titel))}</dt><dd>${inhalt}</dd>`);
+    const jaNein = (ja, textJa, textNein) =>
+      `<span class="${ja ? "ja" : "nein"}">${e(this._t(ja ? textJa : textNein))}</span>`;
+
+    // Integration und Herkunft
+    const integration = (eigen && eigen.integration) || (pr && pr.integration) || "";
+    const name = eigen ? eigen.name : pr ? pr.integrationName || pr.name : id;
+    zeile("pi_integration", `${e(name)}${integration ? ` <span class="grau">(${e(integration)})</span>` : ""}`);
+    const entwickler = (eigen && eigen.entwickler) || (pr && pr.entwickler) || "";
+    const quelle = !eigen && pr && pr.quelle && /^https:\/\//.test(pr.quelle) ? pr.quelle : "";
+    if (entwickler || quelle) {
+      const link = quelle
+        ? `<a href="${e(quelle)}" target="_blank" rel="noopener noreferrer">${e(quelle.replace(/^https:\/\//, ""))}</a>`
+        : "";
+      zeile("pi_entwickler", [e(entwickler), link].filter(Boolean).join(" · "));
+    }
+    // Version und letzte Aenderung
+    if (eigen) {
+      zeile("pi_version", `<span class="grau">${e(this._t("pi_eigen"))}</span>`);
+    } else if (pr && pr.core) {
+      zeile("pi_version", e(this._t("pi_core")));
+    } else if (pr && pr.mqtt) {
+      zeile("pi_version", e(this._t("pi_mqtt")));
+    } else if (pr) {
+      if (pr.version) zeile("pi_version", `${e(pr.version)} <span class="grau">(manifest.json)</span>`);
+      if (pr.aktualisiert) {
+        zeile("pi_aenderung", `${e(this._datum(pr.aktualisiert))} <span class="grau">· ${e(tf(this._t("pi_stand"), { d: this._datum(PROFIL_STAND) }))}</span>`);
+      }
+    }
+    // Beschriebene Bereiche statt aller Feldnamen
+    const bereiche = profilBereiche(felder);
+    zeile(
+      "pi_beschreibt",
+      `${e(tf(this._t("pi_felder"), { z: felder.length }))}<div class="chips">${bereiche
+        .map((b) => `<b>${e(this._t(b))}</b>`)
+        .join("")}</div>`
+    );
+    // Was in Home Assistant gefunden wurde
+    if (this._hass && daten) {
+      const gefunden = detectIntegration(this._hass, eigen || (pr && !pr.mqtt && id !== "heishamon_lutarym") ? daten : id);
+      let anzahl = 0;
+      if (integration) {
+        const reg = this._hass.entities || {};
+        anzahl = Object.keys(reg).filter((k) => reg[k] && reg[k].platform === integration).length;
+      } else {
+        anzahl = gefunden.count || 0;
+      }
+      const zugeordnet = Object.keys(gefunden.entities || {}).filter((f) => felder.includes(f)).length;
+      zeile(
+        "pi_ha",
+        anzahl
+          ? e(tf(this._t("pi_ha_text"), { a: anzahl, b: zugeordnet, c: felder.length }))
+          : `<span class="nein">${e(this._t("pi_ha_keine"))}</span>`
+      );
+    }
+    // Steuern: Felder, die nur stellbare Entitaeten annehmen
+    const steuerArten = ["number", "input_number", "switch", "input_boolean", "select", "input_select", "button", "input_button"];
+    const steuerbar = felder.filter((f) => FIELD_DOMAIN[f] && FIELD_DOMAIN[f].every((d) => steuerArten.includes(d))).length;
+    zeile(
+      "pi_steuern",
+      steuerbar
+        ? `<span class="ja">${e(tf(this._t("pi_steuern_ja"), { z: steuerbar }))}</span>`
+        : `<span class="nein">${e(this._t("pi_steuern_nein"))}</span>`
+    );
+    const hilfe = Boolean(pr && pr.hilfe);
+    zeile("pi_hilfe", jaNein(hilfe, "pi_ja", "pi_hilfe_nein"));
+    const getestet = Boolean(pr && pr.getestet && !eigen);
+    zeile("pi_getestet", jaNein(getestet, "pi_ja", eigen ? "pi_getestet_eigen" : "pi_getestet_nein"));
+
+    box.innerHTML = `<h5>${e(this._t(auto ? "pi_titel_auto" : "pi_titel"))}</h5><dl>${zeilen.join("")}</dl>`;
+    box.hidden = false;
   },
 
   /** Bedienung von Export, Import und Entfernen der Geraeteprofile. */

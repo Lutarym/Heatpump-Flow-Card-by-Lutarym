@@ -20,7 +20,7 @@ import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { verlaufKarte } from "./verlauf.js";
 import { HOLD_MS } from "../konstanten.js";
-import { profilFeldnamen } from "../profile.js";
+import { PROFILE, profilFeldnamen } from "../profile.js";
 import { EIGENE_SPRACHEN, SPRACH_STAND, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { gruppenText, t } from "../texte.js";
 
@@ -240,7 +240,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
    */
   _hilfePasst() {
     if (this._config.demo) return true;
-    return ["heishamon_lutarym", "heishamon", "aquarea_heishamon"].includes(this._aktivesProfil());
+    const pr = PROFILE.find((x) => x.id === this._aktivesProfil());
+    return Boolean(pr && pr.hilfe);
   }
 
   /**
