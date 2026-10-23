@@ -274,6 +274,12 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
               <option value="aus">${this._t("o_aus")}</option>
             </select>
           </label>
+          <label class="ed-row">
+            <span>${this._t("e_vstil")}<em>${this._t("e_vstil_h")}</em></span>
+            <select id="opt-vstil">
+              ${["balken", "takte", "leuchten", "linie"].map((v) => `<option value="${v}">${this._t(`o_vstil_${v}`)}</option>`).join("")}
+            </select>
+          </label>
           <label class="ed-row ed-check">
             <input type="checkbox" id="opt-hilfe">
             <span>${this._t("e_hilfe_zeigen")}<em>${this._t("e_hilfe_zeigen_h")}</em></span>
@@ -471,6 +477,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     });
     this._bindeProfile();
     bind("opt-vbreite", (el) => put({ history_width: parseInt(el.value, 10) || 450 }));
+    bind("opt-vstil", (el) => put({ history_style: el.value }));
     bind("opt-kxmin", (el) => put({ curve_x_min: parseInt(el.value, 10) }));
     bind("opt-kxmax", (el) => put({ curve_x_max: parseInt(el.value, 10) }));
     bind("opt-kymin", (el) => put({ curve_y_min: parseInt(el.value, 10) }));
@@ -716,6 +723,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     this._zeigeSprachKnoepfe();
     this._zeigeProfilAuswahl();
     put("opt-vbreite", String(this._config.history_width || 450));
+    put("opt-vstil", this._config.history_style || "balken");
     put("opt-kxmin", String(this._config.curve_x_min));
     put("opt-kxmax", String(this._config.curve_x_max));
     put("opt-kymin", String(this._config.curve_y_min));

@@ -90,6 +90,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `profile_custom` | `[]` | Profils d'appareil importés (définis par l'éditeur, voir le [guide](docs/GERAETEPROFIL.fr.md)) |
 | `language_custom` | `[]` | Packs de langue importés (définis par l'éditeur, voir le [guide](docs/SPRACHPAKET.fr.md)) |
 | `history_width` | `450` | Largeur du graphique, 250 à 700 |
+| `history_style` | `balken` | Style du graphique de consommation : `balken` (barres par heure), `takte` (anneau et bande des cycles), `leuchten` (ligne lumineuse avec repères de cycles), `linie` (ligne précédente) |
 | `card_width` | `0` | Largeur en pixels, 0 = automatique |
 | `card_height` | `0` | Hauteur en pixels, 0 = automatique |
 | `pipe_inner_mm` | `0` | Diamètre intérieur en mm, colore le débit, 0 = désactivé |

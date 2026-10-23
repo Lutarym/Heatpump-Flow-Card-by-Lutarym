@@ -90,6 +90,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `profile_custom` | `[]` | Importierte Geräteprofile (setzt der Editor, siehe [Anleitung](docs/GERAETEPROFIL.de.md)) |
 | `language_custom` | `[]` | Importierte Sprachpakete (setzt der Editor, siehe [Anleitung](docs/SPRACHPAKET.de.md)) |
 | `history_width` | `450` | Breite des Verbrauchsverlaufs, 250 bis 700 |
+| `history_style` | `balken` | Darstellung des Verbrauchs: `balken` (Balken je Stunde), `takte` (Ring und Taktband), `leuchten` (leuchtende Linie mit Taktmarken), `linie` (bisherige Linie) |
 | `card_width` | `0` | Breite in Pixeln, 0 ist automatisch |
 | `card_height` | `0` | Höhe in Pixeln, 0 ist automatisch |
 | `pipe_inner_mm` | `0` | Rohrinnendurchmesser in mm, färbt den Durchfluss, 0 ist aus |

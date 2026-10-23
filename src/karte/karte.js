@@ -16,6 +16,7 @@ import { heizkurveKarte } from "./heizkurve.js";
 import { hilfeKarte } from "./hilfe.js";
 import { kennzahlenKarte } from "./kennzahlen.js";
 import { solarKarte } from "./solar.js";
+import { verbrauchStileKarte } from "./verbrauchstile.js";
 import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { verlaufKarte } from "./verlauf.js";
@@ -374,6 +375,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     if (this._built && (this._gebautMit !== sprachStand || this._gebautPuffer !== puffer)) {
       this._built = false;
     }
+    const neuGebaut = !this._built;
     if (!this._built) {
       this._build();
       this._built = true;
@@ -384,6 +386,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._groesse();
     this._update();
     this._holeVerlauf();
+    // Nach einem Neuaufbau ist der Rahmen leer. Vorhandene Daten werden
+    // sofort wieder eingezeichnet, statt auf die naechste Abfrage zu warten.
+    if (neuGebaut && this._verlauf && this._verlauf.length >= 2) this._zeichneVerlauf();
     this._diaEinrichten();
     const kd = this.shadowRoot.getElementById("kurve-dialog");
     if (kd && !kd.dataset.fertig) {
@@ -678,6 +683,7 @@ Object.assign(
   grafikQuerKarte,
   grafikKlassischKarte,
   solarKarte,
+  verbrauchStileKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte

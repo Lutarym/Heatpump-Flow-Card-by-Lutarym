@@ -90,6 +90,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `profile_custom` | `[]` | Imported device profiles (set by the editor, see [guide](docs/GERAETEPROFIL.md)) |
 | `language_custom` | `[]` | Imported language packs (set by the editor, see [guide](docs/SPRACHPAKET.md)) |
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |
+| `history_style` | `balken` | Energy chart style: `balken` (bars per hour), `takte` (ring and cycle band), `leuchten` (glowing line with cycle marks), `linie` (previous line) |
 | `card_width` | `0` | Width in pixels, 0 is automatic |
 | `card_height` | `0` | Height in pixels, 0 is automatic |
 | `pipe_inner_mm` | `0` | Inner pipe diameter in mm, colours the flow rate, 0 is off |

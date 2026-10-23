@@ -2,7 +2,7 @@
  * Verbrauchsverlauf der letzten 24 Stunden.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { clamp, fmt, groesster, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
+import { attr, clamp, fmt, groesster, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { NEUTRAL, SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
 
@@ -80,6 +80,8 @@ export const verlaufKarte = {
               stroke-linejoin="round" stroke-linecap="round" d=""/>
         <path id="verlauf-ww" fill="none" stroke="#4D9BFF" stroke-width="2.5"
               stroke-linejoin="round" stroke-linecap="round" d=""/>
+        <g id="verlauf-inhalt"></g>
+        <g id="verlauf-kpi"></g>
         <line x1="${x}" y1="${y + hoehe - 50}" x2="${x + breite}"
               y2="${y + hoehe - 50}" stroke="#2A3446" stroke-width="1"/>
         <text class="cap-s" x="${x}" y="${y + hoehe - 36}">SG Ready</text>
@@ -278,10 +280,14 @@ export const verlaufKarte = {
     const grund = kleinster(daten.map((d) => d.v));
     const schwelle = grund + Math.max((hoechst - grund) * 0.08, hoechst * 0.02);
     const pfade = { heiz: "", ww: "", standby: "" };
-    if (ventil.length || verdichter.length) {
-      const ziele = daten.map((d) =>
-        !laeuftZu(d.t) && d.v <= schwelle ? "standby" : wwZu(d.t) ? "ww" : "heiz"
-      );
+    // Betriebsart je Punkt. Ohne Ventil- und Verdichterverlauf ist nur
+    // klar, ob die Anlage lief, nicht wofuer.
+    const mitArt = ventil.length || verdichter.length;
+    const ziele = daten.map((d) => {
+      if (!mitArt) return d.v <= schwelle ? "standby" : "lauf";
+      return !laeuftZu(d.t) && d.v <= schwelle ? "standby" : wwZu(d.t) ? "ww" : "heiz";
+    });
+    if (mitArt) {
       // Jedes Teilstueck bekommt die Farbe seines hoeheren Endpunkts. Sonst
       // faerbt beim Abfall nach einer Warmwasserladung schon das Ventil,
       // das gerade zurueck auf Heizung stellt, die fallende Flanke rot.
@@ -346,19 +352,43 @@ export const verlaufKarte = {
         });
       }
     }
-    const gefaerbt = ventil.length || verdichter.length;
-    sr.getElementById("verlauf-linie").setAttribute("d", gefaerbt ? "" : linie);
-    const sb = sr.getElementById("verlauf-standby");
-    if (sb) sb.setAttribute("d", pfade.standby);
-    sr.getElementById("verlauf-heiz").setAttribute("d", heiz);
-    sr.getElementById("verlauf-ww").setAttribute("d", ww);
-    sr.getElementById("verlauf-flaeche").setAttribute(
-      "d",
-      `${linie}L${rechts.toFixed(1)} ${unten}L${links.toFixed(1)} ${unten}Z`
-    );
-    // Werte kommen in Watt herein, angezeigt wird einheitlich Kilowatt.
-    const inKW = hoechst >= 100 ? hoechst / 1000 : hoechst;
-    sr.getElementById("verlauf-max").textContent = tf(this._t("s_max"), { v: `${fmt(inKW, 2)} kW` });
+    const stil = this._verbrauchStil();
+    const klassisch = stil === "linie";
+    const setze = (id, d) => {
+      const el = sr.getElementById(id);
+      if (el) el.setAttribute("d", d);
+    };
+    setze("verlauf-linie", klassisch && !mitArt ? linie : "");
+    setze("verlauf-standby", klassisch ? pfade.standby : "");
+    setze("verlauf-heiz", klassisch ? heiz : "");
+    setze("verlauf-ww", klassisch ? ww : "");
+    setze("verlauf-flaeche", klassisch ? `${linie}L${rechts.toFixed(1)} ${unten}L${links.toFixed(1)} ${unten}Z` : "");
+    // Werte kommen in Watt oder Kilowatt herein, angezeigt wird Kilowatt.
+    // Die Einheit der Entitaet entscheidet, sonst die Groesse der Werte.
+    const einheit = String(attr(this._quelle, this._e("power_now"), "unit_of_measurement", "") || "");
+    const faktor = /^w$/i.test(einheit) ? 0.001 : /^kw$/i.test(einheit) ? 1 : hoechst >= 100 ? 0.001 : 1;
+    const inKW = hoechst * faktor;
+    sr.getElementById("verlauf-max").textContent = klassisch ? tf(this._t("s_max"), { v: `${fmt(inKW, 2)} kW` }) : "";
+    const inhalt = sr.getElementById("verlauf-inhalt");
+    const kpi = sr.getElementById("verlauf-kpi");
+    if (inhalt && kpi) {
+      if (klassisch) {
+        inhalt.innerHTML = "";
+        kpi.innerHTML = "";
+      } else {
+        const ausw = this._verbrauchAuswerten(daten, ziele, faktor);
+        const rahmen = { links, rechts, oben, unten, t0, t1, px, py };
+        inhalt.innerHTML =
+          stil === "takte"
+            ? this._verbrauchTakte(ausw, rahmen, daten)
+            : stil === "leuchten"
+              ? this._verbrauchLeuchten(ausw, rahmen, daten, ziele)
+              : this._verbrauchBalken(ausw, rahmen);
+        // Kennzahlen rechts in der Titelzeile, der Titel bleibt links frei.
+        const titelBreite = Math.min(masse.breite * 0.45, 190);
+        kpi.innerHTML = this._verbrauchKennzahlen(ausw.summe, masse.x + titelBreite, masse.y + 2, masse.breite - titelBreite);
+      }
+    }
     gruppe.setAttribute("opacity", "1");
     this._diaNachVerlauf();
   },

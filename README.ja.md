@@ -90,6 +90,7 @@ entities:
 | `profile_custom` | `[]` | 読み込んだデバイスプロファイル（エディターが設定、[説明](docs/GERAETEPROFIL.ja.md) 参照） |
 | `language_custom` | `[]` | 読み込んだ言語パック（エディターが設定、[説明](docs/SPRACHPAKET.ja.md) 参照） |
 | `history_width` | `450` | 使用量グラフの幅、250〜700 |
+| `history_style` | `balken` | 使用量グラフの表示：`balken`（1時間ごとの棒グラフ）、`takte`（リングとサイクル帯）、`leuchten`（光る線とサイクル表示）、`linie`（従来の線） |
 | `card_width` | `0` | 幅（ピクセル）、0 で自動 |
 | `card_height` | `0` | 高さ（ピクセル）、0 で自動 |
 | `pipe_inner_mm` | `0` | 配管内径（mm）、流量を色分け、0 で無効 |

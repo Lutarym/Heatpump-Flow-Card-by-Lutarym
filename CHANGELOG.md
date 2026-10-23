@@ -2,6 +2,17 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.9.0
+
+- English: New styles for the energy chart of the last 24 hours, selectable in the editor under “Energy chart style” (`history_style`): bars per hour stacked by heating, hot water and standby (new default), ring with the shares and a band with every compressor cycle including number of cycles and average duration, and a glowing line coloured by operating mode with the kWh above each cycle. All three show the totals in kWh at the top. The previous line remains available.
+- English: Fixed: after changing the configuration, the energy chart in the card stayed empty until the next query; now existing data is drawn again immediately.
+- Deutsch: Neue Darstellungen für den Verbrauch der letzten 24 Stunden, im Editor unter „Darstellung Verbrauch“ wählbar (`history_style`): Balken je Stunde, gestapelt nach Heizen, Warmwasser und Standby (neuer Standard), Ring mit den Anteilen und ein Band mit jedem Verdichtertakt samt Anzahl und mittlerer Dauer, sowie eine leuchtende Linie, gefärbt nach Betriebsart, mit den kWh über jedem Takt. Alle drei zeigen oben die Summen in kWh. Die bisherige Linie bleibt wählbar.
+- Deutsch: Behoben: Nach einer Änderung der Konfiguration blieb der Verbrauch in der Karte bis zur nächsten Abfrage leer; vorhandene Daten werden jetzt sofort wieder gezeichnet.
+- Français : nouveaux styles pour la consommation des dernières 24 heures, au choix dans l'éditeur sous « Style du graphique de consommation » (`history_style`) : barres par heure empilées par chauffage, eau chaude et veille (nouveau défaut), anneau avec les parts et bande montrant chaque cycle du compresseur avec nombre et durée moyenne, et ligne lumineuse colorée selon le mode avec les kWh au-dessus de chaque cycle. Les trois affichent les totaux en kWh en haut. La ligne précédente reste disponible.
+- Français : corrigé : après une modification de la configuration, le graphique de consommation de la carte restait vide jusqu'à la requête suivante ; les données existantes sont maintenant redessinées immédiatement.
+- 日本語：過去24時間の使用量に新しい表示を追加し、エディターの「使用量グラフの表示」（`history_style`）で選べるようにしました：暖房・給湯・待機で積み上げた1時間ごとの棒グラフ（新しい既定）、割合を示すリングと各圧縮機サイクルの帯（回数と平均時間付き）、運転モードで色分けしサイクルごとの kWh を表示する光る線。いずれも上部に kWh の合計を表示します。従来の線も選べます。
+- 日本語：修正：設定を変更すると、次の取得までカード内の使用量グラフが空のままでした。既存のデータをすぐに描き直すようにしました。
+
 ## v5.8.0
 
 - English: Feedback for profiles: “About this profile” has the buttons “Feedback on GitHub” and “Copy report”. The report lists the assigned fields with entity, state and unit, the fields not found, the fields changed by hand in the card and the unused entities of the integration with their internal key, plus card and Home Assistant version. GitHub opens a new issue with the report, which you see and can edit before submitting. If the report is too long for a link, it is shortened step by step; “Copy report” always provides the full one.

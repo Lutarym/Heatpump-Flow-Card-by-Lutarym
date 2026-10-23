@@ -160,6 +160,7 @@ export const DEFAULT_CONFIG = {
   buffer_present: "auto",
   circulation_present: "auto",
   history_width: 450,
+  history_style: "balken",
   curve_x_min: -20,
   curve_x_max: 20,
   curve_y_min: 20,
