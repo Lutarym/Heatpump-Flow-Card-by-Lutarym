@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.9.5
+
+- English: New version number so that Home Assistant and HACS detect the update. No functional changes compared to v5.9.0.
+- Deutsch: Neue Versionsnummer, damit Home Assistant und HACS das Update erkennen. Keine inhaltlichen Änderungen gegenüber v5.9.0.
+- Français : nouveau numéro de version pour que Home Assistant et HACS détectent la mise à jour. Aucune modification fonctionnelle par rapport à la v5.9.0.
+- 日本語：Home Assistant と HACS が更新を検出できるよう、バージョン番号を変更しました。v5.9.0 からの機能の変更はありません。
+
 ## v5.9.0
 
 - English: New styles for the energy chart of the last 24 hours, selectable in the editor under “Energy chart style” (`history_style`): bars per hour stacked by heating, hot water and standby (new default), ring with the shares and a band with every compressor cycle including number of cycles and average duration, and a glowing line coloured by operating mode with the kWh above each cycle. All three show the totals in kWh at the top. The previous line remains available.
