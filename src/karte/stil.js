@@ -440,6 +440,8 @@ export const stilKarte = {
       /* Nur im Fenster der Baugruppen ueber die volle Breite. Im
          Kurvenfenster sollen die Regler zweispaltig bleiben. */
       #dlg-actions > .lhc-num-kompakt { grid-column: 1 / -1; }
+      #dlg-actions > .lhc-num-info { grid-column: 1 / -1; margin-top: -4px; font-size: 12px; color: var(--c-7e8ca0); }
+      #dlg-actions > .lhc-num-info[hidden] { display: none; }
       .lhc-dialog-action {
         width: 100%; margin-top: 0; padding: 8px 14px; border-radius: 12px;
         grid-column: 1 / -1;

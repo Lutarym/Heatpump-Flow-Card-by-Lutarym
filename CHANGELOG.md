@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.15.0
+
+- English: The buffer and hot water windows now show the set spread below "Reheat at" (buffer TOP113, hot water TOP22), as the value is stored in the heat pump. It follows the + and − buttons immediately.
+- Deutsch: Im Puffer- und im Warmwasserfenster steht unter „Lädt ab“ jetzt die eingestellte Spreizung (Puffer TOP113, Warmwasser TOP22), so wie der Wert in der Wärmepumpe steht. Sie folgt den Knöpfen + und − sofort.
+- Français : les fenêtres ballon tampon et eau chaude affichent sous « Relance à » l'écart réglé (tampon TOP113, eau chaude TOP22), tel qu'il est enregistré dans la pompe à chaleur. Il suit immédiatement les boutons + et −.
+- 日本語：バッファと給湯のウィンドウで「再加熱開始温度」の下に、ヒートポンプに設定されている温度差（バッファ TOP113、給湯 TOP22）を表示します。＋と−ボタンにすぐ追従します。
+
 ## v5.14.1
 
 - English: Code review. Much faster with long histories: time lookups use binary search instead of scanning from the start, runs are calculated once per data set, and very long lines are thinned to at most two points per pixel (smallest and largest value kept). In a load test with 5-second data, 1 month of cycling went from 3.9 s to 0.1 s and the analysis from 2.6 s to under 0.01 s. Switching tabs no longer reloads data within five minutes. The analysis window follows window size changes (for example when turning a phone). One month back from the 31st now ends on the last day of the previous month. Unused texts and exports removed.

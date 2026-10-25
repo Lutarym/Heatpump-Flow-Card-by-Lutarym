@@ -376,7 +376,7 @@ export const dialogKarte = {
                <output id="dlg-a${i}">--</output>
                <button type="button" class="lhc-step klein" id="dlg-a${i}-plus"
                        aria-label="${this._t("s_groesser")}">+</button>
-             </div>`
+             </div>${a.bezug ? `<div class="lhc-num-info" id="dlg-a${i}-sp"></div>` : ""}`
           : `<button type="button" class="lhc-dialog-action${a.schmal ? " schmal" : ""}" id="dlg-a${i}">--</button>`
       )
       .join("");
@@ -509,6 +509,13 @@ export const dialogKarte = {
             : ziel === null
             ? `${fmt(roh, 0)} ${a.einheit || "°C"}`
             : `${fmt(ziel - Math.abs(roh), 0)} °C`;
+        // Darunter die eingestellte Spreizung selbst, so wie sie in der
+        // Waermepumpe steht.
+        const sp = this.shadowRoot.getElementById(`dlg-a${i}-sp`);
+        if (sp) {
+          sp.textContent = roh === null ? "" : tf(this._t("f_spreizung"), { v: fmt(roh, 0) });
+          sp.hidden = roh === null;
+        }
         return;
       }
       if (a.typ === "auswahl") {

@@ -75,6 +75,7 @@ export const TEXTE = {
   f_turbomodus: { de: "Turbomodus", en: "Powerful mode", fr: "Mode puissance", ja: "パワフル運転" },
   f_leisemodus: { de: "Leisemodus", en: "Quiet mode", fr: "Mode silencieux", ja: "静音運転" },
   f_heizkurve: { de: "Heizkurve", en: "Heat curve", fr: "Courbe de chauffe", ja: "暖房曲線" },
+  f_spreizung: { de: "Eingestellte Spreizung: {v} K", en: "Set spread: {v} K", fr: "Écart réglé : {v} K", ja: "設定された温度差：{v} K" },
   f_laedt_ab: { de: "Lädt ab", en: "Reheat at", fr: "Relance à", ja: "再加熱開始温度" },
   f_aussen_kalt: { de: "Außen kalt", en: "Outdoor, cold", fr: "Extérieur, froid", ja: "外気 低温" },
   f_aussen_warm: { de: "Außen warm", en: "Outdoor, warm", fr: "Extérieur, doux", ja: "外気 高温" },
