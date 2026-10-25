@@ -3,7 +3,7 @@
  * Verbrauch, SG Ready und Temperaturen.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { escapeHtml, fmt, groesster, kleinster } from "../hilfsfunktionen.js";
+import { escapeHtml, fmt, groesster, jePixel, kleinster } from "../hilfsfunktionen.js";
 
 /** Abmessungen der Zeichenflaeche im Fenster. */
 export const DW = 640;
@@ -87,13 +87,14 @@ export const diagrammeKarte = {
       <div class="lhc-dialog" id="dia-dialog" hidden>
         <div class="lhc-kurve-box lhc-dia-box" role="dialog" aria-modal="true" aria-labelledby="dia-titel">
           <div class="lhc-kurve-titel">
-            <span id="dia-titel">--</span>
+            <span class="lhc-zr-kopf"><span id="dia-titel">--</span><span class="lhc-zr-trenner">·</span>${this._zrAuswahl()}</span>
             <button type="button" class="lhc-dialog-close" id="dia-zu"
                     aria-label="${escapeHtml(this._t("f_schliessen"))}">&times;</button>
           </div>
           <div class="lhc-hilfe-chips" id="dia-reiter">
             ${reiter("verbrauch", this._t("verbrauch"))}${reiter("sg", "SG Ready")}${reiter("temp", this._t("d_temperaturen"))}${reiter("cop", "COP")}${reiter("takt", this._t("d_taktung"))}${reiter("analyse", this._t("d_analyse"))}
           </div>
+          <div class="lhc-zr-hinweis" id="dia-zr-hinweis" hidden></div>
           <svg viewBox="0 0 ${DW} ${DH}" class="lhc-dia-svg" id="dia-svg" preserveAspectRatio="xMidYMid meet">
             <g id="dia-verbrauch">${this._verlaufRahmen(20, 6, DW - 40, DH - 12)}</g>
             <g id="dia-sg"></g>
@@ -138,12 +139,18 @@ export const diagrammeKarte = {
     });
     const zu = sr.getElementById("dia-zu");
     if (zu) zu.addEventListener("click", () => this._schliesseDia());
+    const wahl = sr.getElementById("dia-zeitraum");
+    if (wahl) wahl.addEventListener("change", () => this._zrWechsel(wahl.value));
   },
 
   _oeffneDia(art) {
     const dlg = this.shadowRoot.getElementById("dia-dialog");
     if (!dlg) return;
     dlg.hidden = false;
+    // Beim Oeffnen frische Daten, beim Wechsel der Reiter gilt die
+    // Sperre von fuenf Minuten, sonst fragte jeder Klick ein Jahr neu ab.
+    this._verlaufZeit = 0;
+    this._auswertungZeit = 0;
     this._zeigeDia(art);
     const box = dlg.querySelector(".lhc-dia-box");
     if (box) {
@@ -160,6 +167,15 @@ export const diagrammeKarte = {
    */
   _diaVollLage(box, voll) {
     const st = box.style;
+    // Dreht sich das Handy oder aendert sich die Fenstergroesse, wird die
+    // Lage neu berechnet. Der Beobachter lebt nur, solange die Analyse offen ist.
+    if (voll && !this._diaGroesseRuf) {
+      this._diaGroesseRuf = () => this._diaVollLage(box, this._diaArt === "analyse");
+      window.addEventListener("resize", this._diaGroesseRuf);
+    } else if (!voll && this._diaGroesseRuf) {
+      window.removeEventListener("resize", this._diaGroesseRuf);
+      this._diaGroesseRuf = null;
+    }
     if (!voll) {
       ["position", "left", "top", "width", "height"].forEach((k) => st.removeProperty(k));
       return;
@@ -178,6 +194,8 @@ export const diagrammeKarte = {
   _schliesseDia() {
     const dlg = this.shadowRoot.getElementById("dia-dialog");
     if (dlg) dlg.hidden = true;
+    const box = dlg && dlg.querySelector(".lhc-dia-box");
+    if (box) this._diaVollLage(box, false);
     this._diaArt = null;
   },
 
@@ -186,13 +204,16 @@ export const diagrammeKarte = {
     const sr = this.shadowRoot;
     this._diaArt = art;
     const titel = {
-      verbrauch: this._t("verbrauch_24"),
-      sg: `SG Ready · ${this._t("d_24h")}`,
-      temp: `${this._t("d_temperaturen")} · ${this._t("d_24h")}`,
-      cop: `COP · ${this._t("d_24h")}`,
-      takt: `${this._t("d_taktung")} · ${this._t("d_24h")}`,
+      verbrauch: this._t("verbrauch"),
+      sg: "SG Ready",
+      temp: this._t("d_temperaturen"),
+      cop: "COP",
+      takt: this._t("d_taktung"),
       analyse: this._t("an_titel"),
     };
+    const wahl = sr.getElementById("dia-zeitraum");
+    if (wahl) wahl.value = this._zrSchluessel();
+    this._zrHinweis([]);
     sr.getElementById("dia-titel").textContent = titel[art] || "";
     sr.querySelectorAll("#dia-reiter button").forEach((b) =>
       b.classList.toggle("aktiv", b.dataset.reiter === art)
@@ -220,22 +241,18 @@ export const diagrammeKarte = {
     sr.getElementById("dia-svg").setAttribute("viewBox", `0 0 ${DW} ${hoch}`);
     sr.getElementById("dia-leer").setAttribute("y", String(hoch / 2));
     if (art === "verbrauch") {
-      this._verlaufZeit = 0;
       this._holeVerlauf();
       this._diaLeer(!(this._verlauf && this._verlauf.length >= 2));
     } else if (art === "sg") {
-      this._verlaufZeit = 0;
       this._holeVerlauf();
       this._zeichneDiaSg();
     } else if (art === "temp") {
       this._holeTemperaturen();
       this._zeichneDiaTemp();
     } else if (art === "cop" || art === "takt") {
-      this._auswertungZeit = 0;
       this._holeAuswertung();
       this._zeichneAuswertung();
     } else if (art === "analyse") {
-      this._auswertungZeit = 0;
       this._holeAuswertung();
       if (typeof this._ladeJaz === "function") this._ladeJaz();
       this._zeichneAnalyse();
@@ -253,37 +270,34 @@ export const diagrammeKarte = {
     if (this._diaArt === "sg") this._zeichneDiaSg();
   },
 
-  /** Beschriftung der Zeitachse alle sechs Stunden mit Uhrzeit. */
-  _diaZeitachse(links, rechts, y) {
-    const t1 = Date.now();
-    const t0 = t1 - 86400000;
-    let out = "";
-    for (let i = 0; i <= 4; i++) {
-      const t = t0 + (i * 86400000) / 4;
-      const x = links + (i / 4) * (rechts - links);
-      const d = new Date(t);
-      const text = i === 4 ? this._t("jetzt") : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-      const anker = i === 0 ? "start" : i === 4 ? "end" : "middle";
-      out += `<text class="value-sp verlauf-text" x="${x.toFixed(1)}" y="${y}" text-anchor="${anker}">${escapeHtml(text)}</text>`;
-    }
-    return out;
+  /** Beschriftung der Zeitachse mit fuenf Marken. */
+  _diaZeitachse(links, rechts, y, t0, t1) {
+    return this._zrAchse(links, rechts, y, t0, t1, 'class="value-sp verlauf-text"');
   },
 
-  /** Holt Vorlauf, Ruecklauf und Aussentemperatur der letzten 24 Stunden. */
+  /**
+   * Holt Vorlauf, Ruecklauf und Aussentemperatur im gewaehlten Zeitraum:
+   * bis 3 Tage aus dem Verlauf, darueber Mittelwerte mit Kleinst- und
+   * Groesstwert aus der Langzeitstatistik.
+   */
   _holeTemperaturen() {
     const jetzt = Date.now();
-    if (this._tempZeit && jetzt - this._tempZeit < 300000) return;
+    const sp = this._zrSpanne();
+    if (this._tempZeit && jetzt - this._tempZeit < 300000 && this._tempVerlauf && this._tempVerlauf.k === sp.k) return;
     this._tempZeit = jetzt;
     const felder = ["flow_temp", "return_temp", "outside_temp"];
     if (this._config.demo) {
-      const reihen = {};
+      const reihen = { k: sp.k, t0: sp.t0, t1: sp.t1, statistik: sp.statistik, periode: sp.periode };
+      const schritt = sp.statistik ? (sp.periode === "hour" ? 3600000 : 86400000) : 900000;
       felder.forEach((f, k) => {
         reihen[f] = [];
-        for (let i = 0; i <= 96; i++) {
-          const t = jetzt - 86400000 + i * 900000;
-          const basis = k === 0 ? 38 : k === 1 ? 32 : 6;
-          const welle = k === 2 ? Math.sin((i / 96) * Math.PI * 2 - 1.8) * 4 : Math.sin(i / 5) * 3;
-          reihen[f].push({ t, v: basis + welle });
+        for (let t = sp.t0; t <= sp.t1; t += schritt) {
+          // Tagesgang und Jahresgang, in sich stimmig.
+          const tag = ((t % 86400000) / 86400000) * Math.PI * 2;
+          const jahr = Math.cos(((new Date(t).getMonth() + 0.5) / 12) * Math.PI * 2);
+          const aussen = 6 + jahr * -6 + (sp.periode === "day" && sp.statistik ? 0 : Math.sin(tag - 1.8) * 4);
+          const v = k === 2 ? aussen : (k === 0 ? 38 : 32) - (aussen - 6) * 0.4 + Math.sin(t / 3.6e6 / 1.3) * (sp.statistik ? 0.8 : 3);
+          reihen[f].push({ t, v, min: v - (k === 2 ? 3 : 4), max: v + (k === 2 ? 3 : 5) });
         }
       });
       this._tempVerlauf = reihen;
@@ -296,33 +310,62 @@ export const diagrammeKarte = {
       this._zeichneDiaTemp();
       return;
     }
-    this._hass
-      .callWS({
-        type: "history/history_during_period",
-        start_time: new Date(jetzt - 86400000).toISOString(),
-        end_time: new Date(jetzt).toISOString(),
-        entity_ids: ids.filter(Boolean),
-        minimal_response: true,
-        no_attributes: true,
-      })
-      .then((antwort) => {
-        const reihen = {};
+    const ausVerlauf = (ab) =>
+      this._hass
+        .callWS({
+          type: "history/history_during_period",
+          start_time: new Date(ab).toISOString(),
+          end_time: new Date(sp.t1).toISOString(),
+          entity_ids: ids.filter(Boolean),
+          minimal_response: true,
+          no_attributes: true,
+        })
+        .then((antwort) => {
+          const reihen = { k: sp.k, t0: sp.t0, t1: sp.t1, statistik: false };
+          felder.forEach((f, i) => {
+            const id = ids[i];
+            reihen[f] = ((antwort && id && antwort[id]) || [])
+              .map((p) => ({
+                t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
+                v: parseFloat(p.s !== undefined ? p.s : p.state),
+              }))
+              .filter((p) => !Number.isNaN(p.v) && !Number.isNaN(p.t));
+          });
+          return reihen;
+        });
+    const aktuell = () => this._zrSchluessel() === sp.k;
+    const fertig = (reihen) => {
+      if (!aktuell()) return;
+      this._tempVerlauf = reihen;
+      this._zeichneDiaTemp();
+    };
+    const fehler = () => {
+      if (!aktuell()) return;
+      this._tempVerlauf = null;
+      this._zeichneDiaTemp();
+    };
+    if (!sp.statistik) {
+      ausVerlauf(sp.t0).then(fertig).catch(fehler);
+      return;
+    }
+    this._zrStatistik(ids.filter(Boolean), sp, true)
+      .then((stat) => {
+        if (!aktuell()) return null;
+        // Ohne Langzeitstatistik bleibt der Verlauf, so weit er reicht.
+        if (!ids.some((id) => id && stat[id] && stat[id].length)) return ausVerlauf(sp.tVerlauf).then(fertig);
+        const reihen = { k: sp.k, t0: sp.t0, t1: sp.t1, statistik: true, periode: sp.periode };
         felder.forEach((f, i) => {
           const id = ids[i];
-          reihen[f] = ((antwort && id && antwort[id]) || [])
-            .map((p) => ({
-              t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-              v: parseFloat(p.s !== undefined ? p.s : p.state),
-            }))
-            .filter((p) => !Number.isNaN(p.v) && !Number.isNaN(p.t));
+          reihen[f] = ((id && stat[id]) || []).map((z) => ({
+            t: (z.t0 + z.t1) / 2,
+            v: z.v,
+            min: Number.isFinite(z.min) ? z.min : z.v,
+            max: Number.isFinite(z.max) ? z.max : z.v,
+          }));
         });
-        this._tempVerlauf = reihen;
-        this._zeichneDiaTemp();
+        return fertig(reihen);
       })
-      .catch(() => {
-        this._tempVerlauf = null;
-        this._zeichneDiaTemp();
-      });
+      .catch(fehler);
   },
 
   /** Drei Linien in einem gemeinsamen Massstab. */
@@ -342,15 +385,21 @@ export const diagrammeKarte = {
       return;
     }
     this._diaLeer(false);
-    const alle = arten.flatMap(([f]) => reihen[f].map((p) => p.v));
+    const alle = arten.flatMap(([f]) => reihen[f].flatMap((p) => (reihen.statistik ? [p.v, p.min, p.max] : [p.v])));
     // Runde Schritte von 5, 10 oder 20 Grad, damit die Achse lesbar bleibt.
     const roh = (groesster(alle) - kleinster(alle)) / 4;
     const schritt = roh <= 5 ? 5 : roh <= 10 ? 10 : 20;
     const min = Math.floor(kleinster(alle) / schritt) * schritt;
     let max = Math.ceil(groesster(alle) / schritt) * schritt;
     if (max - min < schritt * 2) max = min + schritt * 2;
-    const t1 = Date.now();
-    const t0 = t1 - 86400000;
+    const t1 = reihen.t1 || Date.now();
+    // Liegt der Verlauf nicht so weit zurueck, beginnt die Achse mit den Daten.
+    const erster = kleinster(arten.map(([f]) => reihen[f][0].t));
+    const t0 = reihen.statistik ? reihen.t0 : Math.max(reihen.t0 || t1 - 86400000, Math.min(erster, t1 - 3600000));
+    this._zrHinweis([
+      reihen.statistik ? this._zrStatText(reihen.periode) : "",
+      reihen.statistik ? "" : this._zrLueckeText(erster, this._zrSpanne()),
+    ]);
     const links = 56;
     const rechts = DW - 20;
     const oben = 16;
@@ -370,7 +419,15 @@ export const diagrammeKarte = {
         // bis zum naechsten. Eine schraege Verbindung wuerde Zwischenwerte
         // vortaeuschen, und Vor- und Ruecklauf koennten sich scheinbar
         // kreuzen, weil sie zu verschiedenen Zeitpunkten wechseln.
-        const pkt = reihen[f].filter((p) => p.t >= t0);
+        const pkt = jePixel(reihen[f].filter((p) => p.t >= t0), px);
+        // Mittelwerte aus der Statistik als Linie mit Band von Kleinst- bis Groesstwert.
+        if (reihen.statistik) {
+          const linie = pkt.map((p, i) => `${i ? "L" : "M"}${px(p.t).toFixed(1)} ${py(p.v).toFixed(1)}`).join("");
+          const band = pkt.map((p, i) => `${i ? "L" : "M"}${px(p.t).toFixed(1)} ${py(p.max).toFixed(1)}`).join("") +
+            pkt.slice().reverse().map((p) => `L${px(p.t).toFixed(1)} ${py(p.min).toFixed(1)}`).join("") + "Z";
+          return `<path d="${band}" fill="${farbe}" opacity="0.12"/>
+            <path d="${linie}" fill="none" stroke="${farbe}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+        }
         const d = pkt
           .map((p, i) =>
             i ? `H${px(p.t).toFixed(1)}V${py(p.v).toFixed(1)}` : `M${px(p.t).toFixed(1)} ${py(p.v).toFixed(1)}`
@@ -379,16 +436,18 @@ export const diagrammeKarte = {
         return `<path d="${d}" fill="none" stroke="${farbe}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
       })
       .join("");
-    g.innerHTML = `${raster}${linien}${this._diaZeitachse(links, rechts, DH - 12)}`;
+    g.innerHTML = `${raster}${linien}${this._diaZeitachse(links, rechts, DH - 12, t0, t1)}`;
     // Liste mit dem aktuellen, kleinsten und groessten Wert je Linie.
     sr.getElementById("dia-liste").innerHTML = arten
       .map(([f, farbe, name]) => {
         const werte = reihen[f].map((p) => p.v);
         const jetzt = werte[werte.length - 1];
+        const unten2 = reihen.statistik ? kleinster(reihen[f].map((p) => p.min)) : kleinster(werte);
+        const oben2 = reihen.statistik ? groesster(reihen[f].map((p) => p.max)) : groesster(werte);
         return `<div class="lhc-dia-zeile"><span class="lhc-dia-farbe" style="background:${farbe}"></span>
           <span>${escapeHtml(name)}</span>
           <b>${fmt(jetzt, 1)} °C</b>
-          <em>${fmt(kleinster(werte), 1)} … ${fmt(groesster(werte), 1)} °C</em></div>`;
+          <em>${fmt(unten2, 1)} … ${fmt(oben2, 1)} °C</em></div>`;
       })
       .join("");
   },

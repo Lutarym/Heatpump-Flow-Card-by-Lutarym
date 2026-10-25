@@ -15,9 +15,10 @@
  * Die Schwellen fuer "einige" und "viele" kurze Laeufe (30 Prozent, zwei
  * Laeufe unter 6 Minuten) sind eigene Festlegungen der Karte.
  */
-import { escapeHtml, fmt, groesster, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
+import { escapeHtml, fmt, groesster, indexBis, jePixel, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 import { DW } from "./diagramme.js";
+import { zeitRaster } from "./zeitraum.js";
 
 const HOEHE = { cop: 326, takt: 372 };
 
@@ -49,7 +50,7 @@ function bewertung(minuten) {
  */
 const GUETEGRAD = 0.42;
 
-export function erwarteterCop(aussen, vorlauf) {
+function erwarteterCop(aussen, vorlauf) {
   if (aussen === null || vorlauf === null) return null;
   const hub = vorlauf - aussen;
   if (hub < 5) return null;
@@ -71,7 +72,8 @@ const COP_FARBE = { gut: "#22C55E", rahmen: "#84CC16", unter: "#F59E0B", schlech
 export function mittel(reihe, von, bis, nurPositiv) {
   let summe = 0;
   let dauer = 0;
-  for (let i = 0; i < reihe.length; i++) {
+  // Erst ab dem Eintrag, der zu Beginn gilt; danach nur bis zum Ende.
+  for (let i = Math.max(0, indexBis(reihe, von)); i < reihe.length && reihe[i].t < bis; i++) {
     const a = Math.max(reihe[i].t, von);
     const b = Math.min(i + 1 < reihe.length ? reihe[i + 1].t : bis, bis);
     if (b <= a) continue;
@@ -85,12 +87,8 @@ export function mittel(reihe, von, bis, nurPositiv) {
 
 /** Wert einer Reihe zu einem Zeitpunkt (letzter Stand davor). */
 function stand(reihe, t) {
-  let s = null;
-  for (const p of reihe) {
-    if (p.t > t) break;
-    s = p;
-  }
-  return s;
+  const i = indexBis(reihe, t);
+  return i >= 0 ? reihe[i] : null;
 }
 
 export const auswertungKarte = {
@@ -101,9 +99,12 @@ export const auswertungKarte = {
   /** Holt die Verlaeufe hoechstens alle fuenf Minuten. */
   _holeAuswertung() {
     const jetzt = Date.now();
-    if (this._auswertungZeit && jetzt - this._auswertungZeit < 300000) return;
+    const sp = this._zrSpanne();
+    if (this._auswertungZeit && jetzt - this._auswertungZeit < 300000 && this._auswertungK === sp.k) return;
     this._auswertungZeit = jetzt;
-    const t0 = jetzt - 86400000;
+    this._auswertungK = sp.k;
+    // Laeufe brauchen den Verlauf, hoechstens 31 Tage zurueck.
+    const t0 = sp.tVerlauf;
     if (this._config.demo) {
       this._auswertung = this._auswertungDemo(t0, jetzt);
       this._zeichneAuswertung();
@@ -129,6 +130,8 @@ export const auswertungKarte = {
         no_attributes: true,
       })
       .then((antwort) => {
+        // Inzwischen anderer Zeitraum gewaehlt: Antwort verwerfen.
+        if (this._zrSchluessel() !== sp.k) return;
         const reihe = (id) =>
           ((antwort && id && antwort[id]) || [])
             .map((p) => ({
@@ -138,10 +141,14 @@ export const auswertungKarte = {
             .filter((p) => !Number.isNaN(p.t))
             .map((p) => ({ ...p, v: parseFloat(p.s) }));
         const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern] = ids.map(reihe);
-        this._auswertung = { t0, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern };
+        // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
+        const erster = vd.length ? vd[0].t : t0;
+        const t0e = erster - t0 > 3600000 ? Math.min(erster, jetzt - 3600000) : t0;
+        this._auswertung = { t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern };
         this._zeichneAuswertung();
       })
       .catch(() => {
+        if (this._zrSchluessel() !== sp.k) return;
         this._auswertung = null;
         this._zeichneAuswertung();
       });
@@ -149,8 +156,24 @@ export const auswertungKarte = {
 
   /** Nachgebildete Daten fuer den Demomodus. */
   _auswertungDemo(t0, t1) {
+    // Ueber mehrere Tage: jeder Tag nach demselben Muster, etwas kaelter
+    // oder milder, aneinandergehaengt.
+    if (t1 - t0 > 1.05 * 86400000) {
+      const tage = [];
+      for (let a = t1 - 86400000; a > t0 - 1; a -= 86400000) tage.unshift(a);
+      const teile = tage.map((a, k) => this._auswertungDemoTag(a, a + 86400000, (k % 5) - 2 - (tage.length - k) * 0.05));
+      const out = { t0: tage[0], t1 };
+      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern"].forEach((f) => {
+        out[f] = teile.flatMap((x) => x[f]).sort((x, y) => x.t - y.t);
+      });
+      return out;
+    }
+    return this._auswertungDemoTag(t0, t1, 0);
+  },
+
+  _auswertungDemoTag(t0, t1, versatz) {
     const h = 3600000;
-    const aussenBei = (t) => 5.5 - 3.5 * Math.cos(((t - t0) / h - 14) / 24 * 2 * Math.PI);
+    const aussenBei = (t) => 5.5 + versatz - 3.5 * Math.cos(((t - t0) / h - 14) / 24 * 2 * Math.PI);
     const vd = [{ t: t0, s: "0", v: 0 }];
     const ventil = [{ t: t0, s: "0", v: 0 }];
     const copH = [{ t: t0, s: "0", v: 0 }];
@@ -190,6 +213,14 @@ export const auswertungKarte = {
    * Lauf wird gekennzeichnet und nicht bewertet.
    */
   _auswertungLaeufe(d) {
+    // Je Datensatz nur einmal rechnen: Fenster und Analyse fragen mehrfach.
+    if (this._laeufeCache && this._laeufeCache.d === d) return this._laeufeCache.laeufe;
+    const laeufe = this._auswertungLaeufeRechnen(d);
+    this._laeufeCache = { d, laeufe };
+    return laeufe;
+  },
+
+  _auswertungLaeufeRechnen(d) {
     const laeuft = (p) => {
       const n = parseFloat(p.s);
       if (!Number.isNaN(n)) return n > 0;
@@ -255,17 +286,14 @@ export const auswertungKarte = {
       .join("");
   },
 
-  /** Kleine Zeitachse mit Uhrzeiten. */
-  _auswertungAchse(links, rechts, y, t0) {
-    let out = "";
-    for (let i = 0; i <= 4; i++) {
-      const x = links + (i / 4) * (rechts - links);
-      const d = new Date(t0 + (i * 86400000) / 4);
-      const text = i === 4 ? this._t("jetzt") : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-      const anker = i === 0 ? "start" : i === 4 ? "end" : "middle";
-      out += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="${anker}" font-size="11" fill="#7E8CA0">${escapeHtml(text)}</text>`;
-    }
-    return out;
+  /** Kleine Zeitachse mit fuenf Marken. */
+  _auswertungAchse(links, rechts, y, t0, t1) {
+    return this._zrAchse(links, rechts, y, t0, t1, 'font-size="11" fill="#7E8CA0"');
+  },
+
+  /** Hinweis, ab wann Laeufe vorliegen und dass sie hoechstens 31 Tage reichen. */
+  _auswertungHinweis(d) {
+    this._zrHinweis([this._zrLueckeText(d.t0, this._zrSpanne())]);
   },
 
   /** Zeichnet die gerade offene Auswertung neu. */
@@ -282,6 +310,7 @@ export const auswertungKarte = {
     const liste = sr.getElementById("dia-liste");
     const d = this._auswertung;
     const laeufe = d ? this._auswertungLaeufe(d) : [];
+    if (d) this._auswertungHinweis(d);
     if (!d || !laeufe.length) {
       g.innerHTML = "";
       if (liste) liste.textContent = "";
@@ -382,7 +411,7 @@ export const auswertungKarte = {
     }
     out += `<text x="${links - 8}" y="${oben - 10}" text-anchor="end" font-size="10.5" fill="#7E8CA0">COP</text>`;
     // Aussentemperatur gestrichelt mit eigener Skala rechts.
-    const aw = d.aussen.filter((p) => !Number.isNaN(p.v));
+    const aw = jePixel(d.aussen.filter((p) => !Number.isNaN(p.v)), zuX);
     if (aw.length >= 2) {
       const aMin = Math.floor(kleinster(aw.map((p) => p.v))) - 1;
       const aMax = Math.ceil(groesster(aw.map((p) => p.v))) + 1;
@@ -401,13 +430,20 @@ export const auswertungKarte = {
     // Ring in der Farbe der Bewertung.
     let zuletztX = -Infinity;
     let zuletztY = -Infinity;
+    // Bei vielen Laeufen (laengere Zeitraeume) ohne Zahlen und Verbindungen,
+    // sonst ueberdecken sie sich; die Werte stehen im Tooltip.
+    const viele = mitCop.length > 60;
     mitCop.forEach((l) => {
       const x = zuX((l.von + l.bis) / 2);
       const y = zuY(l.cop);
-      const r = 4 + Math.min(9, l.minuten / 6);
+      const r = mitCop.length > 60 ? 3 : 4 + Math.min(9, l.minuten / 6);
       const farbe = l.ww ? FARBE.ww : FARBE.heiz;
       const stufe = copStufe(l.copQuote);
-      if (l.copErwartet !== null) {
+      if (l.copErwartet !== null && viele) {
+        const ye = zuY(l.copErwartet);
+        out += `<line x1="${(x - 3).toFixed(1)}" x2="${(x + 3).toFixed(1)}" y1="${ye.toFixed(1)}" y2="${ye.toFixed(1)}"
+                      stroke="#C9D3E0" stroke-width="1.5" opacity="0.6"/>`;
+      } else if (l.copErwartet !== null) {
         const ye = zuY(l.copErwartet);
         out += `<line x1="${(x - r - 3).toFixed(1)}" x2="${(x + r + 3).toFixed(1)}" y1="${ye.toFixed(1)}" y2="${ye.toFixed(1)}"
                       stroke="#C9D3E0" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
@@ -418,13 +454,13 @@ export const auswertungKarte = {
       }${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""}`;
       out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${farbe}" opacity="0.88"
                       ${stufe ? `stroke="${COP_FARBE[stufe]}" stroke-width="2.5"` : ""}><title>${escapeHtml(titel)}</title></circle>`;
-      if (x - zuletztX >= 26 || Math.abs(y - zuletztY) >= 16) {
+      if (!viele && (x - zuletztX >= 26 || Math.abs(y - zuletztY) >= 16)) {
         out += `<text x="${x.toFixed(1)}" y="${(y - r - 5).toFixed(1)}" text-anchor="middle" font-size="10" fill="#C9D3E0">${fmt(l.cop, 1)}</text>`;
         zuletztX = x;
         zuletztY = y;
       }
     });
-    out += this._auswertungAchse(links, rechts, 296, d.t0);
+    out += this._auswertungAchse(links, rechts, 296, d.t0, d.t1);
     out += `<g font-size="11">
         <circle cx="${links}" cy="312" r="4" fill="${FARBE.heiz}"/><text x="${links + 8}" y="316" fill="#C9D3E0">${escapeHtml(this._t("heizung"))}</text>
         <circle cx="${links + 86}" cy="312" r="4" fill="${FARBE.ww}"/><text x="${links + 94}" y="316" fill="#C9D3E0">${escapeHtml(this._t("warmwasser"))}</text>
@@ -472,6 +508,9 @@ export const auswertungKarte = {
     for (let i = 1; i < laeufe.length; i++) pausen.push((laeufe[i].von - laeufe[i - 1].bis) / 60000);
     const mPause = pausen.length ? pausen.reduce((s, p) => s + p, 0) / pausen.length : null;
     const anteil = bewertet.length ? kurz.length / bewertet.length : 0;
+    // Starts je Tag, damit der Richtwert von rund 15 auch ueber Tage gilt.
+    const tage = Math.max((d.t1 - d.t0) / 86400000, 1);
+    const jeTag = n / tage;
 
     // Kurze Laeufe nach Aussentemperatur: unter 5 °C ist die Heizlast hoch,
     // ab 10 °C liegt sie oft unter der kleinsten Leistung der Waermepumpe.
@@ -481,7 +520,7 @@ export const auswertungKarte = {
     // Gesamturteil nach den Richtwerten.
     let stufe = "ok";
     let titel = "a_t_ok";
-    if (anteil >= 0.3 || sehrKurz.length >= 2) {
+    if (anteil >= 0.3 || sehrKurz.length / tage >= 2) {
       if (kurzKalt.length >= Math.ceil(kurz.length / 2)) {
         stufe = "rot";
         titel = "a_t_kalt";
@@ -492,7 +531,7 @@ export const auswertungKarte = {
         stufe = "rot";
         titel = "a_t_viele";
       }
-    } else if (n > 15) {
+    } else if (jeTag > 15) {
       stufe = "gelb";
       titel = "a_t_starts";
     } else if (kurz.length) {
@@ -506,7 +545,7 @@ export const auswertungKarte = {
         : tf(this._t("a_t_kurz_d"), { k: kurz.length, n: bewertet.length, s: sehrKurz.length });
     let out = this._auswertungUrteil(farbe, stufe === "ok", this._t(titel), unterzeile);
     out += this._auswertungKacheln(60, [
-      [String(n), this._t("a_t_starts_k")],
+      [tage > 1.5 ? `${n} · ${fmt(jeTag, 0)}/d` : String(n), this._t("a_t_starts_k")],
       [mLauf === null ? "--" : `${fmt(mLauf, 0)} min`, this._t("a_t_lauf")],
       [mPause === null ? "--" : `${fmt(mPause, 0)} min`, this._t("a_t_pause")],
       [String(kurz.length), this._t("a_t_kurz_k"), kurz.length ? "#F59E0B" : "#E8EDF4"],
@@ -529,7 +568,7 @@ export const auswertungKarte = {
       }><title>${escapeHtml(titelL)}</title></rect>`;
     });
     // Aussentemperatur als Linie.
-    const aw = d.aussen.filter((p) => !Number.isNaN(p.v));
+    const aw = jePixel(d.aussen.filter((p) => !Number.isNaN(p.v)), zuX);
     out += `<text x="${links}" y="186" font-size="11" fill="${FARBE.aussen}">${escapeHtml(this._t("aussentemperatur"))}</text>`;
     if (aw.length >= 2) {
       const aMin = kleinster(aw.map((p) => p.v));
@@ -576,33 +615,40 @@ export const auswertungKarte = {
     });
 
     // Starts je Stunde: Farbe nach dem kuerzesten Lauf, der in der Stunde beginnt.
-    out += `<text x="${links}" y="322" font-size="11" fill="#98A6BA">${escapeHtml(this._t("a_t_stunde"))}</text>`;
-    const schritt = (rechts - links) / 24;
+    // Starts je Fach: 24 Stunden je Stunde, laenger je 3 Stunden, Tag, Woche.
+    const raster = zeitRaster(d.t0, d.t1);
+    const fachText = { stunde: "a_t_stunde", drei: "a_t_f_drei", tag: "a_t_f_tag", woche: "a_t_f_woche", monat: "a_t_f_monat" }[raster.art];
+    out += `<text x="${links}" y="322" font-size="11" fill="#98A6BA">${escapeHtml(this._t(fachText))}</text>`;
     const rang = { sehrKurz: 0, kurz: 1, gut: 2, sehrGut: 3 };
-    for (let i = 0; i < 24; i++) {
-      const von = d.t0 + i * 3600000;
-      const imFach = laeufe.filter((l) => !l.angeschnitten && l.von >= von && l.von < von + 3600000);
+    const nF = raster.grenzen.length - 1;
+    for (let i = 0; i < nF; i++) {
+      const von = raster.grenzen[i];
+      const bis = raster.grenzen[i + 1];
+      const imFach = laeufe.filter((l) => !l.angeschnitten && l.von >= von && l.von < bis);
       let f = FARBE.leer;
       if (imFach.length) {
         const schlecht = imFach.reduce((a, l) => (rang[l.bewertung] < rang[a.bewertung] ? l : a), imFach[0]);
         f = FARBE[schlecht.bewertung];
       }
-      const x = links + i * schritt + 1;
-      out += `<rect x="${x.toFixed(1)}" y="328" width="${(schritt - 2).toFixed(1)}" height="14" rx="4" fill="${f}"><title>${escapeHtml(
-        tf(this._t("a_t_stunde_t"), { n: imFach.length })
+      const xa = links + ((von - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links) + 1;
+      const xb = links + ((bis - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links) - 1;
+      const w = Math.max(1, xb - xa);
+      const zeitText = raster.art === "stunde" ? "" : `${this._zrMarke(von, d.t1 - d.t0)} · `;
+      out += `<rect x="${xa.toFixed(1)}" y="328" width="${w.toFixed(1)}" height="14" rx="4" fill="${f}"><title>${escapeHtml(
+        zeitText + tf(this._t("a_t_stunde_t"), { n: imFach.length })
       )}</title></rect>`;
-      if (imFach.length >= 2) {
-        out += `<text x="${(x + (schritt - 2) / 2).toFixed(1)}" y="339" text-anchor="middle" font-size="10" font-weight="700" fill="#0A0E14">${imFach.length}</text>`;
+      if (imFach.length >= 2 && w >= String(imFach.length).length * 6 + 4) {
+        out += `<text x="${(xa + w / 2).toFixed(1)}" y="339" text-anchor="middle" font-size="10" font-weight="700" fill="#0A0E14">${imFach.length}</text>`;
       }
     }
-    out += this._auswertungAchse(links, rechts, 362, d.t0);
+    out += this._auswertungAchse(links, rechts, 362, d.t0, d.t1);
     g.innerHTML = out;
 
     // Ausfuehrliche Bewertung mit Begruendung und Quelle unter dem Bild.
     if (liste) {
       const saetze = [];
       if (stufe !== "ok") saetze.push(tf(this._t("a_t_kurz_d"), { k: kurz.length, n: bewertet.length, s: sehrKurz.length }));
-      if (n > 15) saetze.push(tf(this._t("a_t_starts_d"), { n }));
+      if (jeTag > 15) saetze.push(tf(this._t("a_t_starts_d"), { n: fmt(jeTag, 0) }));
       if (kurzKalt.length) saetze.push(tf(this._t("a_t_kalt_d"), { k: kurzKalt.length }));
       if (kurzMild.length) saetze.push(tf(this._t("a_t_mild_d"), { k: kurzMild.length }));
       if (stufe !== "ok") saetze.push(this._t("a_t_rat"));

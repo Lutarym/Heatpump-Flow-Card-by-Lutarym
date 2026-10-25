@@ -2,7 +2,7 @@
  * Verbrauchsverlauf der letzten 24 Stunden.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { attr, clamp, fmt, groesster, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
+import { attr, clamp, fmt, groesster, indexBis, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { NEUTRAL, SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
 
@@ -90,7 +90,7 @@ export const verlaufKarte = {
         <g id="verlauf-sg"></g>
         <text class="hinweis-s" id="verlauf-sg-leer" x="${x}"
               y="${y + hoehe - 26}" dominant-baseline="middle" opacity="0">${this._t("kein_verlauf")}</text>
-        <text class="value-sp verlauf-text" x="${x}" y="${y + hoehe - 4}">${this._t("vor_24h")}</text>
+        <text class="value-sp verlauf-text" id="verlauf-start" x="${x}" y="${y + hoehe - 4}">${this._t("vor_24h")}</text>
         <text class="value-sp verlauf-text" x="${x + breite}" y="${y + hoehe - 36}"
               text-anchor="end"><tspan fill="#FF5F52">${this._t("heizung")}</tspan><tspan fill="#7E8CA0"> · </tspan><tspan fill="#4D9BFF">${this._t("warmwasser")}</tspan><tspan fill="#7E8CA0"> · ${this._t("standby")}</tspan></text>
         <text class="value-sp verlauf-text" x="${x + breite}" y="${y + hoehe - 4}"
@@ -99,33 +99,22 @@ export const verlaufKarte = {
   },
 
   /**
-   * Holt den Verlauf aus Home Assistant.  /**
    * Holt den Verlauf aus Home Assistant. Hoechstens alle fuenf Minuten,
-   * damit die Abfrage die Oberflaeche nicht belastet.
+   * damit die Abfrage die Oberflaeche nicht belastet. Der Zeitraum kommt
+   * aus der Auswahl im Fenster: bis 3 Tage der Verlauf, darueber
+   * Mittelwerte aus der Langzeitstatistik. SG Ready, Ventil und Verdichter
+   * gibt es nur im Verlauf, sie reichen so weit zurueck wie dieser.
    */
   _holeVerlauf() {
     const jetzt = Date.now();
-    if (this._verlaufZeit && jetzt - this._verlaufZeit < 300000) return;
+    const sp = this._zrSpanne();
+    if (this._verlaufZeit && jetzt - this._verlaufZeit < 300000 && this._verlaufK === sp.k) return;
     this._verlaufZeit = jetzt;
+    this._verlaufK = sp.k;
+    this._verlaufSp = sp;
 
     if (this._config.demo) {
-      // Im Demomodus ein nachgebildeter Tagesverlauf.
-      const punkte = [];
-      const start = jetzt - 86400000;
-      for (let i = 0; i <= 96; i++) {
-        const stunde = (i / 4) % 24;
-        const grund = stunde > 5 && stunde < 9 ? 2.4 : stunde > 16 && stunde < 21 ? 1.8 : 0.4;
-        punkte.push({ t: start + i * 900000, v: Math.max(0, grund + Math.sin(i / 3) * 0.5) });
-      }
-      this._verlauf = punkte;
-      // Nachgebildeter SG-Ready-Verlauf: meist normal, mittags
-      // Einschaltempfehlung und Anlauf, abends kurz gesperrt.
-      const h = 3600000;
-      this._sgVerlauf = [
-        { t: start, stufe: 2 }, { t: start + 10 * h, stufe: 3 }, { t: start + 12 * h, stufe: 4 },
-        { t: start + 13.5 * h, stufe: 3 }, { t: start + 15 * h, stufe: 2 },
-        { t: start + 18 * h, stufe: 1 }, { t: start + 19 * h, stufe: 2 },
-      ];
+      this._verlaufDemo(sp);
       this._zeichneVerlauf();
       return;
     }
@@ -137,89 +126,198 @@ export const verlaufKarte = {
     const vd = this._e("compressor");
     if (!id || !this._hass || typeof this._hass.callWS !== "function") {
       this._verlauf = null;
+      this._verlaufStat = null;
       this._zeichneVerlauf();
       return;
     }
-    const ende = new Date();
-    const start = new Date(ende.getTime() - 86400000);
-    this._hass
-      .callWS({
+    const historie = (mitLeistung, ab) =>
+      this._hass.callWS({
         type: "history/history_during_period",
-        start_time: start.toISOString(),
-        end_time: ende.toISOString(),
-        entity_ids: [id, vid, k1, k2, vd].filter(Boolean),
+        start_time: new Date(ab).toISOString(),
+        end_time: new Date(sp.t1).toISOString(),
+        entity_ids: [mitLeistung ? id : null, vid, k1, k2, vd].filter(Boolean),
         minimal_response: true,
         no_attributes: true,
-      })
-      .then((antwort) => {
-        // Aus beiden Kontakten ergibt sich der SG-Ready-Zustand. Die
-        // Zeitpunkte beider Reihen werden zusammengefuehrt.
-        const punkte = (eid) =>
-          ((antwort && eid && antwort[eid]) || [])
-            .map((pkt) => ({
-              t: pkt.lu ? pkt.lu * 1000 : Date.parse(pkt.last_changed),
-              an: ["on", "true", "1"].includes(
-                String(pkt.s !== undefined ? pkt.s : pkt.state).toLowerCase()
-              ),
-            }))
-            .filter((pkt) => !Number.isNaN(pkt.t));
-        const r1 = punkte(k1);
-        const r2 = punkte(k2);
-        if (r1.length && r2.length) {
-          const zeiten = [...new Set([...r1, ...r2].map((pkt) => pkt.t))].sort(
-            (x, y) => x - y
-          );
-          const standBei = (reihe, t) => {
-            let s = reihe[0].an;
-            for (const pkt of reihe) {
-              if (pkt.t > t) break;
-              s = pkt.an;
-            }
-            return s;
-          };
-          this._sgVerlauf = zeiten.map((t) => {
-            const a1 = standBei(r1, t);
-            const a2 = standBei(r2, t);
-            // Gleiche Zuordnung wie in der Anzeige der Karte.
-            let stufe = 2;
-            if (a1 && !a2) stufe = 1;
-            else if (!a1 && a2) stufe = 3;
-            else if (a1 && a2) stufe = 4;
-            return { t, stufe };
-          });
-        } else {
-          this._sgVerlauf = null;
-        }
-
-        // Laeuft der Verdichter nicht, ist die Anlage im Standby, egal
-        // wie das Umschaltventil steht.
-        this._verdichterVerlauf = ((antwort && vd && antwort[vd]) || [])
-          .map((pkt) => ({
-            t: pkt.lu ? pkt.lu * 1000 : Date.parse(pkt.last_changed),
-            laeuft: zustandAn(pkt.s !== undefined ? pkt.s : pkt.state) === true,
-          }))
-          .filter((pkt) => !Number.isNaN(pkt.t));
-
-        // Der Ventilverlauf sagt, wohin in dieser Zeit geladen wurde.
-        this._ventilVerlauf = ((antwort && vid && antwort[vid]) || [])
-          .map((p) => ({
-            t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-            ww: warmwasserZustand(p.s !== undefined ? p.s : p.state) === true,
-          }))
-          .filter((p) => !Number.isNaN(p.t));
-        const reihe = (antwort && antwort[id]) || [];
-        this._verlauf = reihe
-          .map((p) => ({
-            t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-            v: parseFloat(p.s !== undefined ? p.s : p.state),
-          }))
-          .filter((p) => !Number.isNaN(p.v) && !Number.isNaN(p.t));
-        this._zeichneVerlauf();
-      })
-      .catch(() => {
-        this._verlauf = null;
-        this._zeichneVerlauf();
       });
+    // Antworten zu einem inzwischen gewechselten Zeitraum verwerfen.
+    const aktuell = () => this._zrSchluessel() === sp.k;
+    const fehler = () => {
+      if (!aktuell()) return;
+      this._verlauf = null;
+      this._verlaufStat = null;
+      this._zeichneVerlauf();
+    };
+    if (!sp.statistik) {
+      historie(true, sp.t0)
+        .then((antwort) => {
+          if (!aktuell()) return;
+          this._verlaufStat = null;
+          this._verlaufAusHistorie(antwort, { id, vid, k1, k2, vd });
+          this._zeichneVerlauf();
+        })
+        .catch(fehler);
+      return;
+    }
+    // Leistung aus der Langzeitstatistik, dazu die Leistungsaufnahme fuer
+    // Heizen und Warmwasser, wenn die Anlage sie getrennt meldet.
+    const quellen = typeof this._jazQuellen === "function" ? this._jazQuellen() : null;
+    const hE = quellen && !quellen.demo && quellen.heizen ? quellen.heizen.e : null;
+    const wE = quellen && !quellen.demo && quellen.ww ? quellen.ww.e : null;
+    Promise.all([this._zrStatistik([id, hE, wE].filter(Boolean), sp, false), historie(false, sp.tVerlauf)])
+      .then(([stat, antwort]) => {
+        if (!aktuell()) return null;
+        if (!(stat[id] && stat[id].length)) {
+          // Keine Langzeitstatistik fuer die Leistung: der Verlauf, so weit er reicht.
+          return historie(true, sp.tVerlauf).then((a2) => {
+            if (!aktuell()) return;
+            this._verlaufStat = null;
+            this._verlaufAusHistorie(a2, { id, vid, k1, k2, vd });
+            this._zeichneVerlauf();
+          });
+        }
+        this._verlaufAusHistorie(antwort, { id: null, vid, k1, k2, vd });
+        this._verlaufAusStatistik(stat[id], hE ? stat[hE] : null, wE ? stat[wE] : null);
+        this._zeichneVerlauf();
+        return null;
+      })
+      .catch(fehler);
+  },
+
+  /** Nachgebildete Daten fuer den Demomodus, passend zum Zeitraum. */
+  _verlaufDemo(sp) {
+    const h = 3600000;
+    // SG Ready: jeden Tag dasselbe Muster, meist normal, mittags
+    // Einschaltempfehlung und Anlauf, abends kurz gesperrt.
+    const sg = [];
+    for (let tag = sp.tVerlauf; tag < sp.t1; tag += 24 * h) {
+      sg.push(
+        { t: tag, stufe: 2 }, { t: tag + 10 * h, stufe: 3 }, { t: tag + 12 * h, stufe: 4 },
+        { t: tag + 13.5 * h, stufe: 3 }, { t: tag + 15 * h, stufe: 2 },
+        { t: tag + 18 * h, stufe: 1 }, { t: tag + 19 * h, stufe: 2 }
+      );
+    }
+    this._sgVerlauf = sg.filter((e) => e.t < sp.t1);
+    this._ventilVerlauf = null;
+    this._verdichterVerlauf = null;
+    if (!sp.statistik) {
+      const punkte = [];
+      for (let t = sp.t0; t <= sp.t1; t += 900000) {
+        const d = new Date(t);
+        const stunde = d.getHours() + d.getMinutes() / 60;
+        const grund = stunde > 5 && stunde < 9 ? 2.4 : stunde > 16 && stunde < 21 ? 1.8 : 0.4;
+        punkte.push({ t, v: Math.max(0, grund + Math.sin(t / 2700000) * 0.5) });
+      }
+      this._verlauf = punkte;
+      this._verlaufStat = null;
+      return;
+    }
+    // Mittelwerte in kW, im Winter hoeher als im Sommer.
+    const schritt = sp.periode === "hour" ? h : 24 * h;
+    const leistung = [];
+    const heiz = [];
+    const ww = [];
+    for (let t = sp.t0; t < sp.t1; t += schritt) {
+      const d = new Date(t);
+      const winter = 0.5 + 0.5 * Math.cos(((d.getMonth() + 0.5) / 12) * Math.PI * 2);
+      const stunde = d.getHours();
+      const tagesgang = sp.periode === "hour" ? (stunde > 5 && stunde < 9 ? 1.8 : stunde > 16 && stunde < 21 ? 1.4 : 0.6) : 1;
+      const p = (0.25 + winter * 1.1) * tagesgang * (0.85 + 0.3 * Math.abs(Math.sin(t / 9e7)));
+      const z = { t0: t, t1: Math.min(t + schritt, sp.t1) };
+      leistung.push({ ...z, v: p });
+      heiz.push({ ...z, v: p * (0.55 + 0.25 * winter) * 1000 });
+      ww.push({ ...z, v: p * 0.18 * 1000 });
+    }
+    this._verlaufAusStatistik(leistung, heiz, ww);
+  },
+
+  /** Wertet die Antwort des Verlaufs aus: SG Ready, Verdichter, Ventil und Leistung. */
+  _verlaufAusHistorie(antwort, { id, vid, k1, k2, vd }) {
+    // Aus beiden Kontakten ergibt sich der SG-Ready-Zustand. Die
+    // Zeitpunkte beider Reihen werden zusammengefuehrt.
+    const punkte = (eid) =>
+      ((antwort && eid && antwort[eid]) || [])
+        .map((pkt) => ({
+          t: pkt.lu ? pkt.lu * 1000 : Date.parse(pkt.last_changed),
+          an: ["on", "true", "1"].includes(
+            String(pkt.s !== undefined ? pkt.s : pkt.state).toLowerCase()
+          ),
+        }))
+        .filter((pkt) => !Number.isNaN(pkt.t));
+    const r1 = punkte(k1);
+    const r2 = punkte(k2);
+    if (r1.length && r2.length) {
+      const zeiten = [...new Set([...r1, ...r2].map((pkt) => pkt.t))].sort(
+        (x, y) => x - y
+      );
+      // Beide Reihen laufen mit, so bleibt es bei vielen Wechseln schnell.
+      let i1 = 0;
+      let i2 = 0;
+      this._sgVerlauf = zeiten.map((t) => {
+        while (i1 + 1 < r1.length && r1[i1 + 1].t <= t) i1++;
+        while (i2 + 1 < r2.length && r2[i2 + 1].t <= t) i2++;
+        const a1 = r1[i1].an;
+        const a2 = r2[i2].an;
+        // Gleiche Zuordnung wie in der Anzeige der Karte.
+        let stufe = 2;
+        if (a1 && !a2) stufe = 1;
+        else if (!a1 && a2) stufe = 3;
+        else if (a1 && a2) stufe = 4;
+        return { t, stufe };
+      });
+    } else {
+      this._sgVerlauf = null;
+    }
+
+    // Laeuft der Verdichter nicht, ist die Anlage im Standby, egal
+    // wie das Umschaltventil steht.
+    this._verdichterVerlauf = ((antwort && vd && antwort[vd]) || [])
+      .map((pkt) => ({
+        t: pkt.lu ? pkt.lu * 1000 : Date.parse(pkt.last_changed),
+        laeuft: zustandAn(pkt.s !== undefined ? pkt.s : pkt.state) === true,
+      }))
+      .filter((pkt) => !Number.isNaN(pkt.t));
+
+    // Der Ventilverlauf sagt, wohin in dieser Zeit geladen wurde.
+    this._ventilVerlauf = ((antwort && vid && antwort[vid]) || [])
+      .map((p) => ({
+        t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
+        ww: warmwasserZustand(p.s !== undefined ? p.s : p.state) === true,
+      }))
+      .filter((p) => !Number.isNaN(p.t));
+    if (!id) return;
+    const reihe = (antwort && antwort[id]) || [];
+    this._verlauf = reihe
+      .map((p) => ({
+        t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
+        v: parseFloat(p.s !== undefined ? p.s : p.state),
+      }))
+      .filter((p) => !Number.isNaN(p.v) && !Number.isNaN(p.t));
+  },
+
+  /**
+   * Fasst die Langzeitstatistik zu Faechern mit Energie zusammen. Die
+   * Leistung bleibt in der Einheit der Entitaet, Heizen und Warmwasser
+   * kommen wie bei der JAZ in Watt.
+   */
+  _verlaufAusStatistik(leistung, heiz, ww) {
+    const einheit = String(attr(this._quelle, this._e("power_now"), "unit_of_measurement", "") || "");
+    const hoechst = groesster(leistung.map((z) => z.v));
+    const faktor = /^w$/i.test(einheit) ? 0.001 : /^kw$/i.test(einheit) ? 1 : hoechst >= 100 ? 0.001 : 1;
+    const karte = (reihe) => new Map((reihe || []).map((z) => [z.t0, z.v]));
+    const mh = karte(heiz);
+    const mw = karte(ww);
+    const getrennt = Boolean(heiz && heiz.length) || Boolean(ww && ww.length);
+    this._verlauf = leistung.map((z) => ({ t: (z.t0 + z.t1) / 2, v: z.v }));
+    this._verlaufStat = {
+      getrennt,
+      faecher: leistung.map((z) => {
+        const stunden = (z.t1 - z.t0) / 3600000;
+        const gesamt = Math.max(0, z.v) * faktor * stunden;
+        const h = mh.has(z.t0) ? (Math.max(0, mh.get(z.t0)) * stunden) / 1000 : 0;
+        const w = mw.has(z.t0) ? (Math.max(0, mw.get(z.t0)) * stunden) / 1000 : 0;
+        return { t0: z.t0, t1: z.t1, gesamt, heiz: Math.min(h, gesamt), ww: Math.min(w, Math.max(0, gesamt - h)) };
+      }),
+    };
   },
 
   /** Zeichnet die Kurve in den vorbereiteten Rahmen. */
@@ -238,8 +336,12 @@ export const verlaufKarte = {
     const rechts = masse.x + masse.breite;
     const oben = masse.y + 38;
     const unten = masse.y + masse.hoehe - 56;
-    const t0 = daten[0].t;
-    const t1 = daten[daten.length - 1].t;
+    // Mit Langzeitstatistik gilt der gewaehlte Zeitraum, sonst reicht die
+    // Achse vom ersten bis zum letzten Messpunkt.
+    const stat = this._verlaufStat;
+    const sp = this._verlaufSp || this._zrSpanne();
+    const t0 = stat ? sp.t0 : daten[0].t;
+    const t1 = stat ? sp.t1 : daten[daten.length - 1].t;
     const spanne = t1 - t0 || 1;
     const hoechst = Math.max(groesster(daten.map((d) => d.v)), 0.1);
     const px = (d) => links + ((d.t - t0) / spanne) * (rechts - links);
@@ -253,24 +355,15 @@ export const verlaufKarte = {
     // Warmwasser. Ohne Ventilverlauf bleibt die Linie neutral.
     const ventil = this._ventilVerlauf || [];
     const wwZu = (t) => {
-      let stand = false;
-      for (const v of ventil) {
-        if (v.t > t) break;
-        stand = v.ww;
-      }
-      return stand;
+      const i = indexBis(ventil, t);
+      return i >= 0 ? ventil[i].ww : false;
     };
     // Ob der Verdichter zu einem Zeitpunkt lief. Ohne dessen Verlauf
     // entscheidet allein das Ventil, wie bisher.
     const verdichter = this._verdichterVerlauf || [];
     const laeuftZu = (t) => {
       if (!verdichter.length) return true;
-      let stand = verdichter[0].laeuft;
-      for (const v of verdichter) {
-        if (v.t > t) break;
-        stand = v.laeuft;
-      }
-      return stand;
+      return verdichter[Math.max(0, indexBis(verdichter, t))].laeuft;
     };
     // Leistung, ab der die Anlage sicher arbeitet: etwas ueber dem
     // Standby. Leistung, Verdichter und Ventil kommen aus getrennten
@@ -282,11 +375,15 @@ export const verlaufKarte = {
     const pfade = { heiz: "", ww: "", standby: "" };
     // Betriebsart je Punkt. Ohne Ventil- und Verdichterverlauf ist nur
     // klar, ob die Anlage lief, nicht wofuer.
-    const mitArt = ventil.length || verdichter.length;
-    const ziele = daten.map((d) => {
-      if (!mitArt) return d.v <= schwelle ? "standby" : "lauf";
-      return !laeuftZu(d.t) && d.v <= schwelle ? "standby" : wwZu(d.t) ? "ww" : "heiz";
-    });
+    // Bei der Langzeitstatistik entscheidet je Fach, ob Heizen oder
+    // Warmwasser ueberwog; ohne getrennte Werte nur "Betrieb".
+    const mitArt = stat ? stat.getrennt : ventil.length || verdichter.length;
+    const ziele = stat
+      ? stat.faecher.map((f) => (!stat.getrennt ? "lauf" : f.ww > f.heiz ? "ww" : "heiz"))
+      : daten.map((d) => {
+        if (!mitArt) return d.v <= schwelle ? "standby" : "lauf";
+        return !laeuftZu(d.t) && d.v <= schwelle ? "standby" : wwZu(d.t) ? "ww" : "heiz";
+      });
     if (mitArt) {
       // Jedes Teilstueck bekommt die Farbe seines hoeheren Endpunkts. Sonst
       // faerbt beim Abfall nach einer Warmwasserladung schon das Ventil,
@@ -376,7 +473,7 @@ export const verlaufKarte = {
         inhalt.innerHTML = "";
         kpi.innerHTML = "";
       } else {
-        const ausw = this._verbrauchAuswerten(daten, ziele, faktor);
+        const ausw = stat ? this._verbrauchStatAuswerten(stat) : this._verbrauchAuswerten(daten, ziele, faktor);
         const rahmen = { links, rechts, oben, unten, t0, t1, px, py };
         inhalt.innerHTML =
           stil === "takte"
@@ -388,6 +485,12 @@ export const verlaufKarte = {
         const titelBreite = Math.min(masse.breite * 0.45, 190);
         kpi.innerHTML = this._verbrauchKennzahlen(ausw.summe, masse.x + titelBreite, masse.y + 2, masse.breite - titelBreite);
       }
+    }
+    // Beschriftung links unten: bei 24 Stunden "vor 24 h", sonst das Datum.
+    const start = sr.getElementById("verlauf-start");
+    if (start) start.textContent = sp.k === "24h" ? this._t("vor_24h") : this._zrDatum(t0, true);
+    if (this._diaArt === "verbrauch") {
+      this._zrHinweis([stat ? this._zrStatText(sp.periode) : this._zrLueckeText(daten[0].t, sp)]);
     }
     gruppe.setAttribute("opacity", "1");
     this._diaNachVerlauf();

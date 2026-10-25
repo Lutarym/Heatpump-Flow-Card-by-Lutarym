@@ -487,6 +487,17 @@ export const stilKarte = {
       .lhc-takt-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--c-c9d3e0); }
       .lhc-takt-legende span:not(.lhc-dia-farbe) { margin-right: 8px; }
       .lhc-takt-text { margin: 10px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--c-e8edf4); }
+      /* Zeitraum im Fenstertitel. */
+      .lhc-zr-kopf { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .lhc-zr-trenner { color: var(--c-7e8ca0); }
+      .lhc-zr-wahl {
+        font: inherit; font-size: 14px; font-weight: 600; color: var(--c-e8edf4);
+        background: var(--c-1c2533); border: 1px solid var(--c-3a4557); border-radius: 8px;
+        padding: 3px 8px; cursor: pointer;
+      }
+      .lhc-zr-wahl:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
+      .lhc-zr-hinweis { margin-top: 8px; font-size: 12.5px; color: var(--c-98a6ba); }
+      .lhc-zr-hinweis[hidden] { display: none; }
       /* Analyse: Fenster so gross wie die Karte, Inhalt rollt. */
       .lhc-dialog.voll { padding: 0; }
       .lhc-kurve-box.lhc-dia-box.voll { max-width: none; max-height: none; border-radius: 12px; }

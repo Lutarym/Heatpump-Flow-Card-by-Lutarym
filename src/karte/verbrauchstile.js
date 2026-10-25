@@ -9,9 +9,10 @@
  */
 import { escapeHtml, fmt, groesster } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
+import { zeitRaster } from "./zeitraum.js";
 
 /** Farben je Betriebsart, wie in der bisherigen Linie. */
-export const VERBRAUCH_FARBEN = {
+const VERBRAUCH_FARBEN = {
   heiz: "#FF5F52",
   ww: "#4D9BFF",
   lauf: "#98A6BA",
@@ -21,7 +22,7 @@ export const VERBRAUCH_FARBEN = {
 /** Reihenfolge beim Stapeln und in den Kennzahlen. */
 const ARTEN = ["standby", "lauf", "heiz", "ww"];
 
-export const VERBRAUCH_STILE = ["balken", "takte", "leuchten", "linie"];
+const VERBRAUCH_STILE = ["balken", "takte", "leuchten", "linie"];
 
 /** Rechteck mit oben abgerundeten Ecken als Pfad. */
 function obenRund(x, y, b, h, r) {
@@ -85,6 +86,26 @@ export const verbrauchStileKarte = {
   },
 
   /**
+   * Wie _verbrauchAuswerten, aber aus den Faechern der Langzeitstatistik.
+   * Takte gibt es dort nicht, nur Energie je Fach und Betriebsart. Was
+   * nicht Heizen oder Warmwasser ist, zaehlt als Standby.
+   */
+  _verbrauchStatAuswerten(stat) {
+    const summe = { heiz: 0, ww: 0, lauf: 0, standby: 0 };
+    const stuecke = [];
+    stat.faecher.forEach((f) => {
+      const teile = stat.getrennt
+        ? { heiz: f.heiz, ww: f.ww, standby: Math.max(0, f.gesamt - f.heiz - f.ww) }
+        : { lauf: f.gesamt };
+      Object.entries(teile).forEach(([art, kwh]) => {
+        summe[art] += kwh;
+        if (kwh > 0) stuecke.push({ t0: f.t0, t1: f.t1, art, kwh });
+      });
+    });
+    return { summe, stuecke, takte: [], stat };
+  },
+
+  /**
    * Kennzahlen oben rechts im Rahmen: Gesamt und je Betriebsart in kWh.
    * Bei wenig Platz ohne Beschriftung, nur farbige Zahlen.
    */
@@ -117,11 +138,14 @@ export const verbrauchStileKarte = {
   /** B: Balken je Stunde, gestapelt nach Betriebsart. */
   _verbrauchBalken(ausw, f) {
     const { links, rechts, oben, unten, t0, t1 } = f;
-    const n = 24;
-    const spanne = t1 - t0 || 1;
+    // 24 Stunden je Stunde, laengere Zeitraeume je Tag, Woche oder Monat.
+    const { grenzen } = zeitRaster(t0, t1);
+    const n = grenzen.length - 1;
     const fach = [...Array(n)].map(() => ({ heiz: 0, ww: 0, lauf: 0, standby: 0 }));
     ausw.stuecke.forEach((s) => {
-      const i = Math.min(n - 1, Math.max(0, Math.floor((((s.t0 + s.t1) / 2 - t0) / spanne) * n)));
+      const mitte = (s.t0 + s.t1) / 2;
+      let i = 0;
+      while (i < n - 1 && mitte >= grenzen[i + 1]) i++;
       fach[i][s.art] += s.kwh;
     });
     const hoechst = Math.max(groesster(fach.map((h) => ARTEN.reduce((s, a) => s + h[a], 0))), 0.01);
@@ -132,6 +156,7 @@ export const verbrauchStileKarte = {
                      stroke="#26303F" stroke-dasharray="2 5"/>`;
     fach.forEach((h, i) => {
       const x = links + i * schritt + (schritt - b) / 2;
+      const titelZeit = n > 24 || (t1 - t0) > 3.1 * 86400000 ? `${this._zrDatum(grenzen[i], false)} · ` : "";
       let y = unten;
       const teile = ARTEN.filter((a) => h[a] * skala > 0.3);
       if (!teile.length) {
@@ -147,7 +172,7 @@ export const verbrauchStileKarte = {
           : `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${b.toFixed(1)}" height="${hh.toFixed(1)}" fill="${VERBRAUCH_FARBEN[a]}"/>`;
       });
       const summe = ARTEN.reduce((s, a) => s + h[a], 0);
-      out += `<title>${escapeHtml(`${fmt(summe, 2)} kWh`)}</title>`;
+      out += `<title>${escapeHtml(`${titelZeit}${fmt(summe, 2)} kWh`)}</title>`;
     });
     return out;
   },
@@ -188,6 +213,21 @@ export const verbrauchStileKarte = {
     const textH = hoehe > 70 ? 16 : 0;
     const bandY = oben + textH;
     let rechts2 = `<rect x="${bl}" y="${bandY}" width="${br - bl}" height="${bandH}" rx="6" fill="#1C2533"/>`;
+    // Langzeitstatistik: statt der Takte je Fach ein Feld, kraeftiger je
+    // mehr Energie, in der Farbe der ueberwiegenden Betriebsart.
+    if (ausw.stat) {
+      const faecher = ausw.stat.faecher;
+      const maxF = Math.max(groesster(faecher.map((x) => x.gesamt)), 0.01);
+      faecher.forEach((x) => {
+        const xa = zuX(x.t0);
+        const w = Math.max(1, zuX(x.t1) - xa - (faecher.length > 120 ? 0 : 1));
+        const art = !ausw.stat.getrennt ? "lauf" : x.ww > x.heiz ? "ww" : x.heiz > 0 ? "heiz" : "standby";
+        rechts2 += `<rect x="${xa.toFixed(1)}" y="${bandY + 2}" width="${w.toFixed(1)}" height="${bandH - 4}" rx="2"
+                          fill="${VERBRAUCH_FARBEN[art]}" opacity="${(0.25 + 0.75 * (x.gesamt / maxF)).toFixed(2)}"><title>${escapeHtml(
+          `${this._zrDatum(x.t0, false)} · ${fmt(x.gesamt, 1)} kWh`
+        )}</title></rect>`;
+      });
+    }
     ausw.takte.forEach((t) => {
       const xa = zuX(t.t0);
       const w = Math.max(3, zuX(t.t1) - xa);
@@ -195,7 +235,12 @@ export const verbrauchStileKarte = {
       rechts2 += `<rect x="${xa.toFixed(1)}" y="${bandY + 2}" width="${w.toFixed(1)}" height="${bandH - 4}" rx="3"
                         fill="${VERBRAUCH_FARBEN[t.art]}"><title>${escapeHtml(`${minuten} min · ${fmt(t.kwh, 2)} kWh`)}</title></rect>`;
     });
-    if (textH) {
+    if (textH && ausw.stat) {
+      const tage = Math.max((t1 - t0) / 86400000, 1);
+      rechts2 += `<text x="${bl}" y="${oben + 11}" font-size="11.5" fill="#98A6BA">${escapeHtml(
+        tf(this._t("v_tag"), { v: fmt(gesamt / tage, 1) })
+      )}</text>`;
+    } else if (textH) {
       const n = ausw.takte.length;
       const dauer = n ? ausw.takte.reduce((s, t) => s + (t.t1 - t.t0), 0) / n / 60000 : 0;
       const ww = ausw.takte.filter((t) => t.art === "ww").length;

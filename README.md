@@ -81,7 +81,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `profil` | `auto` | `auto` detects the integration automatically, or the ID of a profile such as `heishamon_lutarym`, `heishamon` (MQTT naming), `vicare`, `luxtronik2`; list in the [guide](docs/GERAETEPROFIL.md) |
 | `buffer_present` | `auto` | Heating buffer: `auto` from TOP99, `true` or `false` |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
-| `show_history` | `knopf` | 24 hour charts: `knopf` six buttons at the top right open energy, SG Ready, temperatures, COP, cycling and analysis in a window, `true` energy always in the card, `false` off |
+| `show_history` | `knopf` | Charts: `knopf` six buttons at the top right open energy, SG Ready, temperatures, COP, cycling and analysis in a window, period selectable from 24 hours to 1 year, `true` energy always in the card, `false` off |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
 | `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
 | `show_help` | `true` | Show the “?” help button at the bottom right of the card; the help describes HeishaMon and only appears with HeishaMon profiles and in demo mode |

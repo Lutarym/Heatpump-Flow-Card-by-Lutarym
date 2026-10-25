@@ -81,7 +81,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `profil` | `auto` | `auto` erkennt die Integration selbst, sonst die Kennung eines Profils wie `heishamon_lutarym`, `heishamon` (MQTT-Namensschema), `vicare`, `luxtronik2`; Liste in der [Anleitung](docs/GERAETEPROFIL.de.md) |
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
-| `show_history` | `knopf` | Diagramme 24 Stunden: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster, `true` Verbrauch dauerhaft in der Karte, `false` aus |
+| `show_history` | `knopf` | Diagramme: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster, Zeitraum wählbar von 24 Stunden bis 1 Jahr, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
 | `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
 | `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen; die Hilfe beschreibt HeishaMon und erscheint nur bei HeishaMon-Profilen und im Demomodus |

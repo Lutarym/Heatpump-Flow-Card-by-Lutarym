@@ -293,3 +293,60 @@ export async function kopiereText(text) {
   feld.remove();
   return ok;
 }
+
+/**
+ * Index des letzten Eintrags mit Zeit bis t in einer nach Zeit sortierten
+ * Reihe, -1 wenn alle spaeter liegen. Binaere Suche, damit lange Verlaeufe
+ * (bis 31 Tage) nicht fuer jeden Punkt von vorn durchlaufen werden.
+ */
+export function indexBis(reihe, t) {
+  let lo = 0;
+  let hi = reihe.length - 1;
+  let treffer = -1;
+  while (lo <= hi) {
+    const mitte = (lo + hi) >> 1;
+    if (reihe[mitte].t <= t) {
+      treffer = mitte;
+      lo = mitte + 1;
+    } else {
+      hi = mitte - 1;
+    }
+  }
+  return treffer;
+}
+
+/**
+ * Duennt eine Reihe fuer die Zeichnung aus: je Pixelspalte bleiben der
+ * kleinste und der groesste Wert in zeitlicher Reihenfolge, dazu der
+ * letzte Punkt. Die Form der Linie bleibt, aus zehntausenden Punkten
+ * werden hoechstens zwei je Pixel.
+ */
+export function jePixel(reihe, zuX) {
+  if (reihe.length < 2000) return reihe;
+  const out = [];
+  let spalte = null;
+  let lo = null;
+  let hi = null;
+  const ablegen = () => {
+    if (!lo) return;
+    if (lo === hi) out.push(lo);
+    else if (lo.t < hi.t) out.push(lo, hi);
+    else out.push(hi, lo);
+  };
+  for (const p of reihe) {
+    const x = Math.round(zuX(p.t));
+    if (x !== spalte) {
+      ablegen();
+      spalte = x;
+      lo = p;
+      hi = p;
+    } else {
+      if (p.v < lo.v) lo = p;
+      if (p.v > hi.v) hi = p;
+    }
+  }
+  ablegen();
+  const letzter = reihe[reihe.length - 1];
+  if (out[out.length - 1] !== letzter) out.push(letzter);
+  return out;
+}

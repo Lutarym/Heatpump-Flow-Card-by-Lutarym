@@ -8,7 +8,7 @@ import { SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
 import { DW } from "./diagramme.js";
 
-export const SG_STILE = ["spuren", "stufen", "uhr", "band"];
+const SG_STILE = ["spuren", "stufen", "uhr", "band"];
 
 /** Hoehe der Zeichenflaeche je Darstellung. */
 const HOEHE = { spuren: 250, stufen: 214, uhr: 238, band: 206 };
@@ -26,17 +26,9 @@ export const sgStileKarte = {
     return SG_STILE.includes(s) ? s : "spuren";
   },
 
-  /** Kleine Zeitachse alle sechs Stunden mit Uhrzeit. */
-  _sgAchse(links, rechts, y, t0) {
-    let out = "";
-    for (let i = 0; i <= 4; i++) {
-      const x = links + (i / 4) * (rechts - links);
-      const d = new Date(t0 + (i * 86400000) / 4);
-      const text = i === 4 ? this._t("jetzt") : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-      const anker = i === 0 ? "start" : i === 4 ? "end" : "middle";
-      out += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="${anker}" font-size="11" fill="#7E8CA0">${escapeHtml(text)}</text>`;
-    }
-    return out;
+  /** Kleine Zeitachse mit fuenf Marken. */
+  _sgAchse(links, rechts, y, t0, t1) {
+    return this._zrAchse(links, rechts, y, t0, t1, 'font-size="11" fill="#7E8CA0"');
   },
 
   _sgHoehe() {
@@ -101,8 +93,14 @@ export const sgStileKarte = {
       return;
     }
     this._diaLeer(false);
-    const t1 = Date.now();
-    const t0 = t1 - 86400000;
+    // Der Zeitraum aus der Auswahl; beginnt der Verlauf spaeter, beginnt
+    // die Darstellung mit ihm.
+    const sp = this._zrSpanne();
+    const t1 = sp.t1;
+    const t0 = Math.max(sp.t0, Math.min(sgr[0].t, t1 - 3600000));
+    if (this._diaArt === "sg") {
+      this._zrHinweis([this._zrLueckeText(sgr[0].t, sp)]);
+    }
     const abschnitte = this._sgAbschnitte(t0, t1);
     const dauer = { 1: 0, 2: 0, 3: 0, 4: 0 };
     abschnitte.forEach((a) => {
@@ -110,7 +108,7 @@ export const sgStileKarte = {
     });
     const name = (s) => this._t((SG_STATES[s] || {}).lang || "unbekannt");
     const farbe = (s) => (SG_STATES[s] || {}).farbe || "#7E8CA0";
-    const std = (s) => fmt(dauer[s] / 3600000, 1);
+    const std = (s) => fmt(dauer[s] / 3600000, dauer[s] >= 100 * 3600000 ? 0 : 1);
     const daten = { t0, t1, abschnitte, dauer, name, farbe, std };
     const inhalt =
       stil === "stufen"
@@ -157,7 +155,7 @@ export const sgStileKarte = {
                     fill="${d.farbe(s)}">${d.std(s)} h</text>`;
     });
     out += `<line x1="${rechts}" x2="${rechts}" y1="50" y2="224" stroke="#C9D3E0" stroke-dasharray="3 3" opacity="0.5"/>`;
-    out += this._sgAchse(links, rechts, 242, d.t0);
+    out += this._sgAchse(links, rechts, 242, d.t0, d.t1);
     return out;
   },
 
@@ -194,7 +192,7 @@ export const sgStileKarte = {
     });
     const letzter = d.abschnitte[d.abschnitte.length - 1];
     if (letzter) out += `<circle cx="${rechts}" cy="${zuY(letzter.stufe)}" r="5" fill="${d.farbe(letzter.stufe)}"/>`;
-    out += this._sgAchse(links, rechts, 206, d.t0);
+    out += this._sgAchse(links, rechts, 206, d.t0, d.t1);
     return out;
   },
 
@@ -204,6 +202,7 @@ export const sgStileKarte = {
     const cy = 136;
     const r = 66;
     const spanne = d.t1 - d.t0;
+    if (spanne > 1.05 * 86400000) return this._sgUhrMittel(d);
     // Uhrzeigersinn von oben: oben trifft vor 24 Stunden auf jetzt.
     const pol = (t, rr) => {
       const w = ((t - d.t0) / spanne) * Math.PI * 2 - Math.PI / 2;
@@ -247,6 +246,66 @@ export const sgStileKarte = {
     return out;
   },
 
+  /**
+   * C ueber mehrere Tage: der mittlere Tag. Je Stunde des Tages der
+   * Zustand, der dort ueber alle Tage am haeufigsten war; oben ist
+   * Mitternacht. Rechts die Anteile im ganzen Zeitraum.
+   */
+  _sgUhrMittel(d) {
+    const cx = 128;
+    const cy = 136;
+    const r = 66;
+    const spanne = d.t1 - d.t0;
+    // Zeit je Stunde des Tages und Zustand.
+    const fach = [...Array(24)].map(() => ({ 1: 0, 2: 0, 3: 0, 4: 0 }));
+    d.abschnitte.forEach((a) => {
+      let t = a.von;
+      while (t < a.bis) {
+        const x = new Date(t);
+        const ende = Math.min(a.bis, new Date(x.getFullYear(), x.getMonth(), x.getDate(), x.getHours() + 1).getTime());
+        fach[x.getHours()][a.stufe] = (fach[x.getHours()][a.stufe] || 0) + (ende - t);
+        t = ende;
+      }
+    });
+    const pol = (stunde, rr) => {
+      const w = (stunde / 24) * Math.PI * 2 - Math.PI / 2;
+      return [cx + rr * Math.cos(w), cy + rr * Math.sin(w)];
+    };
+    let out = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1C2533" stroke-width="18"/>`;
+    fach.forEach((f, h) => {
+      const summe = REIHE.reduce((s, k) => s + f[k], 0);
+      if (!summe) return;
+      const stufe = REIHE.reduce((a, k) => (f[k] > f[a] ? k : a), 2);
+      const anteil = f[stufe] / summe;
+      const [x1, y1] = pol(h + 0.04, r);
+      const [x2, y2] = pol(h + 0.96, r);
+      const titel = REIHE.filter((k) => f[k] > 0)
+        .map((k) => `${d.name(k)} ${fmt((f[k] / summe) * 100, 0)} %`)
+        .join(" · ");
+      out += `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}"
+                    fill="none" stroke="${d.farbe(stufe)}" stroke-width="18" opacity="${(0.35 + 0.65 * anteil).toFixed(2)}"><title>${escapeHtml(
+        `${String(h).padStart(2, "0")}:00 · ${titel}`
+      )}</title></path>`;
+    });
+    [[0, "0:00"], [6, "6:00"], [12, "12:00"], [18, "18:00"]].forEach(([h, text]) => {
+      const [x, y] = pol(h, r + 26);
+      out += `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#7E8CA0">${escapeHtml(text)}</text>`;
+    });
+    out += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="13" font-weight="700" fill="#C9D3E0">${escapeHtml(this._t("sg_mittel"))}</text>`;
+    const lx = 262;
+    const lb = DW - 20 - lx;
+    [2, 3, 4, 1].forEach((s, i) => {
+      const y = 72 + i * 40;
+      const anteil = d.dauer[s] / spanne;
+      out += `<circle cx="${lx + 6}" cy="${y}" r="6" fill="${d.farbe(s)}"/>
+        <text x="${lx + 20}" y="${y + 4}" font-size="13" fill="#C9D3E0">${escapeHtml(d.name(s))}</text>
+        <text x="${DW - 20}" y="${y + 4}" text-anchor="end" font-size="13" font-weight="700" fill="${d.farbe(s)}">${d.std(s)} h</text>
+        <rect x="${lx + 20}" y="${y + 12}" width="${lb - 20}" height="5" rx="2.5" fill="#1C2533"/>
+        <rect x="${lx + 20}" y="${y + 12}" width="${Math.max(0, (lb - 20) * anteil).toFixed(1)}" height="5" rx="2.5" fill="${d.farbe(s)}"/>`;
+    });
+    return out;
+  },
+
   /** D: breite Bloecke mit der Dauer darin, darunter die Anteile. */
   _sgBand(d) {
     const links = 20;
@@ -267,7 +326,7 @@ export const sgStileKarte = {
     });
     let out = `<defs><filter id="sg-leuchten" x="-5%" y="-40%" width="110%" height="180%"><feGaussianBlur stdDeviation="6"/></filter></defs>
       <g filter="url(#sg-leuchten)" opacity="0.35">${bloecke.replace(/<text[^>]*>[^<]*<\/text>/g, "")}</g>${bloecke}`;
-    out += this._sgAchse(links, rechts, 110, d.t0);
+    out += this._sgAchse(links, rechts, 110, d.t0, d.t1);
     out += `<text x="${links}" y="132" font-size="11" fill="#7E8CA0">${escapeHtml(this._t("sg_anteile"))}</text>`;
     let x = links;
     const gesamt = d.t1 - d.t0;

@@ -81,7 +81,7 @@ entities:
 | `profil` | `auto` | `auto` は統合を自動検出します。または `heishamon_lutarym`、`heishamon`（MQTT 命名規則）、`vicare`、`luxtronik2` などのプロファイル ID。一覧は[説明](docs/GERAETEPROFIL.ja.md)を参照 |
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
-| `show_history` | `knopf` | 24時間グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示、`true` 使用量を常にカードに表示、`false` オフ |
+| `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
 | `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
 | `show_reload` | `true` | バッファーと給湯に「再加熱 …」の行を表示 |
 | `show_help` | `true` | カード右下にヘルプの「?」ボタンを表示。ヘルプは HeishaMon の説明のため、HeishaMon のプロファイルとデモモードでのみ表示 |

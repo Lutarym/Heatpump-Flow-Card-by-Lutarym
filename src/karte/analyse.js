@@ -91,6 +91,8 @@ export const analyseKarte = {
     const d = this._auswertung;
     const laeufe = d ? this._auswertungLaeufe(d) : [];
     const heizLaeufe = laeufe.filter((l) => !l.ww && !l.angeschnitten && l.minuten >= 10);
+    // Richtwerte je Tag gelten bei laengeren Zeitraeumen im Mittel.
+    const tage = d ? Math.max((d.t1 - d.t0) / 86400000, 1) : 1;
     const flaechen = this._anHeizflaechen();
     const punkte = [];
     const punkt = (gruppe, id, stufe, titel, wert, wertText, richt, text, tipp, quelle) =>
@@ -123,7 +125,7 @@ export const analyseKarte = {
         this._t("an_kein_heizlauf"), "", "spreizung");
     }
 
-    // Hoechster Vorlauf im Heizbetrieb der letzten 24 Stunden.
+    // Hoechster Vorlauf im Heizbetrieb des Zeitraums.
     const grenze = flaechen === "fbh" ? { gut: 35, max: 40 } : { gut: 55, max: 55 };
     const mitVl = heizLaeufe.filter((l) => l.vorlauf !== null);
     if (mitVl.length) {
@@ -137,7 +139,7 @@ export const analyseKarte = {
           + (flaechen === "gemischt" ? ` ${this._t("an_vl_gemischt")}` : ""),
         this._t("an_tip_vl"), "vorlauf");
     } else {
-      punkt("heiz", "vorlauf", "unbekannt", "an_t_vl_hk", "--", "", this._t(flaechen === "fbh" ? "an_r_vl_fbh" : "an_r_vl_hk"),
+      punkt("heiz", "vorlauf", "unbekannt", flaechen === "fbh" ? "an_t_vl_fbh" : "an_t_vl_hk", "--", "", this._t(flaechen === "fbh" ? "an_r_vl_fbh" : "an_r_vl_hk"),
         this._t("an_kein_heizlauf"), "", "vorlauf");
     }
 
@@ -161,8 +163,10 @@ export const analyseKarte = {
       const sehrKurz = bewertet.filter((l) => l.minuten < 6).length;
       const mLauf = bewertet.reduce((s, l) => s + l.minuten, 0) / bewertet.length;
       const anteil = kurz / bewertet.length;
-      const stufe = anteil >= 0.3 || sehrKurz >= 2 ? "pruefen" : kurz || n > 15 ? "hinweis" : "ok";
-      punkt("heiz", "taktung", stufe, "an_t_taktung", tf(this._t("an_w_starts"), { n }),
+      // Zwei sehr kurze Laeufe gelten je Tag, ueber mehrere Tage im Mittel.
+      const stufe = anteil >= 0.3 || sehrKurz / tage >= 2 ? "pruefen" : kurz || n / tage > 15 ? "hinweis" : "ok";
+      punkt("heiz", "taktung", stufe, "an_t_taktung",
+        tage > 1.5 ? `${tf(this._t("an_w_starts"), { n })} · ${fmt(n / tage, 0)}/d` : tf(this._t("an_w_starts"), { n }),
         tf(this._t("an_w_lauf"), { d: z(mLauf, 0) }), this._t("an_r_taktung"),
         stufe === "ok" ? this._t("an_tk_ok") : tf(this._t("an_tk_kurz"), { k: kurz, n: bewertet.length }),
         stufe === "ok" ? "" : this._t("an_tip_taktung"), "taktung");
@@ -196,7 +200,8 @@ export const analyseKarte = {
       const zeiten = anZeiten(d.stabIntern, d.aussen, d.t0, d.t1).concat(anZeiten(d.stabExtern, d.aussen, d.t0, d.t1));
       const gesamt = zeiten.reduce((s, x) => s + x.minuten, 0);
       const warm = zeiten.filter((x) => x.aussen !== null && x.aussen > 0).reduce((s, x) => s + x.minuten, 0);
-      const stufe = warm >= 30 ? "hinweis" : "ok";
+      // 30 Minuten je Tag ueber 0 °C, eigene Grenze der Karte.
+      const stufe = warm / tage >= 30 ? "hinweis" : "ok";
       punkt("zusatz", "heizstab", stufe, "an_t_heizstab", `${z(gesamt, 0)} min`,
         tf(this._t("an_w_heizstab"), { w: z(warm, 0) }), this._t("an_r_heizstab"),
         this._t(gesamt === 0 ? "an_hs_aus" : stufe === "ok" ? "an_hs_ok" : "an_hs_warm"),
@@ -261,6 +266,7 @@ export const analyseKarte = {
     const liste = sr && sr.getElementById("dia-liste");
     if (!liste) return;
     this._diaLeer(false);
+    if (this._auswertung) this._auswertungHinweis(this._auswertung);
     const punkte = this._anPruefen();
     const zahl = { ok: 0, hinweis: 0, pruefen: 0, unbekannt: 0 };
     punkte.forEach((p) => zahl[p.stufe]++);

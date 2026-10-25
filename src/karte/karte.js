@@ -17,6 +17,7 @@ import { hilfeKarte } from "./hilfe.js";
 import { kennzahlenKarte } from "./kennzahlen.js";
 import { solarKarte } from "./solar.js";
 import { verbrauchStileKarte } from "./verbrauchstile.js";
+import { zeitraumKarte } from "./zeitraum.js";
 import { sgStileKarte } from "./sgstile.js";
 import { auswertungKarte } from "./auswertung.js";
 import { analyseKarte } from "./analyse.js";
@@ -62,6 +63,10 @@ export class LutarymHeatpumpCard extends HTMLElement {
     }
     this._bewegungMq = null;
     this._bewegungRuf = null;
+    if (this._diaGroesseRuf) {
+      window.removeEventListener("resize", this._diaGroesseRuf);
+      this._diaGroesseRuf = null;
+    }
   }
 
   /**
@@ -388,7 +393,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._setzeThema();
     this._groesse();
     this._update();
-    this._holeVerlauf();
+    // Laengere Zeitraeume nur abfragen, solange ihr Fenster offen ist.
+    if (this._zrSchluessel() === "24h" || this._diaArt === "verbrauch" || this._diaArt === "sg") this._holeVerlauf();
     // Nach einem Neuaufbau ist der Rahmen leer. Vorhandene Daten werden
     // sofort wieder eingezeichnet, statt auf die naechste Abfrage zu warten.
     if (neuGebaut && this._verlauf && this._verlauf.length >= 2) this._zeichneVerlauf();
@@ -690,6 +696,7 @@ Object.assign(
   sgStileKarte,
   auswertungKarte,
   analyseKarte,
+  zeitraumKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte
