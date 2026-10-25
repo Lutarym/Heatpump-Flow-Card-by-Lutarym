@@ -487,6 +487,34 @@ export const stilKarte = {
       .lhc-takt-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--c-c9d3e0); }
       .lhc-takt-legende span:not(.lhc-dia-farbe) { margin-right: 8px; }
       .lhc-takt-text { margin: 10px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--c-e8edf4); }
+      /* Analyse: Fenster so gross wie die Karte, Inhalt rollt. */
+      .lhc-dialog.voll { padding: 0; }
+      .lhc-kurve-box.lhc-dia-box.voll { max-width: none; max-height: none; border-radius: 12px; }
+      .lhc-an { padding-bottom: 6px; }
+      .lhc-an-gesamt { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; padding: 14px 16px;
+        border-radius: 16px; background: var(--c-1c2533); margin: 4px 0 6px; }
+      .lhc-an-ring { width: 84px; height: 84px; flex: 0 0 auto; }
+      .lhc-an-urteil { flex: 1 1 260px; min-width: 0; }
+      .lhc-an-urteil b { display: block; font-size: 17px; color: var(--c-e8edf4); }
+      .lhc-an-urteil span { display: block; margin-top: 4px; font-size: 13px; line-height: 1.4; color: var(--c-c9d3e0); }
+      .lhc-an-zahlen { display: flex; flex-wrap: wrap; gap: 8px; }
+      .lhc-an-zahlen div { min-width: 70px; padding: 7px 10px; border-radius: 12px; background: var(--c-131a24); text-align: center; }
+      .lhc-an-zahlen b { display: block; font-size: 20px; }
+      .lhc-an-zahlen span { font-size: 11.5px; color: var(--c-98a6ba); }
+      .lhc-an-gruppe { margin: 16px 0 8px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-98a6ba); }
+      .lhc-an-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+      .lhc-an-karte { min-width: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--c-26303f);
+        border-left: 5px solid; background: var(--c-131a24); }
+      .lhc-an-kopf { display: flex; align-items: center; gap: 8px; }
+      .lhc-an-kopf b { font-size: 14.5px; color: var(--c-e8edf4); }
+      .lhc-an-kopf i { margin-left: auto; padding: 1px 9px; border-radius: 9px; font-style: normal; font-size: 11.5px; white-space: nowrap; }
+      .lhc-an-wert { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 6px; font-size: 12.5px; color: var(--c-98a6ba); }
+      .lhc-an-wert b { color: var(--c-e8edf4); font-size: 13.5px; }
+      .lhc-an-wert span:first-child b { font-size: 17px; }
+      .lhc-an-karte p { margin: 4px 0; font-size: 13px; line-height: 1.45; color: var(--c-c9d3e0); }
+      .lhc-an-karte p.lhc-an-tipp { padding: 6px 9px; border-radius: 8px; background: rgba(59, 130, 246, 0.12); }
+      .lhc-an-quelle { margin-top: 6px; font-size: 11px; color: var(--c-7e8ca0); }
+      .lhc-an-quelle a { color: inherit; }
       .lhc-takt-quelle { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--c-7e8ca0); }
       .dia-knopf { cursor: pointer; }
       .dia-knopf .dia-symbol { color: var(--c-98a6ba); }

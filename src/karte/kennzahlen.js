@@ -191,6 +191,7 @@ export const kennzahlenKarte = {
       this._jazSchluessel = schluessel;
       this._jazZeit = jetzt;
       if (this._tuerListe) this._tuerListe.forEach((f, i) => f.jaz && this._tuerZeige(i));
+      if (this._diaArt === "analyse") this._zeichneAnalyse();
     } catch {
       // Keine Langzeitstatistik, die Zeilen bleiben bei "--".
       this._jaz = null;

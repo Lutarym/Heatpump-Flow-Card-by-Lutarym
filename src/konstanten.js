@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-export const CARD_VERSION = "5.11.0";
+export const CARD_VERSION = "5.13.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster

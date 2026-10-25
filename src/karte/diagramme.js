@@ -20,6 +20,9 @@ const SYMBOLE = {
         <path d="M0 2 L4 -5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="0" cy="2" r="2" fill="currentColor"/>`,
   takt: `<path d="M-9 2 H-5 L-3 -6 L1 7 L3 -2 H9" fill="none" stroke="currentColor" stroke-width="1.8"
           stroke-linejoin="round" stroke-linecap="round"/>`,
+  analyse: `<circle cx="-2" cy="-2" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M2.5 2.5 L8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M-5 -2 H-3.5 L-2.5 -4.5 L-1 0.5 L0 -2 H1" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>`,
 };
 
 export const diagrammeKarte = {
@@ -41,6 +44,7 @@ export const diagrammeKarte = {
       ["temp", this._t("d_temperaturen")],
       ["cop", "COP"],
       ["takt", this._t("d_taktung")],
+      ["analyse", this._t("d_analyse")],
     ];
     const abstand = 10;
     // Nebeneinander in zwei Zeilen: oben drei, darunter zwei, rechtsbuendig.
@@ -88,7 +92,7 @@ export const diagrammeKarte = {
                     aria-label="${escapeHtml(this._t("f_schliessen"))}">&times;</button>
           </div>
           <div class="lhc-hilfe-chips" id="dia-reiter">
-            ${reiter("verbrauch", this._t("verbrauch"))}${reiter("sg", "SG Ready")}${reiter("temp", this._t("d_temperaturen"))}${reiter("cop", "COP")}${reiter("takt", this._t("d_taktung"))}
+            ${reiter("verbrauch", this._t("verbrauch"))}${reiter("sg", "SG Ready")}${reiter("temp", this._t("d_temperaturen"))}${reiter("cop", "COP")}${reiter("takt", this._t("d_taktung"))}${reiter("analyse", this._t("d_analyse"))}
           </div>
           <svg viewBox="0 0 ${DW} ${DH}" class="lhc-dia-svg" id="dia-svg" preserveAspectRatio="xMidYMid meet">
             <g id="dia-verbrauch">${this._verlaufRahmen(20, 6, DW - 40, DH - 12)}</g>
@@ -148,6 +152,29 @@ export const diagrammeKarte = {
     }
   },
 
+  /**
+   * Legt das Analysefenster genau ueber die Karte: gleiche Breite und
+   * Lage. Ist die Karte flacher als 560 Pixel (Querformat), waechst das
+   * Fenster nach unten, sonst waere der Text nicht lesbar; es bleibt
+   * immer im sichtbaren Bereich.
+   */
+  _diaVollLage(box, voll) {
+    const st = box.style;
+    if (!voll) {
+      ["position", "left", "top", "width", "height"].forEach((k) => st.removeProperty(k));
+      return;
+    }
+    const r = this.getBoundingClientRect();
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const b = Math.min(r.width, vw);
+    const h = Math.min(Math.max(r.height, Math.min(560, vh - 24)), vh);
+    st.position = "fixed";
+    st.width = `${b}px`;
+    st.height = `${h}px`;
+    st.left = `${Math.max(0, Math.min(r.left, vw - b))}px`;
+    st.top = `${Math.max(0, Math.min(r.top, vh - h))}px`;
+  },
+
   _schliesseDia() {
     const dlg = this.shadowRoot.getElementById("dia-dialog");
     if (dlg) dlg.hidden = true;
@@ -164,16 +191,28 @@ export const diagrammeKarte = {
       temp: `${this._t("d_temperaturen")} · ${this._t("d_24h")}`,
       cop: `COP · ${this._t("d_24h")}`,
       takt: `${this._t("d_taktung")} · ${this._t("d_24h")}`,
+      analyse: this._t("an_titel"),
     };
     sr.getElementById("dia-titel").textContent = titel[art] || "";
     sr.querySelectorAll("#dia-reiter button").forEach((b) =>
       b.classList.toggle("aktiv", b.dataset.reiter === art)
     );
-    ["verbrauch", "sg", "temp", "cop", "takt"].forEach((a) => {
+    ["verbrauch", "sg", "temp", "cop", "takt", "analyse"].forEach((a) => {
       const g = sr.getElementById(`dia-${a}`);
       if (g) g.setAttribute("display", a === art ? "inline" : "none");
     });
     sr.getElementById("dia-liste").textContent = "";
+    // Die Analyse braucht Platz: das Fenster fuellt die ganze Karte, die
+    // Zeichenflaeche entfaellt, der Inhalt ist Text in Karten.
+    const voll = art === "analyse";
+    const dlg = sr.getElementById("dia-dialog");
+    if (dlg) dlg.classList.toggle("voll", voll);
+    const box = sr.querySelector(".lhc-dia-box");
+    if (box) {
+      box.classList.toggle("voll", voll);
+      this._diaVollLage(box, voll);
+    }
+    sr.getElementById("dia-svg").style.display = voll ? "none" : "";
     const leer = sr.getElementById("dia-leer");
     if (leer) leer.textContent = this._t("kein_verlauf");
     // SG Ready braucht nur ein flaches Band, die anderen die volle Hoehe.
@@ -195,6 +234,11 @@ export const diagrammeKarte = {
       this._auswertungZeit = 0;
       this._holeAuswertung();
       this._zeichneAuswertung();
+    } else if (art === "analyse") {
+      this._auswertungZeit = 0;
+      this._holeAuswertung();
+      if (typeof this._ladeJaz === "function") this._ladeJaz();
+      this._zeichneAnalyse();
     }
   },
 

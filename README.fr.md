@@ -81,7 +81,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `profil` | `auto` | `auto` détecte l'intégration automatiquement, sinon l'identifiant d'un profil comme `heishamon_lutarym`, `heishamon` (nommage MQTT), `vicare`, `luxtronik2` ; liste dans le [guide](docs/GERAETEPROFIL.fr.md) |
 | `buffer_present` | `auto` | Ballon tampon : `auto` via TOP99, `true` ou `false` |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
-| `show_history` | `knopf` | Graphiques 24 heures : `knopf` cinq boutons en haut à droite ouvrent consommation, SG Ready, températures, COP et cycles dans une fenêtre, `true` consommation toujours dans la carte, `false` désactivé |
+| `show_history` | `knopf` | Graphiques 24 heures : `knopf` six boutons en haut à droite ouvrent consommation, SG Ready, températures, COP, cycles et analyse dans une fenêtre, `true` consommation toujours dans la carte, `false` désactivé |
 | `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |
 | `show_reload` | `true` | Afficher la ligne « Recharge à … » dans le ballon tampon et l'eau chaude |
 | `show_help` | `true` | Afficher le bouton « ? » de l'aide en bas à droite de la carte ; l'aide décrit HeishaMon et n'apparaît qu'avec les profils HeishaMon et en mode démo |
