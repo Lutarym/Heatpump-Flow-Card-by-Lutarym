@@ -484,6 +484,10 @@ export const stilKarte = {
       .lhc-dia-zeile b { font-variant-numeric: tabular-nums; color: var(--c-e8edf4); }
       .lhc-dia-zeile em { font-style: normal; color: var(--c-7e8ca0); font-size: 13px; }
       .lhc-dia-farbe { width: 14px; height: 14px; border-radius: 4px; }
+      .lhc-takt-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--c-c9d3e0); }
+      .lhc-takt-legende span:not(.lhc-dia-farbe) { margin-right: 8px; }
+      .lhc-takt-text { margin: 10px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--c-e8edf4); }
+      .lhc-takt-quelle { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--c-7e8ca0); }
       .dia-knopf { cursor: pointer; }
       .dia-knopf .dia-symbol { color: var(--c-98a6ba); }
       .dia-knopf:hover rect, .dia-knopf:focus-visible rect { stroke: #E0762E; }

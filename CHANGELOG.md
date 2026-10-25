@@ -2,6 +2,28 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.11.0
+
+- English: Two new evaluations with their own buttons and tabs in the chart window. “COP”: every compressor run of the last 24 hours as a dot with its COP (heating red, hot water blue, size by run time), the outdoor temperature as a dashed line and the averages for heating, hot water and overall plus min and max. “Cycling”: an assessment at the top, the key figures starts, average run time, average pause and runs under 10 min, every run as a block coloured by its run time, the outdoor temperature and the starts per hour coloured by the shortest run. Below, the reasoning and the guide values: 10 to 20 min run time per start (German Heat Pump Association), up to about 15 starts per day on annual average (Fraunhofer WP-QS). If short runs mainly occur at milder temperatures, this is pointed out. The assessment is a hint, not a diagnosis.
+- English: With five buttons, landscape and classic layouts show them in two rows, portrait in two columns.
+- Deutsch: Zwei neue Auswertungen mit eigenen Knöpfen und Reitern im Diagrammfenster. „COP“: jeder Verdichterlauf der letzten 24 Stunden als Punkt mit seinem COP (Heizen rot, Warmwasser blau, Größe nach Laufzeit), die Außentemperatur gestrichelt und die Mittelwerte für Heizen, Warmwasser und gesamt sowie min und max. „Taktung“: oben eine Bewertung, die Kennzahlen Starts, Ø Laufzeit, Ø Pause und Läufe unter 10 min, jeder Lauf als Block in der Farbe seiner Laufzeit, die Außentemperatur und die Starts je Stunde, gefärbt nach dem kürzesten Lauf. Darunter Begründung und Richtwerte: 10 bis 20 min Laufzeit je Start (Bundesverband Wärmepumpe), bis etwa 15 Starts pro Tag im Jahresmittel (Fraunhofer WP-QS). Treten kurze Läufe vor allem bei milderer Außentemperatur auf, wird darauf hingewiesen. Die Bewertung ist ein Hinweis, keine Diagnose.
+- Deutsch: Mit fünf Knöpfen stehen diese im Quer- und klassischen Format in zwei Zeilen, im Hochformat in zwei Spalten.
+- Français : deux nouvelles analyses avec leurs propres boutons et onglets dans la fenêtre des graphiques. « COP » : chaque cycle du compresseur des dernières 24 heures sous forme de point avec son COP (chauffage rouge, eau chaude bleu, taille selon la durée), la température extérieure en pointillés et les moyennes chauffage, eau chaude et globale ainsi que min et max. « Cycles » : une évaluation en haut, les indicateurs démarrages, durée moyenne, pause moyenne et cycles de moins de 10 min, chaque cycle en bloc coloré selon sa durée, la température extérieure et les démarrages par heure colorés selon le cycle le plus court. En dessous, la justification et les valeurs indicatives : 10 à 20 min de fonctionnement par démarrage (association allemande des pompes à chaleur), jusqu'à environ 15 démarrages par jour en moyenne annuelle (Fraunhofer WP-QS). Si les cycles courts surviennent surtout par temps plus doux, c'est signalé. L'évaluation est une indication, pas un diagnostic.
+- Français : avec cinq boutons, les formats paysage et classique les affichent sur deux lignes, le format portrait sur deux colonnes.
+- 日本語：グラフウィンドウに専用ボタンとタブ付きの2つの新しい分析を追加しました。「COP」：過去24時間の圧縮機の各運転を COP 付きの点で表示（暖房は赤、給湯は青、大きさは運転時間）、外気温を破線で表示し、暖房・給湯・全体の平均と最小・最大を表示します。「運転サイクル」：上部に評価、起動回数・平均運転時間・平均停止時間・10分未満の運転数、運転時間で色分けした各運転のブロック、外気温、最短の運転で色分けした1時間ごとの起動回数を表示します。下に根拠と目安：起動1回あたり運転10〜20分（ドイツヒートポンプ協会）、年間平均で1日約15回まで（Fraunhofer WP-QS）。短い運転が外気温の高いときに多い場合はその旨を表示します。評価はヒントであり診断ではありません。
+- 日本語：ボタンが5つになったため、横レイアウトとクラシックでは2行、縦レイアウトでは2列で表示します。
+
+## v5.10.0
+
+- English: SG Ready over 24 hours redesigned, four styles selectable in the editor under “SG Ready chart style” (`sg_style`): one lane per state with the times as pills and the hours on the right (default), a step line with one level per state, a 24-hour clock with the shares, and a wide band with the duration in each block and a share bar. All of them show the current state and since when at the top.
+- English: The default for the energy chart is now “Ring and cycle band” (`history_style: takte`). Cards with an explicitly chosen style keep it.
+- Deutsch: SG Ready über 24 Stunden neu gestaltet, vier Darstellungen im Editor unter „Darstellung SG Ready“ wählbar (`sg_style`): Spuren je Zustand mit den Zeiten als Pillen und den Stunden rechts (Standard), Stufenlinie mit einer Höhe je Zustand, 24-Stunden-Uhr mit den Anteilen und breites Band mit der Dauer in jedem Block und einer Anteilsleiste. Alle zeigen oben den aktuellen Zustand und seit wann.
+- Deutsch: Standard für den Verbrauch ist jetzt „Ring und Taktband“ (`history_style: takte`). Karten mit ausdrücklich gewählter Darstellung behalten sie.
+- Français : SG Ready sur 24 heures redessiné, quatre styles au choix dans l'éditeur sous « Style du graphique SG Ready » (`sg_style`) : une ligne par état avec les périodes en pastilles et les heures à droite (par défaut), ligne en escalier avec un niveau par état, horloge 24 heures avec les parts, et large bande avec la durée dans chaque bloc et une barre des parts. Tous affichent en haut l'état actuel et depuis quand.
+- Français : le style par défaut de la consommation est désormais « Anneau et bande des cycles » (`history_style: takte`). Les cartes avec un style choisi explicitement le conservent.
+- 日本語：24時間の SG Ready を作り直し、エディターの「SG Ready の表示」（`sg_style`）で4種類から選べるようにしました：状態ごとの行に期間をピルで表示し右に時間（既定）、状態ごとの高さの階段状の線、割合付きの24時間時計、各ブロックに時間を表示した幅広の帯と割合バー。いずれも上部に現在の状態と継続時間を表示します。
+- 日本語：使用量グラフの既定を「リングとサイクル帯」（`history_style: takte`）に変更しました。表示を明示的に選んだカードはそのままです。
+
 ## v5.9.5
 
 - English: New version number so that Home Assistant and HACS detect the update. No functional changes compared to v5.9.0.

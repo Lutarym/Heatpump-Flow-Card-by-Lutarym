@@ -4,10 +4,9 @@
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
 import { escapeHtml, fmt, groesster, kleinster } from "../hilfsfunktionen.js";
-import { SG_STATES } from "../konstanten.js";
 
 /** Abmessungen der Zeichenflaeche im Fenster. */
-const DW = 640;
+export const DW = 640;
 const DH = 200;
 
 /** Kleine Symbole fuer die Knoepfe, gezeichnet um den Nullpunkt. */
@@ -17,6 +16,10 @@ const SYMBOLE = {
        <circle cx="-3.5" cy="0" r="2" fill="currentColor"/><circle cx="3.5" cy="0" r="2" fill="currentColor"/>`,
   temp: `<path d="M-2 -8 a2 2 0 0 1 4 0 V2.5 a4 4 0 1 1 -4 0 Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
          <circle cx="0" cy="5.5" r="2" fill="currentColor"/>`,
+  cop: `<path d="M-8 4 A8 8 0 1 1 8 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M0 2 L4 -5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="0" cy="2" r="2" fill="currentColor"/>`,
+  takt: `<path d="M-9 2 H-5 L-3 -6 L1 7 L3 -2 H9" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linejoin="round" stroke-linecap="round"/>`,
 };
 
 export const diagrammeKarte = {
@@ -36,14 +39,29 @@ export const diagrammeKarte = {
       ["verbrauch", this._t("verbrauch")],
       ["sg", "SG Ready"],
       ["temp", this._t("d_temperaturen")],
+      ["cop", "COP"],
+      ["takt", this._t("d_taktung")],
     ];
     const abstand = 10;
-    // Im Hochformat untereinander, nebeneinander waere die Spalte zu schmal.
-    const w = untereinander ? breite : (breite - abstand * (arten.length - 1)) / arten.length;
+    // Nebeneinander in zwei Zeilen: oben drei, darunter zwei, rechtsbuendig.
+    // Im Hochformat zwei Spalten, untereinander waere es zu hoch.
+    const spalten = 3;
+    const w = untereinander
+      ? (breite - abstand) / 2
+      : (breite - abstand * (spalten - 1)) / spalten;
+    const lage = (i) => {
+      if (untereinander) {
+        return { bx: x + (i % 2) * (w + abstand), by: y + Math.floor(i / 2) * (40 + abstand) };
+      }
+      const zeile = i < spalten ? 0 : 1;
+      const inZeile = zeile ? arten.length - spalten : spalten;
+      const pos = zeile ? i - spalten : i;
+      const start = x + breite - inZeile * w - (inZeile - 1) * abstand;
+      return { bx: start + pos * (w + abstand), by: y + zeile * (40 + abstand) };
+    };
     return `<g id="dia-knoepfe">${arten
       .map(([art, text], i) => {
-        const bx = untereinander ? x : x + i * (w + abstand);
-        const by = untereinander ? y + i * (40 + abstand) : y;
+        const { bx, by } = lage(i);
         return `
         <g class="dia-knopf klickbar" data-dia="${art}" role="button" tabindex="0"
            aria-label="${escapeHtml(text)}">
@@ -70,12 +88,14 @@ export const diagrammeKarte = {
                     aria-label="${escapeHtml(this._t("f_schliessen"))}">&times;</button>
           </div>
           <div class="lhc-hilfe-chips" id="dia-reiter">
-            ${reiter("verbrauch", this._t("verbrauch"))}${reiter("sg", "SG Ready")}${reiter("temp", this._t("d_temperaturen"))}
+            ${reiter("verbrauch", this._t("verbrauch"))}${reiter("sg", "SG Ready")}${reiter("temp", this._t("d_temperaturen"))}${reiter("cop", "COP")}${reiter("takt", this._t("d_taktung"))}
           </div>
           <svg viewBox="0 0 ${DW} ${DH}" class="lhc-dia-svg" id="dia-svg" preserveAspectRatio="xMidYMid meet">
             <g id="dia-verbrauch">${this._verlaufRahmen(20, 6, DW - 40, DH - 12)}</g>
             <g id="dia-sg"></g>
             <g id="dia-temp"></g>
+            <g id="dia-cop"></g>
+            <g id="dia-takt"></g>
             <text class="value-sp verlauf-text" id="dia-leer" x="${DW / 2}" y="${DH / 2}"
                   text-anchor="middle" opacity="0">${escapeHtml(this._t("kein_verlauf"))}</text>
           </svg>
@@ -142,18 +162,22 @@ export const diagrammeKarte = {
       verbrauch: this._t("verbrauch_24"),
       sg: `SG Ready · ${this._t("d_24h")}`,
       temp: `${this._t("d_temperaturen")} · ${this._t("d_24h")}`,
+      cop: `COP · ${this._t("d_24h")}`,
+      takt: `${this._t("d_taktung")} · ${this._t("d_24h")}`,
     };
     sr.getElementById("dia-titel").textContent = titel[art] || "";
     sr.querySelectorAll("#dia-reiter button").forEach((b) =>
       b.classList.toggle("aktiv", b.dataset.reiter === art)
     );
-    ["verbrauch", "sg", "temp"].forEach((a) => {
+    ["verbrauch", "sg", "temp", "cop", "takt"].forEach((a) => {
       const g = sr.getElementById(`dia-${a}`);
       if (g) g.setAttribute("display", a === art ? "inline" : "none");
     });
     sr.getElementById("dia-liste").textContent = "";
+    const leer = sr.getElementById("dia-leer");
+    if (leer) leer.textContent = this._t("kein_verlauf");
     // SG Ready braucht nur ein flaches Band, die anderen die volle Hoehe.
-    const hoch = art === "sg" ? 130 : DH;
+    const hoch = art === "sg" ? this._sgHoehe() : art === "cop" || art === "takt" ? this._auswertungHoehe(art) : DH;
     sr.getElementById("dia-svg").setAttribute("viewBox", `0 0 ${DW} ${hoch}`);
     sr.getElementById("dia-leer").setAttribute("y", String(hoch / 2));
     if (art === "verbrauch") {
@@ -167,6 +191,10 @@ export const diagrammeKarte = {
     } else if (art === "temp") {
       this._holeTemperaturen();
       this._zeichneDiaTemp();
+    } else if (art === "cop" || art === "takt") {
+      this._auswertungZeit = 0;
+      this._holeAuswertung();
+      this._zeichneAuswertung();
     }
   },
 
@@ -179,53 +207,6 @@ export const diagrammeKarte = {
   _diaNachVerlauf() {
     if (this._diaArt === "verbrauch") this._diaLeer(!(this._verlauf && this._verlauf.length >= 2));
     if (this._diaArt === "sg") this._zeichneDiaSg();
-  },
-
-  /** SG Ready: breites Band ueber 24 Stunden und die Dauer je Zustand. */
-  _zeichneDiaSg() {
-    const sr = this.shadowRoot;
-    const g = sr.getElementById("dia-sg");
-    if (!g) return;
-    const sgr = this._sgVerlauf;
-    if (!sgr || !sgr.length) {
-      g.innerHTML = "";
-      this._diaLeer(true);
-      return;
-    }
-    this._diaLeer(false);
-    const t1 = Date.now();
-    const t0 = t1 - 86400000;
-    const links = 20;
-    const rechts = DW - 20;
-    const oben = 10;
-    const hoehe = 70;
-    const zuX = (t) => links + ((Math.min(Math.max(t, t0), t1) - t0) / (t1 - t0)) * (rechts - links);
-    const dauer = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    let rects = "";
-    sgr.forEach((e, i) => {
-      const von = Math.max(e.t, t0);
-      const bis = Math.min(i + 1 < sgr.length ? sgr[i + 1].t : t1, t1);
-      if (bis <= von) return;
-      dauer[e.stufe] = (dauer[e.stufe] || 0) + (bis - von);
-      const info = SG_STATES[e.stufe];
-      rects += `<rect x="${zuX(von).toFixed(1)}" y="${oben}" width="${Math.max(0.6, zuX(bis) - zuX(von)).toFixed(1)}"
-                 height="${hoehe}" fill="${info ? info.farbe : "#55637A"}" opacity="0.9"/>`;
-    });
-    g.innerHTML = `
-      <rect x="${links}" y="${oben}" width="${rechts - links}" height="${hoehe}" rx="6"
-            fill="#0D1219" stroke="#2A3446" stroke-width="1"/>
-      ${rects}
-      ${this._diaZeitachse(links, rechts, oben + hoehe + 22)}`;
-    // Darunter die Zustaende mit ihrer Dauer, als Liste zum Lesen.
-    const liste = sr.getElementById("dia-liste");
-    liste.innerHTML = [2, 3, 4, 1]
-      .map((s) => {
-        const info = SG_STATES[s];
-        const std = dauer[s] / 3600000;
-        return `<div class="lhc-dia-zeile"><span class="lhc-dia-farbe" style="background:${info.farbe}"></span>
-          <span>${escapeHtml(this._t(info.lang))}</span><b>${fmt(std, 1)} h</b></div>`;
-      })
-      .join("");
   },
 
   /** Beschriftung der Zeitachse alle sechs Stunden mit Uhrzeit. */

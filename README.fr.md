@@ -81,7 +81,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `profil` | `auto` | `auto` détecte l'intégration automatiquement, sinon l'identifiant d'un profil comme `heishamon_lutarym`, `heishamon` (nommage MQTT), `vicare`, `luxtronik2` ; liste dans le [guide](docs/GERAETEPROFIL.fr.md) |
 | `buffer_present` | `auto` | Ballon tampon : `auto` via TOP99, `true` ou `false` |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
-| `show_history` | `knopf` | Graphiques 24 heures : `knopf` trois boutons en haut à droite ouvrent consommation, SG Ready et températures dans une fenêtre, `true` consommation toujours dans la carte, `false` désactivé |
+| `show_history` | `knopf` | Graphiques 24 heures : `knopf` cinq boutons en haut à droite ouvrent consommation, SG Ready, températures, COP et cycles dans une fenêtre, `true` consommation toujours dans la carte, `false` désactivé |
 | `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |
 | `show_reload` | `true` | Afficher la ligne « Recharge à … » dans le ballon tampon et l'eau chaude |
 | `show_help` | `true` | Afficher le bouton « ? » de l'aide en bas à droite de la carte ; l'aide décrit HeishaMon et n'apparaît qu'avec les profils HeishaMon et en mode démo |
@@ -90,7 +90,8 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `profile_custom` | `[]` | Profils d'appareil importés (définis par l'éditeur, voir le [guide](docs/GERAETEPROFIL.fr.md)) |
 | `language_custom` | `[]` | Packs de langue importés (définis par l'éditeur, voir le [guide](docs/SPRACHPAKET.fr.md)) |
 | `history_width` | `450` | Largeur du graphique, 250 à 700 |
-| `history_style` | `balken` | Style du graphique de consommation : `balken` (barres par heure), `takte` (anneau et bande des cycles), `leuchten` (ligne lumineuse avec repères de cycles), `linie` (ligne précédente) |
+| `history_style` | `takte` | Style du graphique de consommation : `takte` (anneau et bande des cycles), `balken` (barres par heure), `leuchten` (ligne lumineuse avec repères de cycles), `linie` (ligne précédente) |
+| `sg_style` | `spuren` | Style du graphique SG Ready : `spuren` (une ligne par état), `stufen` (ligne en escalier), `uhr` (horloge 24 heures), `band` (large bande avec barre des parts) |
 | `card_width` | `0` | Largeur en pixels, 0 = automatique |
 | `card_height` | `0` | Hauteur en pixels, 0 = automatique |
 | `pipe_inner_mm` | `0` | Diamètre intérieur en mm, colore le débit, 0 = désactivé |

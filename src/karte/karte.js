@@ -17,6 +17,8 @@ import { hilfeKarte } from "./hilfe.js";
 import { kennzahlenKarte } from "./kennzahlen.js";
 import { solarKarte } from "./solar.js";
 import { verbrauchStileKarte } from "./verbrauchstile.js";
+import { sgStileKarte } from "./sgstile.js";
+import { auswertungKarte } from "./auswertung.js";
 import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { verlaufKarte } from "./verlauf.js";
@@ -684,6 +686,8 @@ Object.assign(
   grafikKlassischKarte,
   solarKarte,
   verbrauchStileKarte,
+  sgStileKarte,
+  auswertungKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte

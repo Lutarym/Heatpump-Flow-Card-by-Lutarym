@@ -81,7 +81,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `profil` | `auto` | `auto` erkennt die Integration selbst, sonst die Kennung eines Profils wie `heishamon_lutarym`, `heishamon` (MQTT-Namensschema), `vicare`, `luxtronik2`; Liste in der [Anleitung](docs/GERAETEPROFIL.de.md) |
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
-| `show_history` | `knopf` | Diagramme 24 Stunden: `knopf` drei Knöpfe oben rechts öffnen Verbrauch, SG Ready und Temperaturen im Fenster, `true` Verbrauch dauerhaft in der Karte, `false` aus |
+| `show_history` | `knopf` | Diagramme 24 Stunden: `knopf` fünf Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP und Taktung im Fenster, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
 | `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
 | `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen; die Hilfe beschreibt HeishaMon und erscheint nur bei HeishaMon-Profilen und im Demomodus |
@@ -90,7 +90,8 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `profile_custom` | `[]` | Importierte Geräteprofile (setzt der Editor, siehe [Anleitung](docs/GERAETEPROFIL.de.md)) |
 | `language_custom` | `[]` | Importierte Sprachpakete (setzt der Editor, siehe [Anleitung](docs/SPRACHPAKET.de.md)) |
 | `history_width` | `450` | Breite des Verbrauchsverlaufs, 250 bis 700 |
-| `history_style` | `balken` | Darstellung des Verbrauchs: `balken` (Balken je Stunde), `takte` (Ring und Taktband), `leuchten` (leuchtende Linie mit Taktmarken), `linie` (bisherige Linie) |
+| `history_style` | `takte` | Darstellung des Verbrauchs: `takte` (Ring und Taktband), `balken` (Balken je Stunde), `leuchten` (leuchtende Linie mit Taktmarken), `linie` (bisherige Linie) |
+| `sg_style` | `spuren` | Darstellung von SG Ready: `spuren` (Spuren je Zustand), `stufen` (Stufenlinie), `uhr` (24-Stunden-Uhr), `band` (breites Band mit Anteilsleiste) |
 | `card_width` | `0` | Breite in Pixeln, 0 ist automatisch |
 | `card_height` | `0` | Höhe in Pixeln, 0 ist automatisch |
 | `pipe_inner_mm` | `0` | Rohrinnendurchmesser in mm, färbt den Durchfluss, 0 ist aus |

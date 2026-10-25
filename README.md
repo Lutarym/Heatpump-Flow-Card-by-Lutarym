@@ -81,7 +81,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `profil` | `auto` | `auto` detects the integration automatically, or the ID of a profile such as `heishamon_lutarym`, `heishamon` (MQTT naming), `vicare`, `luxtronik2`; list in the [guide](docs/GERAETEPROFIL.md) |
 | `buffer_present` | `auto` | Heating buffer: `auto` from TOP99, `true` or `false` |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
-| `show_history` | `knopf` | 24 hour charts: `knopf` three buttons at the top right open energy, SG Ready and temperatures in a window, `true` energy always in the card, `false` off |
+| `show_history` | `knopf` | 24 hour charts: `knopf` five buttons at the top right open energy, SG Ready, temperatures, COP and cycling in a window, `true` energy always in the card, `false` off |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
 | `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
 | `show_help` | `true` | Show the “?” help button at the bottom right of the card; the help describes HeishaMon and only appears with HeishaMon profiles and in demo mode |
@@ -90,7 +90,8 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `profile_custom` | `[]` | Imported device profiles (set by the editor, see [guide](docs/GERAETEPROFIL.md)) |
 | `language_custom` | `[]` | Imported language packs (set by the editor, see [guide](docs/SPRACHPAKET.md)) |
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |
-| `history_style` | `balken` | Energy chart style: `balken` (bars per hour), `takte` (ring and cycle band), `leuchten` (glowing line with cycle marks), `linie` (previous line) |
+| `history_style` | `takte` | Energy chart style: `takte` (ring and cycle band), `balken` (bars per hour), `leuchten` (glowing line with cycle marks), `linie` (previous line) |
+| `sg_style` | `spuren` | SG Ready chart style: `spuren` (lane per state), `stufen` (step line), `uhr` (24-hour clock), `band` (wide band with share bar) |
 | `card_width` | `0` | Width in pixels, 0 is automatic |
 | `card_height` | `0` | Height in pixels, 0 is automatic |
 | `pipe_inner_mm` | `0` | Inner pipe diameter in mm, colours the flow rate, 0 is off |

@@ -81,7 +81,7 @@ entities:
 | `profil` | `auto` | `auto` は統合を自動検出します。または `heishamon_lutarym`、`heishamon`（MQTT 命名規則）、`vicare`、`luxtronik2` などのプロファイル ID。一覧は[説明](docs/GERAETEPROFIL.ja.md)を参照 |
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
-| `show_history` | `knopf` | 24時間グラフ：`knopf` 右上の3つのボタンで使用量・SG Ready・温度をウィンドウ表示、`true` 使用量を常にカードに表示、`false` オフ |
+| `show_history` | `knopf` | 24時間グラフ：`knopf` 右上の5つのボタンで使用量・SG Ready・温度・COP・運転サイクルをウィンドウ表示、`true` 使用量を常にカードに表示、`false` オフ |
 | `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
 | `show_reload` | `true` | バッファーと給湯に「再加熱 …」の行を表示 |
 | `show_help` | `true` | カード右下にヘルプの「?」ボタンを表示。ヘルプは HeishaMon の説明のため、HeishaMon のプロファイルとデモモードでのみ表示 |
@@ -90,7 +90,8 @@ entities:
 | `profile_custom` | `[]` | 読み込んだデバイスプロファイル（エディターが設定、[説明](docs/GERAETEPROFIL.ja.md) 参照） |
 | `language_custom` | `[]` | 読み込んだ言語パック（エディターが設定、[説明](docs/SPRACHPAKET.ja.md) 参照） |
 | `history_width` | `450` | 使用量グラフの幅、250〜700 |
-| `history_style` | `balken` | 使用量グラフの表示：`balken`（1時間ごとの棒グラフ）、`takte`（リングとサイクル帯）、`leuchten`（光る線とサイクル表示）、`linie`（従来の線） |
+| `history_style` | `takte` | 使用量グラフの表示：`takte`（リングとサイクル帯）、`balken`（1時間ごとの棒グラフ）、`leuchten`（光る線とサイクル表示）、`linie`（従来の線） |
+| `sg_style` | `spuren` | SG Ready の表示：`spuren`（状態ごとの行）、`stufen`（階段状の線）、`uhr`（24時間時計）、`band`（幅広の帯と割合バー） |
 | `card_width` | `0` | 幅（ピクセル）、0 で自動 |
 | `card_height` | `0` | 高さ（ピクセル）、0 で自動 |
 | `pipe_inner_mm` | `0` | 配管内径（mm）、流量を色分け、0 で無効 |

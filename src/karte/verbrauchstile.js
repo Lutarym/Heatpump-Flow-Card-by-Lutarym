@@ -33,10 +33,10 @@ function obenRund(x, y, b, h, r) {
 }
 
 export const verbrauchStileKarte = {
-  /** Gewaehlter Stil, unbekannte Werte fallen auf die Balken zurueck. */
+  /** Gewaehlter Stil, unbekannte Werte fallen auf Ring und Taktband zurueck. */
   _verbrauchStil() {
     const s = this._config.history_style;
-    return VERBRAUCH_STILE.includes(s) ? s : "balken";
+    return VERBRAUCH_STILE.includes(s) ? s : "takte";
   },
 
   /**
