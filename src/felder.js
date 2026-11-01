@@ -158,6 +158,7 @@ export const DEFAULT_CONFIG = {
   profile_custom: [],
   language_custom: [],
   buffer_present: "auto",
+  cop_reference: "",
   circulation_present: "auto",
   history_width: 450,
   history_style: "takte",

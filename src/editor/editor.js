@@ -9,6 +9,7 @@ import { FIELD_DOMAIN, defaultEntityMap, detectIntegration, profilFuer, quellenZ
 import { hilfeDaten, ladeHilfe } from "../hilfe-laden.js";
 import { DEFAULT_CONFIG, ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, friendly } from "../hilfsfunktionen.js";
+import { DATENBLAETTER } from "../karte/datenblatt.js";
 import { CARD_VERSION } from "../konstanten.js";
 import { EIGENE_SPRACHEN, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { feldText, gruppenText, hinweisText, t, tf } from "../texte.js";
@@ -196,6 +197,13 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
               <option value="auto">${this._t("e_auto")}</option>
               <option value="ja">${this._t("e_vorhanden")}</option>
               <option value="nein">${this._t("e_nicht_vorhanden")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_cop_ref")}<em>${this._t("e_cop_ref_h")}</em></span>
+            <select id="opt-cop-ref">
+              <option value="">${this._t("e_cop_ref_kein")}</option>
+              ${Object.entries(DATENBLAETTER).map(([k, v]) => `<option value="${k}">${escapeHtml(v.name)}</option>`).join("")}
             </select>
           </label>
           <label class="ed-row">
@@ -514,6 +522,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-sonne", (el) => { const v = parseFloat(el.value); if (Number.isFinite(v)) put({ solar_sun_temp: v }); });
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
+    bind("opt-cop-ref", (el) => put({ cop_reference: el.value }));
 
     const applyMap = (map, merge) => {
       const entities = merge ? { ...this._config.entities, ...map } : { ...map };
@@ -785,6 +794,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     });
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
+    put("opt-cop-ref", DATENBLAETTER[this._config.cop_reference] ? this._config.cop_reference : "");
 
     const imFokus = sr.activeElement;
     sr.querySelectorAll("[data-entity]").forEach((input) => {

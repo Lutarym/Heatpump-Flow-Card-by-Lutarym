@@ -2,6 +2,29 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.18.0
+
+- English:
+  - COP tab rated against the datasheet at the same outdoor and flow temperature: green from 92 % of the datasheet (tolerance −8 % on the declared COP, HP KEYMARK Annex A), yellow below, grey outside the rating points or for incomplete runs. There is no red level, because no source names a second limit. Datasheet: Panasonic Aquarea T-CAP M 12 kW (WH-WXG12ME5/ME8), rating points to EN 14511 at 35 and 55 °C flow and +7, +2, −7 °C outdoor; in between interpolated via the efficiency factor (the card's own method, exact at the rating points).
+  - New editor field "Datasheet for COP comparison" (`cop_reference`). Without a selection the COP stays unrated.
+  - Yellow runs can be analysed (button in the list or click on the column): all measured values of the run (outdoor, flow and return, spread, compressor, flow rate, defrosting, backup heater, COP in the first 5 minutes and afterwards), findings only with measured value and source, suggestions only where the parameter's effect is documented (spread TOP23 or pump control, heating curve, heater switch-on limit), set only after confirmation. If no measured cause applies, the window says so.
+  - Analysis: the COP point now uses the same levels; the spread suggestion names the correct guide value.
+- Deutsch:
+  - Reiter COP bewertet gegen das Datenblatt bei gleicher Außen- und Vorlauftemperatur: grün ab 92 % des Datenblatts (Toleranz −8 % auf den erklärten COP, HP KEYMARK Annex A), gelb darunter, grau außerhalb der Prüfpunkte oder bei unvollständigen Läufen. Eine rote Stufe gibt es nicht, weil keine Quelle eine zweite Grenze nennt. Datenblatt: Panasonic Aquarea T-CAP M 12 kW (WH-WXG12ME5/ME8), Prüfpunkte nach EN 14511 bei 35 und 55 °C Vorlauf und +7, +2, −7 °C außen; dazwischen über den Gütegrad gerechnet (eigene Festlegung, an den Prüfpunkten genau).
+  - Neues Editorfeld „Datenblatt für COP-Vergleich“ (`cop_reference`). Ohne Auswahl bleibt der COP ohne Bewertung.
+  - Gelbe Läufe lassen sich analysieren (Knopf in der Liste oder Klick auf die Säule): alle Messwerte des Laufs (Außen, Vorlauf und Rücklauf, Spreizung, Verdichter, Durchfluss, Abtauung, Heizstab, COP der ersten 5 Minuten und danach), Befunde nur mit Messwert und Quelle, Vorschläge nur, wo die Wirkung des Parameters belegt ist (Spreizung TOP23 oder Pumpenregelung, Heizkurve, Einschaltgrenze Heizstab), gesetzt erst nach Bestätigung. Trifft keine gemessene Ursache zu, sagt das Fenster das.
+  - Analyse: Der Punkt COP nutzt dieselben Stufen; der Spreizungsvorschlag nennt den richtigen Richtwert.
+- Français :
+  - Onglet COP évalué par rapport à la fiche technique aux mêmes températures extérieure et de départ : vert à partir de 92 % de la fiche technique (tolérance −8 % sur le COP déclaré, HP KEYMARK annexe A), jaune en dessous, gris hors des points d'essai ou pour les cycles incomplets. Pas de niveau rouge, car aucune source n'indique de seconde limite. Fiche technique : Panasonic Aquarea T-CAP M 12 kW (WH-WXG12ME5/ME8), points d'essai selon EN 14511 à 35 et 55 °C de départ et +7, +2, −7 °C extérieur ; entre ces points, interpolation via le rendement (méthode propre à la carte, exacte aux points d'essai).
+  - Nouveau champ de l'éditeur « Fiche technique pour la comparaison du COP » (`cop_reference`). Sans choix, le COP reste sans évaluation.
+  - Les cycles jaunes peuvent être analysés (bouton dans la liste ou clic sur la colonne) : toutes les valeurs mesurées du cycle (extérieur, départ et retour, écart, compresseur, débit, dégivrage, appoint, COP des 5 premières minutes et ensuite), constats uniquement avec valeur mesurée et source, suggestions uniquement si l'effet du paramètre est documenté (écart TOP23 ou régulation de pompe, courbe de chauffe, seuil de l'appoint), appliquées seulement après confirmation. Si aucune cause mesurée ne s'applique, la fenêtre le dit.
+  - Analyse : le point COP utilise les mêmes niveaux ; la suggestion d'écart indique la bonne valeur indicative.
+- 日本語：
+  - COP タブを同じ外気温・往き温度でのデータシート値と比較して評価：データシートの92 %以上は緑（申告 COP に対する許容差 −8 %、HP KEYMARK Annex A）、未満は黄、試験点の範囲外や不完全な運転は灰。2つ目の限界値を示す出典がないため赤はありません。データシート：Panasonic Aquarea T-CAP M 12 kW（WH-WXG12ME5/ME8）、EN 14511 の試験点（往き35・55 °C、外気 +7・+2・−7 °C）。試験点の間は効率係数で補間します（カード独自の方法で、試験点では一致）。
+  - エディターに新しい項目「COP 比較用データシート」（`cop_reference`）。選ばないと COP は評価しません。
+  - 黄の運転は分析できます（一覧のボタンまたは棒のクリック）：その運転のすべての測定値（外気温、往き・戻り、温度差、圧縮機、流量、霜取り、補助ヒーター、最初の5分とその後の COP）、測定値と出典がある所見だけ、設定値の効果に根拠がある提案だけ（温度差 TOP23 またはポンプ制御、暖房曲線、ヒーター作動温度）を表示し、確認後にのみ設定します。測定した原因が当てはまらない場合は、そのように表示します。
+  - 分析：COP の項目も同じ段階を使います。温度差の提案は正しい目安を示します。
+
 ## v5.17.0
 
 - English:

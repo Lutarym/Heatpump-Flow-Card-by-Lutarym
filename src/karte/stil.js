@@ -521,6 +521,31 @@ export const stilKarte = {
       .lhc-an-kopf { display: flex; align-items: center; gap: 8px; }
       .lhc-an-kopf b { font-size: 14.5px; color: var(--c-e8edf4); }
       .lhc-an-kopf i { margin-left: auto; padding: 1px 9px; border-radius: 9px; font-style: normal; font-size: 11.5px; white-space: nowrap; }
+      /* COP: gelbe Laeufe zum Analysieren, Liste unter der Grafik. */
+      .lhc-cop-klick { cursor: pointer; }
+      .lhc-cop-klick:hover { filter: brightness(1.15); }
+      .lhc-cop-liste .lhc-an-gruppe { margin-top: 12px; }
+      .lhc-cop-zeile { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--c-1c2533);
+        font-size: 12.5px; color: var(--c-c9d3e0); }
+      .lhc-cop-zeile b { min-width: 48px; color: var(--c-e8edf4); }
+      .lhc-cop-zeile span { flex: 1 1 auto; min-width: 0; }
+      .lhc-cop-zeile .lhc-an-knopf { margin: 0; padding: 4px 10px; font-size: 12px; }
+      /* Analyse eines Laufs im Bestaetigungsfenster. */
+      .lhc-la-kopf { margin: 12px 0 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-98a6ba); }
+      .lhc-la-werte { width: 100%; border-collapse: collapse; font-size: 12.5px; color: var(--c-e8edf4); }
+      .lhc-la-werte td { padding: 4px 6px; border-bottom: 1px solid var(--c-26303f); vertical-align: top; }
+      .lhc-la-werte td:first-child { width: 46%; color: var(--c-98a6ba); }
+      .lhc-la-befund { margin: 6px 0; padding: 8px 10px; border-radius: 10px; border-left: 4px solid #F5B70A; background: var(--c-0f151e);
+        font-size: 12.5px; line-height: 1.45; color: var(--c-e8edf4); }
+      .lhc-la-befund.leer { border-left-color: var(--c-6b7a90); }
+      .lhc-la-befund small { display: block; margin-top: 3px; font-size: 11px; color: var(--c-7e8ca0); }
+      .lhc-la-befund small a { color: inherit; }
+      .lhc-la-ok { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--c-98a6ba); }
+      .lhc-la-vorschlag { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0; padding: 9px 10px;
+        border-radius: 10px; border: 1px solid var(--c-2e4661); background: rgba(59, 130, 246, 0.10); font-size: 12.5px; color: var(--c-e8edf4); }
+      .lhc-la-vorschlag small { display: block; margin-top: 3px; font-size: 11.5px; line-height: 1.4; color: var(--c-98a6ba); }
+      .lhc-la-vorschlag .lhc-an-knopf { flex: 0 0 auto; margin: 0; }
+      .lhc-la-ohne { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--c-98a6ba); }
       /* "nur Messwert" und "keine Daten": nur umrandet, ohne Bewertungsfarbe. */
       .lhc-an-kopf i.neutral { padding: 0 8px; border: 1px solid color-mix(in srgb, currentColor 50%, transparent); background: transparent; }
       .lhc-an-wert { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 6px; font-size: 12.5px; color: var(--c-98a6ba); }

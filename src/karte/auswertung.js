@@ -13,13 +13,16 @@
  *    blieben 90 % der Anlagen unter 5.500 Starts im Jahr. Bei Invertern ist
  *    der Verlust durch Takten laut Dongellini und Morini (2019) gering,
  *    darum keine rote Stufe.
- *  - COP: Fuer Abweichungen vom Datenblatt im Betrieb nennt keine Quelle
- *    eine Grenze. Der COP steht darum ohne Bewertung; der Vergleich mit
- *    dem Datenblatt ist nur eine Orientierung.
+ *  - COP: Vergleich mit dem Datenblatt des im Editor gewaehlten Geraets bei
+ *    gleicher Aussen- und Vorlauftemperatur (42watt: "Ein hoeherer COP ist
+ *    nur bei gleicher Messbedingung besser."). Ab 92 % des Datenblatts gruen,
+ *    darunter gelb (Toleranz -8 %, HP KEYMARK, siehe datenblatt.js). Eine
+ *    zweite belegte Grenze fuer Rot gibt es nicht. Ausserhalb der
+ *    Pruefpunkte, ohne Datenblatt oder bei unvollstaendigen Laeufen grau.
  */
 import { escapeHtml, fmt, groesster, indexBis, jePixel, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
-import { PROFILE } from "../profile.js";
 import { tf } from "../texte.js";
+import { DATENBLAETTER, TOLERANZ, datenblattCop } from "./datenblatt.js";
 import { DW } from "./diagramme.js";
 import { zeitRaster } from "./zeitraum.js";
 
@@ -61,20 +64,17 @@ export function taktStufe(laeufe) {
   return { stufe: mittelwert < 10 ? "hinweis" : kurz ? "leicht" : "ok", kurz, mittel: mittelwert };
 }
 
-/**
- * Vergleichswert aus Aussen- und Vorlauftemperatur: Carnot-COP mal
- * Guetegrad. 0,42 ist der Mittelwert, der sich aus dem Datenblatt der
- * Panasonic Aquarea T-CAP M 12 kW (WH-WXG12ME5/ME8) an den Pruefpunkten
- * A7, A2, A-7 mit W35 und W55 ergibt (0,38 bis 0,47). Er gilt nur fuer
- * dieses Geraet und ist keine Grenze.
- */
-const GUETEGRAD = 0.42;
+/** Farben der COP-Stufen: gruen im Rahmen, gelb darunter (geprueft, mit Zeichen). */
+const COP_FARBE = { gut: "#16A34A", unter: "#F5B70A" };
 
-function erwarteterCop(aussen, vorlauf) {
-  if (aussen === null || vorlauf === null) return null;
-  const hub = vorlauf - aussen;
-  if (hub < 5) return null;
-  return (GUETEGRAD * (vorlauf + 273.15)) / hub;
+/**
+ * Stufe eines Laufs gegenueber dem Datenblatt: "gut" ab 92 %, "unter"
+ * darunter, null ohne Vergleichswert oder wenn der Lauf nicht vollstaendig
+ * im Zeitraum liegt.
+ */
+export function copStufe(l) {
+  if (!l || l.copQuote === null || l.copQuote === undefined || l.laufend || l.angeschnitten) return null;
+  return l.copQuote >= TOLERANZ ? "gut" : "unter";
 }
 
 /** Zeitgewichteter Mittelwert einer Reihe im Zeitraum, ohne Werte bis 0. */
@@ -131,14 +131,14 @@ export const auswertungKarte = {
   },
 
   /**
-   * Der Datenblatt-Vergleich stammt von der Panasonic Aquarea T-CAP M 12 kW.
-   * Er wird nur bei Panasonic-Profilen und im Demomodus gezeigt; fuer
-   * Geraete anderer Hersteller sagt er nichts aus.
+   * Datenblatt fuer den COP-Vergleich laut Editor (cop_reference). Ohne
+   * Auswahl gibt es keinen Vergleich und keine Bewertung. Der Demomodus
+   * zeigt die T-CAP M 12 kW.
    */
-  _copVergleich() {
-    if (this._config.demo) return true;
-    const pr = PROFILE.find((x) => x.id === this._aktivesProfil());
-    return Boolean(pr && /panasonic/i.test(pr.hersteller || ""));
+  _copReferenz() {
+    if (this._config.demo) return "panasonic_tcap_m_12";
+    const k = this._config.cop_reference;
+    return k && DATENBLAETTER[k] ? k : "";
   },
 
   /** Holt die Verlaeufe hoechstens alle fuenf Minuten. */
@@ -158,7 +158,7 @@ export const auswertungKarte = {
     // Dazu die Vorlaeufe der Heizkreise (TOP36, TOP37) fuer Anlagen mit
     // Puffer und der Startzaehler (TOP12) zum Abgleich der gezaehlten Laeufe.
     const felder = ["compressor", "three_way_valve", "cop_heating", "cop_dhw", "outside_temp", "flow_temp",
-      "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts"];
+      "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts", "pump_flow"];
     const ids = felder.map((f) => this._e(f));
     if (!ids[0] || !this._hass || typeof this._hass.callWS !== "function") {
       this._auswertung = null;
@@ -187,13 +187,14 @@ export const auswertungKarte = {
             }))
             .filter((p) => !Number.isNaN(p.t))
             .map((p) => ({ ...p, v: parseFloat(p.s) }));
-        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts] =
+        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss] =
           ids.map(reihe);
         // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
         const erster = vd.length ? vd[0].t : t0;
         const t0e = erster - t0 > 3600000 ? Math.min(erster, jetzt - 3600000) : t0;
         this._auswertung = {
           t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts,
+          durchfluss,
         };
         this._zeichneAuswertung();
       })
@@ -213,7 +214,7 @@ export const auswertungKarte = {
       for (let a = t1 - 86400000; a > t0 - 1; a -= 86400000) tage.unshift(a);
       const teile = tage.map((a, k) => this._auswertungDemoTag(a, a + 86400000, (k % 5) - 2 - (tage.length - k) * 0.05));
       const out = { t0: tage[0], t1 };
-      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2"].forEach((f) => {
+      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss"].forEach((f) => {
         out[f] = teile.flatMap((x) => x[f]).sort((x, y) => x.t - y.t);
       });
       out.starts = this._auswertungDemoZaehler(out.vd);
@@ -252,6 +253,7 @@ export const auswertungKarte = {
     // Waermepumpe (eingestellte Ueberhoehung plus Mischung im Puffer).
     const kreis1 = [{ t: t0, s: "31", v: 31 }];
     const kreis2 = [{ t: t0, s: "28", v: 28 }];
+    const durchfluss = [{ t: t0, s: "0", v: 0 }];
     [3.2, 7.3, 21.2].forEach((s) => {
       abtau.push({ t: t0 + s * h, s: "1", v: 1 }, { t: t0 + s * h + 6 * 60000, s: "0", v: 0 });
     });
@@ -268,15 +270,22 @@ export const auswertungKarte = {
         kreis1.push({ t: start, s: "", v: vl - 4.2 }, { t: start + dauer, s: "", v: 31 });
         kreis2.push({ t: start, s: "", v: vl - 7.5 }, { t: start + dauer, s: "", v: 28 });
       }
+      durchfluss.push({ t: start, s: "", v: ww ? 22 : 31 }, { t: start + dauer, s: "0", v: 0 });
+      // In den ersten drei Minuten liegt der COP niedriger (Anlauf).
+      const ramp = (reihe, c) => {
+        reihe.push({ t: start, s: "", v: c * 0.6 }, { t: start + 3 * 60000, s: "", v: c }, { t: start + dauer, s: "0", v: 0 });
+      };
+      // COP im Demomodus: Anteil am Carnot-COP um 0,42 bis 0,46, beim
+      // Warmwasser 0,40 (nachgebildete Werte, keine Messung).
+      const carnot = (a, w) => (w + 273.15) / (w - a);
       if (ww) {
         ventil.push({ t: start, s: "1", v: 1 }, { t: start + dauer, s: "0", v: 0 });
-        copW.push({ t: start, s: "2.6", v: 2.5 + (i % 2) * 0.2 }, { t: start + dauer, s: "0", v: 0 });
+        ramp(copW, 0.4 * carnot(aussenBei(start), vl));
       } else {
-        const c = 3.1 + aussenBei(start) * 0.17;
-        copH.push({ t: start, s: String(c), v: c }, { t: start + dauer, s: "0", v: 0 });
+        ramp(copH, (0.44 + (((i * 7) % 5) - 2) * 0.01) * carnot(aussenBei(start), vl));
       }
     });
-    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2 };
+    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss };
   },
 
   /**
@@ -286,13 +295,14 @@ export const auswertungKarte = {
    */
   _auswertungLaeufe(d) {
     // Je Datensatz nur einmal rechnen: Fenster und Analyse fragen mehrfach.
-    if (this._laeufeCache && this._laeufeCache.d === d) return this._laeufeCache.laeufe;
-    const laeufe = this._auswertungLaeufeRechnen(d);
-    this._laeufeCache = { d, laeufe };
+    const ref = this._copReferenz();
+    if (this._laeufeCache && this._laeufeCache.d === d && this._laeufeCache.ref === ref) return this._laeufeCache.laeufe;
+    const laeufe = this._auswertungLaeufeRechnen(d, ref);
+    this._laeufeCache = { d, ref, laeufe };
     return laeufe;
   },
 
-  _auswertungLaeufeRechnen(d) {
+  _auswertungLaeufeRechnen(d, ref) {
     const laeuft = (p) => {
       const n = parseFloat(p.s);
       if (!Number.isNaN(n)) return n > 0;
@@ -342,7 +352,7 @@ export const auswertungKarte = {
       l.ruecklauf = mittelEigene(d.ruecklauf);
       l.kreis1 = mittelEigene(d.kreis1);
       l.kreis2 = mittelEigene(d.kreis2);
-      l.copErwartet = erwarteterCop(l.aussen, l.vorlauf);
+      l.copErwartet = ref && l.aussen !== null && l.vorlauf !== null ? datenblattCop(ref, l.aussen, l.vorlauf) : null;
       l.copQuote = l.cop !== null && l.copErwartet ? l.cop / l.copErwartet : null;
       if (l.aussen === null) {
         const s = stand(d.aussen, l.von);
@@ -433,13 +443,13 @@ export const auswertungKarte = {
   },
 
   /**
-   * COP je Lauf mit Aussentemperatur, ohne Bewertung: Fuer Abweichungen vom
-   * Datenblatt im Betrieb nennt keine Quelle eine Grenze. Bei Panasonic
-   * zeigt ein Strich den Vergleichswert aus dem Datenblatt der T-CAP M 12 kW.
+   * COP je Lauf gegenueber dem Datenblatt bei gleicher Aussen- und
+   * Vorlauftemperatur: gruen ab 92 %, gelb darunter, grau ohne
+   * Vergleichswert. Gelbe Laeufe lassen sich analysieren (laufanalyse.js).
    */
   _zeichneCop(g, liste, d, laeufe) {
     const mitCop = laeufe.filter((l) => l.cop !== null);
-    const vergleich = this._copVergleich();
+    const ref = this._copReferenz();
     const gewichtet = (ls, feld) => {
       const auswahl = ls.filter((l) => l[feld] !== null && l[feld] !== undefined);
       const dauer = auswahl.reduce((s, l) => s + l.minuten, 0);
@@ -451,22 +461,28 @@ export const auswertungKarte = {
     const minH = heiz.length ? kleinster(heiz.map((l) => l.cop)) : null;
     const maxH = heiz.length ? groesster(heiz.map((l) => l.cop)) : null;
 
-    // Kopf ohne Bewertung: Mittelwerte nach Laufzeit, bei Panasonic dazu der
-    // Anteil am Datenblatt-Vergleich.
-    const mitVergleich = vergleich ? mitCop.filter((l) => l.copQuote !== null) : [];
-    const quote = gewichtet(mitVergleich, "copQuote");
+    // Stufen je Lauf und Kopf mit der Zahl der bewerteten Laeufe.
+    const bewertet = mitCop.filter((l) => copStufe(l));
+    const unter = bewertet.filter((l) => copStufe(l) === "unter");
+    const ohne = mitCop.length - bewertet.length;
+    const quote = gewichtet(bewertet, "copQuote");
     let urteil;
     if (!mitCop.length) {
       urteil = this._auswertungUrteil(GRAU, "info", this._t("a_keine_cop"), "");
+    } else if (!ref) {
+      urteil = this._auswertungUrteil(GRAU, "info", this._t("a_c_t_ohne_ref"), this._t("a_c_d_ref"));
+    } else if (!bewertet.length) {
+      urteil = this._auswertungUrteil(GRAU, "info", this._t("a_c_t_keine"), tf(this._t("a_c_d_ohne"), { n: ohne }));
     } else {
-      const basis = mitVergleich.length ? mitVergleich : mitCop;
-      const aussen = gewichtet(basis, "aussen");
-      const vorlauf = gewichtet(basis, "vorlauf");
-      const werte = { a: aussen === null ? "--" : fmt(aussen, 1), v: vorlauf === null ? "--" : fmt(vorlauf, 0) };
-      let unterzeile = tf(this._t("a_c_info_o"), { c: z(gewichtet(mitCop, "cop")), ...werte });
-      if (quote !== null) unterzeile = tf(this._t("a_c_info_d"), { p: fmt(quote * 100, 0), ...werte });
-      else if (vergleich) unterzeile = this._t("a_c_ohne_d");
-      urteil = this._auswertungUrteil(GRAU, "info", this._t("a_c_info_t"), unterzeile);
+      const aussen = gewichtet(bewertet, "aussen");
+      const vorlauf = gewichtet(bewertet, "vorlauf");
+      const teile = [tf(this._t("a_c_d_quote"), {
+        p: fmt(quote * 100, 0), a: aussen === null ? "--" : fmt(aussen, 1), v: vorlauf === null ? "--" : fmt(vorlauf, 0),
+      })];
+      if (ohne) teile.push(tf(this._t("a_c_d_ohne"), { n: ohne }));
+      urteil = unter.length
+        ? this._auswertungUrteil(COP_FARBE.unter, "warn", tf(this._t("a_c_t_unter"), { u: unter.length, n: bewertet.length }), teile.join(" · "))
+        : this._auswertungUrteil(COP_FARBE.gut, "ok", tf(this._t("a_c_t_gut"), { n: bewertet.length }), teile.join(" · "));
     }
     let out = urteil;
     out += this._auswertungKacheln(60, [
@@ -480,15 +496,15 @@ export const auswertungKarte = {
       if (liste) liste.textContent = "";
       return;
     }
-    // Saeulen je Lauf: Hoehe = gemessener COP in neutraler Farbe, heller
-    // Strich = Vergleichswert aus dem Datenblatt (nur Panasonic). Eine Achse,
-    // die Aussentemperatur steht als eigener Streifen darunter.
+    // Saeulen je Lauf: Hoehe = gemessener COP, Farbe = Stufe gegenueber dem
+    // Datenblatt, heller Strich = Datenblattwert. Eine Achse, die
+    // Aussentemperatur steht als eigener Streifen darunter.
     const links = 44;
     const rechts = DW - 20;
     const oben = 132;
     const unten = 246;
     const zuX = (t) => links + ((t - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links);
-    const werte = mitCop.map((l) => l.cop).concat(mitVergleich.map((l) => l.copErwartet));
+    const werte = mitCop.map((l) => l.cop).concat(mitCop.filter((l) => l.copErwartet !== null).map((l) => l.copErwartet));
     const cMax = Math.max(Math.ceil(groesster(werte)), 5);
     const zuY = (v) => unten - (Math.max(0, v) / cMax) * (unten - oben);
     for (let v = 0; v <= cMax; v++) {
@@ -506,27 +522,28 @@ export const auswertungKarte = {
       const xa = zuX(l.von);
       const w = Math.max(viele ? 1.5 : 5, zuX(l.bis) - xa - (viele ? 0 : 2));
       const y = zuY(l.cop);
-      const mitStrich = vergleich && l.copErwartet !== null;
+      const stufe = copStufe(l);
+      const mitStrich = l.copErwartet !== null;
       const titel = `${this._t(l.ww ? "warmwasser" : "heizung")} · ${fmt(l.minuten, 0)} min · COP ${fmt(l.cop, 1)}${
-        mitStrich ? ` · ${tf(this._t("a_c_dbl"), { c: fmt(l.copErwartet, 1) })}` : ""
-      }${mitStrich && l.copQuote !== null ? ` (${fmt(l.copQuote * 100, 0)} %)` : ""}${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${
-        l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""
-      }`;
+        mitStrich ? ` · ${tf(this._t("a_c_dbl"), { c: fmt(l.copErwartet, 1) })} (${fmt(l.copQuote * 100, 0)} %)` : ""
+      }${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""}`;
       const r = Math.min(3, w / 2, unten - y);
+      // Gelbe Saeulen oeffnen per Klick die Analyse des Laufs.
+      const klick = stufe === "unter" ? ` data-lauf="${laeufe.indexOf(l)}" class="lhc-cop-klick"` : "";
       out += `<path d="M${xa.toFixed(1)} ${unten}V${(y + r).toFixed(1)}Q${xa.toFixed(1)} ${y.toFixed(1)} ${(xa + r).toFixed(1)} ${y.toFixed(1)}H${(xa + w - r).toFixed(1)}Q${(xa + w).toFixed(1)} ${y.toFixed(1)} ${(xa + w).toFixed(1)} ${(y + r).toFixed(1)}V${unten}Z"
-                    fill="${NEUTRAL}"${l.laufend || l.angeschnitten ? ' opacity="0.55"' : ""}><title>${escapeHtml(titel)}</title></path>`;
+                    fill="${stufe ? COP_FARBE[stufe] : NEUTRAL}"${l.laufend || l.angeschnitten ? ' opacity="0.55"' : ""}${klick}><title>${escapeHtml(titel)}</title></path>`;
       if (mitStrich) {
         const ye = zuY(l.copErwartet).toFixed(1);
         const ueber = viele ? 0 : 3;
         out += `<line x1="${(xa - ueber).toFixed(1)}" x2="${(xa + w + ueber).toFixed(1)}" y1="${ye}" y2="${ye}"
-                      stroke="#E8EDF4" stroke-width="${viele ? 1.5 : 2.5}" stroke-linecap="round"/>`;
+                      stroke="#E8EDF4" stroke-width="${viele ? 1.5 : 2.5}" stroke-linecap="round" pointer-events="none"/>`;
       }
       // Spur darunter: rot Heizen, blau Warmwasser.
       out += `<rect x="${xa.toFixed(1)}" y="${unten + 5}" width="${w.toFixed(1)}" height="5" rx="2" fill="${l.ww ? FARBE.ww : FARBE.heiz}"/>`;
       // Zahlen ueber Saeule und Vergleichsstrich, solange genug Abstand bleibt.
       if (!viele && xa - zuletztX >= 26) {
         const yText = Math.min(y, mitStrich ? zuY(l.copErwartet) : y) - 6;
-        out += `<text x="${(xa + w / 2).toFixed(1)}" y="${yText.toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#E8EDF4">${fmt(l.cop, 1)}</text>`;
+        out += `<text x="${(xa + w / 2).toFixed(1)}" y="${yText.toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#E8EDF4" pointer-events="none">${fmt(l.cop, 1)}</text>`;
         zuletztX = xa;
       }
     });
@@ -550,21 +567,44 @@ export const auswertungKarte = {
         <path d="${pfad}" fill="none" stroke="${FARBE.aussen}" stroke-width="1.8" stroke-linejoin="round"/>`;
     }
     g.innerHTML = out;
+    g.querySelectorAll("[data-lauf]").forEach((el) => {
+      el.addEventListener("click", () => this._zeigeLaufAnalyse(laeufe[Number(el.dataset.lauf)]));
+    });
 
     if (liste) {
-      // Keine Bewertungsfarben: Saeule, Vergleichsstrich und Betriebsart.
-      const legende = [`<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_saeule"))}</span>`]
-        .concat(vergleich ? [`<span class="lhc-dia-strich"></span><span>${escapeHtml(this._t("a_c_vergleich"))}</span>`] : [])
+      // Stufen mit Zeichen und Text, Farbe nie allein.
+      const legende = (ref
+        ? [
+          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut}"></span><span>${escapeHtml(this._t("a_c_l_gut"))}</span>`,
+          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.unter}"></span><span>${escapeHtml(this._t("a_c_l_unter"))}</span>`,
+          `<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_l_ohne"))}</span>`,
+          `<span class="lhc-dia-strich"></span><span>${escapeHtml(this._t("a_c_vergleich"))}</span>`,
+        ]
+        : [`<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_saeule"))}</span>`])
         .concat(
           `<span class="lhc-dia-farbe flach" style="background:${FARBE.heiz}"></span><span>${escapeHtml(this._t("heizung"))}</span>`,
           `<span class="lhc-dia-farbe flach" style="background:${FARBE.ww}"></span><span>${escapeHtml(this._t("warmwasser"))}</span>`
         )
         .join("");
-      const ohneVergleich = vergleich && mitVergleich.length && mitCop.length > mitVergleich.length;
+      // Gelbe Laeufe, die schlechtesten zuerst, mit Knopf zur Analyse.
+      const reihe = unter.slice().sort((a, b) => a.copQuote - b.copQuote);
+      const zeigen = reihe.slice(0, 8);
+      const zeile = (l) => `<div class="lhc-cop-zeile">
+          <b>${escapeHtml(this._zrMarke(l.von, d.t1 - d.t0))}</b>
+          <span>${escapeHtml(tf(this._t("a_c_liste_z"), {
+            w: this._t(l.ww ? "warmwasser" : "heizung"), d: fmt(l.minuten, 0), c: fmt(l.cop, 1), p: fmt(l.copQuote * 100, 0),
+          }))}</span>
+          <button type="button" class="lhc-an-knopf" data-lauf="${laeufe.indexOf(l)}">${escapeHtml(this._t("a_c_analysieren"))}</button>
+        </div>`;
       liste.innerHTML = `
         <div class="lhc-takt-legende">${legende}</div>
-        ${ohneVergleich ? `<p class="lhc-takt-text">${escapeHtml(this._t("a_c_ohne_d"))}</p>` : ""}
-        <p class="lhc-takt-quelle">${escapeHtml(this._t(vergleich ? "a_c_quelle" : "a_c_quelle_o"))}</p>`;
+        ${zeigen.length ? `<div class="lhc-cop-liste"><div class="lhc-an-gruppe">${escapeHtml(this._t("a_c_liste"))}</div>
+          ${zeigen.map(zeile).join("")}
+          ${reihe.length > zeigen.length ? `<p class="lhc-takt-quelle">${escapeHtml(tf(this._t("a_c_mehr"), { n: reihe.length - zeigen.length }))}</p>` : ""}</div>` : ""}
+        <p class="lhc-takt-quelle">${escapeHtml(this._t(ref ? "a_c_quelle" : "a_c_quelle_o"))}</p>`;
+      liste.querySelectorAll("[data-lauf]").forEach((b) => {
+        b.addEventListener("click", () => this._zeigeLaufAnalyse(laeufe[Number(b.dataset.lauf)]));
+      });
     }
   },
 

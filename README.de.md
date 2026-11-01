@@ -80,6 +80,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `language` | `auto` | `auto`, `de`, `en`, `fr` oder `ja` |
 | `profil` | `auto` | `auto` erkennt die Integration selbst, sonst die Kennung eines Profils wie `heishamon_lutarym`, `heishamon` (MQTT-Namensschema), `vicare`, `luxtronik2`; Liste in der [Anleitung](docs/GERAETEPROFIL.de.md) |
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
+| `cop_reference` | leer | Datenblatt für den COP-Vergleich: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Nur damit färbt der Reiter COP jeden Lauf: grün ab 92 % des Datenblatts (Toleranz −8 %, HP KEYMARK), gelb darunter, grau außerhalb der Prüfpunkte. Leer: COP ohne Bewertung |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
 | `show_history` | `knopf` | Diagramme: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster, Zeitraum wählbar von 24 Stunden bis 1 Jahr, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |

@@ -30,7 +30,9 @@
  *    keine Quelle eine Grenze: nur Messwert.
  *  - Taktung: Ziel 10 bis 20 min je Start (BWP), 42watt "Taktung"; siehe
  *    taktStufe in auswertung.js. Eine feste Grenze fuer Starts gibt es nicht.
- *  - COP: keine belegte Grenze fuer Abweichungen im Betrieb: nur Messwert.
+ *  - COP: Vergleich mit dem Datenblatt des im Editor gewaehlten Geraets bei
+ *    gleicher Aussen- und Vorlauftemperatur, Toleranz -8 % (HP KEYMARK),
+ *    siehe datenblatt.js. Ohne Datenblatt nur Messwert.
  *  - Bivalenzpunkt monoenergetischer Luft-Wasser-Anlagen meist -3 bis
  *    -7 °C (Stiebel Eltron Planungshandbuch), 42watt "Bivalenzpunkt".
  *  - Heizstab: Warnzeichen, wenn er oberhalb von 0 °C ueber laengere Zeit
@@ -54,15 +56,18 @@
  */
 import { escapeHtml, fmt, indexBis, numState, rawState, stellbar, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
+import { copStufe, mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
+import { TOLERANZ } from "./datenblatt.js";
 
-const QUELLEN = {
+export const QUELLEN = {
   spreizung: ["42watt: Spreizung (BWP Leitfaden Hydraulik)", "https://42watt.de/magazin/spreizung-warmepumpe"],
   pumpe: ["Panasonic Servicehandbuch: Pumpenregelung", "https://www.manualslib.com/manual/3042472/Panasonic-Aquarea-Wh-Adc0912k6e5an.html?page=141"],
   vorlauf: ["42watt: Vorlauftemperatur (Bosch, Viessmann, VZ RLP)", "https://www.42watt.de/magazin/vorlauftemperatur-warmepumpe"],
   puffer: ["Panasonic Servicehandbuch: Pufferziel", "https://www.manualslib.com/manual/1273892/Panasonic-Wh-Sdc09h3e8.html?page=104"],
   taktung: ["42watt: Taktung (BWP, Fraunhofer)", "https://42watt.de/magazin/taktung-warmepumpe"],
-  cop: ["Panasonic: Aquarea T-CAP M, technische Daten", "https://www.aircon.panasonic.eu/DE_de/product/t-cap-stand-alone-outdoor-m-series-1-phase-3-phase-r290/"],
+  cop: ["Panasonic: Aquarea T-CAP M, Katalog 2025", "https://cdn.aircon.panasonic.eu/uploads/DE/Catalogues/2025/DE-LFLTAQM2501.pdf"],
+  keymark: ["HP KEYMARK, Annex A: Toleranz COP −8 %", "https://www.dincertco.de/media/dincertco/dokumente_1/certification_schemes/w%C3%A4rmepumpen_heat-pump_keymark_annex-a.pdf"],
+  wirkungsgrad: ["42watt: Wirkungsgrad (COP, Carnot)", "https://42watt.de/magazin/wirkungsgrad-warmepumpe"],
   bivalenz: ["42watt: Bivalenzpunkt (Stiebel Eltron)", "https://42watt.de/magazin/bivalenzpunkt-warmepumpe-einfach-erklart"],
   heizstab: ["42watt: Heizstab (Fraunhofer-Feldtests)", "https://42watt.de/magazin/heizstab-warmepumpe"],
   abtauung: ["42watt: Abtauen", "https://42watt.de/magazin/warmepumpe-abtauen"],
@@ -90,16 +95,16 @@ const STUFEN = {
 const BEWERTET = ["ok", "leicht", "hinweis", "pruefen"];
 
 /** Nur bei diesen Stufen gibt es Knopf, Tipp und "Kein Vorschlag". */
-const AUFFAELLIG = ["hinweis", "pruefen"];
+export const AUFFAELLIG = ["hinweis", "pruefen"];
 
 /**
  * Richtwerte des Vorlaufs je Heizflaeche bei Normaussentemperatur: bis
  * "gut" in Ordnung, bis "toleranz" leichte Abweichung (Fussbodenheizung im
  * Altbau bis 40 °C), darueber ausserhalb.
  */
-const GRENZE = { fbh: { gut: 35, toleranz: 40 }, hk: { gut: 55, toleranz: 55 } };
+export const GRENZE = { fbh: { gut: 35, toleranz: 40 }, hk: { gut: 55, toleranz: 55 } };
 
-function vlStufe(v, gr) {
+export function vlStufe(v, gr) {
   if (v <= gr.gut) return "ok";
   return v <= gr.toleranz ? "leicht" : "hinweis";
 }
@@ -119,7 +124,7 @@ const RANG = { ok: 0, leicht: 1, hinweis: 2, pruefen: 3 };
  * Aussentemperatur dabei. Mit Ventilverlauf nur die Zeiten, in denen das
  * Ventil auf Heizen steht.
  */
-function anZeiten(reihe, aussen, t0, t1, ventil) {
+export function anZeiten(reihe, aussen, t0, t1, ventil) {
   const abschnitte = [];
   for (let i = 0; i < reihe.length; i++) {
     const a = Math.max(reihe[i].t, t0);
@@ -273,6 +278,69 @@ export const analyseKarte = {
     return out;
   },
 
+  /**
+   * Grenzen der Spreizung im Heizbetrieb. Die Toleranz bis 10 K nennt der
+   * BWP nur fuer Heizkoerper, nicht fuer Fussbodenheizung und nicht fuer den
+   * Kreis zum Puffer.
+   */
+  _anSpGrenzen() {
+    const toleranz = !this._anMitPuffer() && this._anHeizflaechen() !== "fbh";
+    return { toleranz, spMax: toleranz ? 10 : 7 };
+  },
+
+  /** Stufe und Text einer gemessenen Spreizung im Heizbetrieb. */
+  _anSpStufe(sp) {
+    const puffer = this._anMitPuffer();
+    const { toleranz } = this._anSpGrenzen();
+    if (sp < 5) return { stufe: "hinweis", text: puffer ? "an_sp_klein_p" : "an_sp_klein" };
+    if (sp > 10) return { stufe: "hinweis", text: puffer ? "an_sp_gross_p" : "an_sp_gross" };
+    if (sp > 7) {
+      return toleranz ? { stufe: "leicht", text: "an_sp_hk" } : { stufe: "hinweis", text: puffer ? "an_sp_mittel_p" : "an_sp_fbh" };
+    }
+    return { stufe: "ok", text: "an_sp_ok" };
+  },
+
+  /**
+   * Vorschlag zur Spreizung: TOP23, wenn Messung und Einstellung in dieselbe
+   * Richtung vom Richtwert abweichen; sonst die Pumpenregelung auf Delta T,
+   * wenn die Pumpe fest auf "max. Leistung" laeuft (Panasonic
+   * Servicehandbuch). Ohne Vorschlag steht in "ohne", warum.
+   */
+  _anSpVorschlag(sp) {
+    const t = (k) => this._t(k);
+    const z = (v, s = 1) => fmt(v, s);
+    const dtSoll = this._anWert("heat_delta");
+    const { spMax, toleranz } = this._anSpGrenzen();
+    const richt = t(this._anMitPuffer() ? "an_r_sp_p" : toleranz ? "an_r_sp_hk" : "an_r_sp_fbh");
+    let neu = null;
+    if (dtSoll !== null && sp < 5 && dtSoll < 5) neu = 5;
+    if (dtSoll !== null && sp > spMax && dtSoll > spMax) neu = spMax;
+    let aktion = null;
+    let ohne = "";
+    if (neu !== null) {
+      aktion = this._anVorschlag(
+        [this._anAenderung("heat_delta", neu, "SetFloorHeatDelta", "K")],
+        tf(t("an_g_sp"), { m: z(sp), r: richt })
+      );
+    } else if (sp < 5) {
+      const pm = this._anPumpenModus();
+      if (pm && pm.modus === "max" && pm.optionDt) {
+        aktion = this._anVorschlag(
+          [this._anAuswahl("pump_flow_mode", pm.optionDt, this._anPumpenText(pm.zustand), this._anPumpenText(pm.optionDt),
+            "SetPumpFlowrateMode", "0")],
+          tf(t("an_g_pumpe"), { m: z(sp), s: dtSoll !== null ? z(dtSoll, 0) : "--" })
+        );
+      }
+      // Diese Begruendungen setzen einen bekannten Wert von TOP23 voraus.
+      if (!aktion && dtSoll !== null) {
+        ohne = pm && pm.modus === "dt" ? tf(t("an_ov_sp_dt"), { s: z(dtSoll, 0) }) : t("an_ov_sp_unbekannt");
+      }
+    } else if (sp > spMax && dtSoll !== null) {
+      ohne = t("an_ov_sp_gross");
+    }
+    return { aktion, ohne };
+  },
+
   /** Alle Pruefpunkte berechnen. */
   _anPruefen() {
     const d = this._auswertung;
@@ -307,59 +375,13 @@ export const analyseKarte = {
     // Spreizung im Heizbetrieb, je Lauf ab der fuenften Minute. Mit Puffer
     // ist das die Spreizung des Waermepumpenkreises.
     const dtSoll = this._anWert("heat_delta");
-    // Die Toleranz bis 10 K nennt der BWP nur fuer Heizkoerper, nicht fuer
-    // Fussbodenheizung und nicht fuer den Kreis zum Puffer.
-    const toleranz = !puffer && flaechen !== "fbh";
-    const spMax = toleranz ? 10 : 7;
+    const { toleranz } = this._anSpGrenzen();
     const mitSpreizung = heizLaeufe.filter((l) => l.vorlauf !== null && l.ruecklauf !== null);
     const richtSp = t(puffer ? "an_r_sp_p" : toleranz ? "an_r_sp_hk" : "an_r_sp_fbh");
     if (mitSpreizung.length) {
       const sp = gewichtet(mitSpreizung, (l) => l.vorlauf - l.ruecklauf);
-      let stufe = "ok";
-      let text = "an_sp_ok";
-      if (sp < 5) {
-        stufe = "hinweis";
-        text = puffer ? "an_sp_klein_p" : "an_sp_klein";
-      } else if (sp > 10) {
-        stufe = "hinweis";
-        text = puffer ? "an_sp_gross_p" : "an_sp_gross";
-      } else if (sp > 7) {
-        stufe = toleranz ? "leicht" : "hinweis";
-        text = toleranz ? "an_sp_hk" : puffer ? "an_sp_mittel_p" : "an_sp_fbh";
-      }
-      // Vorschlag nur, wenn Messung und Einstellung in dieselbe Richtung
-      // vom Richtwert abweichen. Sonst liegt es nicht an TOP23.
-      let neu = null;
-      if (dtSoll !== null && sp < 5 && dtSoll < 5) neu = 5;
-      if (dtSoll !== null && sp > spMax && dtSoll > spMax) neu = spMax;
-      // Steht TOP23 schon im Richtwert und die Spreizung ist trotzdem zu
-      // klein: Laeuft die Pumpe fest auf "max. Leistung", regelt sie nicht
-      // auf TOP23. Dann ist die Umstellung auf Delta T der Vorschlag.
-      let aktion = null;
-      let ohne = "";
-      if (neu !== null) {
-        aktion = this._anVorschlag(
-          [this._anAenderung("heat_delta", neu, "SetFloorHeatDelta", "K")],
-          tf(t("an_g_sp"), { m: z(sp), o: spMax })
-        );
-      } else if (sp < 5) {
-        const pm = this._anPumpenModus();
-        if (pm && pm.modus === "max" && pm.optionDt) {
-          aktion = this._anVorschlag(
-            [this._anAuswahl("pump_flow_mode", pm.optionDt, this._anPumpenText(pm.zustand), this._anPumpenText(pm.optionDt),
-              "SetPumpFlowrateMode", "0")],
-            tf(t("an_g_pumpe"), { m: z(sp), s: dtSoll !== null ? z(dtSoll, 0) : "--" })
-          );
-        }
-        // Diese Begruendungen setzen einen bekannten Wert von TOP23 voraus.
-        if (!aktion && dtSoll !== null) {
-          ohne = pm && pm.modus === "dt"
-            ? tf(t("an_ov_sp_dt"), { s: z(dtSoll, 0) })
-            : t("an_ov_sp_unbekannt");
-        }
-      } else if (sp > spMax && dtSoll !== null) {
-        ohne = t("an_ov_sp_gross");
-      }
+      const { stufe, text } = this._anSpStufe(sp);
+      const { aktion, ohne } = this._anSpVorschlag(sp);
       const tippSchluessel = sp < 5 ? (puffer ? "an_tip_sp_klein_p" : "an_tip_sp_klein") : puffer ? "an_tip_sp_gross_p" : "an_tip_sp_gross";
       punkt({
         gruppe: "heiz", id: "spreizung", stufe, titel: t("an_t_spreizung"), wert: `${z(sp)} K`,
@@ -494,18 +516,33 @@ export const analyseKarte = {
         text: t(d ? "a_keine_laeufe" : "an_keine_daten"), quelle: "taktung" });
     }
 
-    // COP der Heizlaeufe: nur Messwert. Bei Panasonic dazu der Anteil am
-    // Vergleichswert aus dem Datenblatt der T-CAP M 12 kW.
+    // COP der Heizlaeufe gegenueber dem Datenblatt des im Editor gewaehlten
+    // Geraets: alle bewerteten Laeufe ab 92 % in Ordnung; einzelne darunter
+    // bei einem Mittel ab 92 % leichte Abweichung, ein Mittel darunter
+    // ausserhalb der Toleranz (Aufteilung wie bei der Taktung, eigene
+    // Festlegung). Ohne Datenblatt oder Lauf im Bereich der Pruefpunkte nur
+    // Messwert.
     const heizCop = laeufe.filter((l) => !l.ww && l.cop !== null);
     if (heizCop.length) {
       const c = gewichtet(heizCop, (l) => l.cop);
-      const mitQuote = this._copVergleich() ? heizCop.filter((l) => l.copQuote !== null) : [];
-      const q = mitQuote.length ? gewichtet(mitQuote, (l) => l.copQuote) : null;
-      punkt({
-        gruppe: "heiz", id: "cop", stufe: "info", titel: t("an_t_cop"), wert: z(c),
-        wertText: t("an_w_cop") + (q !== null ? ` · ${tf(t("an_w_cop_dbl"), { p: z(q * 100, 0) })}` : ""),
-        text: t("an_cop_info"), quelle: q !== null ? "cop" : "",
-      });
+      const ref = this._copReferenz();
+      const bewertet = heizCop.filter((l) => copStufe(l));
+      if (ref && bewertet.length) {
+        const q = gewichtet(bewertet, (l) => l.copQuote);
+        const u = bewertet.filter((l) => copStufe(l) === "unter").length;
+        const stufe = q < TOLERANZ ? "hinweis" : u ? "leicht" : "ok";
+        punkt({
+          gruppe: "heiz", id: "cop", stufe, titel: t("an_t_cop"), wert: z(c),
+          wertText: `${t("an_w_cop")} · ${tf(t("an_w_cop_dbl"), { p: z(q * 100, 0) })}`, richt: t("an_r_cop"),
+          text: tf(t(u ? "an_cop_unter" : "an_cop_ok"), { u, n: bewertet.length }),
+          quelle: ["cop", "keymark"], ohne: t("an_ov_cop"),
+        });
+      } else {
+        punkt({
+          gruppe: "heiz", id: "cop", stufe: "info", titel: t("an_t_cop"), wert: z(c), wertText: t("an_w_cop"),
+          text: t(ref ? "an_cop_ohne_punkte" : "an_cop_ohne_ref"), quelle: "",
+        });
+      }
     } else {
       punkt({ gruppe: "heiz", id: "cop", stufe: "unbekannt", titel: t("an_t_cop"), wert: "--", text: t("an_cop_ohne"), quelle: "" });
     }
