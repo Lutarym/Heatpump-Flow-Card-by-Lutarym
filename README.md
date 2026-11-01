@@ -158,8 +158,8 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `curve2_o_high` | Circuit 2 heat curve, outdoor high | TOP84 |
 | `curve2_o_low` | Circuit 2 heat curve, outdoor low | TOP85 |
 | **Heating buffer** | | |
-| `buffer_delta` | Buffer hysteresis | TOP113 |
-| `buffer_target` | Buffer target temperature | TOP7, flow target |
+| `buffer_delta` | Buffer offset (ΔT) | TOP113, buffer target = circuit target + ΔT |
+| `buffer_target` | Heat pump flow target | TOP7 |
 | `cop_heating` | COP heating | HeishaMon by Lutarym, source selectable in the integration under COP source |
 | `room_heater` | Heating element, heating: allowed | TOP59 |
 | `room_heater_switch` | Allow heating element, heating | SetRoomHeaterState, switch |

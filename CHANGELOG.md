@@ -2,6 +2,37 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.16.0
+
+- English:
+  - Fixed: the buffer ΔT (TOP113) is not a hysteresis. According to Panasonic the buffer target is the highest circuit target plus this ΔT (factory setting 5 °C). The card now shows "Target" as circuit target plus ΔT and TOP7 as heat pump target; the buffer window explains the calculation. Field names, help and documentation corrected.
+  - Fixed analysis: runs that switch from hot water to heating without a compressor stop no longer mix hot water temperatures into flow and spread; the backup heater only counts while the valve is on heating (TOP60 also reports hot water use); 0 bar counts as no pressure sensor (TOP115 only exists on K/L series); the JAZ text distinguishes the BEG planning value (VDI 4650) from measurements.
+  - Hot water now follows the German Environment Agency (2023): continuously above 55 °C in single- and two-family homes, taking the switching differential into account (the tank drops to setpoint minus differential before reheating).
+  - With a separating buffer the analysis rates the heat pump circuit spread, the heating circuit flow (TOP36/37) and a new point "heat pump above heating circuit"; the set heating spread (TOP23) and the start counter (TOP12) are now used.
+  - New: "Optimise" button in analysis points with an adjustable parameter (spread, heating curve in 2 K steps, backup heater switch-on limit, hot water). A window shows each parameter with current and new value; values are only set after "Set parameters".
+  - COP chart redesigned: columns in three checked status colours with symbol and text, a line for the expected COP, a lane for heating/hot water and the outdoor temperature as its own strip instead of a second axis.
+- Deutsch:
+  - Korrigiert: Die Puffer-ΔT (TOP113) ist keine Hysterese. Laut Panasonic ist das Pufferziel das höchste Heizkreis-Soll plus diese ΔT (Werkseinstellung 5 °C). Die Karte zeigt „Ziel“ jetzt als Heizkreis-Soll plus ΔT und TOP7 als WP-Soll; das Pufferfenster erklärt die Rechnung. Feldnamen, Hilfe und Doku korrigiert.
+  - Analyse korrigiert: Läufe, die ohne Verdichterstopp von Warmwasser auf Heizen wechseln, mischen keine Warmwassertemperaturen mehr in Vorlauf und Spreizung; der Heizstab zählt nur, solange das Ventil auf Heizen steht (TOP60 meldet auch den Warmwasserbetrieb); 0 bar gilt als kein Drucksensor (TOP115 gibt es nur bei der K- und L-Serie); der JAZ-Text trennt den BEG-Planwert (VDI 4650) von Messwerten.
+  - Warmwasser folgt jetzt dem Umweltbundesamt (2023): durchgängig über 55 °C in Ein- und Zweifamilienhäusern, mit Berücksichtigung der Schaltdifferenz (der Speicher fällt bis Soll minus Schaltdifferenz, bevor nachgeladen wird).
+  - Mit Trennpuffer bewertet die Analyse die Spreizung im Wärmepumpenkreis, den Heizkreis-Vorlauf (TOP36/37) und einen neuen Punkt „Wärmepumpe über Heizkreis“; die eingestellte Spreizung (TOP23) und der Startzähler (TOP12) werden jetzt genutzt.
+  - Neu: Knopf „Optimieren“ in Analysepunkten mit einstellbarem Parameter (Spreizung, Heizkurve in Schritten von 2 K, Einschaltgrenze Heizstab, Warmwasser). Ein Fenster zeigt jeden Parameter mit IST- und NEU-Wert; gesetzt wird erst mit „Parameter setzen“.
+  - COP-Grafik neu: Säulen in drei geprüften Statusfarben mit Zeichen und Text, Strich für den erwarteten COP, Spur Heizen/Warmwasser und die Außentemperatur als eigener Streifen statt zweiter Achse.
+- Français :
+  - Corrigé : le ΔT du ballon tampon (TOP113) n'est pas une hystérésis. Selon Panasonic, la cible du ballon est la consigne de circuit la plus haute plus ce ΔT (réglage d'usine 5 °C). La carte affiche « Cible » comme consigne de circuit plus ΔT et TOP7 comme consigne PAC ; la fenêtre du ballon explique le calcul. Noms de champs, aide et documentation corrigés.
+  - Analyse corrigée : les cycles passant de l'eau chaude au chauffage sans arrêt du compresseur ne mélangent plus les températures d'eau chaude dans le départ et l'écart ; l'appoint ne compte que lorsque la vanne est sur chauffage (TOP60 signale aussi l'eau chaude) ; 0 bar signifie pas de capteur de pression (TOP115 seulement séries K/L) ; le texte JAZ distingue la valeur de planification BEG (VDI 4650) des mesures.
+  - L'eau chaude suit désormais l'Agence fédérale de l'environnement (2023) : en permanence au-dessus de 55 °C dans les maisons individuelles et bifamiliales, en tenant compte du différentiel (le ballon descend jusqu'à consigne moins différentiel avant la relance).
+  - Avec un ballon de séparation, l'analyse évalue l'écart du circuit de la PAC, le départ des circuits (TOP36/37) et un nouveau point « PAC au-dessus du circuit » ; l'écart de chauffage réglé (TOP23) et le compteur de démarrages (TOP12) sont désormais utilisés.
+  - Nouveau : bouton « Optimiser » dans les points d'analyse avec paramètre réglable (écart, courbe de chauffe par pas de 2 K, seuil de l'appoint, eau chaude). Une fenêtre montre chaque paramètre avec valeur actuelle et nouvelle ; rien n'est appliqué avant « Appliquer les paramètres ».
+  - Graphique COP refait : colonnes en trois couleurs d'état vérifiées avec symbole et texte, trait pour le COP attendu, piste chauffage/eau chaude et température extérieure en bande séparée au lieu d'un second axe.
+- 日本語：
+  - 修正：バッファーの ΔT（TOP113）はヒステリシスではありません。Panasonic によるとバッファー目標は最も高い暖房回路目標にこの ΔT（工場設定5 °C）を加えた値です。カードは「目標」を回路目標 + ΔT、TOP7 をヒートポンプ目標として表示し、バッファーのウィンドウで計算を説明します。項目名、ヘルプ、ドキュメントも修正しました。
+  - 分析を修正：圧縮機を止めずに給湯から暖房に切り替わる運転で、給湯の温度が往き温度と温度差に混ざらなくなりました。補助ヒーターは切替弁が暖房側のときだけ数えます（TOP60 は給湯時も報告）。0 bar は圧力センサーなしとみなします（TOP115 は K/L シリーズのみ）。JAZ の説明で BEG の計画値（VDI 4650）と実測値を区別しました。
+  - 給湯はドイツ連邦環境庁（2023）に従い、戸建て・二世帯住宅で常に55 °C超を基準とし、スイッチング差を考慮します（再加熱までにタンクは設定値からスイッチング差を引いた温度まで下がります）。
+  - 分離型バッファーがある場合、ヒートポンプ回路の温度差、暖房回路の往き温度（TOP36/37）、新しい項目「ヒートポンプと暖房回路の温度差」を評価します。設定された暖房の温度差（TOP23）と起動カウンター（TOP12）も使うようになりました。
+  - 新機能：調整可能なパラメーターがある分析項目に「最適化」ボタン（温度差、2 K 単位の暖房曲線、補助ヒーター作動温度、給湯）。ウィンドウに各パラメーターの現在値と新しい値を表示し、「パラメーターを設定」を押すまで変更しません。
+  - COP グラフを刷新：検証済みの3色の状態色（記号と文字付き）の棒、想定 COP の線、暖房／給湯の帯、外気温は2本目の軸ではなく別の帯で表示します。
+
 ## v5.15.0
 
 - English: The buffer and hot water windows now show the set spread below "Reheat at" (buffer TOP113, hot water TOP22), as the value is stored in the heat pump. It follows the + and − buttons immediately.

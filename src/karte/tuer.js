@@ -170,7 +170,7 @@ export const tuerKarte = {
     let oben = r.top - k.top;
     // Ab 230 Pixel passt alles in den Innenraum, darunter wird das Feld
     // breiter als die Waermepumpe.
-    let breite = r.width >= 230 ? r.width : 260;
+    const breite = r.width >= 230 ? r.width : 260;
     let hoehe = Math.max(r.height, Math.min(440, k.height - 8));
     if (links + breite > k.width - 4) links = Math.max(4, k.width - 4 - breite);
     if (oben + hoehe > k.height - 4) oben = Math.max(4, k.height - 4 - hoehe);

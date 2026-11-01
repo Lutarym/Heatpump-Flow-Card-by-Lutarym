@@ -20,7 +20,7 @@ export const demoKarte = {
       power_now: 1240, energy_today: 8.4,
       flow_temp: 39.2, return_temp: 33.1, pump_speed: 2400, pump_flow: 18.6,
       three_way_valve: 0, water_pressure: 1.8, defrost: 0, error: "0",
-      buffer_temp: 38.4, buffer_target: 42, buffer_delta: 5, curve_t_high: 45, curve_t_low: 28, curve_o_high: 15, curve_o_low: -10, curve2_t_high: 38, curve2_t_low: 26, curve2_o_high: 15, curve2_o_low: -10, dhw_heat_delta: -8, room_heater: 0, buffer_installed: 1,
+      buffer_temp: 38.4, buffer_target: 40, buffer_delta: 2, curve_t_high: 45, curve_t_low: 28, curve_o_high: 15, curve_o_low: -10, curve2_t_high: 38, curve2_t_low: 26, curve2_o_high: 15, curve2_o_low: -10, dhw_heat_delta: -8, room_heater: 0, buffer_installed: 1,
       hk1_water: 34.2, hk1_water_target: 36, hk1_pump: 1,
       hk1_setpoint: 36, hk2_water: 30.1, hk2_water_target: 32,
       hk2_pump: 0, hk2_setpoint: 32, zones_state: 2,
@@ -36,7 +36,7 @@ export const demoKarte = {
       cop_heating: 4.3, cop_dhw: 3.1, heater_internal: 0, heater_external: 0,
       operating_hours: 1462, compressor_starts: 2381, room_heater_hours: 3, dhw_heater_hours: 11,
       holiday_mode: "off", main_schedule: "off",
-      heating_off_temp: 18, heater_on_temp: -8, heat_delta: 5, steril_temp: 65, steril_time: 10, pump_max_duty: 160,
+      heating_off_temp: 18, heater_on_temp: -8, heat_delta: 3, steril_temp: 65, steril_time: 10, pump_max_duty: 160,
     };
     const states = {};
     Object.keys(werte).forEach((feld) => {

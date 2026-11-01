@@ -158,8 +158,8 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `curve2_o_high` | Circuit 2 courbe, extérieur haut | TOP84 |
 | `curve2_o_low` | Circuit 2 courbe, extérieur bas | TOP85 |
 | **Ballon tampon** | | |
-| `buffer_delta` | Hystérésis du ballon tampon | TOP113 |
-| `buffer_target` | Température cible du ballon tampon | TOP7, consigne départ |
+| `buffer_delta` | Surélévation du ballon tampon (ΔT) | TOP113, cible du tampon = consigne circuit + ΔT |
+| `buffer_target` | Consigne de départ de la PAC | TOP7 |
 | `cop_heating` | COP chauffage | HeishaMon by Lutarym, source réglable dans l'intégration sous Source COP |
 | `room_heater` | Appoint chauffage autorisé | TOP59 |
 | `room_heater_switch` | Autoriser l'appoint chauffage | SetRoomHeaterState, switch |

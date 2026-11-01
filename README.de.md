@@ -158,8 +158,8 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `curve2_o_high` | HK2 Heizkurve Außen oben | TOP84 |
 | `curve2_o_low` | HK2 Heizkurve Außen unten | TOP85 |
 | **Heizungspuffer** | | |
-| `buffer_delta` | Puffer Hysterese | TOP113 |
-| `buffer_target` | Puffer Zieltemperatur | TOP7, Soll Vorlauf |
+| `buffer_delta` | Puffer Überhöhung (ΔT) | TOP113, Pufferziel = Heizkreis-Soll + ΔT |
+| `buffer_target` | Vorlauf-Soll Wärmepumpe | TOP7 |
 | `cop_heating` | COP Heizen | HeishaMon by Lutarym, Quelle in der Integration unter COP Quelle wählbar |
 | `room_heater` | Heizstab Heizung freigegeben | TOP59 |
 | `room_heater_switch` | Heizstab Heizung freigeben | SetRoomHeaterState, switch |

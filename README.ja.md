@@ -158,8 +158,8 @@ entities:
 | `curve2_o_high` | 回路2 暖房曲線 外気 高 | TOP84 |
 | `curve2_o_low` | 回路2 暖房曲線 外気 低 | TOP85 |
 | **暖房バッファー** | | |
-| `buffer_delta` | バッファーのヒステリシス | TOP113 |
-| `buffer_target` | バッファー目標温度 | TOP7, 往き目標 |
+| `buffer_delta` | バッファー上乗せ温度（ΔT） | TOP113、バッファー目標 = 回路目標 + ΔT |
+| `buffer_target` | ヒートポンプ往き目標温度 | TOP7 |
 | `cop_heating` | COP 暖房 | HeishaMon by Lutarym、ソースは統合の COP ソースで選択 |
 | `room_heater` | 暖房ヒーター許可 | TOP59 |
 | `room_heater_switch` | 暖房ヒーター許可の切替 | SetRoomHeaterState, switch |

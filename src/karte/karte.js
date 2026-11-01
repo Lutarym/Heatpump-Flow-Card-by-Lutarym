@@ -18,6 +18,7 @@ import { kennzahlenKarte } from "./kennzahlen.js";
 import { solarKarte } from "./solar.js";
 import { verbrauchStileKarte } from "./verbrauchstile.js";
 import { zeitraumKarte } from "./zeitraum.js";
+import { optimierenKarte } from "./optimieren.js";
 import { sgStileKarte } from "./sgstile.js";
 import { auswertungKarte } from "./auswertung.js";
 import { analyseKarte } from "./analyse.js";
@@ -393,6 +394,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._setzeThema();
     this._groesse();
     this._update();
+    // Offene Analyse mit den neuen Werten neu bewerten, etwa nachdem ein
+    // Vorschlag gesetzt wurde und die Anlage die Werte zurueckmeldet.
+    if (this._diaArt === "analyse") this._zeichneAnalyse();
     // Laengere Zeitraeume nur abfragen, solange ihr Fenster offen ist.
     if (this._zrSchluessel() === "24h" || this._diaArt === "verbrauch" || this._diaArt === "sg") this._holeVerlauf();
     // Nach einem Neuaufbau ist der Rahmen leer. Vorhandene Daten werden
@@ -697,6 +701,7 @@ Object.assign(
   auswertungKarte,
   analyseKarte,
   zeitraumKarte,
+  optimierenKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte

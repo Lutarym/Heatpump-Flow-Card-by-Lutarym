@@ -96,7 +96,7 @@ export const dialogKarte = {
         aktionen: [
           { feld: "buffer_switch", status: "buffer_installed", typ: "schalter", an: "f_puffer_aus", aus: "f_puffer_an" },
           { feld: "room_heater_switch", status: "room_heater", typ: "schalter", an: "f_hz_heizstab_ende", aus: "f_hz_heizstab_start" },
-          { feld: "buffer_delta", typ: "zahl", befehl: "SetBufferDelta", titel: "f_laedt_ab", bezug: "buffer_target", vorzeichen: -1, min: 0, max: 10, schritt: 1 },
+          { feld: "buffer_delta", typ: "zahl", befehl: "SetBufferDelta", titel: "f_puffer_ueberhoehung", einheit: "K", info: "puffer", min: 0, max: 10, schritt: 1 },
         ],
       },
       {
@@ -108,7 +108,7 @@ export const dialogKarte = {
           { feld: "dhw_force", status: "dhw_force_state", typ: "schalter", schmal: true, an: "f_aufheizen_ende", aus: "f_aufheizen_start" },
           { feld: "force_sterilization", status: "sterilization_state", typ: "schalter", schmal: true, an: "f_legionellen_ende", aus: "f_legionellen_start" },
           { feld: "dhw_heater_switch", status: "dhw_heater", typ: "schalter", schmal: true, an: "f_heizstab_aus", aus: "f_heizstab_an" },
-          { feld: "dhw_heat_delta", typ: "zahl", befehl: "SetDHWHeatDelta", titel: "f_laedt_ab", bezug: "dhw_setpoint", vorzeichen: 1, min: -12, max: -2, schritt: 1 },
+          { feld: "dhw_heat_delta", typ: "zahl", befehl: "SetDHWHeatDelta", titel: "f_laedt_ab", bezug: "dhw_setpoint", vorzeichen: 1, info: "ww", min: -12, max: -2, schritt: 1 },
         ],
       },
       {
@@ -376,7 +376,7 @@ export const dialogKarte = {
                <output id="dlg-a${i}">--</output>
                <button type="button" class="lhc-step klein" id="dlg-a${i}-plus"
                        aria-label="${this._t("s_groesser")}">+</button>
-             </div>${a.bezug ? `<div class="lhc-num-info" id="dlg-a${i}-sp"></div>` : ""}`
+             </div>${a.info ? `<div class="lhc-num-info" id="dlg-a${i}-sp"></div>` : ""}`
           : `<button type="button" class="lhc-dialog-action${a.schmal ? " schmal" : ""}" id="dlg-a${i}">--</button>`
       )
       .join("");
@@ -416,9 +416,7 @@ export const dialogKarte = {
           const jetzt = gehalten !== null ? gehalten : ist;
           if (jetzt === null) return;
           const schritt = a.schritt || 1;
-          // Das Plus soll immer die angezeigte Temperatur erhoehen.
-          // Beim Puffer wird die Hysterese abgezogen, dort dreht sich
-          // die Richtung deshalb um.
+          // Das Plus erhoeht immer den angezeigten Wert.
           const neu = clamp(
             Math.round((jetzt + richtung * (a.vorzeichen || 1) * schritt) * 10) / 10,
             a.min,
@@ -462,6 +460,19 @@ export const dialogKarte = {
         });
       }
     });
+  },
+
+  /**
+   * Hoechstes Wasser-Soll der aktiven Heizkreise (TOP42, TOP43; aktiv laut
+   * TOP94). Daraus bildet Panasonic das Pufferziel.
+   */
+  _kreisSoll(q) {
+    const zonen = numState(q, this._e("zones_state"));
+    const werte = [];
+    if (zonen === null || zonen === 0 || zonen === 2) werte.push(numState(q, this._e("hk1_water_target")));
+    if (zonen === null || zonen === 1 || zonen === 2) werte.push(numState(q, this._e("hk2_water_target")));
+    const da = werte.filter((v) => v !== null);
+    return da.length ? Math.max(...da) : null;
   },
 
   /** Haelt die Bedienelemente auf dem aktuellen Stand. */
@@ -509,12 +520,20 @@ export const dialogKarte = {
             : ziel === null
             ? `${fmt(roh, 0)} ${a.einheit || "°C"}`
             : `${fmt(ziel - Math.abs(roh), 0)} °C`;
-        // Darunter die eingestellte Spreizung selbst, so wie sie in der
-        // Waermepumpe steht.
+        // Darunter die Erklaerung: beim Warmwasser die eingestellte
+        // Schaltdifferenz, beim Puffer, wie sich das Pufferziel ergibt.
         const sp = this.shadowRoot.getElementById(`dlg-a${i}-sp`);
         if (sp) {
-          sp.textContent = roh === null ? "" : tf(this._t("f_spreizung"), { v: fmt(roh, 0) });
-          sp.hidden = roh === null;
+          let info = "";
+          if (roh !== null && a.info === "ww") info = tf(this._t("f_schaltdifferenz"), { v: fmt(roh, 0) });
+          if (roh !== null && a.info === "puffer") {
+            const h = this._kreisSoll(this._quelle);
+            info = h === null
+              ? this._t("f_puffer_info_o")
+              : tf(this._t("f_puffer_info"), { h: fmt(h, 0), d: fmt(roh, 0), z: fmt(h + roh, 0) });
+          }
+          sp.textContent = info;
+          sp.hidden = !info;
         }
         return;
       }

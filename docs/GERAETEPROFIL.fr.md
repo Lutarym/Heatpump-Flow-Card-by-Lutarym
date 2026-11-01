@@ -245,8 +245,8 @@ La colonne « Panasonic (HeishaMon) » montre les clés du profil intégré, ce 
 
 | Champ | Signification | Types d'entité autorisés | Panasonic (HeishaMon) |
 |---|---|---|---|
-| `buffer_delta` | Hystérésis du ballon tampon | tous | `top113` |
-| `buffer_target` | Température cible du ballon tampon | tous | `top7` |
+| `buffer_delta` | Surélévation du ballon tampon (ΔT) | tous | `top113` |
+| `buffer_target` | Consigne de départ de la PAC | tous | `top7` |
 | `cop_heating` | COP chauffage | tous | `cop_heating` |
 | `room_heater` | Appoint chauffage autorisé | tous | `top59` |
 | `room_heater_switch` | Autoriser l'appoint chauffage | `switch`, `input_boolean` | `setroomheaterstate` |
