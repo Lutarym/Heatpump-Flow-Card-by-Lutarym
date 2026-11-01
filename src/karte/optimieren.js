@@ -25,9 +25,12 @@ export const optimierenKarte = {
       const name = f ? feldText(f, this._sp()) : w.feld;
       const top = f && f.hint ? (f.hint.match(/TOP\d+/) || [""])[0] : "";
       const e = w.einheit ? ` ${w.einheit}` : "";
+      // Auswahlen (Pumpenregelung) zeigen Texte, Zahlen mit Einheit.
+      const ist = w.auswahl ? w.ist : fmt(w.ist, 0) + e;
+      const neu = w.auswahl ? w.neu : fmt(w.neu, 0) + e;
       return `<tr><td>${escapeHtml(name)}<small>${escapeHtml([top, w.id].filter(Boolean).join(" · "))}</small></td>
-        <td class="ist">${escapeHtml(fmt(w.ist, 0) + e)}</td><td class="pfeil">→</td>
-        <td class="neu">${escapeHtml(fmt(w.neu, 0) + e)}</td></tr>`;
+        <td class="ist">${escapeHtml(ist)}</td><td class="pfeil">→</td>
+        <td class="neu">${escapeHtml(neu)}</td></tr>`;
     };
     modal.querySelector(".lhc-an-modal-box").innerHTML = `
       <h3 id="an-modal-titel">${escapeHtml(this._t("an_opt_titel"))}</h3>
@@ -91,6 +94,15 @@ export const optimierenKarte = {
     const auftraege = [];
     const kurven = {};
     p.aktion.aenderungen.forEach((w) => {
+      if (w.auswahl) {
+        const bereich = w.id.split(".")[0];
+        if (this._config.demo || bereich === "select" || bereich === "input_select") {
+          auftraege.push(() => q.callService(bereich, "select_option", { entity_id: w.id, option: w.option }));
+        } else if (w.befehl) {
+          auftraege.push(() => q.callService("mqtt", "publish", { topic: `${praefix}/commands/${w.befehl}`, payload: String(w.nutzlast) }));
+        }
+        return;
+      }
       // Neuen Wert sofort anzeigen, bis die Anlage ihn zurueckmeldet.
       this._halte(w.id, w.neu);
       if (this._config.demo || stellbar(w.id)) {

@@ -2,6 +2,40 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.17.0
+
+- English:
+  - Analysis with five levels, and a point is only coloured where a professional source names a limit: green "fine", grey "slight deviation" (within a tolerance named by the source), yellow "outside tolerance", red "check". Points without a documented limit show "measured value only", missing data "no data", both without a rating. Colour never stands alone, each level has a symbol and text. The "Optimise" button, the tip and the reason for a missing suggestion only appear for yellow and red.
+  - Sourced limits: spread 5 to 7 K, radiators tolerated up to 10 K (German Heat Pump Association); flow temperature for underfloor heating 30 to 35 °C, older buildings up to 40 °C, radiators at most 55 °C; cycling target 10 to 20 min per start (BWP), some shorter runs grey, an average below 10 min yellow; hot water below 55 °C yellow (German Environment Agency), below 50 °C red (DVGW: legionella growth is only effectively inhibited from 50 °C).
+  - No longer rated because no source names a limit: buffer gap, COP, backup heater above 0 °C, defrosting at positive temperatures, JAZ, starts per day. The card's own thresholds were removed (COP 85 % and 70 %, 30 % short runs, two runs under 6 min, 15 starts per day, 30 min backup heater per day, defrosting from 10 °C, buffer offset plus 5 K, hot water above 60 °C).
+  - COP tab: neutral columns without a rating. The datasheet reference line (Panasonic T-CAP M 12 kW) is only shown for Panasonic profiles. The cycling tab and its outdoor temperature bands use the same levels as the analysis.
+  - Fixed: if the heat pump reports its active zones (TOP94), the analysis only uses the heating surfaces of these zones.
+- Deutsch:
+  - Analyse mit fünf Stufen, gefärbt wird nur, wo eine fachliche Quelle eine Grenze nennt: grün „in Ordnung“, grau „leichte Abweichung“ (innerhalb einer Toleranz, die die Quelle nennt), gelb „außerhalb der Toleranz“, rot „prüfen“. Punkte ohne belegte Grenze stehen als „nur Messwert“, fehlende Daten als „keine Daten“, beide ohne Bewertung. Farbe steht nie allein, jede Stufe hat Zeichen und Text. Knopf „Optimieren“, Tipp und die Begründung für einen fehlenden Vorschlag gibt es nur bei Gelb und Rot.
+  - Belegte Grenzen: Spreizung 5 bis 7 K, bei Heizkörpern bis 10 K toleriert (Bundesverband Wärmepumpe); Vorlauf Fußbodenheizung 30 bis 35 °C, im Altbau bis 40 °C, Heizkörper höchstens 55 °C; Taktung Ziel 10 bis 20 min je Start (BWP), einzelne kürzere Läufe grau, ein Mittel unter 10 min gelb; Warmwasser unter 55 °C gelb (Umweltbundesamt), unter 50 °C rot (DVGW: Vermehrung von Legionellen erst ab 50 °C wirksam gehemmt).
+  - Nicht mehr bewertet, weil keine Quelle eine Grenze nennt: Abstand am Puffer, COP, Heizstab über 0 °C, Abtauung bei Plusgraden, JAZ, Starts je Tag. Eigene Schwellen der Karte entfernt (COP 85 % und 70 %, 30 % kurze Läufe, zwei Läufe unter 6 min, 15 Starts je Tag, 30 min Heizstab je Tag, Abtauung ab 10 °C, Überhöhung plus 5 K, Warmwasser über 60 °C).
+  - Reiter COP: neutrale Säulen ohne Bewertung. Der Datenblatt-Vergleich (Panasonic T-CAP M 12 kW) erscheint nur bei Panasonic-Profilen. Reiter Taktung und seine Bereiche nach Außentemperatur nutzen dieselben Stufen wie die Analyse.
+  - Korrigiert: Meldet die Wärmepumpe ihre aktiven Zonen (TOP94), nutzt die Analyse nur die Heizflächen dieser Zonen.
+- Français :
+  - Analyse à cinq niveaux, un point n'est coloré que si une source spécialisée indique une limite : vert « correct », gris « léger écart » (dans une tolérance indiquée par la source), jaune « hors tolérance », rouge « à vérifier ». Les points sans limite documentée apparaissent comme « valeur mesurée seule », les données manquantes comme « pas de données », tous deux sans évaluation. La couleur n'est jamais seule, chaque niveau a un symbole et un texte. Le bouton « Optimiser », le conseil et la raison d'une absence de suggestion n'apparaissent qu'en jaune et en rouge.
+  - Limites documentées : écart 5 à 7 K, toléré jusqu'à 10 K pour les radiateurs (association allemande des pompes à chaleur) ; départ plancher chauffant 30 à 35 °C, jusqu'à 40 °C dans l'ancien, radiateurs au plus 55 °C ; cycles : objectif 10 à 20 min par démarrage (BWP), quelques cycles plus courts en gris, une moyenne sous 10 min en jaune ; eau chaude sous 55 °C en jaune (Agence fédérale de l'environnement), sous 50 °C en rouge (DVGW : la prolifération des légionelles n'est efficacement freinée qu'à partir de 50 °C).
+  - Plus évalués, faute de limite documentée : écart au ballon tampon, COP, appoint au-dessus de 0 °C, dégivrage par températures positives, JAZ, démarrages par jour. Seuils propres à la carte supprimés (COP 85 % et 70 %, 30 % de cycles courts, deux cycles de moins de 6 min, 15 démarrages par jour, 30 min d'appoint par jour, dégivrage dès 10 °C, décalage du ballon plus 5 K, eau chaude au-dessus de 60 °C).
+  - Onglet COP : colonnes neutres sans évaluation. Le trait de référence de la fiche technique (Panasonic T-CAP M 12 kW) n'apparaît que pour les profils Panasonic. L'onglet Cycles et ses plages de température extérieure utilisent les mêmes niveaux que l'analyse.
+  - Corrigé : si la pompe à chaleur indique ses zones actives (TOP94), l'analyse n'utilise que les émetteurs de ces zones.
+- 日本語：
+  - 分析を5段階にし、専門的な出典が限界値を示す項目だけを色分けします：緑「良好」、灰「わずかな差」（出典が示す許容範囲内）、黄「許容範囲外」、赤「要確認」。裏付けのある限界値がない項目は「測定値のみ」、データがない項目は「データなし」とし、どちらも評価しません。色だけに頼らず、各段階に記号と文字を付けます。「最適化」ボタン、ヒント、提案がない理由は黄と赤のときだけ表示します。
+  - 出典のある限界値：温度差5〜7 K、ラジエーターは10 Kまで許容（ドイツヒートポンプ協会）。往き温度は床暖房30〜35 °C、古い建物で40 °Cまで、ラジエーターは最大55 °C。運転サイクルは起動1回あたり10〜20分が目標（BWP）で、短い運転が一部あれば灰、平均10分未満で黄。給湯は55 °C未満で黄（ドイツ連邦環境庁）、50 °C未満で赤（DVGW：レジオネラの増殖が効果的に抑えられるのは50 °Cから）。
+  - 限界値を示す出典がないため評価しなくなった項目：バッファーとの温度差、COP、0 °C超での補助ヒーター、プラス気温での霜取り、JAZ、1日あたりの起動回数。カード独自の基準値（COP 85 %と70 %、短い運転30 %、6分未満の運転2回、1日15回の起動、1日30分の補助ヒーター、10 °C以上の霜取り、バッファー上乗せ＋5 K、60 °C超の給湯）を削除しました。
+  - COP タブ：評価なしの中立色の棒。データシート比較線（Panasonic T-CAP M 12 kW）は Panasonic のプロファイルでのみ表示します。運転サイクルタブと外気温別の区分は分析と同じ段階を使います。
+  - 修正：ヒートポンプが有効なゾーン（TOP94）を報告する場合、分析はそのゾーンの放熱器だけを使います。
+
+## v5.16.1
+
+- English: Analysis, spread: if the set spread (TOP23) is already within the guide value but the measured spread is lower and the pump runs fixed at "max. duty", the analysis suggests switching the pump control to ΔT (SET42). Every noticeable point without a suggestion now states why there is no button.
+- Deutsch: Analyse, Spreizung: Steht die eingestellte Spreizung (TOP23) schon im Richtwert, die gemessene ist aber kleiner und die Pumpe läuft fest auf „max. Leistung“, schlägt die Analyse die Umstellung der Pumpenregelung auf ΔT vor (SET42). Jeder auffällige Punkt ohne Vorschlag sagt jetzt, warum es keinen Knopf gibt.
+- Français : analyse, écart : si l'écart réglé (TOP23) est déjà dans la valeur indicative mais que l'écart mesuré est plus faible et que la pompe tourne fixe en « puissance max. », l'analyse propose de passer la régulation de pompe sur ΔT (SET42). Chaque point signalé sans suggestion indique maintenant pourquoi il n'y a pas de bouton.
+- 日本語：分析の温度差：設定温度差（TOP23）が既に目安内なのに測定値が低く、ポンプが「最大出力」で固定運転している場合、ポンプ制御を ΔT に切り替える提案をします（SET42）。提案のない注意項目には、ボタンがない理由を表示するようになりました。
+
 ## v5.16.0
 
 - English:

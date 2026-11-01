@@ -521,6 +521,8 @@ export const stilKarte = {
       .lhc-an-kopf { display: flex; align-items: center; gap: 8px; }
       .lhc-an-kopf b { font-size: 14.5px; color: var(--c-e8edf4); }
       .lhc-an-kopf i { margin-left: auto; padding: 1px 9px; border-radius: 9px; font-style: normal; font-size: 11.5px; white-space: nowrap; }
+      /* "nur Messwert" und "keine Daten": nur umrandet, ohne Bewertungsfarbe. */
+      .lhc-an-kopf i.neutral { padding: 0 8px; border: 1px solid color-mix(in srgb, currentColor 50%, transparent); background: transparent; }
       .lhc-an-wert { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 6px; font-size: 12.5px; color: var(--c-98a6ba); }
       .lhc-an-wert b { color: var(--c-e8edf4); font-size: 13.5px; }
       .lhc-an-wert span:first-child b { font-size: 17px; }
@@ -536,6 +538,8 @@ export const stilKarte = {
       }
       .lhc-an-knopf:hover { filter: brightness(1.08); }
       .lhc-an-knopf:focus-visible, .lhc-an-btn:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
+      /* Warum ein auffaelliger Punkt keinen Vorschlag hat. */
+      .lhc-an-karte p.lhc-an-ohne { margin-top: 6px; font-size: 12px; color: var(--c-98a6ba); }
       /* Bestaetigung: liegt genau ueber dem Analysefenster. */
       .lhc-an-modal {
         position: fixed; z-index: 100; display: flex; align-items: center; justify-content: center;
