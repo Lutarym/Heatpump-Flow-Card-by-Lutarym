@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.20.0
+
+- English: COP tab: instead of a list of yellow runs there is one button "Analyse yellow runs (n)". The analysis window starts with the worst run and pages through the others with ◀ ▶; clicking a yellow column still opens that run. Saves space with frequent cycling.
+- Deutsch: Reiter COP: Statt einer Liste der gelben Läufe gibt es einen Knopf „Gelbe Läufe analysieren (n)“. Das Analysefenster beginnt beim schlechtesten Lauf und blättert mit ◀ ▶ durch die anderen; ein Klick auf eine gelbe Säule öffnet weiterhin diesen Lauf. Spart Platz bei häufiger Taktung.
+- Français : onglet COP : au lieu d'une liste des cycles jaunes, un bouton « Analyser les cycles jaunes (n) ». La fenêtre d'analyse commence par le moins bon cycle et parcourt les autres avec ◀ ▶ ; un clic sur une colonne jaune ouvre toujours ce cycle. Gain de place en cas de cycles fréquents.
+- 日本語：COP タブ：黄の運転の一覧の代わりに「黄の運転を分析（n）」ボタンを1つ置きました。分析ウィンドウは最も低い運転から始まり、◀ ▶ で他の運転に切り替えます。黄の棒をクリックしてもその運転を開けます。発停が多いときも場所を取りません。
+
 ## v5.19.0
 
 - English: COP tab: runs outside the datasheet rating points (above +7 °C or below −7 °C outdoor, flow below 35 or above 55 °C) are no longer grey but rated with a conservative estimate and drawn pale: warmer conditions or a lower flow use the datasheet value at the edge, without counting the physically higher COP; colder or hotter conditions are reduced via the Carnot COP. The card's own method, marked as an estimate in the tooltip, list and run analysis.

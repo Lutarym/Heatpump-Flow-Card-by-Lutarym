@@ -207,6 +207,9 @@ export const laufanalyseKarte = {
     const t = (k) => this._t(k);
     const zeit = this._laZeit(l.von);
     const titel = tf(t("la_titel"), { z: zeit });
+    // Blaettern zwischen den gelben Laeufen, schlechtester zuerst.
+    const reihe = (this._copReihe || []).includes(l) ? this._copReihe : [l];
+    const nr = reihe.indexOf(l);
     const quellen = (q) =>
       []
         .concat(q || [])
@@ -225,6 +228,11 @@ export const laufanalyseKarte = {
       </div>`;
     modal.querySelector(".lhc-an-modal-box").innerHTML = `
       <h3 id="an-modal-titel">${escapeHtml(titel)}</h3>
+      ${reihe.length > 1 ? `<div class="lhc-la-blaettern">
+        <button type="button" class="lhc-an-btn" data-la-gehe="${nr - 1}"${nr === 0 ? " disabled" : ""} aria-label="${escapeHtml(t("la_zurueck"))}">◀</button>
+        <span>${escapeHtml(tf(t("la_von"), { i: nr + 1, n: reihe.length }))}</span>
+        <button type="button" class="lhc-an-btn" data-la-gehe="${nr + 1}"${nr === reihe.length - 1 ? " disabled" : ""} aria-label="${escapeHtml(t("la_weiter"))}">▶</button>
+      </div>` : ""}
       <div class="lhc-an-modal-sub">${escapeHtml(sub)}</div>
       ${l.copGeschaetzt ? `<p class="lhc-la-ohne">${escapeHtml(t("la_geschaetzt"))}</p>` : ""}
       <div class="lhc-la-kopf">${escapeHtml(t("la_werte"))}</div>
@@ -243,6 +251,9 @@ export const laufanalyseKarte = {
     modal.hidden = false;
     this._vorschlagLage();
     sr.getElementById("an-modal-ab").addEventListener("click", () => this._schliesseVorschlag());
+    modal.querySelectorAll("[data-la-gehe]").forEach((b) => {
+      b.addEventListener("click", () => this._zeigeLaufAnalyse(reihe[Number(b.dataset.laGehe)]));
+    });
     modal.querySelectorAll("[data-la-vorschlag]").forEach((b) => {
       b.addEventListener("click", () => this._zeigeVorschlag({ titel: tf(t("la_lauf"), { z: zeit }), aktion: a.vorschlaege[Number(b.dataset.laVorschlag)] }));
     });

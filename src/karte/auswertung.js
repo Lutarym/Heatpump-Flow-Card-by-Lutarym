@@ -593,25 +593,16 @@ export const auswertungKarte = {
           `<span class="lhc-dia-farbe flach" style="background:${FARBE.ww}"></span><span>${escapeHtml(this._t("warmwasser"))}</span>`
         )
         .join("");
-      // Gelbe Laeufe, die schlechtesten zuerst, mit Knopf zur Analyse.
-      const reihe = unter.slice().sort((a, b) => a.copQuote - b.copQuote);
-      const zeigen = reihe.slice(0, 8);
-      const zeile = (l) => `<div class="lhc-cop-zeile">
-          <b>${escapeHtml(this._zrMarke(l.von, d.t1 - d.t0))}</b>
-          <span>${escapeHtml(tf(this._t("a_c_liste_z"), {
-            w: this._t(l.ww ? "warmwasser" : "heizung"), d: fmt(l.minuten, 0), c: fmt(l.cop, 1), p: fmt(l.copQuote * 100, 0),
-          }))}${l.copGeschaetzt ? ` · ${escapeHtml(this._t("a_c_geschaetzt"))}` : ""}</span>
-          <button type="button" class="lhc-an-knopf" data-lauf="${laeufe.indexOf(l)}">${escapeHtml(this._t("a_c_analysieren"))}</button>
-        </div>`;
+      // Ein Knopf statt einer Liste: Die Analyse beginnt beim schlechtesten
+      // gelben Lauf, im Fenster wird zwischen den gelben Laeufen geblaettert.
+      const reihe = unter.slice().sort((x, y) => x.copQuote - y.copQuote);
+      this._copReihe = reihe;
       liste.innerHTML = `
         <div class="lhc-takt-legende">${legende}</div>
-        ${zeigen.length ? `<div class="lhc-cop-liste"><div class="lhc-an-gruppe">${escapeHtml(this._t("a_c_liste"))}</div>
-          ${zeigen.map(zeile).join("")}
-          ${reihe.length > zeigen.length ? `<p class="lhc-takt-quelle">${escapeHtml(tf(this._t("a_c_mehr"), { n: reihe.length - zeigen.length }))}</p>` : ""}</div>` : ""}
+        ${reihe.length ? `<button type="button" class="lhc-an-knopf lhc-cop-analyse" id="cop-analyse">${escapeHtml(tf(this._t("a_c_analysieren_n"), { n: reihe.length }))}</button>` : ""}
         <p class="lhc-takt-quelle">${escapeHtml(this._t(ref ? "a_c_quelle" : "a_c_quelle_o"))}</p>`;
-      liste.querySelectorAll("[data-lauf]").forEach((b) => {
-        b.addEventListener("click", () => this._zeigeLaufAnalyse(laeufe[Number(b.dataset.lauf)]));
-      });
+      const knopf = liste.querySelector("#cop-analyse");
+      if (knopf) knopf.addEventListener("click", () => this._zeigeLaufAnalyse(reihe[0]));
     }
   },
 

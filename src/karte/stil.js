@@ -524,12 +524,9 @@ export const stilKarte = {
       /* COP: gelbe Laeufe zum Analysieren, Liste unter der Grafik. */
       .lhc-cop-klick { cursor: pointer; }
       .lhc-cop-klick:hover { filter: brightness(1.15); }
-      .lhc-cop-liste .lhc-an-gruppe { margin-top: 12px; }
-      .lhc-cop-zeile { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--c-1c2533);
-        font-size: 12.5px; color: var(--c-c9d3e0); }
-      .lhc-cop-zeile b { min-width: 48px; color: var(--c-e8edf4); }
-      .lhc-cop-zeile span { flex: 1 1 auto; min-width: 0; }
-      .lhc-cop-zeile .lhc-an-knopf { margin: 0; padding: 4px 10px; font-size: 12px; }
+      .lhc-cop-analyse { margin-top: 10px; }
+      .lhc-la-blaettern { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; font-size: 12.5px; color: var(--c-c9d3e0); }
+      .lhc-la-blaettern .lhc-an-btn { padding: 3px 12px; }
       /* Analyse eines Laufs im Bestaetigungsfenster. */
       .lhc-la-kopf { margin: 12px 0 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-98a6ba); }
       .lhc-la-werte { width: 100%; border-collapse: collapse; font-size: 12.5px; color: var(--c-e8edf4); }
