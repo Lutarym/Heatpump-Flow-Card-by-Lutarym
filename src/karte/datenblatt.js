@@ -13,7 +13,17 @@
  * (gemessener COP geteilt durch den Carnot-COP), erst nach Aussen-, dann
  * nach Vorlauftemperatur. An den Pruefpunkten ergibt das genau den
  * Datenblattwert; die Rechenweise dazwischen ist eine eigene Festlegung
- * der Karte. Ausserhalb der Pruefpunkte gibt es keinen Vergleichswert.
+ * der Karte. datenblattCop liefert nur innerhalb der Pruefpunkte einen Wert.
+ *
+ * Ausserhalb der Pruefpunkte schaetzt die Karte (eigene Festlegung, in der
+ * Karte als Schaetzung gekennzeichnet), und zwar zur vorsichtigen Seite:
+ *  - waermer als +7 °C oder Vorlauf unter 35 °C: es gilt der Wert am Rand
+ *    der Pruefpunkte. Die Karte nimmt also keinen hoeheren COP an, als das
+ *    Datenblatt fuer +7 °C und 35 °C nennt, obwohl eine waermere Quelle und
+ *    ein tieferer Vorlauf den COP physikalisch heben.
+ *  - kaelter als -7 °C oder Vorlauf ueber 55 °C: der Guetegrad am Rand mal
+ *    dem Carnot-COP der tatsaechlichen Temperaturen; der Wert sinkt so mit
+ *    dem groesseren Temperaturhub.
  *
  * Toleranz: HP KEYMARK, Annex A (Rev. 11, 06.12.2023), A.4.2.1: Die
  * Toleranz auf Heizleistung und COP an Normpunkten nach EN 14511-2 ist
@@ -61,4 +71,26 @@ export function datenblattCop(kennung, aussen, vorlauf) {
   const s = (vorlauf - w0) / (w1 - w0);
   const g = guete(w0) + s * (guete(w1) - guete(w0));
   return g * carnot(aussen, vorlauf);
+}
+
+/**
+ * Vergleichswert auch ausserhalb der Pruefpunkte, vorsichtig geschaetzt
+ * (siehe oben). Ergebnis { wert, geschaetzt } oder null ohne Datenblatt.
+ */
+export function datenblattSchaetzung(kennung, aussen, vorlauf) {
+  const db = DATENBLAETTER[kennung];
+  if (!db || !Number.isFinite(aussen) || !Number.isFinite(vorlauf)) return null;
+  const genau = datenblattCop(kennung, aussen, vorlauf);
+  if (genau !== null) return { wert: genau, geschaetzt: false };
+  const a = db.aussen;
+  const [w0, w1] = db.vorlauf;
+  // Leichtere Bedingungen auf den Rand begrenzen, schwerere behalten.
+  const aEff = Math.min(aussen, a[a.length - 1]);
+  const wEff = Math.max(vorlauf, w0);
+  const aRand = Math.max(aEff, a[0]);
+  const wRand = Math.min(wEff, w1);
+  const rand = datenblattCop(kennung, aRand, wRand);
+  if (rand === null) return null;
+  const guete = rand / carnot(aRand, wRand);
+  return { wert: guete * carnot(aEff, wEff), geschaetzt: true };
 }

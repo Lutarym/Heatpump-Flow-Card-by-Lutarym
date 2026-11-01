@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.19.0
+
+- English: COP tab: runs outside the datasheet rating points (above +7 °C or below −7 °C outdoor, flow below 35 or above 55 °C) are no longer grey but rated with a conservative estimate and drawn pale: warmer conditions or a lower flow use the datasheet value at the edge, without counting the physically higher COP; colder or hotter conditions are reduced via the Carnot COP. The card's own method, marked as an estimate in the tooltip, list and run analysis.
+- Deutsch: Reiter COP: Läufe außerhalb der Datenblatt-Prüfpunkte (über +7 °C oder unter −7 °C außen, Vorlauf unter 35 oder über 55 °C) sind nicht mehr grau, sondern vorsichtig geschätzt bewertet und blass gezeichnet: Wärmer oder tieferer Vorlauf nimmt den Datenblattwert am Rand, ohne den physikalisch höheren COP anzurechnen; kälter oder heißer wird über den Carnot-COP abgesenkt. Eigene Festlegung, als Schätzung gekennzeichnet in Tooltip, Liste und Laufanalyse.
+- Français : onglet COP : les cycles hors des points d'essai (au-dessus de +7 °C ou sous −7 °C extérieur, départ sous 35 ou au-dessus de 55 °C) ne sont plus gris mais évalués par une estimation prudente et dessinés pâles : plus chaud ou départ plus bas, la valeur en bordure s'applique sans compter le COP physiquement plus élevé ; plus froid ou plus chaud au départ, elle est abaissée via le COP de Carnot. Méthode propre à la carte, signalée comme estimation dans l'infobulle, la liste et l'analyse du cycle.
+- 日本語：COP タブ：データシートの試験点の範囲外（外気 +7 °C 超・−7 °C 未満、往き35 °C 未満・55 °C 超）の運転は灰ではなく、控えめな推定で評価し淡色で表示します。暖かい場合や往きが低い場合は、物理的に高くなる COP を見込まず端の値を使い、寒い場合や往きが高い場合はカルノー COP で下げます。カード独自の方法で、ツールチップ、一覧、運転分析に推定と表示します。
+
 ## v5.18.0
 
 - English:

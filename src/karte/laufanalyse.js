@@ -217,7 +217,7 @@ export const laufanalyseKarte = {
     const sub = tf(t("la_sub"), {
       w: t(l.ww ? "warmwasser" : "heizung"), von: zeit, bis: this._laZeit(l.bis), d: fmt(l.minuten, 0),
       c: fmt(l.cop, 1), e: fmt(l.copErwartet, 1), p: fmt(l.copQuote * 100, 0),
-    });
+    }) + (l.copGeschaetzt ? ` · ${t("a_c_geschaetzt")}` : "");
     const vorschlagHtml = (v, i) => `<div class="lhc-la-vorschlag">
         <div>${v.aenderungen.map((w) => `<b>${escapeHtml(this._laName(w))}</b>: ${escapeHtml(this._laWert(w, "ist"))} → <b>${escapeHtml(this._laWert(w, "neu"))}</b>`).join("<br>")}
           <small>${escapeHtml(v.grund)}</small></div>
@@ -226,6 +226,7 @@ export const laufanalyseKarte = {
     modal.querySelector(".lhc-an-modal-box").innerHTML = `
       <h3 id="an-modal-titel">${escapeHtml(titel)}</h3>
       <div class="lhc-an-modal-sub">${escapeHtml(sub)}</div>
+      ${l.copGeschaetzt ? `<p class="lhc-la-ohne">${escapeHtml(t("la_geschaetzt"))}</p>` : ""}
       <div class="lhc-la-kopf">${escapeHtml(t("la_werte"))}</div>
       <table class="lhc-la-werte">${a.werte.map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(v)}</td></tr>`).join("")}</table>
       <div class="lhc-la-kopf">${escapeHtml(t("la_befunde"))}</div>

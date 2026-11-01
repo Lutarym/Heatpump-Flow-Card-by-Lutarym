@@ -18,11 +18,12 @@
  *    nur bei gleicher Messbedingung besser."). Ab 92 % des Datenblatts gruen,
  *    darunter gelb (Toleranz -8 %, HP KEYMARK, siehe datenblatt.js). Eine
  *    zweite belegte Grenze fuer Rot gibt es nicht. Ausserhalb der
- *    Pruefpunkte, ohne Datenblatt oder bei unvollstaendigen Laeufen grau.
+ *    Pruefpunkte vorsichtig geschaetzt und blasser gezeichnet (eigene
+ *    Festlegung). Ohne Datenblatt oder bei unvollstaendigen Laeufen grau.
  */
 import { escapeHtml, fmt, groesster, indexBis, jePixel, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { DATENBLAETTER, TOLERANZ, datenblattCop } from "./datenblatt.js";
+import { DATENBLAETTER, TOLERANZ, datenblattSchaetzung } from "./datenblatt.js";
 import { DW } from "./diagramme.js";
 import { zeitRaster } from "./zeitraum.js";
 
@@ -352,7 +353,10 @@ export const auswertungKarte = {
       l.ruecklauf = mittelEigene(d.ruecklauf);
       l.kreis1 = mittelEigene(d.kreis1);
       l.kreis2 = mittelEigene(d.kreis2);
-      l.copErwartet = ref && l.aussen !== null && l.vorlauf !== null ? datenblattCop(ref, l.aussen, l.vorlauf) : null;
+      // Ausserhalb der Pruefpunkte vorsichtig geschaetzt und gekennzeichnet.
+      const dbl = ref && l.aussen !== null && l.vorlauf !== null ? datenblattSchaetzung(ref, l.aussen, l.vorlauf) : null;
+      l.copErwartet = dbl ? dbl.wert : null;
+      l.copGeschaetzt = Boolean(dbl && dbl.geschaetzt);
       l.copQuote = l.cop !== null && l.copErwartet ? l.cop / l.copErwartet : null;
       if (l.aussen === null) {
         const s = stand(d.aussen, l.von);
@@ -479,6 +483,8 @@ export const auswertungKarte = {
       const teile = [tf(this._t("a_c_d_quote"), {
         p: fmt(quote * 100, 0), a: aussen === null ? "--" : fmt(aussen, 1), v: vorlauf === null ? "--" : fmt(vorlauf, 0),
       })];
+      const geschaetzt = bewertet.filter((l) => l.copGeschaetzt).length;
+      if (geschaetzt) teile.push(tf(this._t("a_c_d_geschaetzt"), { n: geschaetzt }));
       if (ohne) teile.push(tf(this._t("a_c_d_ohne"), { n: ohne }));
       urteil = unter.length
         ? this._auswertungUrteil(COP_FARBE.unter, "warn", tf(this._t("a_c_t_unter"), { u: unter.length, n: bewertet.length }), teile.join(" · "))
@@ -525,13 +531,13 @@ export const auswertungKarte = {
       const stufe = copStufe(l);
       const mitStrich = l.copErwartet !== null;
       const titel = `${this._t(l.ww ? "warmwasser" : "heizung")} · ${fmt(l.minuten, 0)} min · COP ${fmt(l.cop, 1)}${
-        mitStrich ? ` · ${tf(this._t("a_c_dbl"), { c: fmt(l.copErwartet, 1) })} (${fmt(l.copQuote * 100, 0)} %)` : ""
+        mitStrich ? ` · ${tf(this._t(l.copGeschaetzt ? "a_c_dbl_s" : "a_c_dbl"), { c: fmt(l.copErwartet, 1) })} (${fmt(l.copQuote * 100, 0)} %)` : ""
       }${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""}`;
       const r = Math.min(3, w / 2, unten - y);
       // Gelbe Saeulen oeffnen per Klick die Analyse des Laufs.
       const klick = stufe === "unter" ? ` data-lauf="${laeufe.indexOf(l)}" class="lhc-cop-klick"` : "";
       out += `<path d="M${xa.toFixed(1)} ${unten}V${(y + r).toFixed(1)}Q${xa.toFixed(1)} ${y.toFixed(1)} ${(xa + r).toFixed(1)} ${y.toFixed(1)}H${(xa + w - r).toFixed(1)}Q${(xa + w).toFixed(1)} ${y.toFixed(1)} ${(xa + w).toFixed(1)} ${(y + r).toFixed(1)}V${unten}Z"
-                    fill="${stufe ? COP_FARBE[stufe] : NEUTRAL}"${l.laufend || l.angeschnitten ? ' opacity="0.55"' : ""}${klick}><title>${escapeHtml(titel)}</title></path>`;
+                    fill="${stufe ? COP_FARBE[stufe] : NEUTRAL}"${l.laufend || l.angeschnitten ? ' opacity="0.55"' : stufe && l.copGeschaetzt ? ' fill-opacity="0.55"' : ""}${klick}><title>${escapeHtml(titel)}</title></path>`;
       if (mitStrich) {
         const ye = zuY(l.copErwartet).toFixed(1);
         const ueber = viele ? 0 : 3;
@@ -577,6 +583,7 @@ export const auswertungKarte = {
         ? [
           `<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut}"></span><span>${escapeHtml(this._t("a_c_l_gut"))}</span>`,
           `<span class="lhc-dia-farbe" style="background:${COP_FARBE.unter}"></span><span>${escapeHtml(this._t("a_c_l_unter"))}</span>`,
+          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut};opacity:0.55"></span><span>${escapeHtml(this._t("a_c_l_geschaetzt"))}</span>`,
           `<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_l_ohne"))}</span>`,
           `<span class="lhc-dia-strich"></span><span>${escapeHtml(this._t("a_c_vergleich"))}</span>`,
         ]
@@ -593,7 +600,7 @@ export const auswertungKarte = {
           <b>${escapeHtml(this._zrMarke(l.von, d.t1 - d.t0))}</b>
           <span>${escapeHtml(tf(this._t("a_c_liste_z"), {
             w: this._t(l.ww ? "warmwasser" : "heizung"), d: fmt(l.minuten, 0), c: fmt(l.cop, 1), p: fmt(l.copQuote * 100, 0),
-          }))}</span>
+          }))}${l.copGeschaetzt ? ` · ${escapeHtml(this._t("a_c_geschaetzt"))}` : ""}</span>
           <button type="button" class="lhc-an-knopf" data-lauf="${laeufe.indexOf(l)}">${escapeHtml(this._t("a_c_analysieren"))}</button>
         </div>`;
       liste.innerHTML = `
