@@ -84,9 +84,9 @@ ${this._defs()}
       </g>
       <!-- Au\xDFenger\xE4t -->
       <g class="unit" id="unit-group">
-        <rect id="unit-glow" x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16"
-              fill="none" stroke="#22C55E" stroke-width="10" opacity="0"
-              filter="url(#unitGlowBlur)"/>
+        <!-- Leuchten ohne Weichzeichner: gestufte Raender. Ein Filter muesste bei
+             jedem Bild der Pulsanimation neu gerechnet werden und bremst die Luefter. -->
+        <g id="unit-glow" fill="none" stroke="#22C55E" opacity="0"><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="24" stroke-opacity="0.08"/><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="17" stroke-opacity="0.14"/><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="11" stroke-opacity="0.24"/><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="6" stroke-opacity="0.5"/></g>
         <rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16"
               fill="url(#casing)" stroke="#33415A" stroke-width="2"/>
         <rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" fill="url(#glass)"/>

@@ -564,7 +564,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
         return;
       }
 
-      const deltaTime = (time - lastTime) / 1000; // in Sekunden
+      // Hoechstens 0,1 s je Bild: Nach einem Haenger oder Tabwechsel
+      // springen Luefter und Laufpunkte sonst sichtbar weiter.
+      const deltaTime = Math.min(Math.max((time - lastTime) / 1000, 0), 0.1);
       lastTime = time;
       this._animTime += deltaTime;
 

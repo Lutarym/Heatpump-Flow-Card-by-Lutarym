@@ -21,13 +21,6 @@ export const grafikQuerKarte = {
   /** Farbverlaeufe und Filter, von beiden Anordnungen genutzt. */
   _defs() {
     return `      <defs>
-        <filter id="unitGlowBlur" x="-30%" y="-15%" width="160%" height="130%">
-          <feGaussianBlur stdDeviation="5" result="b"/>
-          <feMerge>
-            <feMergeNode in="b"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
         <linearGradient id="casing" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#232C3A"/><stop offset="100%" stop-color="#161D28"/>
         </linearGradient>
@@ -189,9 +182,9 @@ ${this._defs()}
       </g>
       <!-- Außengerät -->
       <g class="unit" id="unit-group">
-        <rect id="unit-glow" x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16"
-              fill="none" stroke="#22C55E" stroke-width="10" opacity="0"
-              filter="url(#unitGlowBlur)"/>
+        <!-- Leuchten ohne Weichzeichner: gestufte Raender. Ein Filter muesste bei
+             jedem Bild der Pulsanimation neu gerechnet werden und bremst die Luefter. -->
+        <g id="unit-glow" fill="none" stroke="#22C55E" opacity="0"><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="24" stroke-opacity="0.08"/><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="17" stroke-opacity="0.14"/><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="11" stroke-opacity="0.24"/><rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" stroke-width="6" stroke-opacity="0.5"/></g>
         <rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16"
               fill="url(#casing)" stroke="#33415A" stroke-width="2"/>
         <rect x="40" y="${L.UNIT_TOP}" width="300" height="640" rx="16" fill="url(#glass)"/>
@@ -494,13 +487,10 @@ ${this._defs()}
       aeste.push(ast);
       ruecks.push(unten + 14);
       const zu = `M${vorl} ${ast} H ${dx} V ${top}`;
-      // Ruecklauf der oberen Reihe kreuzt bei zwei Reihen die senkrechte
-      // Vorlauf-Sammelleitung. Dort springt er mit einem kleinen Bogen
-      // darueber, damit keine Verbindung vorgetaeuscht wird.
-      const kreuzt = zeilen > 1 && ze === 0;
-      const ab = kreuzt
-        ? `M${bx} ${unten} V ${unten + 14} H ${vorl + 7} A 7 7 0 0 0 ${vorl - 7} ${unten + 14} H ${rueck}`
-        : `M${bx} ${unten} V ${unten + 14} H ${rueck}`;
+      // Der Ruecklauf der oberen Reihe kreuzt bei zwei Reihen die
+      // senkrechte Vorlauf-Sammelleitung. Er laeuft gerade durch; der
+      // Vorlauf fuehrt mit einem Bogen darueber (siehe brueckeV).
+      const ab = `M${bx} ${unten} V ${unten + 14} H ${rueck}`;
       const tx = (a + b) / 2;
       leitungen += `
         <path class="pipe-shell duenn" d="${zu} ${ab}"/>
@@ -533,6 +523,17 @@ ${this._defs()}
       </g>`;
     }
     const letzterAst = Math.max(...aeste);
+    // Hoehen, an denen Ruecklaeufe der oberen Reihe den Vorlauf kreuzen.
+    const kreuzungen = zeilen > 1 ? [...new Set(ruecks.slice(0, spalten))] : [];
+    // Senkrechter Vorlauf von y0 nach y1, an jeder Kreuzung mit einem
+    // Bogen ueber den Ruecklauf. Rohr und Laufpunkte nehmen denselben Weg.
+    const brueckeV = (y0, y1) => {
+      let d = `M${vorl} ${y0}`;
+      kreuzungen.filter((y) => y > y0 + 8 && y < y1 - 8).sort((p, q) => p - q).forEach((y) => {
+        d += ` V ${y - 7} A 7 7 0 0 1 ${vorl} ${y + 7}`;
+      });
+      return `${d} V ${y1}`;
+    };
     // Laufpunkte der Sammelleitungen in Abschnitten: der gemeinsame Teil
     // laeuft, sobald ein Kreis laeuft, der Teil zur zweiten Reihe nur,
     // wenn HK3 oder HK4 laufen, der Ruecklauf jeder Reihe nur mit ihren
@@ -545,22 +546,22 @@ ${this._defs()}
     if (M.puffer) {
       // Vorlauf gerade aus dem Puffer, Ruecklauf auf halber Hoehe hinein.
       const RLY = zeilen > 1 ? 600 : 470;
-      vlPfad = `M${M.BR} ${VLY} H ${vorl} V ${letzterAst}`;
+      vlPfad = `M${M.BR} ${VLY} H ${vorl} ${brueckeV(VLY, letzterAst).replace(/^M\S+ \S+/, "")}`;
       const teile = ruecks.map((y) => `M${rueck} ${y} V ${RLY}`);
       rlPfad = `${[...new Set(teile)].join(" ")} M${rueck} ${RLY} H ${M.BR}`;
       punkteSammel = `
       <path class="flowdots duenn" id="dots-sf-a" d="M${M.BR} ${VLY} H ${vorl}"/>
-      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="M${vorl} ${VLY} V ${letzterAst}"/>` : ""}
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="${brueckeV(VLY, letzterAst)}"/>` : ""}
       <path class="flowdots duenn" id="dots-sr-z1" d="M${rueck} ${r1} V ${RLY}"/>
       ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sr-z2" d="M${rueck} ${r2} V ${RLY}"/>` : ""}
       <path class="flowdots duenn" id="dots-sr-a" d="M${rueck} ${RLY} H ${M.BR}"/>`;
     } else {
       // Ohne Puffer kommen die Heizkreise direkt an den Primaerkreis.
-      vlPfad = `M${vorl} ${F} V ${letzterAst}`;
+      vlPfad = brueckeV(F, letzterAst);
       rlPfad = `M${rueck} ${Math.min(...ruecks)} V ${R}`;
       punkteSammel = `
       <path class="flowdots duenn" id="dots-sf-a" d="M${vorl} ${F} V ${VLY}"/>
-      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="M${vorl} ${VLY} V ${letzterAst}"/>` : ""}
+      ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sf-z2" d="${brueckeV(VLY, letzterAst)}"/>` : ""}
       ${zeilen > 1 ? `<path class="flowdots duenn" id="dots-sr-z1" d="M${rueck} ${r1} V ${r2}"/>` : ""}
       <path class="flowdots duenn" id="dots-sr-a" d="M${rueck} ${zeilen > 1 ? r2 : r1} V ${R}"/>`;
     }
@@ -571,11 +572,16 @@ ${this._defs()}
       <path class="pipe duenn" id="pipe-sec-ret" d="${rlPfad}"/>`;
     // Reihenfolge: Rohre der Heizkreise, dann alle Laufpunkte samt
     // Sammelleitungen, zuletzt Pumpen, Heizkoerper und Beschriftung.
+    // Reihenfolge: erst die Rohre der Heizkreise, darueber die
+    // Sammelleitungen (der Vorlauf liegt an der Kreuzung oben), dann die
+    // Laufpunkte der Heizkreise und zuletzt die der Sammelleitungen, damit
+    // auch die Punkte des Vorlaufs ueber dem Ruecklauf laufen.
     kreise = `
       <!-- Leitungen der Heizkreise -->${leitungen}
-      <!-- Laufpunkte der Sammelleitungen und Heizkreise -->${punkteSammel}${punkte}
+      ${rohre}
+      <!-- Laufpunkte der Heizkreise und Sammelleitungen -->${punkte}${punkteSammel}
 ${kreise}`;
-    return { rohre, kreise, vorl, rueck };
+    return { rohre: "", kreise, vorl, rueck };
   },
 
   /**

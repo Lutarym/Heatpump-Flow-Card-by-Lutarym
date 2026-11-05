@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.21.0
+
+- English: Smoother animations: the glow of the outdoor unit no longer uses a blur filter (it had to be recalculated on every frame of the pulse and made the fans stutter), it is now drawn as graded edges. In the test the long frames fell from 28 to 0 in 3 seconds. Very long frames (tab switch) no longer let fans and flow dots jump. Layout "quer": where the HK1 return crosses the flow line to HK2, the flow now runs over the return with a small arch, including its flow dots; the return runs straight underneath.
+- Deutsch: Ruhigere Animationen: Das Leuchten des Außengeräts nutzt keinen Weichzeichner mehr (er musste bei jedem Bild der Pulsanimation neu gerechnet werden und ließ die Lüfter stocken), sondern gestufte Ränder. Im Test sanken die langen Bilder in 3 Sekunden von 28 auf 0. Nach sehr langen Bildern (Tabwechsel) springen Lüfter und Laufpunkte nicht mehr. Anordnung „quer“: Wo der Rücklauf von HK1 die Vorlaufleitung zu HK2 kreuzt, führt jetzt der Vorlauf mit einem kleinen Bogen über den Rücklauf, samt Laufpunkten; der Rücklauf läuft gerade darunter durch.
+- Français : animations plus fluides : la lueur de l'unité extérieure n'utilise plus de filtre de flou (recalculé à chaque image de la pulsation, il faisait saccader les ventilateurs), mais des bords dégradés. Au test, les images longues sont passées de 28 à 0 en 3 secondes. Après une très longue image (changement d'onglet), ventilateurs et points ne sautent plus. Disposition « quer » : là où le retour du HK1 croise le départ vers le HK2, le départ passe désormais au-dessus du retour avec un petit arc, points compris ; le retour passe tout droit dessous.
+- 日本語：アニメーションを滑らかにしました。室外機の発光にぼかしフィルターを使わず（脈動の各フレームで再計算され、ファンがカクついていました）、段階的な縁で描きます。テストでは3秒間の長いフレームが28から0に減りました。非常に長いフレーム（タブ切り替え）の後もファンや流れの点が飛びません。「quer」レイアウト：HK1 の戻りが HK2 への往き配管と交差する箇所で、往きが小さな弧で戻りの上を通るようにしました（流れの点も同様）。戻りはその下をまっすぐ通ります。
+
 ## v5.20.0
 
 - English: COP tab: instead of a list of yellow runs there is one button "Analyse yellow runs (n)". The analysis window starts with the worst run and pages through the others with ◀ ▶; clicking a yellow column still opens that run. Saves space with frequent cycling.
