@@ -208,6 +208,91 @@ export function wwBereiche(laden) {
     }));
 }
 
+/** Steht die Sonne zum Zeitpunkt t ueber dem Horizont (sun.sun)? */
+function sonneOben(reihe, t) {
+  const i = indexBis(reihe || [], t);
+  if (i < 0) return null;
+  const s = String(reihe[i].s);
+  if (s === "above_horizon") return true;
+  if (s === "below_horizon") return false;
+  return null;
+}
+
+/**
+ * Vergleich der Ladungen am Tag (Sonne ueber dem Horizont, Mitte der
+ * Ladung) mit denen in der Nacht. Nur vollstaendige Ladungen ohne
+ * Desinfektion. Strom je kWh Waerme ist die Summe Strom durch die Summe
+ * Waerme der Gruppe.
+ */
+export function wwTagNacht(d, laden) {
+  const gueltig = laden.filter((l) => l.vollstaendig && !l.steril && l.cop !== null);
+  const gruppe = (tag) => {
+    const xs = gueltig.filter((l) => sonneOben(d.sonne, (l.von + l.bis) / 2) === tag);
+    const mit = xs.filter((l) => l.strom !== null && l.waerme !== null);
+    const summe = (f) => mit.reduce((a, l) => a + f(l), 0);
+    const avg = (f) => {
+      const w = xs.map(f).filter((v) => v !== null && !Number.isNaN(v));
+      return w.length ? w.reduce((a, v) => a + v, 0) / w.length : null;
+    };
+    const strom = summe((l) => l.strom);
+    const waerme = summe((l) => l.waerme);
+    return {
+      n: xs.length,
+      genug: xs.length >= WW_MIN_N,
+      aussen: avg((l) => l.aussen),
+      tStart: avg((l) => l.tStart),
+      jeKwh: mit.length === xs.length && waerme > 0 ? strom / waerme : null,
+      cop: mit.length === xs.length && strom > 0 ? waerme / strom : avg((l) => l.cop),
+    };
+  };
+  const tag = gruppe(true);
+  const nacht = gruppe(false);
+  // Waerme fuer Warmwasser je Tag: alle vollstaendigen Ladungen an ganzen
+  // Kalendertagen im Verlauf, geteilt durch die Zahl dieser Tage.
+  const a = tagEnde(d.t0);
+  const b = tagBeginn(d.t1);
+  const tage = Math.round((b - a) / TAG);
+  const imTag = laden.filter((l) => l.vollstaendig && l.von >= a && l.von < b);
+  const waermeTag = tage > 0 && imTag.length && imTag.every((l) => l.waerme !== null)
+    ? imTag.reduce((x, l) => x + l.waerme, 0) / tage
+    : null;
+  return { tag, nacht, tage, waermeTag, sonne: Boolean(d.sonne && d.sonne.length) };
+}
+
+/** Mittlere Uhrzeit der hoechsten Aussentemperatur an ganzen Tagen. */
+export function wwWaermsteZeit(d) {
+  const zeiten = [];
+  for (let m = tagEnde(d.t0); tagEnde(m) <= d.t1; m = tagEnde(m)) {
+    const h = hoechster(d.aussen, m, tagEnde(m));
+    if (h) zeiten.push(h.t - m);
+  }
+  if (!zeiten.length) return null;
+  return { ms: zeiten.reduce((x, v) => x + v, 0) / zeiten.length, n: zeiten.length };
+}
+
+/**
+ * Reicht eine Ladung je Tag? Nur aus gemessenen Haltezeiten: Faellt der
+ * Speicher in einem Fall frueher als 24 h nach dem Ladeende unter die
+ * Schwelle, reicht sie nicht immer. Hielt er in allen aussagekraeftigen
+ * Faellen mindestens 24 h, reichte sie. Faelle, in denen vor Ablauf von
+ * 24 h schon nachgeladen wurde, ohne dass die Schwelle erreicht war,
+ * sagen dazu nichts.
+ */
+export function wwNachladen(halte) {
+  const erreicht = halte.filter((h) => h.unter !== null);
+  const kurz = erreicht.filter((h) => h.unter < 24);
+  const lang = halte.filter((h) => (h.unter !== null && h.unter >= 24) || (h.unter === null && h.stunden >= 24));
+  const zahlen = erreicht.map((h) => h.unter);
+  return {
+    erreicht: erreicht.length,
+    gesamt: halte.filter((h) => h.unter !== null || h.naechste).length,
+    mittel: zahlen.length ? zahlen.reduce((x, v) => x + v, 0) / zahlen.length : null,
+    kuerzeste: zahlen.length ? Math.min(...zahlen) : null,
+    urteil: kurz.length ? "nein" : lang.length ? "ja" : "offen",
+    belege: kurz.length || lang.length,
+  };
+}
+
 export const warmwasserKarte = {
   /** Nutzbarkeitsschwelle aus dem Editor, sonst keine. */
   _wwSchwelle() {
@@ -268,6 +353,7 @@ export const warmwasserKarte = {
       steril: this._e("sterilization_state"),
       cop: this._e("cop_dhw"),
       pv: this._e("pv_power"),
+      sonne: q.states && q.states["sun.sun"] ? "sun.sun" : null,
       w: ww ? ww.w : null,
       e: ww ? ww.e : null,
     };
@@ -339,13 +425,14 @@ export const warmwasserKarte = {
     const reiter = (k) => `<button type="button" class="lhc-ww-tab${this._wwReiter === k ? " aktiv" : ""}" data-ww-reiter="${k}">${escapeHtml(t(`ww_r_${k}`))}</button>`;
     let inhalt = "";
     if (this._wwReiter === "aussen") inhalt = this._wwAussenHtml(laden);
+    else if (this._wwReiter === "tagnacht") inhalt = this._wwTagNachtHtml(d, laden, schwelle);
     else if (this._wwReiter === "halte") inhalt = this._wwHalteHtml(d, laden, schwelle, zeit, grad);
     else inhalt = this._wwLadenHtml(d, laden, zeit, uhr, grad);
     const box = sr.querySelector("#ww-fenster .lhc-ww-box");
     box.innerHTML = `
       <h3 id="ww-titel">${escapeHtml(t("ww_titel"))}</h3>
       <div class="lhc-an-modal-sub">${escapeHtml(sub.join(" · "))}</div>
-      <div class="lhc-ww-tabs" role="tablist">${reiter("ladungen")}${reiter("aussen")}${reiter("halte")}</div>
+      <div class="lhc-ww-tabs" role="tablist">${reiter("ladungen")}${reiter("aussen")}${reiter("halte")}${reiter("tagnacht")}</div>
       ${inhalt}
       <div class="lhc-an-modal-knoepfe"><button type="button" class="lhc-an-btn" id="ww-zu">${escapeHtml(t("an_opt_zu"))}</button></div>`;
     box.querySelector("#ww-zu").addEventListener("click", () => this._wwSchliessen());
@@ -493,6 +580,73 @@ export const warmwasserKarte = {
       <p class="lhc-an-modal-text">${escapeHtml(t("ww_f_zapfen"))}</p>`;
   },
 
+  /** Reiter Tag oder Nacht: Ersparnis und wann nachgeladen werden muss. */
+  _wwTagNachtHtml(d, laden, schwelle) {
+    const t = (k) => this._t(k);
+    const p = (s) => `<p class="lhc-an-modal-text">${s}</p>`;
+    const e = escapeHtml;
+    let teil1;
+    const tn = wwTagNacht(d, laden);
+    if (!tn.sonne) {
+      teil1 = p(e(t("ww_tn_sonne_fehlt")));
+    } else {
+      const zeile = (name, g) => `<tr><td>${e(t(name))}</td><td>${g.n}</td>
+        <td>${e(g.aussen === null ? "--" : `${fmt(g.aussen, 1)} °C`)}</td>
+        <td>${e(g.tStart === null ? "--" : `${fmt(g.tStart, 1)} °C`)}</td>
+        <td>${e(g.jeKwh === null ? "--" : `${fmt(g.jeKwh, 2)} kWh`)}</td>
+        <td>${e(fmt(g.cop, 2))}</td></tr>`;
+      const tabelle = `<div class="lhc-ww-scroll"><table class="lhc-ww-tabelle"><thead><tr>
+          <th>${e(t("ww_tn_k_gruppe"))}</th><th>${e(t("ww_tn_k_n"))}</th><th>${e(t("ww_k_aussen"))} Ø</th>
+          <th>${e(t("ww_k_tstart"))}</th><th>${e(t("ww_tn_k_jekwh"))}</th><th>Ø COP</th>
+        </tr></thead><tbody>${zeile("ww_tn_tag", tn.tag)}${zeile("ww_tn_nacht", tn.nacht)}</tbody></table></div>`;
+      let ergebnis;
+      const { tag, nacht } = tn;
+      if (!tag.genug || !nacht.genug) {
+        ergebnis = p(e(tf(t("ww_tn_zu_wenig"), { n: WW_MIN_N, t: tag.n, a: nacht.n })));
+      } else if (tag.jeKwh === null || nacht.jeKwh === null) {
+        ergebnis = p(e(tf(t("ww_tn_nur_cop"), { t: fmt(tag.cop, 2), a: fmt(nacht.cop, 2) })));
+      } else {
+        const diff = nacht.jeKwh - tag.jeKwh;
+        const satz = [tf(t("ww_tn_ergebnis"), {
+          d: fmt(Math.abs(diff), 2), p: fmt((Math.abs(diff) / nacht.jeKwh) * 100, 0), r: t(diff >= 0 ? "ww_tn_weniger" : "ww_tn_mehr"),
+        })];
+        if (tn.waermeTag !== null) {
+          const proTag = Math.abs(diff) * tn.waermeTag;
+          satz.push(tf(t(diff >= 0 ? "ww_tn_spar" : "ww_tn_mehrverbrauch"), {
+            w: fmt(tn.waermeTag, 1), n: tn.tage, s: fmt(proTag, 2), m: fmt(proTag * 30, 1),
+          }));
+        } else {
+          satz.push(t("ww_tn_kein_bedarf"));
+        }
+        ergebnis = `<p class="lhc-an-modal-text"><b>${e(t("ww_tn_gemessen"))}</b> ${e(satz.join(" "))}</p>`;
+      }
+      teil1 = tabelle + ergebnis;
+    }
+    // Wann nachladen.
+    const w = wwWaermsteZeit(d);
+    const saetze = [];
+    if (w) {
+      const min = Math.round(w.ms / 60000);
+      saetze.push(tf(t("ww_tn_waermste"), { z: `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`, n: w.n }));
+    }
+    if (schwelle === null) {
+      saetze.push(t("ww_schwelle_fehlt"));
+    } else {
+      const nl = wwNachladen(wwHaltezeiten(d, laden, schwelle));
+      if (nl.erreicht) {
+        saetze.push(tf(t("ww_tn_halte"), { s: fmt(schwelle, 0), m: fmt(nl.mittel, 1), k: fmt(nl.kuerzeste, 1), e: nl.erreicht, g: nl.gesamt }));
+      } else {
+        saetze.push(tf(t("ww_tn_nie_unter"), { s: fmt(schwelle, 0), g: nl.gesamt }));
+      }
+      if (nl.urteil === "nein") saetze.push(tf(t("ww_tn_nein"), { k: fmt(nl.kuerzeste, 1), s: fmt(schwelle, 0) }));
+      else if (nl.urteil === "ja") saetze.push(tf(t("ww_tn_ja"), { n: nl.belege, s: fmt(schwelle, 0) }));
+      else saetze.push(t("ww_tn_offen"));
+    }
+    return `<h4 class="lhc-ww-kopf">${e(t("ww_tn_titel"))}</h4>${teil1}
+      <h4 class="lhc-ww-kopf">${e(t("ww_tn_wann"))}</h4>${saetze.map((x) => p(e(x))).join("")}
+      <p class="lhc-an-modal-klein">${e(tf(t("ww_tn_fuss"), { n: WW_MIN_N }))}</p>`;
+  },
+
   /**
    * Nachgebildete Daten fuer den Demomodus: eine Ladung je Tag zu
    * wechselnden Zeiten, Zapfen morgens und abends. Keine Messung.
@@ -508,7 +662,7 @@ export const warmwasserKarte = {
     const startStunden = [3.2, 13.7, 6.9, 14.2, 2.5, 12.8, 21.0, 13.2, 4.4];
     const starts = startStunden.map((s, k) => tag0 + k * TAG + s * STUNDE).filter((s) => s > t0 && s < t1);
     const d = { demo: true, t0, t1, xtop: false };
-    ["temp", "ventil", "vd", "aussen", "vorlauf", "abtau", "stabI", "stabE", "steril", "cop", "pv", "w", "e"].forEach((k) => {
+    ["temp", "ventil", "vd", "aussen", "vorlauf", "abtau", "stabI", "stabE", "steril", "cop", "pv", "w", "e", "sonne"].forEach((k) => {
       d[k] = [];
     });
     const add = (k, t, v) => d[k].push({ t, s: String(v), v });
@@ -552,6 +706,11 @@ export const warmwasserKarte = {
         if (std >= 19.5 && std < 19.75) tank -= 2.5;
       }
       add("temp", t, Math.round(tank * 2) / 2);
+      // Sonne im Demomodus von 07:20 bis 16:40 ueber dem Horizont.
+      const oben = std >= 7 + 1 / 3 && std < 16 + 2 / 3;
+      const vorher = d.sonne.length ? d.sonne[d.sonne.length - 1].s : null;
+      const jetztS = oben ? "above_horizon" : "below_horizon";
+      if (vorher !== jetztS) d.sonne.push({ t, s: jetztS, v: NaN });
       if (Math.round(std * 12) % 3 === 0) add("aussen", t, Math.round(aussenBei(t) * 10) / 10);
     }
     return d;

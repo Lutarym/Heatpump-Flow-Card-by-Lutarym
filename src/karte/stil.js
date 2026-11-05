@@ -457,6 +457,8 @@ export const stilKarte = {
       .lhc-ww-tab { padding: 5px 12px; font: inherit; font-size: 12.5px; cursor: pointer; border-radius: 9px;
         color: var(--c-98a6ba); background: var(--c-26303f); border: 1px solid var(--c-3a4557); }
       .lhc-ww-tab.aktiv { color: #FFFFFF; background: #E0762E; border-color: #E0762E; }
+      .lhc-ww-kopf { margin: 14px 0 6px; font-size: 13.5px; color: var(--c-c9d3e0); }
+      .lhc-ww-kopf:first-child, .lhc-ww-tabs + .lhc-ww-kopf { margin-top: 4px; }
       .lhc-ww-tab:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
       .lhc-ww-scroll { overflow-x: auto; }
       .lhc-ww-tabelle { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--c-e8edf4);
