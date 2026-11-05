@@ -245,8 +245,8 @@ The column "Panasonic (HeishaMon)" shows the keys of the built-in profile, which
 
 | Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
 |---|---|---|---|
-| `buffer_delta` | Buffer hysteresis | any | `top113` |
-| `buffer_target` | Buffer target temperature | any | `top7` |
+| `buffer_delta` | Buffer offset (ΔT) | any | `top113` |
+| `buffer_target` | Heat pump flow target | any | `top7` |
 | `cop_heating` | COP heating | any | `cop_heating` |
 | `room_heater` | Heating element, heating: allowed | any | `top59` |
 | `room_heater_switch` | Allow heating element, heating | `switch`, `input_boolean` | `setroomheaterstate` |

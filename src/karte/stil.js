@@ -450,6 +450,24 @@ export const stilKarte = {
         background: var(--c-1b2431); border: 1px solid var(--line); color: var(--ink);
       }
       .lhc-dialog-action[hidden] { display: none; }
+      /* Fenster Warmwasser beobachten: liegt ueber der Karte. */
+      .lhc-ww-fenster { z-index: 6; }
+      .lhc-ww-fenster .lhc-ww-box { width: min(920px, 100%); }
+      .lhc-ww-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+      .lhc-ww-tab { padding: 5px 12px; font: inherit; font-size: 12.5px; cursor: pointer; border-radius: 9px;
+        color: var(--c-98a6ba); background: var(--c-26303f); border: 1px solid var(--c-3a4557); }
+      .lhc-ww-tab.aktiv { color: #FFFFFF; background: #E0762E; border-color: #E0762E; }
+      .lhc-ww-tab:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
+      .lhc-ww-scroll { overflow-x: auto; }
+      .lhc-ww-tabelle { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--c-e8edf4);
+        font-variant-numeric: tabular-nums; }
+      .lhc-ww-tabelle th { padding: 3px 5px; text-align: left; font-size: 10.5px; font-weight: 600; color: var(--c-7e8ca0);
+        border-bottom: 1px solid var(--c-26303f); white-space: nowrap; }
+      .lhc-ww-tabelle td { padding: 5px; border-bottom: 1px solid var(--c-26303f); white-space: nowrap; vertical-align: top; }
+      .lhc-ww-tabelle td small { display: block; font-size: 10.5px; color: var(--c-7e8ca0); }
+      .lhc-ww-tabelle td.lhc-ww-gut { color: #16A34A; font-weight: 700; }
+      .lhc-ww-tabelle td.lhc-ww-unter { color: #F5B70A; font-weight: 700; }
+      .lhc-ww-tabelle td.blass { opacity: 0.6; }
       .lhc-dialog-action:hover { border-color: var(--c-3e4c61); }
       .lhc-dialog-action.is-an {
         background: #0E2E1C; border-color: #46C07A; color: #BFEFD2;
@@ -521,6 +539,30 @@ export const stilKarte = {
       .lhc-an-kopf { display: flex; align-items: center; gap: 8px; }
       .lhc-an-kopf b { font-size: 14.5px; color: var(--c-e8edf4); }
       .lhc-an-kopf i { margin-left: auto; padding: 1px 9px; border-radius: 9px; font-style: normal; font-size: 11.5px; white-space: nowrap; }
+      /* COP: gelbe Laeufe zum Analysieren, Liste unter der Grafik. */
+      .lhc-cop-klick { cursor: pointer; }
+      .lhc-cop-klick:hover { filter: brightness(1.15); }
+      .lhc-cop-analyse { margin-top: 10px; }
+      .lhc-la-blaettern { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; font-size: 12.5px; color: var(--c-c9d3e0); }
+      .lhc-la-blaettern .lhc-an-btn { padding: 3px 12px; }
+      /* Analyse eines Laufs im Bestaetigungsfenster. */
+      .lhc-la-kopf { margin: 12px 0 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-98a6ba); }
+      .lhc-la-werte { width: 100%; border-collapse: collapse; font-size: 12.5px; color: var(--c-e8edf4); }
+      .lhc-la-werte td { padding: 4px 6px; border-bottom: 1px solid var(--c-26303f); vertical-align: top; }
+      .lhc-la-werte td:first-child { width: 46%; color: var(--c-98a6ba); }
+      .lhc-la-befund { margin: 6px 0; padding: 8px 10px; border-radius: 10px; border-left: 4px solid #F5B70A; background: var(--c-0f151e);
+        font-size: 12.5px; line-height: 1.45; color: var(--c-e8edf4); }
+      .lhc-la-befund.leer { border-left-color: var(--c-6b7a90); }
+      .lhc-la-befund small { display: block; margin-top: 3px; font-size: 11px; color: var(--c-7e8ca0); }
+      .lhc-la-befund small a { color: inherit; }
+      .lhc-la-ok { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--c-98a6ba); }
+      .lhc-la-vorschlag { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0; padding: 9px 10px;
+        border-radius: 10px; border: 1px solid var(--c-2e4661); background: rgba(59, 130, 246, 0.10); font-size: 12.5px; color: var(--c-e8edf4); }
+      .lhc-la-vorschlag small { display: block; margin-top: 3px; font-size: 11.5px; line-height: 1.4; color: var(--c-98a6ba); }
+      .lhc-la-vorschlag .lhc-an-knopf { flex: 0 0 auto; margin: 0; }
+      .lhc-la-ohne { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--c-98a6ba); }
+      /* "nur Messwert" und "keine Daten": nur umrandet, ohne Bewertungsfarbe. */
+      .lhc-an-kopf i.neutral { padding: 0 8px; border: 1px solid color-mix(in srgb, currentColor 50%, transparent); background: transparent; }
       .lhc-an-wert { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 6px; font-size: 12.5px; color: var(--c-98a6ba); }
       .lhc-an-wert b { color: var(--c-e8edf4); font-size: 13.5px; }
       .lhc-an-wert span:first-child b { font-size: 17px; }
@@ -528,6 +570,54 @@ export const stilKarte = {
       .lhc-an-karte p.lhc-an-tipp { padding: 6px 9px; border-radius: 8px; background: rgba(59, 130, 246, 0.12); }
       .lhc-an-quelle { margin-top: 6px; font-size: 11px; color: var(--c-7e8ca0); }
       .lhc-an-quelle a { color: inherit; }
+      /* Knopf "Optimieren" in der Analysekarte. */
+      .lhc-an-knopf {
+        display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 2px; padding: 6px 12px;
+        font: inherit; font-size: 13px; font-weight: 600; color: #FFFFFF; cursor: pointer;
+        background: #E0762E; border: 1px solid #E0762E; border-radius: 10px;
+      }
+      .lhc-an-knopf:hover { filter: brightness(1.08); }
+      .lhc-an-knopf:focus-visible, .lhc-an-btn:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
+      /* Warum ein auffaelliger Punkt keinen Vorschlag hat. */
+      .lhc-an-karte p.lhc-an-ohne { margin-top: 6px; font-size: 12px; color: var(--c-98a6ba); }
+      /* Bestaetigung: liegt genau ueber dem Analysefenster. */
+      .lhc-an-modal {
+        position: fixed; z-index: 100; display: flex; align-items: center; justify-content: center;
+        padding: 12px; box-sizing: border-box; border-radius: 12px; background: rgba(6, 10, 16, 0.72);
+      }
+      .lhc-an-modal[hidden] { display: none; }
+      .lhc-an-modal-box {
+        box-sizing: border-box; width: min(560px, 100%); max-height: 100%; overflow-y: auto;
+        padding: 18px 20px; border-radius: 16px; background: var(--c-161d28);
+        border: 1px solid var(--c-3a4557); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+      }
+      .lhc-an-modal-box h3 { margin: 0 0 2px; font-size: 17px; color: var(--c-e8edf4); }
+      .lhc-an-modal-sub { margin-bottom: 12px; font-size: 12.5px; color: var(--c-98a6ba); }
+      .lhc-an-tabelle { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--c-e8edf4); }
+      .lhc-an-tabelle th { padding: 4px 6px; text-align: left; font-size: 11px; font-weight: 600; color: var(--c-7e8ca0);
+        border-bottom: 1px solid var(--c-26303f); }
+      .lhc-an-tabelle td { padding: 8px 6px; vertical-align: top; border-bottom: 1px solid var(--c-26303f); }
+      .lhc-an-tabelle td small { display: block; margin-top: 2px; font-size: 11px; color: var(--c-7e8ca0); word-break: break-all; }
+      .lhc-an-tabelle td.ist, .lhc-an-tabelle td.neu { white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .lhc-an-tabelle td.ist { color: var(--c-c9d3e0); }
+      .lhc-an-tabelle td.neu { font-weight: 700; color: #16A34A; }
+      .lhc-an-tabelle td.pfeil { color: var(--c-7e8ca0); }
+      .lhc-an-modal-text { margin: 10px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--c-c9d3e0); }
+      .lhc-an-modal-klein { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--c-98a6ba); }
+      .lhc-an-modal-knoepfe { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+      .lhc-an-btn {
+        padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 10px;
+        color: var(--c-e8edf4); background: var(--c-26303f); border: 1px solid var(--c-3a4557);
+      }
+      .lhc-an-btn.prim { color: #FFFFFF; background: #E0762E; border-color: #E0762E; }
+      .lhc-an-btn:disabled { opacity: 0.55; cursor: default; }
+      .lhc-an-status { margin-top: 12px; padding: 8px 10px; border-radius: 10px; font-size: 12.5px; line-height: 1.4;
+        color: var(--c-c9d3e0); background: rgba(22, 163, 74, 0.12); border: 1px solid rgba(22, 163, 74, 0.45); }
+      .lhc-an-status.fehler { background: rgba(220, 59, 59, 0.12); border-color: rgba(220, 59, 59, 0.45); }
+      .lhc-an-status[hidden] { display: none; }
+      /* Legende der COP-Saeulen: Erwartungsstrich und flache Spur. */
+      .lhc-dia-strich { width: 14px; height: 3px; border-radius: 2px; background: var(--c-e8edf4); }
+      .lhc-dia-farbe.flach { height: 5px; }
       .lhc-takt-quelle { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--c-7e8ca0); }
       .dia-knopf { cursor: pointer; }
       .dia-knopf .dia-symbol { color: var(--c-98a6ba); }

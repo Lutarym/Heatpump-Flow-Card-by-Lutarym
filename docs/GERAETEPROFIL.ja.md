@@ -245,8 +245,8 @@
 
 | 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
 |---|---|---|---|
-| `buffer_delta` | バッファーのヒステリシス | すべて | `top113` |
-| `buffer_target` | バッファー目標温度 | すべて | `top7` |
+| `buffer_delta` | バッファー上乗せ温度（ΔT） | すべて | `top113` |
+| `buffer_target` | ヒートポンプ往き目標温度 | すべて | `top7` |
 | `cop_heating` | COP 暖房 | すべて | `cop_heating` |
 | `room_heater` | 暖房ヒーター許可 | すべて | `top59` |
 | `room_heater_switch` | 暖房ヒーター許可の切替 | `switch`, `input_boolean` | `setroomheaterstate` |

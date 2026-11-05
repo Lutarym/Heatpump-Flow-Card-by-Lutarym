@@ -6,67 +6,77 @@
  * Beide beruhen auf denselben Verlaeufen: Verdichter, Umschaltventil,
  * COP Heizen, COP Warmwasser und Aussentemperatur.
  *
- * Richtwerte der Taktung:
- *  - Laufzeit je Start 10 bis 20 Minuten (Bundesverband Waermepumpe),
- *    unter etwa 6 Minuten sinkt die Effizienz messbar.
- *  - Feldtest Fraunhofer WP-QS: bis etwa 2.000 Starts im Jahr unauffaellig,
- *    ab 5.500 pruefen, das sind im Mittel rund 15 Starts am Tag.
- * Quelle der Zusammenstellung: 42watt.de, "Taktung der Waermepumpe".
- * Die Schwellen fuer "einige" und "viele" kurze Laeufe (30 Prozent, zwei
- * Laeufe unter 6 Minuten) sind eigene Festlegungen der Karte.
+ * Bewertet wird nur nach Grenzen, die eine fachliche Quelle nennt:
+ *  - Taktung: Ziel 10 bis 20 Minuten je Start (Bundesverband Waermepumpe,
+ *    zitiert bei 42watt "Taktung der Waermepumpe"). Eine feste Grenze fuer
+ *    die Zahl der Starts gibt es nicht (ebenda); im Fraunhofer-Feldtest
+ *    blieben 90 % der Anlagen unter 5.500 Starts im Jahr. Bei Invertern ist
+ *    der Verlust durch Takten laut Dongellini und Morini (2019) gering,
+ *    darum keine rote Stufe.
+ *  - COP: Vergleich mit dem Datenblatt des im Editor gewaehlten Geraets bei
+ *    gleicher Aussen- und Vorlauftemperatur (42watt: "Ein hoeherer COP ist
+ *    nur bei gleicher Messbedingung besser."). Ab 92 % des Datenblatts gruen,
+ *    darunter gelb (Toleranz -8 %, HP KEYMARK, siehe datenblatt.js). Eine
+ *    zweite belegte Grenze fuer Rot gibt es nicht. Ausserhalb der
+ *    Pruefpunkte vorsichtig geschaetzt und blasser gezeichnet (eigene
+ *    Festlegung). Ohne Datenblatt oder bei unvollstaendigen Laeufen grau.
  */
 import { escapeHtml, fmt, groesster, indexBis, jePixel, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
+import { DATENBLAETTER, TOLERANZ, datenblattSchaetzung } from "./datenblatt.js";
 import { DW } from "./diagramme.js";
 import { zeitRaster } from "./zeitraum.js";
 
-const HOEHE = { cop: 326, takt: 372 };
+const HOEHE = { cop: 338, takt: 372 };
 
 const FARBE = {
   heiz: "#FF5F52",
   ww: "#4D9BFF",
   aussen: "#6BB7E8",
-  sehrKurz: "#EF4444",
   kurz: "#F59E0B",
   gut: "#84CC16",
   sehrGut: "#22C55E",
   leer: "#1C2533",
 };
 
-/** Bewertung einer Laufzeit in Minuten nach den Richtwerten. */
+/** Farben der Stufen der Taktung, wie in der Analyse. */
+const STUFE_FARBE = { ok: "#22C55E", leicht: "#98A6BA", hinweis: "#F59E0B" };
+
+/** Neutrale Farbe fuer Werte ohne Bewertung. */
+const NEUTRAL = "#6B7A90";
+const GRAU = "#98A6BA";
+
+/** Einordnung einer Laufzeit in Minuten nach dem Ziel von 10 bis 20 Minuten. */
 function bewertung(minuten) {
-  if (minuten < 6) return "sehrKurz";
   if (minuten < 10) return "kurz";
   if (minuten < 20) return "gut";
   return "sehrGut";
 }
 
 /**
- * Erwarteter COP aus Aussen- und Vorlauftemperatur: Carnot-COP mal Guetegrad.
- * 0,42 ist der Mittelwert, der sich aus dem Datenblatt der Panasonic
- * Aquarea T-CAP M 12 kW (WH-WXG12ME5/ME8) an den Pruefpunkten A7, A2, A-7
- * mit W35 und W55 ergibt (0,38 bis 0,47). 42watt nennt fuer reale Geraete
- * rund 0,45.
+ * Stufe der Taktung aus abgeschlossenen Laeufen: in Ordnung ohne Lauf unter
+ * 10 Minuten, leichte Abweichung bei einzelnen kuerzeren Laeufen, ausserhalb
+ * der Toleranz, wenn die Laeufe im Mittel kuerzer als 10 Minuten sind.
  */
-const GUETEGRAD = 0.42;
-
-function erwarteterCop(aussen, vorlauf) {
-  if (aussen === null || vorlauf === null) return null;
-  const hub = vorlauf - aussen;
-  if (hub < 5) return null;
-  return (GUETEGRAD * (vorlauf + 273.15)) / hub;
+export function taktStufe(laeufe) {
+  if (!laeufe.length) return null;
+  const kurz = laeufe.filter((l) => l.minuten < 10).length;
+  const mittelwert = laeufe.reduce((s, l) => s + l.minuten, 0) / laeufe.length;
+  return { stufe: mittelwert < 10 ? "hinweis" : kurz ? "leicht" : "ok", kurz, mittel: mittelwert };
 }
 
-/** Einordnung des gemessenen COP gegenueber dem erwarteten. */
-export function copStufe(quote) {
-  if (quote === null) return null;
-  if (quote >= 1) return "gut";
-  if (quote >= 0.85) return "rahmen";
-  if (quote >= 0.7) return "unter";
-  return "schlecht";
-}
+/** Farben der COP-Stufen: gruen im Rahmen, gelb darunter (geprueft, mit Zeichen). */
+const COP_FARBE = { gut: "#16A34A", unter: "#F5B70A" };
 
-const COP_FARBE = { gut: "#22C55E", rahmen: "#84CC16", unter: "#F59E0B", schlecht: "#EF4444" };
+/**
+ * Stufe eines Laufs gegenueber dem Datenblatt: "gut" ab 92 %, "unter"
+ * darunter, null ohne Vergleichswert oder wenn der Lauf nicht vollstaendig
+ * im Zeitraum liegt.
+ */
+export function copStufe(l) {
+  if (!l || l.copQuote === null || l.copQuote === undefined || l.laufend || l.angeschnitten) return null;
+  return l.copQuote >= TOLERANZ ? "gut" : "unter";
+}
 
 /** Zeitgewichteter Mittelwert einer Reihe im Zeitraum, ohne Werte bis 0. */
 export function mittel(reihe, von, bis, nurPositiv) {
@@ -85,6 +95,31 @@ export function mittel(reihe, von, bis, nurPositiv) {
   return dauer ? summe / dauer : null;
 }
 
+/**
+ * Zerlegt einen Zeitraum nach der Stellung des Umschaltventils in
+ * Abschnitte mit ww (true = Warmwasser). Ohne Ventilverlauf gilt alles
+ * als Heizen. Damit zaehlen bei einem Lauf, der ohne Verdichterstopp von
+ * Warmwasser auf Heizen wechselt, die Warmwassertemperaturen nicht zum
+ * Heizbetrieb.
+ */
+export function ventilAbschnitte(ventil, von, bis) {
+  if (!ventil || !ventil.length) return [{ von, bis, ww: false }];
+  const ist = (p) => warmwasserZustand(p.s) === true;
+  let k = indexBis(ventil, von);
+  let ww = k >= 0 ? ist(ventil[k]) : false;
+  let t = von;
+  const out = [];
+  for (k += 1; k < ventil.length && ventil[k].t < bis; k++) {
+    const neu = ist(ventil[k]);
+    if (neu === ww) continue;
+    if (ventil[k].t > t) out.push({ von: t, bis: ventil[k].t, ww });
+    t = Math.max(t, ventil[k].t);
+    ww = neu;
+  }
+  if (bis > t) out.push({ von: t, bis, ww });
+  return out;
+}
+
 /** Wert einer Reihe zu einem Zeitpunkt (letzter Stand davor). */
 function stand(reihe, t) {
   const i = indexBis(reihe, t);
@@ -94,6 +129,17 @@ function stand(reihe, t) {
 export const auswertungKarte = {
   _auswertungHoehe(art) {
     return HOEHE[art] || 220;
+  },
+
+  /**
+   * Datenblatt fuer den COP-Vergleich laut Editor (cop_reference). Ohne
+   * Auswahl gibt es keinen Vergleich und keine Bewertung. Der Demomodus
+   * zeigt die T-CAP M 12 kW.
+   */
+  _copReferenz() {
+    if (this._config.demo) return "panasonic_tcap_m_12";
+    const k = this._config.cop_reference;
+    return k && DATENBLAETTER[k] ? k : "";
   },
 
   /** Holt die Verlaeufe hoechstens alle fuenf Minuten. */
@@ -110,8 +156,10 @@ export const auswertungKarte = {
       this._zeichneAuswertung();
       return;
     }
+    // Dazu die Vorlaeufe der Heizkreise (TOP36, TOP37) fuer Anlagen mit
+    // Puffer und der Startzaehler (TOP12) zum Abgleich der gezaehlten Laeufe.
     const felder = ["compressor", "three_way_valve", "cop_heating", "cop_dhw", "outside_temp", "flow_temp",
-      "return_temp", "defrost", "heater_internal", "heater_external"];
+      "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts", "pump_flow"];
     const ids = felder.map((f) => this._e(f));
     if (!ids[0] || !this._hass || typeof this._hass.callWS !== "function") {
       this._auswertung = null;
@@ -140,11 +188,15 @@ export const auswertungKarte = {
             }))
             .filter((p) => !Number.isNaN(p.t))
             .map((p) => ({ ...p, v: parseFloat(p.s) }));
-        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern] = ids.map(reihe);
+        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss] =
+          ids.map(reihe);
         // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
         const erster = vd.length ? vd[0].t : t0;
         const t0e = erster - t0 > 3600000 ? Math.min(erster, jetzt - 3600000) : t0;
-        this._auswertung = { t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern };
+        this._auswertung = {
+          t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts,
+          durchfluss,
+        };
         this._zeichneAuswertung();
       })
       .catch(() => {
@@ -163,12 +215,26 @@ export const auswertungKarte = {
       for (let a = t1 - 86400000; a > t0 - 1; a -= 86400000) tage.unshift(a);
       const teile = tage.map((a, k) => this._auswertungDemoTag(a, a + 86400000, (k % 5) - 2 - (tage.length - k) * 0.05));
       const out = { t0: tage[0], t1 };
-      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern"].forEach((f) => {
+      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss"].forEach((f) => {
         out[f] = teile.flatMap((x) => x[f]).sort((x, y) => x.t - y.t);
       });
+      out.starts = this._auswertungDemoZaehler(out.vd);
       return out;
     }
-    return this._auswertungDemoTag(t0, t1, 0);
+    const tag = this._auswertungDemoTag(t0, t1, 0);
+    tag.starts = this._auswertungDemoZaehler(tag.vd);
+    return tag;
+  },
+
+  /** Startzaehler im Demomodus: zaehlt jeden Anlauf des Verdichters. */
+  _auswertungDemoZaehler(vd) {
+    let n = 41230;
+    const out = [];
+    vd.forEach((p) => {
+      if (p.v > 0) n++;
+      out.push({ t: p.t, s: String(n), v: n });
+    });
+    return out;
   },
 
   _auswertungDemoTag(t0, t1, versatz) {
@@ -184,6 +250,11 @@ export const auswertungKarte = {
     const abtau = [{ t: t0, s: "0", v: 0 }];
     const stabIntern = [{ t: t0, s: "0", v: 0 }];
     const stabExtern = [{ t: t0, s: "0", v: 0 }];
+    // Heizkreis-Vorlauf hinter dem Puffer: etwas unter dem Vorlauf der
+    // Waermepumpe (eingestellte Ueberhoehung plus Mischung im Puffer).
+    const kreis1 = [{ t: t0, s: "31", v: 31 }];
+    const kreis2 = [{ t: t0, s: "28", v: 28 }];
+    const durchfluss = [{ t: t0, s: "0", v: 0 }];
     [3.2, 7.3, 21.2].forEach((s) => {
       abtau.push({ t: t0 + s * h, s: "1", v: 1 }, { t: t0 + s * h + 6 * 60000, s: "0", v: 0 });
     });
@@ -196,15 +267,26 @@ export const auswertungKarte = {
       const vl = ww ? 51 : 35 + Math.max(0, 6 - aussenBei(start)) * 0.6;
       vorlauf.push({ t: start, s: "", v: vl }, { t: start + dauer, s: "", v: 30 });
       ruecklauf.push({ t: start, s: "", v: vl - (ww ? 6 : 3.8) }, { t: start + dauer, s: "", v: 29 });
+      if (!ww) {
+        kreis1.push({ t: start, s: "", v: vl - 4.2 }, { t: start + dauer, s: "", v: 31 });
+        kreis2.push({ t: start, s: "", v: vl - 7.5 }, { t: start + dauer, s: "", v: 28 });
+      }
+      durchfluss.push({ t: start, s: "", v: ww ? 22 : 31 }, { t: start + dauer, s: "0", v: 0 });
+      // In den ersten drei Minuten liegt der COP niedriger (Anlauf).
+      const ramp = (reihe, c) => {
+        reihe.push({ t: start, s: "", v: c * 0.6 }, { t: start + 3 * 60000, s: "", v: c }, { t: start + dauer, s: "0", v: 0 });
+      };
+      // COP im Demomodus: Anteil am Carnot-COP um 0,42 bis 0,46, beim
+      // Warmwasser 0,40 (nachgebildete Werte, keine Messung).
+      const carnot = (a, w) => (w + 273.15) / (w - a);
       if (ww) {
         ventil.push({ t: start, s: "1", v: 1 }, { t: start + dauer, s: "0", v: 0 });
-        copW.push({ t: start, s: "2.6", v: 2.5 + (i % 2) * 0.2 }, { t: start + dauer, s: "0", v: 0 });
+        ramp(copW, 0.4 * carnot(aussenBei(start), vl));
       } else {
-        const c = 3.1 + aussenBei(start) * 0.17;
-        copH.push({ t: start, s: String(c), v: c }, { t: start + dauer, s: "0", v: 0 });
+        ramp(copH, (0.44 + (((i * 7) % 5) - 2) * 0.01) * carnot(aussenBei(start), vl));
       }
     });
-    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern };
+    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss };
   },
 
   /**
@@ -214,13 +296,14 @@ export const auswertungKarte = {
    */
   _auswertungLaeufe(d) {
     // Je Datensatz nur einmal rechnen: Fenster und Analyse fragen mehrfach.
-    if (this._laeufeCache && this._laeufeCache.d === d) return this._laeufeCache.laeufe;
-    const laeufe = this._auswertungLaeufeRechnen(d);
-    this._laeufeCache = { d, laeufe };
+    const ref = this._copReferenz();
+    if (this._laeufeCache && this._laeufeCache.d === d && this._laeufeCache.ref === ref) return this._laeufeCache.laeufe;
+    const laeufe = this._auswertungLaeufeRechnen(d, ref);
+    this._laeufeCache = { d, ref, laeufe };
     return laeufe;
   },
 
-  _auswertungLaeufeRechnen(d) {
+  _auswertungLaeufeRechnen(d, ref) {
     const laeuft = (p) => {
       const n = parseFloat(p.s);
       if (!Number.isNaN(n)) return n > 0;
@@ -243,22 +326,37 @@ export const auswertungKarte = {
     laeufe.forEach((l) => {
       l.minuten = (l.bis - l.von) / 60000;
       // Warmwasser, wenn das Ventil die meiste Zeit des Laufs dorthin stand.
-      let ww = 0;
-      const schritte = 12;
-      for (let k = 0; k < schritte; k++) {
-        const t = l.von + ((k + 0.5) / schritte) * (l.bis - l.von);
-        const s = stand(d.ventil, t);
-        if (s && warmwasserZustand(s.s) === true) ww++;
-      }
-      l.ww = ww > schritte / 2;
+      const abschnitte = ventilAbschnitte(d.ventil, l.von, l.bis);
+      const wwDauer = abschnitte.filter((a) => a.ww).reduce((s, a) => s + (a.bis - a.von), 0);
+      l.ww = wwDauer > (l.bis - l.von) / 2;
       l.cop = mittel(l.ww ? d.copW : d.copH, l.von, l.bis, true);
       l.aussen = mittel(d.aussen, l.von, l.bis, false);
-      // Vorlauf erst nach den ersten Minuten, solange er noch steigt,
-      // waere er zu niedrig fuer den Vergleich.
-      const ab = Math.min(l.von + 5 * 60000, (l.von + l.bis) / 2);
-      l.vorlauf = d.vorlauf ? mittel(d.vorlauf, ab, l.bis, true) : null;
-      l.ruecklauf = d.ruecklauf ? mittel(d.ruecklauf, ab, l.bis, true) : null;
-      l.copErwartet = erwarteterCop(l.aussen, l.vorlauf);
+      // Temperaturen nur aus den Abschnitten der eigenen Betriebsart und
+      // jeweils erst nach den ersten fuenf Minuten: Solange der Vorlauf
+      // nach dem Start oder nach dem Umschalten noch steigt oder faellt,
+      // waere er fuer den Vergleich falsch.
+      const eigene = abschnitte.filter((a) => a.ww === l.ww);
+      const mittelEigene = (reihe) => {
+        if (!reihe || !reihe.length) return null;
+        let summe = 0;
+        let dauer = 0;
+        eigene.forEach((a) => {
+          const ab = Math.min(a.von + 5 * 60000, (a.von + a.bis) / 2);
+          const m = mittel(reihe, ab, a.bis, true);
+          if (m === null) return;
+          summe += m * (a.bis - ab);
+          dauer += a.bis - ab;
+        });
+        return dauer ? summe / dauer : null;
+      };
+      l.vorlauf = mittelEigene(d.vorlauf);
+      l.ruecklauf = mittelEigene(d.ruecklauf);
+      l.kreis1 = mittelEigene(d.kreis1);
+      l.kreis2 = mittelEigene(d.kreis2);
+      // Ausserhalb der Pruefpunkte vorsichtig geschaetzt und gekennzeichnet.
+      const dbl = ref && l.aussen !== null && l.vorlauf !== null ? datenblattSchaetzung(ref, l.aussen, l.vorlauf) : null;
+      l.copErwartet = dbl ? dbl.wert : null;
+      l.copGeschaetzt = Boolean(dbl && dbl.geschaetzt);
       l.copQuote = l.cop !== null && l.copErwartet ? l.cop / l.copErwartet : null;
       if (l.aussen === null) {
         const s = stand(d.aussen, l.von);
@@ -328,28 +426,34 @@ export const auswertungKarte = {
     else this._zeichneTakt(g, liste, d, laeufe);
   },
 
-  /** Kasten oben mit Symbol, Titel und Unterzeile in der Farbe der Stufe. */
-  _auswertungUrteil(farbe, gut, titel, unterzeile) {
+  /**
+   * Kasten oben mit Symbol, Titel und Unterzeile in der Farbe der Stufe.
+   * zeichen: "ok" Haken, "info" ein i, sonst Ausrufezeichen.
+   */
+  _auswertungUrteil(farbe, zeichen, titel, unterzeile) {
+    let symbol = `<path d="M44 18 V27" stroke="${farbe}" stroke-width="2.4" stroke-linecap="round"/><circle cx="44" cy="31.5" r="1.6" fill="${farbe}"/>`;
+    if (zeichen === "ok") {
+      symbol = `<path d="M38 25 L42.5 29.5 L50 21" fill="none" stroke="${farbe}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+    } else if (zeichen === "info") {
+      symbol = `<circle cx="44" cy="18.5" r="1.6" fill="${farbe}"/><path d="M44 23.5 V32" stroke="${farbe}" stroke-width="2.4" stroke-linecap="round"/>`;
+    }
     return `<g>
         <rect x="20" y="0" width="${DW - 40}" height="50" rx="12" fill="${farbe}" fill-opacity="0.12" stroke="${farbe}" stroke-opacity="0.45"/>
         <circle cx="44" cy="25" r="12" fill="none" stroke="${farbe}" stroke-width="2"/>
-        ${
-          gut
-            ? `<path d="M38 25 L42.5 29.5 L50 21" fill="none" stroke="${farbe}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`
-            : `<path d="M44 18 V27" stroke="${farbe}" stroke-width="2.4" stroke-linecap="round"/><circle cx="44" cy="31.5" r="1.6" fill="${farbe}"/>`
-        }
+        ${symbol}
         <text x="66" y="21" font-size="14" font-weight="700" fill="${farbe}">${escapeHtml(titel)}</text>
         <text x="66" y="39" font-size="11.5" fill="#C9D3E0">${escapeHtml(unterzeile)}</text>
       </g>`;
   },
 
   /**
-   * COP je Takt mit Aussentemperatur und Bewertung: Jeder Lauf wird mit
-   * dem COP verglichen, der bei seiner Aussen- und Vorlauftemperatur zu
-   * erwarten ist.
+   * COP je Lauf gegenueber dem Datenblatt bei gleicher Aussen- und
+   * Vorlauftemperatur: gruen ab 92 %, gelb darunter, grau ohne
+   * Vergleichswert. Gelbe Laeufe lassen sich analysieren (laufanalyse.js).
    */
   _zeichneCop(g, liste, d, laeufe) {
     const mitCop = laeufe.filter((l) => l.cop !== null);
+    const ref = this._copReferenz();
     const gewichtet = (ls, feld) => {
       const auswahl = ls.filter((l) => l[feld] !== null && l[feld] !== undefined);
       const dauer = auswahl.reduce((s, l) => s + l.minuten, 0);
@@ -361,28 +465,30 @@ export const auswertungKarte = {
     const minH = heiz.length ? kleinster(heiz.map((l) => l.cop)) : null;
     const maxH = heiz.length ? groesster(heiz.map((l) => l.cop)) : null;
 
-    // Gesamturteil aus dem nach Laufzeit gewichteten Verhaeltnis.
-    const bewertbar = mitCop.filter((l) => l.copQuote !== null);
-    const quote = gewichtet(bewertbar, "copQuote");
+    // Stufen je Lauf und Kopf mit der Zahl der bewerteten Laeufe.
+    const bewertet = mitCop.filter((l) => copStufe(l));
+    const unter = bewertet.filter((l) => copStufe(l) === "unter");
+    const ohne = mitCop.length - bewertet.length;
+    const quote = gewichtet(bewertet, "copQuote");
     let urteil;
     if (!mitCop.length) {
-      urteil = this._auswertungUrteil("#7E8CA0", false, this._t("a_keine_cop"), "");
-    } else if (quote === null) {
-      urteil = this._auswertungUrteil("#7E8CA0", false, this._t("a_c_ohne_t"), this._t("a_c_ohne_d"));
+      urteil = this._auswertungUrteil(GRAU, "info", this._t("a_keine_cop"), "");
+    } else if (!ref) {
+      urteil = this._auswertungUrteil(GRAU, "info", this._t("a_c_t_ohne_ref"), this._t("a_c_d_ref"));
+    } else if (!bewertet.length) {
+      urteil = this._auswertungUrteil(GRAU, "info", this._t("a_c_t_keine"), tf(this._t("a_c_d_ohne"), { n: ohne }));
     } else {
-      const stufe = copStufe(quote);
-      const aussen = gewichtet(bewertbar, "aussen");
-      const vorlauf = gewichtet(bewertbar, "vorlauf");
-      urteil = this._auswertungUrteil(
-        COP_FARBE[stufe],
-        stufe === "gut" || stufe === "rahmen",
-        this._t(`a_c_${stufe}`),
-        tf(this._t("a_c_unter_d"), {
-          p: fmt(quote * 100, 0),
-          a: aussen === null ? "--" : fmt(aussen, 1),
-          v: vorlauf === null ? "--" : fmt(vorlauf, 0),
-        })
-      );
+      const aussen = gewichtet(bewertet, "aussen");
+      const vorlauf = gewichtet(bewertet, "vorlauf");
+      const teile = [tf(this._t("a_c_d_quote"), {
+        p: fmt(quote * 100, 0), a: aussen === null ? "--" : fmt(aussen, 1), v: vorlauf === null ? "--" : fmt(vorlauf, 0),
+      })];
+      const geschaetzt = bewertet.filter((l) => l.copGeschaetzt).length;
+      if (geschaetzt) teile.push(tf(this._t("a_c_d_geschaetzt"), { n: geschaetzt }));
+      if (ohne) teile.push(tf(this._t("a_c_d_ohne"), { n: ohne }));
+      urteil = unter.length
+        ? this._auswertungUrteil(COP_FARBE.unter, "warn", tf(this._t("a_c_t_unter"), { u: unter.length, n: bewertet.length }), teile.join(" · "))
+        : this._auswertungUrteil(COP_FARBE.gut, "ok", tf(this._t("a_c_t_gut"), { n: bewertet.length }), teile.join(" · "));
     }
     let out = urteil;
     out += this._auswertungKacheln(60, [
@@ -396,104 +502,107 @@ export const auswertungKarte = {
       if (liste) liste.textContent = "";
       return;
     }
+    // Saeulen je Lauf: Hoehe = gemessener COP, Farbe = Stufe gegenueber dem
+    // Datenblatt, heller Strich = Datenblattwert. Eine Achse, die
+    // Aussentemperatur steht als eigener Streifen darunter.
     const links = 44;
-    const rechts = DW - 52;
-    const oben = 136;
-    const unten = 274;
-    const zuX = (t) => links + ((t - d.t0) / (d.t1 - d.t0)) * (rechts - links);
-    const werte = mitCop.map((l) => l.cop).concat(bewertbar.map((l) => l.copErwartet));
-    const cMin = Math.min(Math.floor(kleinster(werte)), 2);
+    const rechts = DW - 20;
+    const oben = 132;
+    const unten = 246;
+    const zuX = (t) => links + ((t - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links);
+    const werte = mitCop.map((l) => l.cop).concat(mitCop.filter((l) => l.copErwartet !== null).map((l) => l.copErwartet));
     const cMax = Math.max(Math.ceil(groesster(werte)), 5);
-    const zuY = (v) => unten - ((v - cMin) / (cMax - cMin || 1)) * (unten - oben);
-    for (let v = cMin; v <= cMax; v++) {
-      out += `<line x1="${links}" x2="${rechts}" y1="${zuY(v).toFixed(1)}" y2="${zuY(v).toFixed(1)}" stroke="#26303F" stroke-dasharray="2 5"/>
+    const zuY = (v) => unten - (Math.max(0, v) / cMax) * (unten - oben);
+    for (let v = 0; v <= cMax; v++) {
+      out += `<line x1="${links}" x2="${rechts}" y1="${zuY(v).toFixed(1)}" y2="${zuY(v).toFixed(1)}" stroke="#26303F"${
+        v ? ' stroke-dasharray="2 5"' : ""
+      }/>
         <text x="${links - 8}" y="${(zuY(v) + 4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#7E8CA0">${v}</text>`;
     }
     out += `<text x="${links - 8}" y="${oben - 10}" text-anchor="end" font-size="10.5" fill="#7E8CA0">COP</text>`;
-    // Aussentemperatur gestrichelt mit eigener Skala rechts.
+    // Bei vielen Laeufen (laengere Zeitraeume) schmale Saeulen ohne Zahlen;
+    // die Werte stehen im Tooltip.
+    const viele = mitCop.length > 60;
+    let zuletztX = -Infinity;
+    mitCop.forEach((l) => {
+      const xa = zuX(l.von);
+      const w = Math.max(viele ? 1.5 : 5, zuX(l.bis) - xa - (viele ? 0 : 2));
+      const y = zuY(l.cop);
+      const stufe = copStufe(l);
+      const mitStrich = l.copErwartet !== null;
+      const titel = `${this._t(l.ww ? "warmwasser" : "heizung")} · ${fmt(l.minuten, 0)} min · COP ${fmt(l.cop, 1)}${
+        mitStrich ? ` · ${tf(this._t(l.copGeschaetzt ? "a_c_dbl_s" : "a_c_dbl"), { c: fmt(l.copErwartet, 1) })} (${fmt(l.copQuote * 100, 0)} %)` : ""
+      }${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""}`;
+      const r = Math.min(3, w / 2, unten - y);
+      // Gelbe Saeulen oeffnen per Klick die Analyse des Laufs.
+      const klick = stufe === "unter" ? ` data-lauf="${laeufe.indexOf(l)}" class="lhc-cop-klick"` : "";
+      out += `<path d="M${xa.toFixed(1)} ${unten}V${(y + r).toFixed(1)}Q${xa.toFixed(1)} ${y.toFixed(1)} ${(xa + r).toFixed(1)} ${y.toFixed(1)}H${(xa + w - r).toFixed(1)}Q${(xa + w).toFixed(1)} ${y.toFixed(1)} ${(xa + w).toFixed(1)} ${(y + r).toFixed(1)}V${unten}Z"
+                    fill="${stufe ? COP_FARBE[stufe] : NEUTRAL}"${l.laufend || l.angeschnitten ? ' opacity="0.55"' : stufe && l.copGeschaetzt ? ' fill-opacity="0.55"' : ""}${klick}><title>${escapeHtml(titel)}</title></path>`;
+      if (mitStrich) {
+        const ye = zuY(l.copErwartet).toFixed(1);
+        const ueber = viele ? 0 : 3;
+        out += `<line x1="${(xa - ueber).toFixed(1)}" x2="${(xa + w + ueber).toFixed(1)}" y1="${ye}" y2="${ye}"
+                      stroke="#E8EDF4" stroke-width="${viele ? 1.5 : 2.5}" stroke-linecap="round" pointer-events="none"/>`;
+      }
+      // Spur darunter: rot Heizen, blau Warmwasser.
+      out += `<rect x="${xa.toFixed(1)}" y="${unten + 5}" width="${w.toFixed(1)}" height="5" rx="2" fill="${l.ww ? FARBE.ww : FARBE.heiz}"/>`;
+      // Zahlen ueber Saeule und Vergleichsstrich, solange genug Abstand bleibt.
+      if (!viele && xa - zuletztX >= 26) {
+        const yText = Math.min(y, mitStrich ? zuY(l.copErwartet) : y) - 6;
+        out += `<text x="${(xa + w / 2).toFixed(1)}" y="${yText.toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#E8EDF4" pointer-events="none">${fmt(l.cop, 1)}</text>`;
+        zuletztX = xa;
+      }
+    });
+    out += this._auswertungAchse(links, rechts, unten + 28, d.t0, d.t1);
+    // Aussentemperatur als eigener Streifen mit eigener Beschriftung.
     const aw = jePixel(d.aussen.filter((p) => !Number.isNaN(p.v)), zuX);
     if (aw.length >= 2) {
-      const aMin = Math.floor(kleinster(aw.map((p) => p.v))) - 1;
-      const aMax = Math.ceil(groesster(aw.map((p) => p.v))) + 1;
-      const zuYa = (v) => unten - ((v - aMin) / (aMax - aMin || 1)) * (unten - oben);
+      const so = unten + 50;
+      const su = unten + 82;
+      const aMin = kleinster(aw.map((p) => p.v));
+      const aMax = groesster(aw.map((p) => p.v));
+      const zuYa = (v) => su - ((v - aMin) / (aMax - aMin || 1)) * (su - so);
       let pfad = "";
       aw.forEach((p, i) => {
         const x = zuX(Math.max(p.t, d.t0));
         pfad += `${i ? `H${x.toFixed(1)}V` : `M${x.toFixed(1)} `}${zuYa(p.v).toFixed(1)}`;
       });
       pfad += `H${rechts}`;
-      out += `<path d="${pfad}" fill="none" stroke="${FARBE.aussen}" stroke-width="1.6" stroke-dasharray="4 4" opacity="0.75"/>
-        <text x="${rechts + 8}" y="${(zuYa(aMax) + 4).toFixed(1)}" font-size="10.5" fill="${FARBE.aussen}">${aMax} °C</text>
-        <text x="${rechts + 8}" y="${(zuYa(aMin) + 4).toFixed(1)}" font-size="10.5" fill="${FARBE.aussen}">${aMin} °C</text>`;
+      out += `<text x="${links}" y="${so - 6}" font-size="10.5" fill="${FARBE.aussen}">${escapeHtml(this._t("aussentemperatur"))}</text>
+        <text x="${rechts}" y="${so - 6}" text-anchor="end" font-size="10.5" fill="${FARBE.aussen}">${fmt(aMin, 1)} … ${fmt(aMax, 1)} °C</text>
+        <path d="${pfad}" fill="none" stroke="${FARBE.aussen}" stroke-width="1.8" stroke-linejoin="round"/>`;
     }
-    // Je Lauf: erwarteter COP als kurzer Strich, gemessener als Punkt mit
-    // Ring in der Farbe der Bewertung.
-    let zuletztX = -Infinity;
-    let zuletztY = -Infinity;
-    // Bei vielen Laeufen (laengere Zeitraeume) ohne Zahlen und Verbindungen,
-    // sonst ueberdecken sie sich; die Werte stehen im Tooltip.
-    const viele = mitCop.length > 60;
-    mitCop.forEach((l) => {
-      const x = zuX((l.von + l.bis) / 2);
-      const y = zuY(l.cop);
-      const r = mitCop.length > 60 ? 3 : 4 + Math.min(9, l.minuten / 6);
-      const farbe = l.ww ? FARBE.ww : FARBE.heiz;
-      const stufe = copStufe(l.copQuote);
-      if (l.copErwartet !== null && viele) {
-        const ye = zuY(l.copErwartet);
-        out += `<line x1="${(x - 3).toFixed(1)}" x2="${(x + 3).toFixed(1)}" y1="${ye.toFixed(1)}" y2="${ye.toFixed(1)}"
-                      stroke="#C9D3E0" stroke-width="1.5" opacity="0.6"/>`;
-      } else if (l.copErwartet !== null) {
-        const ye = zuY(l.copErwartet);
-        out += `<line x1="${(x - r - 3).toFixed(1)}" x2="${(x + r + 3).toFixed(1)}" y1="${ye.toFixed(1)}" y2="${ye.toFixed(1)}"
-                      stroke="#C9D3E0" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
-          <line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${ye.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#C9D3E0" stroke-width="1" opacity="0.35"/>`;
-      }
-      const titel = `${this._t(l.ww ? "warmwasser" : "heizung")} · ${fmt(l.minuten, 0)} min · COP ${fmt(l.cop, 1)}${
-        l.copErwartet !== null ? ` · ${tf(this._t("a_c_erwartet"), { c: fmt(l.copErwartet, 1) })}` : ""
-      }${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""}`;
-      out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${farbe}" opacity="0.88"
-                      ${stufe ? `stroke="${COP_FARBE[stufe]}" stroke-width="2.5"` : ""}><title>${escapeHtml(titel)}</title></circle>`;
-      if (!viele && (x - zuletztX >= 26 || Math.abs(y - zuletztY) >= 16)) {
-        out += `<text x="${x.toFixed(1)}" y="${(y - r - 5).toFixed(1)}" text-anchor="middle" font-size="10" fill="#C9D3E0">${fmt(l.cop, 1)}</text>`;
-        zuletztX = x;
-        zuletztY = y;
-      }
-    });
-    out += this._auswertungAchse(links, rechts, 296, d.t0, d.t1);
-    out += `<g font-size="11">
-        <circle cx="${links}" cy="312" r="4" fill="${FARBE.heiz}"/><text x="${links + 8}" y="316" fill="#C9D3E0">${escapeHtml(this._t("heizung"))}</text>
-        <circle cx="${links + 86}" cy="312" r="4" fill="${FARBE.ww}"/><text x="${links + 94}" y="316" fill="#C9D3E0">${escapeHtml(this._t("warmwasser"))}</text>
-        <line x1="${links + 190}" x2="${links + 206}" y1="312" y2="312" stroke="#C9D3E0" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
-        <text x="${links + 212}" y="316" fill="#C9D3E0">${escapeHtml(this._t("a_c_erwartung"))}</text>
-        <line x1="${links + 320}" x2="${links + 336}" y1="312" y2="312" stroke="${FARBE.aussen}" stroke-dasharray="4 3" stroke-width="1.6"/>
-        <text x="${links + 342}" y="316" fill="#C9D3E0">${escapeHtml(this._t("aussentemperatur"))}</text></g>`;
     g.innerHTML = out;
+    g.querySelectorAll("[data-lauf]").forEach((el) => {
+      el.addEventListener("click", () => this._zeigeLaufAnalyse(laeufe[Number(el.dataset.lauf)]));
+    });
 
     if (liste) {
-      const stufen = [
-        ["gut", "a_c_l_gut"],
-        ["rahmen", "a_c_l_rahmen"],
-        ["unter", "a_c_l_unter"],
-        ["schlecht", "a_c_l_schlecht"],
-      ];
-      const legende = stufen
-        .map(([k, t]) => `<span class="lhc-dia-farbe" style="background:${COP_FARBE[k]}"></span><span>${escapeHtml(this._t(t))}</span>`)
+      // Stufen mit Zeichen und Text, Farbe nie allein.
+      const legende = (ref
+        ? [
+          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut}"></span><span>${escapeHtml(this._t("a_c_l_gut"))}</span>`,
+          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.unter}"></span><span>${escapeHtml(this._t("a_c_l_unter"))}</span>`,
+          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut};opacity:0.55"></span><span>${escapeHtml(this._t("a_c_l_geschaetzt"))}</span>`,
+          `<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_l_ohne"))}</span>`,
+          `<span class="lhc-dia-strich"></span><span>${escapeHtml(this._t("a_c_vergleich"))}</span>`,
+        ]
+        : [`<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_saeule"))}</span>`])
+        .concat(
+          `<span class="lhc-dia-farbe flach" style="background:${FARBE.heiz}"></span><span>${escapeHtml(this._t("heizung"))}</span>`,
+          `<span class="lhc-dia-farbe flach" style="background:${FARBE.ww}"></span><span>${escapeHtml(this._t("warmwasser"))}</span>`
+        )
         .join("");
-      // Je Stufe zaehlen, wie viele Laeufe dort liegen, getrennt nach Art.
-      const saetze = [];
-      const schwach = bewertbar.filter((l) => l.copQuote < 0.85);
-      if (bewertbar.length) {
-        saetze.push(tf(this._t("a_c_zaehl"), { k: bewertbar.length - schwach.length, n: bewertbar.length }));
-        const schwachWw = schwach.filter((l) => l.ww).length;
-        if (schwach.length && schwachWw === schwach.length) saetze.push(this._t("a_c_nur_ww"));
-        else if (schwach.length) saetze.push(this._t("a_c_rat"));
-      }
-      if (mitCop.length > bewertbar.length) saetze.push(this._t("a_c_ohne_d"));
+      // Ein Knopf statt einer Liste: Die Analyse beginnt beim schlechtesten
+      // gelben Lauf, im Fenster wird zwischen den gelben Laeufen geblaettert.
+      const reihe = unter.slice().sort((x, y) => x.copQuote - y.copQuote);
+      this._copReihe = reihe;
       liste.innerHTML = `
         <div class="lhc-takt-legende">${legende}</div>
-        ${saetze.length ? `<p class="lhc-takt-text">${escapeHtml(saetze.join(" "))}</p>` : ""}
-        <p class="lhc-takt-quelle">${escapeHtml(this._t("a_c_quelle"))}</p>`;
+        ${reihe.length ? `<button type="button" class="lhc-an-knopf lhc-cop-analyse" id="cop-analyse">${escapeHtml(tf(this._t("a_c_analysieren_n"), { n: reihe.length }))}</button>` : ""}
+        <p class="lhc-takt-quelle">${escapeHtml(this._t(ref ? "a_c_quelle" : "a_c_quelle_o"))}</p>`;
+      const knopf = liste.querySelector("#cop-analyse");
+      if (knopf) knopf.addEventListener("click", () => this._zeigeLaufAnalyse(reihe[0]));
     }
   },
 
@@ -502,53 +611,36 @@ export const auswertungKarte = {
     const bewertet = laeufe.filter((l) => !l.laufend && !l.angeschnitten);
     const n = laeufe.filter((l) => !l.angeschnitten).length;
     const kurz = bewertet.filter((l) => l.minuten < 10);
-    const sehrKurz = bewertet.filter((l) => l.minuten < 6);
     const mLauf = bewertet.length ? bewertet.reduce((s, l) => s + l.minuten, 0) / bewertet.length : null;
     const pausen = [];
     for (let i = 1; i < laeufe.length; i++) pausen.push((laeufe[i].von - laeufe[i - 1].bis) / 60000);
     const mPause = pausen.length ? pausen.reduce((s, p) => s + p, 0) / pausen.length : null;
-    const anteil = bewertet.length ? kurz.length / bewertet.length : 0;
-    // Starts je Tag, damit der Richtwert von rund 15 auch ueber Tage gilt.
+    // Starts je Tag nur als Messwert; eine feste Grenze gibt es nicht.
     const tage = Math.max((d.t1 - d.t0) / 86400000, 1);
     const jeTag = n / tage;
 
-    // Kurze Laeufe nach Aussentemperatur: unter 5 °C ist die Heizlast hoch,
-    // ab 10 °C liegt sie oft unter der kleinsten Leistung der Waermepumpe.
-    const kurzKalt = kurz.filter((l) => l.aussen !== null && l.aussen < 5);
+    // Kurze Laeufe bei milder Witterung: Dort ist die kleinste Leistung der
+    // Waermepumpe hoeher, waehrend das Haus wenig Waerme braucht (42watt).
     const kurzMild = kurz.filter((l) => l.aussen !== null && l.aussen >= 10);
 
-    // Gesamturteil nach den Richtwerten.
-    let stufe = "ok";
-    let titel = "a_t_ok";
-    if (anteil >= 0.3 || sehrKurz.length / tage >= 2) {
-      if (kurzKalt.length >= Math.ceil(kurz.length / 2)) {
-        stufe = "rot";
-        titel = "a_t_kalt";
-      } else if (kurzMild.length >= Math.ceil(kurz.length / 2)) {
-        stufe = "gelb";
-        titel = "a_t_mild_t";
-      } else {
-        stufe = "rot";
-        titel = "a_t_viele";
-      }
-    } else if (jeTag > 15) {
-      stufe = "gelb";
-      titel = "a_t_starts";
-    } else if (kurz.length) {
-      stufe = "gelb";
-      titel = "a_t_einige";
+    // Gesamturteil nur nach dem Ziel von 10 bis 20 Minuten je Start.
+    const tk = taktStufe(bewertet);
+    const stufe = tk ? tk.stufe : null;
+    let out;
+    if (!tk) {
+      out = this._auswertungUrteil(GRAU, "info", this._t("a_t_offen"), "");
+    } else {
+      const titel = { ok: "a_t_ok", leicht: "a_t_einige", hinweis: "a_t_mittel" }[stufe];
+      const unterzeile = stufe === "ok"
+        ? tf(this._t("a_t_ok_d"), { n, d: fmt(mLauf, 0) })
+        : tf(this._t("a_t_kurz_d"), { k: kurz.length, n: bewertet.length, d: fmt(mLauf, 0) });
+      out = this._auswertungUrteil(STUFE_FARBE[stufe], stufe === "ok" ? "ok" : stufe === "leicht" ? "info" : "warn", this._t(titel), unterzeile);
     }
-    const farbe = stufe === "rot" ? "#EF4444" : stufe === "gelb" ? "#F59E0B" : "#22C55E";
-    const unterzeile =
-      stufe === "ok"
-        ? tf(this._t("a_t_ok_d"), { n, d: fmt(mLauf || 0, 0) })
-        : tf(this._t("a_t_kurz_d"), { k: kurz.length, n: bewertet.length, s: sehrKurz.length });
-    let out = this._auswertungUrteil(farbe, stufe === "ok", this._t(titel), unterzeile);
     out += this._auswertungKacheln(60, [
       [tage > 1.5 ? `${n} · ${fmt(jeTag, 0)}/d` : String(n), this._t("a_t_starts_k")],
       [mLauf === null ? "--" : `${fmt(mLauf, 0)} min`, this._t("a_t_lauf")],
       [mPause === null ? "--" : `${fmt(mPause, 0)} min`, this._t("a_t_pause")],
-      [String(kurz.length), this._t("a_t_kurz_k"), kurz.length ? "#F59E0B" : "#E8EDF4"],
+      [String(kurz.length), this._t("a_t_kurz_k"), kurz.length && stufe ? STUFE_FARBE[stufe] : "#E8EDF4"],
     ]);
     const links = 20;
     const rechts = DW - 20;
@@ -595,18 +687,12 @@ export const auswertungKarte = {
     const bBreite = (rechts - links - bAbstand * 3) / 4;
     baender.forEach(([von, bis, text], i) => {
       const im = bewertet.filter((l) => l.aussen !== null && l.aussen >= von && l.aussen < bis);
-      const kurzIm = im.filter((l) => l.minuten < 10).length;
-      const mittelIm = im.length ? im.reduce((s2, l) => s2 + l.minuten, 0) / im.length : null;
-      const anteilIm = im.length ? kurzIm / im.length : 0;
-      let f = "#3A4557";
-      if (im.length) {
-        if (!kurzIm) f = FARBE.sehrGut;
-        else if (anteilIm >= 0.3) f = von >= 10 ? FARBE.kurz : FARBE.sehrKurz;
-        else f = FARBE.kurz;
-      }
+      // Gleiche Stufen wie oben, je Bereich der Aussentemperatur.
+      const tb = taktStufe(im);
+      const f = tb ? STUFE_FARBE[tb.stufe] : "#3A4557";
       const x = links + i * (bBreite + bAbstand);
-      const zeile = im.length
-        ? tf(this._t("a_t_b_zeile"), { n: im.length, d: fmt(mittelIm, 0), k: kurzIm })
+      const zeile = tb
+        ? tf(this._t("a_t_b_zeile"), { n: im.length, d: fmt(tb.mittel, 0), k: tb.kurz })
         : this._t("a_t_b_leer");
       out += `<g><rect x="${x.toFixed(1)}" y="258" width="${bBreite.toFixed(1)}" height="42" rx="9" fill="#1C2533"/>
         <rect x="${x.toFixed(1)}" y="258" width="5" height="42" rx="2.5" fill="${f}"/>
@@ -619,7 +705,7 @@ export const auswertungKarte = {
     const raster = zeitRaster(d.t0, d.t1);
     const fachText = { stunde: "a_t_stunde", drei: "a_t_f_drei", tag: "a_t_f_tag", woche: "a_t_f_woche", monat: "a_t_f_monat" }[raster.art];
     out += `<text x="${links}" y="322" font-size="11" fill="#98A6BA">${escapeHtml(this._t(fachText))}</text>`;
-    const rang = { sehrKurz: 0, kurz: 1, gut: 2, sehrGut: 3 };
+    const rang = { kurz: 0, gut: 1, sehrGut: 2 };
     const nF = raster.grenzen.length - 1;
     for (let i = 0; i < nF; i++) {
       const von = raster.grenzen[i];
@@ -647,13 +733,9 @@ export const auswertungKarte = {
     // Ausfuehrliche Bewertung mit Begruendung und Quelle unter dem Bild.
     if (liste) {
       const saetze = [];
-      if (stufe !== "ok") saetze.push(tf(this._t("a_t_kurz_d"), { k: kurz.length, n: bewertet.length, s: sehrKurz.length }));
-      if (jeTag > 15) saetze.push(tf(this._t("a_t_starts_d"), { n: fmt(jeTag, 0) }));
-      if (kurzKalt.length) saetze.push(tf(this._t("a_t_kalt_d"), { k: kurzKalt.length }));
       if (kurzMild.length) saetze.push(tf(this._t("a_t_mild_d"), { k: kurzMild.length }));
-      if (stufe !== "ok") saetze.push(this._t("a_t_rat"));
+      if (stufe === "hinweis") saetze.push(this._t("a_t_rat"));
       const legende = [
-        ["sehrKurz", "a_t_l_sehrkurz"],
         ["kurz", "a_t_l_kurz"],
         ["gut", "a_t_l_gut"],
         ["sehrGut", "a_t_l_sehrgut"],

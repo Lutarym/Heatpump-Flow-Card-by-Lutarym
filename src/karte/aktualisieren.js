@@ -327,26 +327,20 @@ export const aktualisierenKarte = {
     // Waehrend der Warmwasserladung gilt TOP7 dem Speicher und springt
     // auf dessen Ladetemperatur. Dann bleibt das zuletzt gueltige
     // Pufferziel stehen, statt eines falschen Wertes oder eines Hinweises.
-    let bufSp = numState(hass, this._e("buffer_target"));
+    let wpSoll = numState(hass, this._e("buffer_target"));
     if (wwLaeuft) {
-      bufSp = this._letztesPufferZiel !== undefined ? this._letztesPufferZiel : null;
-    } else if (bufSp !== null) {
-      this._letztesPufferZiel = bufSp;
+      wpSoll = this._letztesPufferZiel !== undefined ? this._letztesPufferZiel : null;
+    } else if (wpSoll !== null) {
+      this._letztesPufferZiel = wpSoll;
     }
-    set("buf-sp", bufSp === null ? "" : tf(this._t("s_ziel"), { v: fmt(bufSp, 0) }));
-    // TOP113 ist die Hysterese des Puffers, 0 bis 10 K. Angezeigt wird
-    // daraus die Temperatur, ab der nachgeladen wird.
+    // Panasonic: Pufferziel = hoechstes Soll der aktiven Heizkreise plus
+    // Puffer-Delta-T (TOP113, 0 bis 10 K). Die Waermepumpe selbst faehrt
+    // auf TOP7. Ohne TOP113 zeigt "Ziel" wie bisher den zugeordneten Wert.
     const bDelta = numState(hass, this._e("buffer_delta"));
-    // Der Betrag wird abgezogen. Die Ladetemperatur liegt immer unter
-    // dem Sollwert, unabhaengig davon, mit welchem Vorzeichen die
-    // Anlage die Hysterese meldet.
-    set(
-      "buf-delta",
-      bDelta === null || bufSp === null
-        ? ""
-        : tf(this._t("s_laedt_ab"), { v: fmt(bufSp - Math.abs(bDelta), 0) })
-    );
-    void wwLaeuft;
+    const kreisSoll = this._kreisSoll(hass);
+    const pufferZiel = bDelta !== null && kreisSoll !== null ? kreisSoll + bDelta : bDelta === null ? wpSoll : null;
+    set("buf-sp", pufferZiel === null ? "" : tf(this._t("s_ziel"), { v: fmt(pufferZiel, 0) }));
+    set("buf-delta", bDelta === null || wpSoll === null ? "" : tf(this._t("s_wp_soll"), { v: fmt(wpSoll, 0) }));
     // Der COP steht hinter der Tuer. Abgefragt wird er hier, damit der
     // Tagesmittelwert geladen ist, wenn die Tuer aufgeht.
     this._cop(hass, "cop_heating");

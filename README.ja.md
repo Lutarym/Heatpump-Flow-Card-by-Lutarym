@@ -80,6 +80,8 @@ entities:
 | `language` | `auto` | `auto`、`de`、`en`、`fr`、`ja` |
 | `profil` | `auto` | `auto` は統合を自動検出します。または `heishamon_lutarym`、`heishamon`（MQTT 命名規則）、`vicare`、`luxtronik2` などのプロファイル ID。一覧は[説明](docs/GERAETEPROFIL.ja.md)を参照 |
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
+| `cop_reference` | 空 | COP 比較用データシート：`panasonic_tcap_m_12`（Panasonic Aquarea T-CAP M 12 kW、WH-WXG12ME5/ME8）。指定したときだけ COP タブで運転ごとに色分けします：データシートの92 %以上は緑（許容差 −8 %、HP KEYMARK）、未満は黄、試験点の範囲外は控えめに推定し淡色で表示。空：COP は評価なし |
+| `dhw_usable_temp` | 空 | 給湯が使えなくなるとみなすタンク温度（°C）。「給湯を観察」ウィンドウ（ヒートポンプのウィンドウのボタン）の保持時間に使います。空：値なし |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
 | `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
 | `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
@@ -158,8 +160,8 @@ entities:
 | `curve2_o_high` | 回路2 暖房曲線 外気 高 | TOP84 |
 | `curve2_o_low` | 回路2 暖房曲線 外気 低 | TOP85 |
 | **暖房バッファー** | | |
-| `buffer_delta` | バッファーのヒステリシス | TOP113 |
-| `buffer_target` | バッファー目標温度 | TOP7, 往き目標 |
+| `buffer_delta` | バッファー上乗せ温度（ΔT） | TOP113、バッファー目標 = 回路目標 + ΔT |
+| `buffer_target` | ヒートポンプ往き目標温度 | TOP7 |
 | `cop_heating` | COP 暖房 | HeishaMon by Lutarym、ソースは統合の COP ソースで選択 |
 | `room_heater` | 暖房ヒーター許可 | TOP59 |
 | `room_heater_switch` | 暖房ヒーター許可の切替 | SetRoomHeaterState, switch |

@@ -243,8 +243,8 @@ Die Spalte „Panasonic (HeishaMon)“ zeigt die Schlüssel aus dem eingebauten 
 
 | Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
 |---|---|---|---|
-| `buffer_delta` | Puffer Hysterese | alle | `top113` |
-| `buffer_target` | Puffer Zieltemperatur | alle | `top7` |
+| `buffer_delta` | Puffer Überhöhung (ΔT) | alle | `top113` |
+| `buffer_target` | Vorlauf-Soll Wärmepumpe | alle | `top7` |
 | `cop_heating` | COP Heizen | alle | `cop_heating` |
 | `room_heater` | Heizstab Heizung freigegeben | alle | `top59` |
 | `room_heater_switch` | Heizstab Heizung freigeben | `switch`, `input_boolean` | `setroomheaterstate` |

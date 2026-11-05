@@ -106,6 +106,9 @@ export const diagrammeKarte = {
           </svg>
           <div class="lhc-dia-liste" id="dia-liste"></div>
         </div>
+        <div class="lhc-an-modal" id="an-modal" hidden>
+          <div class="lhc-an-modal-box" role="dialog" aria-modal="true" aria-labelledby="an-modal-titel"></div>
+        </div>
       </div>`;
   },
 
@@ -133,9 +136,13 @@ export const diagrammeKarte = {
     });
     dlg.addEventListener("click", (ev) => {
       if (ev.target === dlg) this._schliesseDia();
+      // Klick neben das Bestaetigungsfenster schliesst nur dieses.
+      if (ev.target && ev.target.id === "an-modal") this._schliesseVorschlag();
     });
     dlg.addEventListener("keydown", (ev) => {
-      if (ev.key === "Escape") this._schliesseDia();
+      if (ev.key !== "Escape") return;
+      if (this._vorschlagOffen()) this._schliesseVorschlag();
+      else this._schliesseDia();
     });
     const zu = sr.getElementById("dia-zu");
     if (zu) zu.addEventListener("click", () => this._schliesseDia());
@@ -178,6 +185,7 @@ export const diagrammeKarte = {
     }
     if (!voll) {
       ["position", "left", "top", "width", "height"].forEach((k) => st.removeProperty(k));
+      this._schliesseVorschlag();
       return;
     }
     const r = this.getBoundingClientRect();
@@ -189,6 +197,7 @@ export const diagrammeKarte = {
     st.height = `${h}px`;
     st.left = `${Math.max(0, Math.min(r.left, vw - b))}px`;
     st.top = `${Math.max(0, Math.min(r.top, vh - h))}px`;
+    this._vorschlagLage();
   },
 
   _schliesseDia() {

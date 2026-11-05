@@ -18,9 +18,12 @@ import { kennzahlenKarte } from "./kennzahlen.js";
 import { solarKarte } from "./solar.js";
 import { verbrauchStileKarte } from "./verbrauchstile.js";
 import { zeitraumKarte } from "./zeitraum.js";
+import { optimierenKarte } from "./optimieren.js";
 import { sgStileKarte } from "./sgstile.js";
 import { auswertungKarte } from "./auswertung.js";
 import { analyseKarte } from "./analyse.js";
+import { laufanalyseKarte } from "./laufanalyse.js";
+import { warmwasserKarte } from "./warmwasser.js";
 import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { verlaufKarte } from "./verlauf.js";
@@ -393,6 +396,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._setzeThema();
     this._groesse();
     this._update();
+    // Offene Analyse mit den neuen Werten neu bewerten, etwa nachdem ein
+    // Vorschlag gesetzt wurde und die Anlage die Werte zurueckmeldet.
+    if (this._diaArt === "analyse") this._zeichneAnalyse();
     // Laengere Zeitraeume nur abfragen, solange ihr Fenster offen ist.
     if (this._zrSchluessel() === "24h" || this._diaArt === "verbrauch" || this._diaArt === "sg") this._holeVerlauf();
     // Nach einem Neuaufbau ist der Rahmen leer. Vorhandene Daten werden
@@ -502,6 +508,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
             <div id="dlg-werte"></div>
           </div>
         </div>
+        <div class="lhc-dialog lhc-ww-fenster" id="ww-fenster" hidden>
+          <div class="lhc-an-modal-box lhc-ww-box" role="dialog" aria-modal="true" aria-labelledby="ww-titel"></div>
+        </div>
       </ha-card>
     `;
     // Alten Inhalt ersetzen, nicht anhaengen. Sonst entstuende bei
@@ -559,7 +568,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
         return;
       }
 
-      const deltaTime = (time - lastTime) / 1000; // in Sekunden
+      // Hoechstens 0,1 s je Bild: Nach einem Haenger oder Tabwechsel
+      // springen Luefter und Laufpunkte sonst sichtbar weiter.
+      const deltaTime = Math.min(Math.max((time - lastTime) / 1000, 0), 0.1);
       lastTime = time;
       this._animTime += deltaTime;
 
@@ -696,7 +707,10 @@ Object.assign(
   sgStileKarte,
   auswertungKarte,
   analyseKarte,
+  laufanalyseKarte,
+  warmwasserKarte,
   zeitraumKarte,
+  optimierenKarte,
   grafikHochKarte,
   heizkurveKarte,
   stilKarte
