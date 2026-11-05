@@ -2,6 +2,13 @@
 
 **English** · [Deutsch](#deutsch) · [Français](#français) · [日本語](#日本語)
 
+## v5.22.0
+
+- English: Layout "quer": correction of v5.21.0. The connections at the buffer are back as in v5.20.0. At the crossing of the HK1 return and the flow line to HK2 the flow line lies on top without an arch; the return runs straight underneath and its flow dots disappear under the flow line and come out on the other side. The branches of the heating circuits on the collector pipes are now closed (previously the dark pipe edge cut a notch into the collector pipe).
+- Deutsch: Anordnung „quer“: Korrektur von v5.21.0. Die Anschlüsse am Puffer sind wieder wie in v5.20.0. An der Kreuzung von Rücklauf HK1 und Vorlaufleitung zu HK2 liegt der Vorlauf ohne Bogen oben; der Rücklauf läuft gerade darunter durch, seine Laufpunkte verschwinden unter der Vorlaufleitung und kommen auf der anderen Seite wieder heraus. Die Abzweigungen der Heizkreise an den Sammelleitungen sind jetzt geschlossen (vorher kerbte der dunkle Rohrrand die Sammelleitung ein).
+- Français : disposition « quer » : correction de la v5.21.0. Les raccordements au ballon tampon sont de nouveau comme en v5.20.0. Au croisement du retour HK1 et du départ vers le HK2, le départ passe dessus sans arc ; le retour passe tout droit dessous, ses points disparaissent sous le départ et ressortent de l'autre côté. Les dérivations des circuits sur les collecteurs sont désormais fermées (auparavant le bord sombre du tuyau entaillait le collecteur).
+- 日本語：「quer」レイアウト：v5.21.0 の修正です。バッファタンクの接続を v5.20.0 と同じに戻しました。HK1 の戻りと HK2 への往き配管の交差箇所では、往きが弧なしで上を通ります。戻りはその下をまっすぐ通り、流れの点は往き配管の下に隠れて反対側から出てきます。ヘッダー配管上の各暖房回路の分岐を閉じました（以前は配管の暗い縁がヘッダー配管に切れ込みを作っていました）。
+
 ## v5.21.0
 
 - English: Smoother animations: the glow of the outdoor unit no longer uses a blur filter (it had to be recalculated on every frame of the pulse and made the fans stutter), it is now drawn as graded edges. In the test the long frames fell from 28 to 0 in 3 seconds. Very long frames (tab switch) no longer let fans and flow dots jump. Layout "quer": where the HK1 return crosses the flow line to HK2, the flow now runs over the return with a small arch, including its flow dots; the return runs straight underneath.
