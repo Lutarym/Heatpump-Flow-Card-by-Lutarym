@@ -18,8 +18,18 @@
  *    nur bei gleicher Messbedingung besser."). Ab 92 % des Datenblatts gruen,
  *    darunter gelb (Toleranz -8 %, HP KEYMARK, siehe datenblatt.js). Eine
  *    zweite belegte Grenze fuer Rot gibt es nicht. Ausserhalb der
- *    Pruefpunkte vorsichtig geschaetzt und blasser gezeichnet (eigene
- *    Festlegung). Ohne Datenblatt oder bei unvollstaendigen Laeufen grau.
+ *    Pruefpunkte geschaetzt und blasser gezeichnet (eigene Festlegung).
+ *    Ohne Datenblatt oder bei unvollstaendigen Laeufen grau.
+ *  - COP je Lauf: Waerme durch Strom, beides als Zeitintegral der
+ *    Leistungswerte der Waermepumpe (TOP15/TOP16 beim Heizen, TOP40/TOP41
+ *    beim Warmwasser, mit Zusatzblock XTOP3/XTOP0 und XTOP5/XTOP2). Das ist
+ *    die Definition der Leistungszahl ueber einen Zeitraum. Ein Mittelwert
+ *    des augenblicklichen COP waere es nicht: Phasen mit wenig Strom
+ *    zaehlten zu stark, Abtauungen mit COP 0 fielen heraus. Nur ohne diese
+ *    Werte gilt der zeitliche Mittelwert des COP-Sensors der Integration.
+ *  - Takten bei Invertern: Laut Dongellini und Morini (2019) haben die
+ *    Anlaufverluste nur bei Geraeten ohne Leistungsregelung einen
+ *    erheblichen Einfluss auf die Jahresarbeitszahl.
  */
 import { escapeHtml, fmt, groesster, indexBis, jePixel, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
@@ -77,6 +87,49 @@ export function copStufe(l) {
   // Laeufe ueber SG Ready (Stufe 3 oder 4) werden nicht bewertet.
   if (!l || l.sg || l.copQuote === null || l.copQuote === undefined || l.laufend || l.angeschnitten) return null;
   return l.copQuote >= TOLERANZ ? "gut" : "unter";
+}
+
+/**
+ * Energie in kWh aus einer Leistungsreihe in W. Jeder Wert gilt bis zum
+ * naechsten, so speichert Home Assistant den Verlauf. Negative Werte meldet
+ * HeishaMon als ungueltig, sie zaehlen als 0. Deckt die Reihe weniger als
+ * 95 % des Zeitraums ab (fehlende oder unbekannte Werte), ist das Ergebnis
+ * unbekannt (null) statt zu klein.
+ */
+export function energie(reihe, von, bis) {
+  if (!reihe || !reihe.length || !(bis > von)) return null;
+  let summe = 0;
+  let gedeckt = 0;
+  for (let i = Math.max(0, indexBis(reihe, von)); i < reihe.length && reihe[i].t < bis; i++) {
+    const a = Math.max(reihe[i].t, von);
+    const b = Math.min(i + 1 < reihe.length ? reihe[i + 1].t : bis, bis);
+    if (b <= a) continue;
+    const v = reihe[i].v;
+    if (v === null || v === undefined || Number.isNaN(v)) continue;
+    summe += Math.max(v, 0) * (b - a);
+    gedeckt += b - a;
+  }
+  return gedeckt >= 0.95 * (bis - von) ? summe / 3.6e9 : null;
+}
+
+/** Zahlenreihe [{ t, s, v }] einer Entitaet aus einer Antwort des Verlaufs. */
+export function verlaufsReihe(antwort, id) {
+  return ((antwort && id && antwort[id]) || [])
+    .map((p) => ({ t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed), s: p.s !== undefined ? p.s : p.state }))
+    .filter((p) => !Number.isNaN(p.t))
+    .map((p) => ({ ...p, v: parseFloat(p.s) }));
+}
+
+/**
+ * Leistungszahl mehrerer Laeufe: Summe Waerme durch Summe Strom, wenn alle
+ * Laeufe Energiewerte haben (art "heiz", "ww" oder "gesamt"). Sonst null,
+ * dann rechnet der Aufrufer mit dem Mittel nach Laufzeit.
+ */
+export function copSumme(laeufe, art) {
+  if (!laeufe.length || !laeufe.every((l) => l.energieDa)) return null;
+  const w = laeufe.reduce((s, l) => s + (art === "heiz" ? l.wHeiz : art === "ww" ? l.wWw : l.wHeiz + l.wWw), 0);
+  const e = laeufe.reduce((s, l) => s + (art === "heiz" ? l.eHeiz : art === "ww" ? l.eWw : l.eHeiz + l.eWw), 0);
+  return e > 0.01 ? w / e : null;
 }
 
 /** Zeitgewichteter Mittelwert einer Reihe im Zeitraum, ohne Werte bis 0. */
@@ -168,12 +221,18 @@ export const auswertungKarte = {
       this._zeichneAuswertung();
       return;
     }
+    // Leistungswerte der Waermepumpe fuer den COP je Lauf (wie bei der JAZ).
+    const quellen = (typeof this._jazQuellen === "function" && this._jazQuellen()) || {};
+    const leistung = [
+      quellen.heizen ? quellen.heizen.w : null, quellen.heizen ? quellen.heizen.e : null,
+      quellen.ww ? quellen.ww.w : null, quellen.ww ? quellen.ww.e : null,
+    ];
     this._hass
       .callWS({
         type: "history/history_during_period",
         start_time: new Date(t0).toISOString(),
         end_time: new Date(jetzt).toISOString(),
-        entity_ids: ids.filter(Boolean),
+        entity_ids: [...new Set(ids.concat(leistung).filter(Boolean))],
         include_start_time_state: true,
         significant_changes_only: false,
         minimal_response: true,
@@ -182,22 +241,17 @@ export const auswertungKarte = {
       .then((antwort) => {
         // Inzwischen anderer Zeitraum gewaehlt: Antwort verwerfen.
         if (this._zrSchluessel() !== sp.k) return;
-        const reihe = (id) =>
-          ((antwort && id && antwort[id]) || [])
-            .map((p) => ({
-              t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-              s: p.s !== undefined ? p.s : p.state,
-            }))
-            .filter((p) => !Number.isNaN(p.t))
-            .map((p) => ({ ...p, v: parseFloat(p.s) }));
+        const reihe = (id) => verlaufsReihe(antwort, id);
         const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss, k1, k2] =
           ids.map(reihe);
+        const [heizW, heizE, wwW, wwE] = leistung.map((id) => (id ? reihe(id) : null));
         // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
         const erster = vd.length ? vd[0].t : t0;
         const t0e = erster - t0 > 3600000 ? Math.min(erster, jetzt - 3600000) : t0;
         this._auswertung = {
           t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts,
           durchfluss,
+          heizW, heizE, wwW, wwE,
           // SG Ready nur mit beiden Kontakten erkennbar.
           sg: ids[14] && ids[15] ? sgReihe(k1, k2) : null,
         };
@@ -219,7 +273,8 @@ export const auswertungKarte = {
       for (let a = t1 - 86400000; a > t0 - 1; a -= 86400000) tage.unshift(a);
       const teile = tage.map((a, k) => this._auswertungDemoTag(a, a + 86400000, (k % 5) - 2 - (tage.length - k) * 0.05));
       const out = { t0: tage[0], t1 };
-      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss", "sg"].forEach((f) => {
+      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss", "sg",
+        "heizW", "heizE", "wwW", "wwE"].forEach((f) => {
         out[f] = teile.flatMap((x) => x[f]).sort((x, y) => x.t - y.t);
       });
       out.starts = this._auswertungDemoZaehler(out.vd);
@@ -259,6 +314,11 @@ export const auswertungKarte = {
     const kreis1 = [{ t: t0, s: "31", v: 31 }];
     const kreis2 = [{ t: t0, s: "28", v: 28 }];
     const durchfluss = [{ t: t0, s: "0", v: 0 }];
+    // Leistungswerte wie TOP15/16 und TOP40/41 (nachgebildet).
+    const heizW = [{ t: t0, s: "0", v: 0 }];
+    const heizE = [{ t: t0, s: "0", v: 0 }];
+    const wwW = [{ t: t0, s: "0", v: 0 }];
+    const wwE = [{ t: t0, s: "0", v: 0 }];
     const heizLaeufe = [];
     [3.2, 7.3, 21.2].forEach((s) => {
       abtau.push({ t: t0 + s * h, s: "1", v: 1 }, { t: t0 + s * h + 6 * 60000, s: "0", v: 0 });
@@ -282,14 +342,22 @@ export const auswertungKarte = {
       const ramp = (reihe, c) => {
         reihe.push({ t: start, s: "", v: c * 0.6 }, { t: start + 3 * 60000, s: "", v: c }, { t: start + dauer, s: "0", v: 0 });
       };
+      // Strom im Anlauf 70 % der Leistung, Waerme = COP mal Strom.
+      const leistungen = (rw, re, c, p) => {
+        re.push({ t: start, s: "", v: p * 0.7 }, { t: start + 3 * 60000, s: "", v: p }, { t: start + dauer, s: "0", v: 0 });
+        rw.push({ t: start, s: "", v: c * 0.6 * p * 0.7 }, { t: start + 3 * 60000, s: "", v: c * p }, { t: start + dauer, s: "0", v: 0 });
+      };
       // COP im Demomodus: Anteil am Carnot-COP um 0,42 bis 0,46, beim
       // Warmwasser 0,40 (nachgebildete Werte, keine Messung).
       const carnot = (a, w) => (w + 273.15) / (w - a);
       if (ww) {
         ventil.push({ t: start, s: "1", v: 1 }, { t: start + dauer, s: "0", v: 0 });
         ramp(copW, 0.4 * carnot(aussenBei(start), vl));
+        leistungen(wwW, wwE, 0.4 * carnot(aussenBei(start), vl), 2200);
       } else {
-        ramp(copH, (0.44 + (((i * 7) % 5) - 2) * 0.01) * carnot(aussenBei(start), vl));
+        const c = (0.44 + (((i * 7) % 5) - 2) * 0.01) * carnot(aussenBei(start), vl);
+        ramp(copH, c);
+        leistungen(heizW, heizE, c, 1600);
       }
     });
     // SG Ready im Demomodus: Stufe 3 um den ersten Heizlauf zwischen 11 und
@@ -300,7 +368,8 @@ export const auswertungKarte = {
       return std >= 11 && std < 15;
     });
     if (mittag) sg.push({ t: mittag.start - 6 * 60000, stufe: 3 }, { t: mittag.start + mittag.dauer + 6 * 60000, stufe: 2 });
-    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss, sg };
+    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss, sg,
+      heizW, heizE, wwW, wwE };
   },
 
   /**
@@ -343,7 +412,24 @@ export const auswertungKarte = {
       const abschnitte = ventilAbschnitte(d.ventil, l.von, l.bis);
       const wwDauer = abschnitte.filter((a) => a.ww).reduce((s, a) => s + (a.bis - a.von), 0);
       l.ww = wwDauer > (l.bis - l.von) / 2;
-      l.cop = mittel(l.ww ? d.copW : d.copH, l.von, l.bis, true);
+      // COP = Waerme durch Strom der eigenen Betriebsart (Leistungswerte
+      // der Waermepumpe). Ohne diese Werte der Mittelwert des COP-Sensors.
+      const en = (r) => (r && r.length ? energie(r, l.von, l.bis) : null);
+      l.wHeiz = en(d.heizW);
+      l.eHeiz = en(d.heizE);
+      l.wWw = en(d.wwW);
+      l.eWw = en(d.wwE);
+      l.energieDa = [l.wHeiz, l.eHeiz, l.wWw, l.eWw].every((x) => x !== null);
+      const w = l.ww ? l.wWw : l.wHeiz;
+      const e = l.ww ? l.eWw : l.eHeiz;
+      if (w !== null && e !== null && e > 0.01) {
+        l.cop = w / e;
+        l.copArt = "energie";
+      } else {
+        l.cop = mittel(l.ww ? d.copW : d.copH, l.von, l.bis, true);
+        l.copArt = l.cop === null ? null : "sensor";
+        l.energieDa = false;
+      }
       l.aussen = mittel(d.aussen, l.von, l.bis, false);
       // Temperaturen nur aus den Abschnitten der eigenen Betriebsart und
       // jeweils erst nach den ersten fuenf Minuten: Solange der Vorlauf
@@ -367,7 +453,7 @@ export const auswertungKarte = {
       l.ruecklauf = mittelEigene(d.ruecklauf);
       l.kreis1 = mittelEigene(d.kreis1);
       l.kreis2 = mittelEigene(d.kreis2);
-      // Ausserhalb der Pruefpunkte vorsichtig geschaetzt und gekennzeichnet.
+      // Ausserhalb der Pruefpunkte geschaetzt und gekennzeichnet (siehe datenblatt.js).
       const dbl = ref && l.aussen !== null && l.vorlauf !== null ? datenblattSchaetzung(ref, l.aussen, l.vorlauf) : null;
       l.copErwartet = dbl ? dbl.wert : null;
       l.copGeschaetzt = Boolean(dbl && dbl.geschaetzt);
@@ -503,10 +589,16 @@ export const auswertungKarte = {
         : this._auswertungUrteil(COP_FARBE.gut, "ok", tf(this._t("a_c_t_gut"), { n: bewertet.length }), teile.join(" · "));
     }
     let out = urteil;
+    // Waerme durch Strom ueber alle Laeufe; nur ohne Energiewerte das
+    // Mittel der Laeufe nach Laufzeit.
+    const summe = (art, ls) => {
+      const c = copSumme(mitCop, art);
+      return c !== null ? c : gewichtet(ls, "cop");
+    };
     out += this._auswertungKacheln(60, [
-      [z(gewichtet(heiz, "cop")), this._t("a_cop_heiz"), FARBE.heiz],
-      [z(gewichtet(ww, "cop")), this._t("a_cop_ww"), FARBE.ww],
-      [z(gewichtet(mitCop, "cop")), this._t("a_cop_gesamt")],
+      [z(summe("heiz", heiz)), this._t("a_cop_heiz"), FARBE.heiz],
+      [z(summe("ww", ww)), this._t("a_cop_ww"), FARBE.ww],
+      [z(summe("gesamt", mitCop)), this._t("a_cop_gesamt")],
     ]);
     if (!alleCop.length) {
       g.innerHTML = out;

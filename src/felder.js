@@ -74,7 +74,7 @@ export const ENTITY_FIELDS = [
   { key: "curve2_o_low", label: "HK2 Heizkurve Außen unten", group: "Heizkurve", hint: "TOP85" },
   { key: "buffer_delta", label: "Puffer Überhöhung (ΔT)", group: "Heizungspuffer", hint: "TOP113, Pufferziel = Heizkreis-Soll + ΔT" },
   { key: "buffer_target", label: "Vorlauf-Soll Wärmepumpe", group: "Heizungspuffer", hint: "TOP7" },
-  { key: "cop_heating", label: "COP Heizen", group: "Heizungspuffer", hint: "HeishaMon by Lutarym, Quelle in der Integration unter COP Quelle wählbar" },
+  { key: "cop_heating", label: "COP Heizen", group: "Heizungspuffer", hint: "HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt; Quelle in der Integration unter COP Quelle wählbar" },
   { key: "room_heater", label: "Heizstab Heizung freigegeben", group: "Heizungspuffer", hint: "TOP59" },
   { key: "room_heater_switch", label: "Heizstab Heizung schalten", group: "Heizungspuffer", hint: "SetRoomHeaterState, switch" },
 
@@ -109,7 +109,7 @@ export const ENTITY_FIELDS = [
   { key: "dhw_temp", label: "Warmwasser Isttemperatur", group: "Warmwasser", hint: "TOP10" },
   { key: "dhw_heat_delta", label: "Warmwasser Hysterese", group: "Warmwasser", hint: "TOP22" },
   { key: "dhw_setpoint", label: "Warmwasser Sollwert", group: "Warmwasser", hint: "TOP9, number" },
-  { key: "cop_dhw", label: "COP Warmwasser", group: "Warmwasser", hint: "HeishaMon by Lutarym, Quelle in der Integration unter COP Quelle wählbar" },
+  { key: "cop_dhw", label: "COP Warmwasser", group: "Warmwasser", hint: "HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt; Quelle in der Integration unter COP Quelle wählbar" },
   { key: "dhw_heater", label: "Heizstab Warmwasser freigegeben", group: "Warmwasser", hint: "TOP58" },
   { key: "dhw_force", label: "Einmalig aufheizen", group: "Warmwasser", hint: "SetForceDHW, switch" },
   { key: "dhw_force_state", label: "Aufheizen läuft", group: "Warmwasser", hint: "TOP2" },

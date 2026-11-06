@@ -93,8 +93,9 @@ export const COMMAND_TO_FIELD = {
 
 /**
  * Leistungszahlen aus HeishaMon by Lutarym. Die Integration liefert je
- * Betriebsart einen berechneten und einen gemessenen Wert. Gemessen
- * nutzt einen externen Strommesser und ist genauer.
+ * Betriebsart einen Wert; ob der Strom dafuer von der Waermepumpe oder von
+ * einem externen Strommesser kommt, waehlt sie ueber "COP Quelle". Ein
+ * externer Messer kann weitere Verbraucher wie Pumpen mit erfassen.
  */
 export const COP_TO_FIELD = {
   cop_heating: "cop_heating",

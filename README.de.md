@@ -12,7 +12,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Fließanimation, die der tatsächlichen Hydraulik folgt: Umschaltventil, Pumpen, Verdichter und Puffer
 - Temperaturabhängige Einfärbung von Speichern, Heizkörpern und Leitungen
 - Heizkurve für Heizkreis 1 und 2 in einem eigenen Fenster, mit Skala, Betriebspunkt und einstellbaren Eckwerten
-- Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, COP von heute für Heizen und Warmwasser, Jahresarbeitszahl (JAZ) für Heizen, Warmwasser und gesamt seit 1. Januar, mit Wärme und Strom in kWh, aus den HeishaMon-Werten, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
+- Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, COP von heute für Heizen und Warmwasser (Wärme durch Strom seit Mitternacht), Jahresarbeitszahl (JAZ) für Heizen, Warmwasser und gesamt seit 1. Januar, mit Wärme und Strom in kWh, aus den HeishaMon-Werten, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
 - Hilfefenster („?“ unten rechts): verständliche Erklärung aller Werte und Befehle, die HeishaMon lesen und schreiben kann, mit Suche und Gruppen; zu jedem TOP-Wert die vollständige Entität, per Klick kopierbar
 - Herstellerprofile für 34 Integrationen von 24 Herstellern (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant und weitere), automatisch erkannt; werden mehrere gefunden, fragt der Editor, welche gelten soll. Außer HeishaMon by Lutarym sind sie ungetestet. Geräteprofile lassen sich außerdem exportieren, anpassen und importieren; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md)
 - Sprachpakete: eine Sprache als Datei exportieren, selbst übersetzen oder anpassen und wieder importieren; siehe [Anleitung Sprachpakete](docs/SPRACHPAKET.de.md)
@@ -80,7 +80,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `language` | `auto` | `auto`, `de`, `en`, `fr` oder `ja` |
 | `profil` | `auto` | `auto` erkennt die Integration selbst, sonst die Kennung eines Profils wie `heishamon_lutarym`, `heishamon` (MQTT-Namensschema), `vicare`, `luxtronik2`; Liste in der [Anleitung](docs/GERAETEPROFIL.de.md) |
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
-| `cop_reference` | leer | Datenblatt für den COP-Vergleich: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Nur damit färbt der Reiter COP jeden Lauf: grün ab 92 % des Datenblatts (Toleranz −8 %, HP KEYMARK), gelb darunter, außerhalb der Prüfpunkte vorsichtig geschätzt und blass gezeichnet. Leer: COP ohne Bewertung |
+| `cop_reference` | leer | Datenblatt für den COP-Vergleich: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Nur damit färbt der Reiter COP jeden Lauf: grün ab 92 % des Datenblatts (Toleranz −8 %, HP KEYMARK), gelb darunter, außerhalb der Prüfpunkte nur geschätzt, als Schätzung gekennzeichnet und blass gezeichnet. Leer: COP ohne Bewertung |
 | `dhw_usable_temp` | leer | Speichertemperatur in °C, unter der das Warmwasser als nicht mehr nutzbar gilt. Für die Haltezeit im Fenster „Warmwasser beobachten“ (Knopf im Fenster der Wärmepumpe). Leer: Spalte ohne Wert |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
 | `show_history` | `knopf` | Diagramme: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster, Zeitraum wählbar von 24 Stunden bis 1 Jahr, `true` Verbrauch dauerhaft in der Karte, `false` aus |
@@ -162,7 +162,7 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | **Heizungspuffer** | | |
 | `buffer_delta` | Puffer Überhöhung (ΔT) | TOP113, Pufferziel = Heizkreis-Soll + ΔT |
 | `buffer_target` | Vorlauf-Soll Wärmepumpe | TOP7 |
-| `cop_heating` | COP Heizen | HeishaMon by Lutarym, Quelle in der Integration unter COP Quelle wählbar |
+| `cop_heating` | COP Heizen | HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt (sonst Wärme durch Strom aus TOP15/TOP16); Quelle in der Integration unter COP Quelle wählbar |
 | `room_heater` | Heizstab Heizung freigegeben | TOP59 |
 | `room_heater_switch` | Heizstab Heizung freigeben | SetRoomHeaterState, switch |
 | **Heizkreis 1** | | |
@@ -191,7 +191,7 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `dhw_temp` | Warmwasser Isttemperatur | TOP10 |
 | `dhw_heat_delta` | Warmwasser Hysterese | TOP22 |
 | `dhw_setpoint` | Warmwasser Sollwert | TOP9, number |
-| `cop_dhw` | COP Warmwasser | HeishaMon by Lutarym, Quelle in der Integration unter COP Quelle wählbar |
+| `cop_dhw` | COP Warmwasser | HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt (sonst Wärme durch Strom aus TOP40/TOP41); Quelle in der Integration unter COP Quelle wählbar |
 | `dhw_heater` | Heizstab Warmwasser freigegeben | TOP58 |
 | `dhw_force` | Einmalig aufheizen | SetForceDHW, switch |
 | `dhw_force_state` | Aufheizen läuft | TOP2 |

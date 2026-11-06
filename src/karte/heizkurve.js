@@ -283,10 +283,11 @@ export const heizkurveKarte = {
         setz(`kd${z}-soll`, {}, "");
         return;
       }
-      // Linear, ohne Begrenzung auf die Eckpunkte.
+      // Linear, ohne Begrenzung auf die Eckpunkte: Laut Angabe des Nutzers
+      // (06.11.2026) laeuft die Kurve seiner Anlage auch ausserhalb der
+      // Eckpunkte gerade weiter. Eine Herstellerquelle dazu liegt nicht vor.
       const soll = tBei(aussen);
-      // Der Punkt sitzt bei der tatsaechlichen Aussentemperatur, auch
-      // auf den waagerechten Abschnitten ausserhalb der Eckwerte.
+      // Der Punkt sitzt bei der tatsaechlichen Aussentemperatur.
       const mx = px(aussen);
       const my = py(soll);
       // Die Linie der Aussentemperatur laeuft ueber die ganze Hoehe.

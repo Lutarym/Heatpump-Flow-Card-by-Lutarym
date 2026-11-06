@@ -12,7 +12,7 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 - Animation du débit qui suit l'hydraulique réelle : vanne trois voies, pompes, compresseur et ballon tampon
 - Coloration selon la température des ballons, radiateurs et tuyaux
 - Courbe de chauffe des circuits 1 et 2 dans une fenêtre dédiée, avec échelle, point de fonctionnement et points réglables
-- Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (vacances, programme hebdomadaire, Smart DHW, limites de chauffage, écart, anti-légionelles, pompe, mode silencieux, COP du jour pour chauffage et eau chaude, coefficient annuel (JAZ/SPF) pour chauffage, eau chaude et total depuis le 1er janvier, avec chaleur et électricité en kWh, à partir des valeurs HeishaMon, heures et démarrages) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
+- Porte dans la pompe à chaleur : le bouton en bas à droite ouvre la façade comme une porte vers la gauche, derrière se trouvent les réglages avancés (vacances, programme hebdomadaire, Smart DHW, limites de chauffage, écart, anti-légionelles, pompe, mode silencieux, COP du jour pour chauffage et eau chaude (chaleur divisée par électricité depuis minuit), coefficient annuel (JAZ/SPF) pour chauffage, eau chaude et total depuis le 1er janvier, avec chaleur et électricité en kWh, à partir des valeurs HeishaMon, heures et démarrages) ; les modifications sont envoyées avec « Appliquer » et la porte se referme
 - Fenêtre d'aide (« ? » en bas à droite) : explication simple de toutes les valeurs et commandes que HeishaMon peut lire et écrire, avec recherche et groupes ; pour chaque valeur TOP l'ID complet de l'entité, copiable d'un clic
 - Profils de fabricants pour 34 intégrations de 24 fabricants (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant et d'autres), détectés automatiquement ; si plusieurs sont trouvés, l'éditeur demande lequel utiliser. Hormis HeishaMon by Lutarym, ils ne sont pas testés. Les profils d'appareil peuvent aussi être exportés, adaptés et importés ; voir le [guide des profils](docs/GERAETEPROFIL.fr.md)
 - Packs de langue : exporter une langue dans un fichier, la traduire ou l'adapter et l'importer de nouveau ; voir le [guide des packs de langue](docs/SPRACHPAKET.fr.md)
@@ -80,7 +80,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `language` | `auto` | `auto`, `de`, `en`, `fr` ou `ja` |
 | `profil` | `auto` | `auto` détecte l'intégration automatiquement, sinon l'identifiant d'un profil comme `heishamon_lutarym`, `heishamon` (nommage MQTT), `vicare`, `luxtronik2` ; liste dans le [guide](docs/GERAETEPROFIL.fr.md) |
 | `buffer_present` | `auto` | Ballon tampon : `auto` via TOP99, `true` ou `false` |
-| `cop_reference` | vide | Fiche technique pour la comparaison du COP : `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Seulement alors l'onglet COP colore chaque cycle : vert à partir de 92 % de la fiche technique (tolérance −8 %, HP KEYMARK), jaune en dessous, hors des points d'essai estimé prudemment et dessiné pâle. Vide : COP sans évaluation |
+| `cop_reference` | vide | Fiche technique pour la comparaison du COP : `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Seulement alors l'onglet COP colore chaque cycle : vert à partir de 92 % de la fiche technique (tolérance −8 %, HP KEYMARK), jaune en dessous, hors des points d'essai seulement estimé, signalé comme estimation et dessiné pâle. Vide : COP sans évaluation |
 | `dhw_usable_temp` | vide | Température du ballon en °C en dessous de laquelle l'eau chaude n'est plus utilisable. Sert à la durée de maintien dans la fenêtre « Surveiller l'eau chaude » (bouton dans la fenêtre de la pompe à chaleur). Vide : colonne sans valeur |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
 | `show_history` | `knopf` | Graphiques : `knopf` six boutons en haut à droite ouvrent consommation, SG Ready, températures, COP, cycles et analyse dans une fenêtre, période au choix de 24 heures à 1 an, `true` consommation toujours dans la carte, `false` désactivé |
@@ -162,7 +162,7 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | **Ballon tampon** | | |
 | `buffer_delta` | Surélévation du ballon tampon (ΔT) | TOP113, cible du tampon = consigne circuit + ΔT |
 | `buffer_target` | Consigne de départ de la PAC | TOP7 |
-| `cop_heating` | COP chauffage | HeishaMon by Lutarym, source réglable dans l'intégration sous Source COP |
+| `cop_heating` | COP chauffage | HeishaMon by Lutarym, utilisé seulement sans les puissances de la pompe à chaleur (sinon chaleur divisée par électricité depuis TOP15/TOP16) ; source réglable dans l'intégration sous Source COP |
 | `room_heater` | Appoint chauffage autorisé | TOP59 |
 | `room_heater_switch` | Autoriser l'appoint chauffage | SetRoomHeaterState, switch |
 | **Circuit 1** | | |
@@ -191,7 +191,7 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `dhw_temp` | Température de l'eau chaude | TOP10 |
 | `dhw_heat_delta` | Hystérésis de l'eau chaude | TOP22 |
 | `dhw_setpoint` | Consigne eau chaude | TOP9, number |
-| `cop_dhw` | COP eau chaude | HeishaMon by Lutarym, source réglable dans l'intégration sous Source COP |
+| `cop_dhw` | COP eau chaude | HeishaMon by Lutarym, utilisé seulement sans les puissances de la pompe à chaleur (sinon chaleur divisée par électricité depuis TOP40/TOP41) ; source réglable dans l'intégration sous Source COP |
 | `dhw_heater` | Appoint eau chaude autorisé | TOP58 |
 | `dhw_force` | Chauffe unique | SetForceDHW, switch |
 | `dhw_force_state` | Chauffe en cours | TOP2 |

@@ -48,15 +48,17 @@
  *    Vermehrung von Legionellen wirksam gehemmt (Wissenschaftliche Dienste
  *    des Bundestags, WD 8-3000-021/23). Der Speicher faellt bis Soll plus
  *    TOP22 (negativ), bevor nachgeladen wird.
- *  - Anlagendruck 1,2 bis 2,0 bar plus 0,3 bar: Vattenfall. TOP115 gibt
- *    es laut HeishaMon nur bei der K- und L-Serie; 0 bar gilt als kein
- *    Messwert, eine laufende Anlage hat nie 0 bar.
+ *  - Anlagendruck meist 1,2 bis 2,0 bar (Vattenfall, Richtwert; die dort
+ *    genannten etwa 0,3 bar sind ein Zuschlag zur Rechnung nach der Hoehe,
+ *    1,0 bar je 10 m, gegen Druckverluste, keine Toleranz nach oben).
+ *    TOP115 gibt es laut HeishaMon nur bei der K- und L-Serie; 0 bar gilt
+ *    als kein Messwert (eigene Festlegung).
  *  - JAZ: aus Werten der Waermepumpe seit 1. Januar, nur eingeschraenkt
  *    mit gemessenen Jahreswerten vergleichbar: nur Messwert.
  */
 import { escapeHtml, fmt, indexBis, numState, rawState, stellbar, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { copStufe, mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
+import { copStufe, copSumme, mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
 import { TOLERANZ } from "./datenblatt.js";
 
 export const QUELLEN = {
@@ -525,7 +527,11 @@ export const analyseKarte = {
     // Messwert.
     const heizCop = laeufe.filter((l) => !l.ww && l.cop !== null);
     if (heizCop.length) {
-      const c = gewichtet(heizCop, (l) => l.cop);
+      // Waerme durch Strom der Heizlaeufe; ohne Energiewerte das Mittel
+      // nach Laufzeit.
+      const summe = copSumme(heizCop, "heiz");
+      const c = summe !== null ? summe : gewichtet(heizCop, (l) => l.cop);
+      const copText = t(summe !== null ? "an_w_cop" : "an_w_cop_zeit");
       const ref = this._copReferenz();
       const bewertet = heizCop.filter((l) => copStufe(l));
       if (ref && bewertet.length) {
@@ -534,13 +540,13 @@ export const analyseKarte = {
         const stufe = q < TOLERANZ ? "hinweis" : u ? "leicht" : "ok";
         punkt({
           gruppe: "heiz", id: "cop", stufe, titel: t("an_t_cop"), wert: z(c),
-          wertText: `${t("an_w_cop")} · ${tf(t("an_w_cop_dbl"), { p: z(q * 100, 0) })}`, richt: t("an_r_cop"),
+          wertText: `${copText} · ${tf(t("an_w_cop_dbl"), { p: z(q * 100, 0) })}`, richt: t("an_r_cop"),
           text: tf(t(u ? "an_cop_unter" : "an_cop_ok"), { u, n: bewertet.length }),
           quelle: ["cop", "keymark"], ohne: t("an_ov_cop"),
         });
       } else {
         punkt({
-          gruppe: "heiz", id: "cop", stufe: "info", titel: t("an_t_cop"), wert: z(c), wertText: t("an_w_cop"),
+          gruppe: "heiz", id: "cop", stufe: "info", titel: t("an_t_cop"), wert: z(c), wertText: copText,
           text: t(ref ? "an_cop_ohne_punkte" : "an_cop_ohne_ref"), quelle: "",
         });
       }
@@ -651,7 +657,7 @@ export const analyseKarte = {
     // 0 bar heisst: kein Sensor (TOP115 gibt es nur bei K- und L-Serie).
     const druck = this._anWert("water_pressure");
     if (druck !== null && druck > 0.05) {
-      const stufe = druck >= 1.2 && druck <= 2.3 ? "ok" : "hinweis";
+      const stufe = druck >= 1.2 && druck <= 2.0 ? "ok" : "hinweis";
       punkt({
         gruppe: "anlage", id: "druck", stufe, titel: t("an_t_druck"), wert: `${z(druck)} bar`, richt: t("an_r_druck"),
         text: t(stufe === "ok" ? "an_dr_ok" : druck < 1.2 ? "an_dr_niedrig" : "an_dr_hoch"),

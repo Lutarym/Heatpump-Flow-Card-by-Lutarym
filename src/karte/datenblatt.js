@@ -16,14 +16,16 @@
  * der Karte. datenblattCop liefert nur innerhalb der Pruefpunkte einen Wert.
  *
  * Ausserhalb der Pruefpunkte schaetzt die Karte (eigene Festlegung, in der
- * Karte als Schaetzung gekennzeichnet), und zwar zur vorsichtigen Seite:
+ * Karte als Schaetzung gekennzeichnet):
  *  - waermer als +7 °C oder Vorlauf unter 35 °C: es gilt der Wert am Rand
  *    der Pruefpunkte. Die Karte nimmt also keinen hoeheren COP an, als das
  *    Datenblatt fuer +7 °C und 35 °C nennt, obwohl eine waermere Quelle und
- *    ein tieferer Vorlauf den COP physikalisch heben.
+ *    ein tieferer Vorlauf den COP physikalisch heben. Eine Bewertung
+ *    beruht dort so nie auf einem hochgerechneten Wert.
  *  - kaelter als -7 °C oder Vorlauf ueber 55 °C: der Guetegrad am Rand mal
  *    dem Carnot-COP der tatsaechlichen Temperaturen; der Wert sinkt so mit
- *    dem groesseren Temperaturhub.
+ *    dem groesseren Temperaturhub. Ob der Guetegrad dort gleich bleibt,
+ *    belegt das Datenblatt nicht; darum nur Schaetzung.
  *
  * Toleranz: HP KEYMARK, Annex A (Rev. 11, 06.12.2023), A.4.2.1: Die
  * Toleranz auf Heizleistung und COP an Normpunkten nach EN 14511-2 ist
@@ -74,7 +76,7 @@ export function datenblattCop(kennung, aussen, vorlauf) {
 }
 
 /**
- * Vergleichswert auch ausserhalb der Pruefpunkte, vorsichtig geschaetzt
+ * Vergleichswert auch ausserhalb der Pruefpunkte, dort nur geschaetzt
  * (siehe oben). Ergebnis { wert, geschaetzt } oder null ohne Datenblatt.
  */
 export function datenblattSchaetzung(kennung, aussen, vorlauf) {

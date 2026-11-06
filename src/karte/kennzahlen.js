@@ -4,45 +4,43 @@
  */
 import { copMittel, fmt, numState } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
+import { energie, verlaufsReihe } from "./auswertung.js";
 
 export const kennzahlenKarte = {
   /**
-   * Tagesdurchschnitt der Leistungszahl seit Mitternacht. Ob der Wert
-   * von der Waermepumpe oder vom externen Strommesser stammt, waehlt die
-   * Integration ueber "COP Quelle". Im Demomodus gibt es keine Historie,
-   * dort wird der aktuelle Wert gezeigt.
+   * Leistungszahl seit Mitternacht: Waerme durch Strom, beides als
+   * Zeitintegral der Leistungswerte der Waermepumpe (Heizen TOP15/TOP16,
+   * Warmwasser TOP40/TOP41, mit Zusatzblock XTOP), wie bei der JAZ. Nur
+   * ohne diese Werte der zeitliche Mittelwert des COP-Sensors der
+   * Integration. Im Demomodus gibt es keine Historie, dort wird der
+   * aktuelle Wert gezeigt.
    */
   _cop(hass, basis) {
-    const ids = [this._e(basis)];
     if (this._config && this._config.demo) {
-      for (const id of ids) {
-        const v = numState(hass, id);
-        if (v !== null && v > 0) return v;
-      }
-      return null;
+      const v = numState(hass, this._e(basis));
+      return v !== null && v > 0 ? v : null;
     }
     this._ladeCopTag();
     const tag = this._copTag || {};
-    for (const id of ids) {
-      if (id && typeof tag[id] === "number") return tag[id];
-    }
-    return null;
+    return typeof tag[basis] === "number" ? tag[basis] : null;
   },
 
   /**
-   * Holt den Verlauf beider Leistungszahlen ab Mitternacht und bildet
-   * je Entitaet den zeitgewichteten Mittelwert. Jeder Wert zaehlt so lange,
-   * wie er galt. Unbekannt, nicht verfuegbar und Werte bis 0 bleiben
-   * draussen, das sind Zeiten ohne Verdichterbetrieb.
+   * Holt ab Mitternacht die Leistungswerte der Waermepumpe und rechnet je
+   * Betriebsart Waerme durch Strom. Fehlen sie, den zeitgewichteten
+   * Mittelwert des COP-Sensors (Werte bis 0 bleiben draussen).
    * Abgefragt wird hoechstens alle fuenf Minuten und sofort nach
    * Tageswechsel.
    */
   async _ladeCopTag() {
     const q = this._quelle;
     if (!q || typeof q.callWS !== "function" || this._copLaeuft) return;
-    const ids = ["cop_heating", "cop_dhw"]
-      .map((k) => this._e(k))
-      .filter(Boolean);
+    const quellen = this._jazQuellen();
+    const paare = quellen && !quellen.demo ? { cop_heating: quellen.heizen, cop_dhw: quellen.ww } : {};
+    const sensoren = { cop_heating: this._e("cop_heating"), cop_dhw: this._e("cop_dhw") };
+    const ids = [...new Set(["cop_heating", "cop_dhw"]
+      .flatMap((k) => (paare[k] ? [paare[k].w, paare[k].e] : [sensoren[k]]))
+      .filter(Boolean))];
     if (!ids.length) return;
     const jetzt = Date.now();
     const d = new Date(jetzt);
@@ -68,8 +66,15 @@ export const kennzahlenKarte = {
         no_attributes: true,
       });
       const ergebnis = {};
-      ids.forEach((id) => {
-        ergebnis[id] = copMittel((antwort && antwort[id]) || [], mitternacht, jetzt);
+      ["cop_heating", "cop_dhw"].forEach((k) => {
+        const p = paare[k];
+        if (p) {
+          const w = energie(verlaufsReihe(antwort, p.w), mitternacht, jetzt);
+          const e = energie(verlaufsReihe(antwort, p.e), mitternacht, jetzt);
+          ergebnis[k] = w !== null && e !== null && e > 0.01 ? w / e : null;
+        } else if (sensoren[k]) {
+          ergebnis[k] = copMittel((antwort && antwort[sensoren[k]]) || [], mitternacht, jetzt);
+        }
       });
       this._copTag = ergebnis;
       this._copTagStart = mitternacht;

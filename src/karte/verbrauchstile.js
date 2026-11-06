@@ -51,9 +51,12 @@ export const verbrauchStileKarte = {
     for (let i = 1; i < daten.length; i++) {
       const a = daten[i - 1];
       const b = daten[i];
-      // Wie bei der Linie: die Farbe des hoeheren Endpunkts.
-      const art = b.v > a.v ? ziele[i] : ziele[i - 1];
-      const kwh = (((a.v + b.v) / 2) * faktor * (b.t - a.t)) / 3600000;
+      // Jeder Wert gilt bis zum naechsten (Verlauf von Home Assistant):
+      // Energie = Leistung zu Beginn mal Dauer, Betriebsart zu Beginn.
+      // Ein Trapez wuerde einen Sprung nach langem gleichem Wert ueber die
+      // ganze Dauer verschmieren.
+      const art = ziele[i - 1];
+      const kwh = (Math.max(0, a.v) * faktor * (b.t - a.t)) / 3600000;
       summe[art] += kwh;
       stuecke.push({ t0: a.t, t1: b.t, art, kwh });
     }

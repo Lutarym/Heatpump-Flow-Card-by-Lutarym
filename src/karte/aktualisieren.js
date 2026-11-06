@@ -342,7 +342,7 @@ export const aktualisierenKarte = {
     set("buf-sp", pufferZiel === null ? "" : tf(this._t("s_ziel"), { v: fmt(pufferZiel, 0) }));
     set("buf-delta", bDelta === null || wpSoll === null ? "" : tf(this._t("s_wp_soll"), { v: fmt(wpSoll, 0) }));
     // Der COP steht hinter der Tuer. Abgefragt wird er hier, damit der
-    // Tagesmittelwert geladen ist, wenn die Tuer aufgeht.
+    // Wert seit Mitternacht geladen ist, wenn die Tuer aufgeht.
     this._cop(hass, "cop_heating");
     // TOP58 und TOP59 sind nur die Freigabe. Ob ein Heizstab heizt,
     // melden TOP60 (intern) und TOP61 (extern). Das Abzeichen erscheint

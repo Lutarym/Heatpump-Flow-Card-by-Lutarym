@@ -12,7 +12,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Flow animation that follows the real hydraulics: diverter valve, pumps, compressor and buffer
 - Temperature colouring of tanks, radiators and pipes
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
-- Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, today's COP for heating and hot water, seasonal performance factor (JAZ) for heating, hot water and total since 1 January with heat and electricity in kWh, from HeishaMon values, operating hours and starts); changes are sent with “Apply” and the door closes
+- Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, today's COP for heating and hot water (heat divided by electricity since midnight), seasonal performance factor (JAZ) for heating, hot water and total since 1 January with heat and electricity in kWh, from HeishaMon values, operating hours and starts); changes are sent with “Apply” and the door closes
 - Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups; for every TOP value the full entity ID, copyable with one click
 - Manufacturer profiles for 34 integrations of 24 manufacturers (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant and more), detected automatically; if several are found, the editor asks which one to use. Apart from HeishaMon by Lutarym they are untested. Device profiles can also be exported, adapted and imported; see the [device profile guide](docs/GERAETEPROFIL.md)
 - Language packs: export a language as a file, translate it yourself or adjust it and import it again; see the [language pack guide](docs/SPRACHPAKET.md)
@@ -80,7 +80,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `language` | `auto` | `auto`, `de`, `en`, `fr` or `ja` |
 | `profil` | `auto` | `auto` detects the integration automatically, or the ID of a profile such as `heishamon_lutarym`, `heishamon` (MQTT naming), `vicare`, `luxtronik2`; list in the [guide](docs/GERAETEPROFIL.md) |
 | `buffer_present` | `auto` | Heating buffer: `auto` from TOP99, `true` or `false` |
-| `cop_reference` | empty | Datasheet for the COP comparison: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Only then does the COP tab colour each run: green from 92 % of the datasheet (tolerance −8 %, HP KEYMARK), yellow below, outside the rating points estimated conservatively and drawn pale. Empty: COP not rated |
+| `cop_reference` | empty | Datasheet for the COP comparison: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Only then does the COP tab colour each run: green from 92 % of the datasheet (tolerance −8 %, HP KEYMARK), yellow below, outside the rating points only estimated, marked as an estimate and drawn pale. Empty: COP not rated |
 | `dhw_usable_temp` | empty | Tank temperature in °C below which hot water counts as no longer usable. Used for the holding time in the window "Monitor hot water" (button in the heat pump window). Empty: column without a value |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
 | `show_history` | `knopf` | Charts: `knopf` six buttons at the top right open energy, SG Ready, temperatures, COP, cycling and analysis in a window, period selectable from 24 hours to 1 year, `true` energy always in the card, `false` off |
@@ -162,7 +162,7 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | **Heating buffer** | | |
 | `buffer_delta` | Buffer offset (ΔT) | TOP113, buffer target = circuit target + ΔT |
 | `buffer_target` | Heat pump flow target | TOP7 |
-| `cop_heating` | COP heating | HeishaMon by Lutarym, source selectable in the integration under COP source |
+| `cop_heating` | COP heating | HeishaMon by Lutarym, only used without the heat pump's power values (otherwise heat divided by electricity from TOP15/TOP16); source selectable in the integration under COP source |
 | `room_heater` | Heating element, heating: allowed | TOP59 |
 | `room_heater_switch` | Allow heating element, heating | SetRoomHeaterState, switch |
 | **Circuit 1** | | |
@@ -191,7 +191,7 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `dhw_temp` | Hot water temperature | TOP10 |
 | `dhw_heat_delta` | Hot water hysteresis | TOP22 |
 | `dhw_setpoint` | Hot water target | TOP9, number |
-| `cop_dhw` | COP hot water | HeishaMon by Lutarym, source selectable in the integration under COP source |
+| `cop_dhw` | COP hot water | HeishaMon by Lutarym, only used without the heat pump's power values (otherwise heat divided by electricity from TOP40/TOP41); source selectable in the integration under COP source |
 | `dhw_heater` | Heating element, hot water: allowed | TOP58 |
 | `dhw_force` | Boost once | SetForceDHW, switch |
 | `dhw_force_state` | Boost running | TOP2 |

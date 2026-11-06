@@ -12,7 +12,7 @@ Panasonic Aquarea ヒートポンプを HeishaMon 経由で接続し、動くシ
 - 三方弁、ポンプ、圧縮機、バッファーの実際の配管動作に従う流れのアニメーション
 - タンク、放熱器、配管の温度による色分け
 - 回路1と回路2の暖房曲線を専用ウィンドウに表示。目盛り、運転点、調整可能な基準点つき
-- ヒートポンプの扉：右下のボタンで前面が扉のように左へ開き、その奥に詳細設定（休暇、週間スケジュール、スマート給湯、暖房の外気温限界、温度差、レジオネラ対策、ポンプ、静音モード、暖房と給湯の今日の COP、暖房・給湯・合計の 1 月 1 日からの年間性能係数（JAZ、熱量と電力 kWh 付き、HeishaMon の値から算出）、運転時間と起動回数）があります。「適用」で変更を送信し、扉が閉じます
+- ヒートポンプの扉：右下のボタンで前面が扉のように左へ開き、その奥に詳細設定（休暇、週間スケジュール、スマート給湯、暖房の外気温限界、温度差、レジオネラ対策、ポンプ、静音モード、暖房と給湯の今日の COP（0時からの熱量÷電力量）、暖房・給湯・合計の 1 月 1 日からの年間性能係数（JAZ、熱量と電力 kWh 付き、HeishaMon の値から算出）、運転時間と起動回数）があります。「適用」で変更を送信し、扉が閉じます
 - ヘルプ画面（右下の「?」）：HeishaMon が読み書きできるすべての値と命令を分かりやすく説明。検索とグループ付き。各 TOP 値に対応するエンティティ ID 全体を表示し、クリックでコピー可能
 - 24 メーカー・34 統合のメーカープロファイル（Viessmann、NIBE、Daikin、Luxtronik、Stiebel Eltron、Vaillant など）を自動検出。複数見つかった場合はエディターがどれを使うか尋ねます。HeishaMon by Lutarym 以外は未検証です。デバイスプロファイルの書き出し・調整・読み込みも可能です。[デバイスプロファイルの説明](docs/GERAETEPROFIL.ja.md) を参照
 - 言語パック：言語をファイルに書き出し、自分で翻訳・調整して再び読み込めます。[言語パックの説明](docs/SPRACHPAKET.ja.md) を参照
@@ -80,7 +80,7 @@ entities:
 | `language` | `auto` | `auto`、`de`、`en`、`fr`、`ja` |
 | `profil` | `auto` | `auto` は統合を自動検出します。または `heishamon_lutarym`、`heishamon`（MQTT 命名規則）、`vicare`、`luxtronik2` などのプロファイル ID。一覧は[説明](docs/GERAETEPROFIL.ja.md)を参照 |
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
-| `cop_reference` | 空 | COP 比較用データシート：`panasonic_tcap_m_12`（Panasonic Aquarea T-CAP M 12 kW、WH-WXG12ME5/ME8）。指定したときだけ COP タブで運転ごとに色分けします：データシートの92 %以上は緑（許容差 −8 %、HP KEYMARK）、未満は黄、試験点の範囲外は控えめに推定し淡色で表示。空：COP は評価なし |
+| `cop_reference` | 空 | COP 比較用データシート：`panasonic_tcap_m_12`（Panasonic Aquarea T-CAP M 12 kW、WH-WXG12ME5/ME8）。指定したときだけ COP タブで運転ごとに色分けします：データシートの92 %以上は緑（許容差 −8 %、HP KEYMARK）、未満は黄、試験点の範囲外は推定のみ（推定と表示）で淡色表示。空：COP は評価なし |
 | `dhw_usable_temp` | 空 | 給湯が使えなくなるとみなすタンク温度（°C）。「給湯を観察」ウィンドウ（ヒートポンプのウィンドウのボタン）の保持時間に使います。空：値なし |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
 | `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
@@ -162,7 +162,7 @@ entities:
 | **暖房バッファー** | | |
 | `buffer_delta` | バッファー上乗せ温度（ΔT） | TOP113、バッファー目標 = 回路目標 + ΔT |
 | `buffer_target` | ヒートポンプ往き目標温度 | TOP7 |
-| `cop_heating` | COP 暖房 | HeishaMon by Lutarym、ソースは統合の COP ソースで選択 |
+| `cop_heating` | COP 暖房 | HeishaMon by Lutarym、ヒートポンプの電力値がない場合のみ使用（ある場合は TOP15/TOP16 から熱量÷電力量）。ソースは統合の COP ソースで選択 |
 | `room_heater` | 暖房ヒーター許可 | TOP59 |
 | `room_heater_switch` | 暖房ヒーター許可の切替 | SetRoomHeaterState, switch |
 | **回路1** | | |
@@ -191,7 +191,7 @@ entities:
 | `dhw_temp` | 給湯温度 | TOP10 |
 | `dhw_heat_delta` | 給湯のヒステリシス | TOP22 |
 | `dhw_setpoint` | 給湯設定温度 | TOP9, number |
-| `cop_dhw` | COP 給湯 | HeishaMon by Lutarym、ソースは統合の COP ソースで選択 |
+| `cop_dhw` | COP 給湯 | HeishaMon by Lutarym、ヒートポンプの電力値がない場合のみ使用（ある場合は TOP40/TOP41 から熱量÷電力量）。ソースは統合の COP ソースで選択 |
 | `dhw_heater` | 給湯ヒーター許可 | TOP58 |
 | `dhw_force` | 一回だけ加熱 | SetForceDHW, switch |
 | `dhw_force_state` | 加熱中 | TOP2 |

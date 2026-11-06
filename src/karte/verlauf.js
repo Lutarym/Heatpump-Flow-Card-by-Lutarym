@@ -136,6 +136,9 @@ export const verlaufKarte = {
         start_time: new Date(ab).toISOString(),
         end_time: new Date(sp.t1).toISOString(),
         entity_ids: [mitLeistung ? id : null, vid, k1, k2, vd].filter(Boolean),
+        // Mit dem Stand zu Beginn: Jeder Wert gilt bis zum naechsten, ohne
+        // ihn fehlte das erste Stueck bis zum ersten Wechsel.
+        include_start_time_state: true,
         minimal_response: true,
         no_attributes: true,
       });
@@ -326,7 +329,17 @@ export const verlaufKarte = {
     const gruppe = sr && sr.getElementById("verlauf-group");
     const masse = this._verlaufMasse;
     if (!gruppe || !masse) return;
-    const daten = this._verlauf || [];
+    let daten = this._verlauf || [];
+    // Verlauf: Jeder Wert gilt bis zum naechsten (so speichert Home
+    // Assistant). Der Stand zu Beginn wird auf den Beginn des Zeitraums
+    // gesetzt, der letzte Wert gilt bis jetzt.
+    const spV = this._verlaufSp || this._zrSpanne();
+    if (!this._verlaufStat && daten.length) {
+      const vorher = daten.filter((p) => p.t <= spV.t0);
+      daten = (vorher.length ? [{ ...vorher[vorher.length - 1], t: spV.t0 }] : []).concat(daten.filter((p) => p.t > spV.t0));
+      const letzter = daten[daten.length - 1];
+      if (letzter && spV.t1 > letzter.t) daten = daten.concat({ t: spV.t1, v: letzter.v });
+    }
     if (daten.length < 2) {
       gruppe.setAttribute("opacity", "0");
       this._diaNachVerlauf();

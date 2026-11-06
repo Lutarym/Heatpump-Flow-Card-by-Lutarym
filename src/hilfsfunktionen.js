@@ -177,7 +177,9 @@ export function dezimalFuer(sprache) {
 
 export function fmt(value, digits) {
   if (value === null || value === undefined || Number.isNaN(value)) return "--";
-  return value.toFixed(digits === undefined ? 1 : digits).replace(".", DEZIMAL);
+  const text = value.toFixed(digits === undefined ? 1 : digits);
+  // Gerundet null bleibt ohne Vorzeichen: -0,0 waere irrefuehrend.
+  return (/^-0(\.0+)?$/.test(text) ? text.slice(1) : text).replace(".", DEZIMAL);
 }
 
 export function friendly(hass, entityId) {

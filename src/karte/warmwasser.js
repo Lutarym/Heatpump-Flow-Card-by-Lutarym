@@ -4,8 +4,10 @@
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  *
  * Grundsatz: Es wird nur gezeigt und verglichen, was gemessen ist.
- *  - Eine Ladung ist ein Abschnitt, in dem das Umschaltventil (TOP20) auf
- *    Warmwasser steht und der Verdichter (TOP8) laeuft.
+ *  - Eine Ladung ist ein zusammenhaengender Verdichterlauf (TOP8 ueber 0),
+ *    waehrend das Umschaltventil (TOP20) auf Warmwasser steht. Bleibt das
+ *    Ventil nach der Ladung auf Warmwasser (etwa im Betrieb nur
+ *    Warmwasser), endet die Ladung trotzdem mit dem Verdichter.
  *  - Strom und Waerme je Ladung sind das Zeitintegral von TOP41 und TOP40,
  *    bei Geraeten mit Zusatzblock XTOP2 und XTOP5 (HeishaMon, MQTT-Topics).
  *    Ohne diese Werte zaehlt der COP Warmwasser der Integration.
@@ -22,7 +24,7 @@
  */
 import { escapeHtml, fmt, indexBis, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { mittel, ventilAbschnitte } from "./auswertung.js";
+import { energie, mittel, ventilAbschnitte } from "./auswertung.js";
 import { datenblattSchaetzung, TOLERANZ } from "./datenblatt.js";
 import { sgReihe, sgVerstaerkt } from "./sgstufen.js";
 
@@ -54,10 +56,31 @@ function dauerAn(reihe, von, bis) {
 }
 
 /** Zeitintegral einer Leistung in W ueber den Zeitraum, Ergebnis in kWh. */
-function kwh(reihe, von, bis) {
-  if (!reihe || !reihe.length) return null;
-  const m = mittel(reihe, von, bis, false);
-  return m === null ? null : (Math.max(m, 0) * (bis - von)) / 3.6e9;
+const kwh = (reihe, von, bis) => energie(reihe, von, bis);
+
+/** Laeuft der Verdichter laut Eintrag (Zahl ueber 0 oder Zustand an)? */
+function verdichterAn(p) {
+  const n = parseFloat(p.s);
+  if (!Number.isNaN(n)) return n > 0;
+  return zustandAn(p.s) === true;
+}
+
+/** Zusammenhaengende Verdichterlaeufe innerhalb des Zeitraums. */
+function verdichterLaeufe(vd, von, bis) {
+  const out = [];
+  if (!vd || !vd.length) return out;
+  let start = null;
+  for (let i = Math.max(0, indexBis(vd, von)); i < vd.length && vd[i].t < bis; i++) {
+    const t = Math.max(vd[i].t, von);
+    const an = verdichterAn(vd[i]);
+    if (an && start === null) start = t;
+    else if (!an && start !== null) {
+      if (t > start) out.push({ von: start, bis: t });
+      start = null;
+    }
+  }
+  if (start !== null && bis > start) out.push({ von: start, bis });
+  return out;
 }
 
 /** Hoechster Wert im Zeitraum mit Zeitpunkt, samt Stand zu Beginn. */
@@ -88,11 +111,12 @@ function tagEnde(t) {
 
 /** Zerlegt den Verlauf in Ladungen mit allen Messwerten. */
 export function wwLadungen(d, ref) {
-  const abschnitte = ventilAbschnitte(d.ventil, d.t0, d.t1).filter((a) => a.ww);
+  // Je Ventilabschnitt Warmwasser die Verdichterlaeufe darin.
+  const abschnitte = ventilAbschnitte(d.ventil, d.t0, d.t1)
+    .filter((x) => x.ww)
+    .flatMap((x) => verdichterLaeufe(d.vd, x.von, x.bis));
   const out = [];
   abschnitte.forEach((a) => {
-    // Nur wenn der Verdichter in dem Abschnitt lief.
-    if (mittel(d.vd, a.von, a.bis, true) === null) return;
     const l = { von: a.von, bis: a.bis };
     l.angeschnitten = a.von <= d.t0 + 1000;
     l.laufend = a.bis >= d.t1 - 1000;
@@ -101,7 +125,8 @@ export function wwLadungen(d, ref) {
     const max = hoechster(d.temp, a.von, a.bis);
     l.tEnde = max ? max.v : null;
     l.aussen = mittel(d.aussen, a.von, a.bis, false);
-    l.vorlauf = mittel(d.vorlauf, a.von, a.bis, true);
+    // Vorlauf wie bei den Laeufen im Reiter COP erst ab der fuenften Minute.
+    l.vorlauf = mittel(d.vorlauf, Math.min(a.von + 5 * 60000, (a.von + a.bis) / 2), a.bis, true);
     l.strom = kwh(d.e, a.von, a.bis);
     l.waerme = kwh(d.w, a.von, a.bis);
     l.quelleCop = "leistung";
@@ -164,7 +189,9 @@ export function wwHaltezeiten(d, laden, schwelle) {
     h.unter = null;
     if (Number.isFinite(schwelle)) {
       const reihe = d.temp || [];
-      for (let k = Math.max(0, indexBis(reihe, ende)); k < reihe.length && reihe[k].t <= bis; k++) {
+      const beiEnde = stand(reihe, ende);
+      if (beiEnde !== null && !Number.isNaN(beiEnde) && beiEnde < schwelle) h.unter = 0;
+      for (let k = Math.max(0, indexBis(reihe, ende)); h.unter === null && k < reihe.length && reihe[k].t <= bis; k++) {
         if (reihe[k].t < ende) continue;
         if (!Number.isNaN(reihe[k].v) && reihe[k].v < schwelle) {
           h.unter = (reihe[k].t - ende) / STUNDE;
@@ -209,7 +236,10 @@ export function wwBereiche(laden) {
       bis: u + BEREICH,
       n: xs.length,
       genug: xs.length >= WW_MIN_N,
-      cop: avg(xs, (l) => l.cop),
+      // Waerme durch Strom des Bereichs, ohne Energiewerte das Mittel.
+      cop: xs.every((l) => l.strom !== null && l.waerme !== null) && xs.reduce((a, l) => a + l.strom, 0) > 0
+        ? xs.reduce((a, l) => a + l.waerme, 0) / xs.reduce((a, l) => a + l.strom, 0)
+        : avg(xs, (l) => l.cop),
       strom: avg(xs, (l) => l.strom),
       tStart: avg(xs, (l) => l.tStart),
       hub: avg(xs, (l) => (l.tEnde !== null && l.tStart !== null ? l.tEnde - l.tStart : null)),

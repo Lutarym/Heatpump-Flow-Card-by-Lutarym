@@ -347,7 +347,8 @@ export const tuerKarte = {
       return;
     }
     if (f.cop) {
-      // Tagesmittelwert seit Mitternacht, im Demomodus der aktuelle Wert.
+      // Seit Mitternacht Waerme durch Strom (kennzahlen.js), im Demomodus
+      // der aktuelle Wert.
       const v = this._cop(this._quelle, f.key);
       el.textContent = v === null ? "--" : tf(this._t("j_cop_heute"), { v: fmt(v, 1) });
       return;

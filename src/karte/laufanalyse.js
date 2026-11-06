@@ -25,7 +25,7 @@ import { ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, fmt, indexBis } from "../hilfsfunktionen.js";
 import { feldText, tf } from "../texte.js";
 import { AUFFAELLIG, GRENZE, QUELLEN, anZeiten, vlStufe } from "./analyse.js";
-import { mittel } from "./auswertung.js";
+import { energie, mittel } from "./auswertung.js";
 
 const MIN = 60000;
 
@@ -101,12 +101,22 @@ export const laufanalyseKarte = {
     const stab = minuten(stabZeiten);
     werte.push([t("an_t_abtauung"), tf(t("la_w_min"), { m: z(abtau, 0) })]);
     werte.push([t("la_w_stab"), tf(t("la_w_min"), { m: z(stab, 0) })]);
-    const copReihe = l.ww ? d.copW : d.copH;
+    // COP der ersten 5 Minuten und danach: wie der Lauf-COP Waerme durch
+    // Strom, ohne Energiewerte der Mittelwert des COP-Sensors.
     const grenze = Math.min(l.von + 5 * MIN, l.bis);
-    const copStart = mittel(copReihe, l.von, grenze, true);
-    const copDanach = l.bis - grenze >= MIN ? mittel(copReihe, grenze, l.bis, true) : null;
+    const nachEnergie = l.copArt === "energie";
+    const teilCop = (von, bis) => {
+      if (nachEnergie) {
+        const w = energie(l.ww ? d.wwW : d.heizW, von, bis);
+        const e = energie(l.ww ? d.wwE : d.heizE, von, bis);
+        return w !== null && e !== null && e > 0.001 ? w / e : null;
+      }
+      return mittel(l.ww ? d.copW : d.copH, von, bis, true);
+    };
+    const copStart = teilCop(l.von, grenze);
+    const copDanach = l.bis - grenze >= MIN ? teilCop(grenze, l.bis) : null;
     if (copStart !== null && copDanach !== null) {
-      werte.push([t("la_w_start"), tf(t("la_w_start_t"), { a: z(copStart), b: z(copDanach) })]);
+      werte.push([t("la_w_start"), tf(t(nachEnergie ? "la_w_start_e" : "la_w_start_t"), { a: z(copStart), b: z(copDanach) })]);
     }
 
     /* ---------- Befunde ---------- */
@@ -114,7 +124,7 @@ export const laufanalyseKarte = {
     if (l.minuten < 10) {
       let text = tf(t("la_kurz"), { d: z(l.minuten, 0) });
       if (copStart !== null && copDanach !== null && copStart < copDanach) {
-        text += ` ${tf(t("la_kurz_start"), { a: z(copStart), b: z(copDanach) })}`;
+        text += ` ${tf(t(nachEnergie ? "la_kurz_start_e" : "la_kurz_start"), { a: z(copStart), b: z(copDanach) })}`;
       }
       befunde.push({ text, quelle: "taktung" });
       ohne.push(t("la_ov_kurz"));
