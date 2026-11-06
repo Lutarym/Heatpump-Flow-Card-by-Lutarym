@@ -200,6 +200,7 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `dhw_heater_switch` | Allow heating element, hot water | SetDHWHeaterState, switch |
 | `circulation_pump` | Circulation pump running | Shelly or own switch |
 | `circ_switch` | Circulation switch (clickable) | switch to turn circulation on and off |
+| `weather` | Weather forecast | weather, hourly forecast; empty: automatic. For the best charging time in the window "Monitor hot water" |
 | **Control** | | |
 | `mode_select` | Switch operating mode | SetOperationMode, select |
 | **Advanced settings** | | |

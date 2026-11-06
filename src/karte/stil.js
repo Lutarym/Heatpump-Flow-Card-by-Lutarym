@@ -482,12 +482,15 @@ export const stilKarte = {
       .lhc-ww-urteil-satz { margin-top: 5px; font-size: 16px; font-weight: 700; color: var(--c-e8edf4); }
       .lhc-ww-urteil-zahl { margin-top: 6px; font-size: 30px; font-weight: 800; color: var(--c-e8edf4); font-variant-numeric: tabular-nums; }
       .lhc-ww-urteil-zahl small { font-size: 15px; font-weight: 600; color: var(--c-c9d3e0); }
+      .lhc-ww-urteil-zwei { display: flex; flex-wrap: wrap; gap: 2px 26px; margin-top: 6px; }
+      .lhc-ww-urteil-zwei .lhc-ww-urteil-zahl { margin-top: 0; }
       .lhc-ww-urteil-fein { margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--c-98a6ba); }
       .lhc-ww-zeilen { margin-top: 12px; }
       .lhc-ww-zeile { display: flex; justify-content: space-between; gap: 12px; padding: 7px 2px; font-size: 13px;
         color: var(--c-e8edf4); border-bottom: 1px solid var(--c-26303f); }
       .lhc-ww-zeile span { color: var(--c-98a6ba); }
       .lhc-ww-zeile b { font-weight: 600; text-align: right; }
+      .lhc-ww-zeile b i { font-style: normal; font-weight: 400; color: var(--c-98a6ba); }
       .lhc-ww-wie { margin: 6px 0 0; padding-left: 16px; line-height: 1.5; color: var(--c-98a6ba); }
       .lhc-dialog-action:hover { border-color: var(--c-3e4c61); }
       .lhc-dialog-action.is-an {

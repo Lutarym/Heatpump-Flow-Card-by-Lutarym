@@ -85,7 +85,7 @@ const COP_FARBE = { gut: "#16A34A", unter: "#F5B70A" };
  */
 export function copStufe(l) {
   // Laeufe ueber SG Ready (Stufe 3 oder 4) werden nicht bewertet.
-  if (!l || l.sg || l.copQuote === null || l.copQuote === undefined || l.laufend || l.angeschnitten) return null;
+  if (!l || l.sg || l.copQuote === null || l.copQuote === undefined || l.laufend || l.angeschnitten || l.luecke) return null;
   return l.copQuote >= TOLERANZ ? "gut" : "unter";
 }
 
@@ -149,23 +149,97 @@ export function mittel(reihe, von, bis, nurPositiv) {
   return dauer ? summe / dauer : null;
 }
 
+/** Eintraege ohne bekannten Zustand, etwa wenn HeishaMon kurz nicht erreichbar ist. */
+const UNBEKANNT = ["unknown", "unavailable", "none", ""];
+
+/**
+ * Laeuft der Verdichter laut Eintrag (TOP8 in Hz oder an/aus)? true, false
+ * oder null, wenn der Zustand unbekannt ist. Unbekannt heisst nicht "aus".
+ */
+export function verdichterZustand(s) {
+  if (s === null || s === undefined) return null;
+  const t = String(s).trim().toLowerCase();
+  if (UNBEKANNT.includes(t)) return null;
+  const n = parseFloat(t);
+  if (!Number.isNaN(n)) return n > 0;
+  return zustandAn(t);
+}
+
+/**
+ * Zusammenhaengende Verdichterlaeufe im Zeitraum. Unbekannte Eintraege
+ * aendern den Zustand nicht, es gilt der letzte bekannte. Je Lauf: von,
+ * bis, anfang (lief schon zu Beginn der Reihe oder des Zeitraums), offen
+ * (laeuft am Ende noch), unbekannt (ms ohne bekannten Zustand im Lauf und
+ * direkt vor seinem Beginn, dann ist auch der Beginn unsicher).
+ */
+export function verdichterLaeufe(vd, von, bis) {
+  const out = [];
+  if (!vd || !vd.length) return out;
+  let start = null;
+  let anfang = false;
+  let unbekannt = 0;
+  let seit = null;
+  for (let i = Math.max(0, indexBis(vd, von)); i < vd.length && vd[i].t < bis; i++) {
+    const t = Math.max(vd[i].t, von);
+    const an = verdichterZustand(vd[i].s);
+    if (an === null) {
+      if (seit === null) seit = t;
+      continue;
+    }
+    const luecke = seit === null ? 0 : t - seit;
+    seit = null;
+    if (an && start === null) {
+      start = t;
+      anfang = i === 0 || vd[i].t <= von;
+      unbekannt = luecke;
+    } else if (start !== null) {
+      unbekannt += luecke;
+      if (!an) {
+        if (t > start) out.push({ von: start, bis: t, anfang, offen: false, unbekannt });
+        start = null;
+      }
+    }
+  }
+  if (start !== null && bis > start) {
+    if (seit !== null) unbekannt += bis - seit;
+    out.push({ von: start, bis, anfang, offen: true, unbekannt });
+  }
+  return out;
+}
+
+/**
+ * Ein Lauf gilt als lueckenhaft, wenn mehr als 5 % seiner Dauer ohne
+ * bekannten Zustand sind (gleiche Grenze wie bei der Energie: mindestens
+ * 95 % muessen bekannt sein). Solche Laeufe zaehlen als Start, werden aber
+ * nicht bewertet.
+ */
+export function lueckenhaft(lauf) {
+  return lauf.unbekannt > 0.05 * (lauf.bis - lauf.von);
+}
+
 /**
  * Zerlegt einen Zeitraum nach der Stellung des Umschaltventils in
  * Abschnitte mit ww (true = Warmwasser). Ohne Ventilverlauf gilt alles
  * als Heizen. Damit zaehlen bei einem Lauf, der ohne Verdichterstopp von
  * Warmwasser auf Heizen wechselt, die Warmwassertemperaturen nicht zum
- * Heizbetrieb.
+ * Heizbetrieb. Unbekannte Eintraege aendern die Stellung nicht.
  */
 export function ventilAbschnitte(ventil, von, bis) {
   if (!ventil || !ventil.length) return [{ von, bis, ww: false }];
-  const ist = (p) => warmwasserZustand(p.s) === true;
   let k = indexBis(ventil, von);
-  let ww = k >= 0 ? ist(ventil[k]) : false;
+  let ww = false;
+  for (let j = k; j >= 0; j--) {
+    const z = warmwasserZustand(ventil[j].s);
+    if (z !== null) {
+      ww = z;
+      break;
+    }
+  }
   let t = von;
   const out = [];
   for (k += 1; k < ventil.length && ventil[k].t < bis; k++) {
-    const neu = ist(ventil[k]);
-    if (neu === ww) continue;
+    const neu = warmwasserZustand(ventil[k].s);
+    if (neu === null || neu === ww) continue;
     if (ventil[k].t > t) out.push({ von: t, bis: ventil[k].t, ww });
     t = Math.max(t, ventil[k].t);
     ww = neu;
@@ -387,26 +461,12 @@ export const auswertungKarte = {
   },
 
   _auswertungLaeufeRechnen(d, ref) {
-    const laeuft = (p) => {
-      const n = parseFloat(p.s);
-      if (!Number.isNaN(n)) return n > 0;
-      return zustandAn(p.s) === true;
-    };
-    const laeufe = [];
-    let start = null;
-    let angeschnitten = false;
-    d.vd.forEach((p, i) => {
-      const an = laeuft(p);
-      if (an && start === null) {
-        start = Math.max(p.t, d.t0);
-        angeschnitten = i === 0 || p.t <= d.t0;
-      } else if (!an && start !== null) {
-        if (p.t > start) laeufe.push({ von: start, bis: p.t, angeschnitten, laufend: false });
-        start = null;
-      }
-    });
-    if (start !== null) laeufe.push({ von: start, bis: d.t1, angeschnitten, laufend: true });
+    // Unbekannte Werte von TOP8 (etwa "unavailable") beenden keinen Lauf.
+    const laeufe = verdichterLaeufe(d.vd, d.t0, d.t1).map((x) => ({
+      von: x.von, bis: x.bis, angeschnitten: x.anfang, laufend: x.offen, unbekannt: x.unbekannt,
+    }));
     laeufe.forEach((l) => {
+      l.luecke = lueckenhaft(l);
       l.minuten = (l.bis - l.von) / 60000;
       // Warmwasser, wenn das Ventil die meiste Zeit des Laufs dorthin stand.
       const abschnitte = ventilAbschnitte(d.ventil, l.von, l.bis);
@@ -644,7 +704,7 @@ export const auswertungKarte = {
       out += l.sg
         ? `<path class="lhc-sg-lauf" d="${form}" fill="none" stroke="#98A6BA" stroke-width="1.4" stroke-dasharray="3 2"><title>${escapeHtml(titel)}</title></path>`
         : `<path d="${form}"
-                    fill="${stufe ? COP_FARBE[stufe] : NEUTRAL}"${l.laufend || l.angeschnitten ? ' opacity="0.55"' : stufe && l.copGeschaetzt ? ' fill-opacity="0.55"' : ""}${klick}><title>${escapeHtml(titel)}</title></path>`;
+                    fill="${stufe ? COP_FARBE[stufe] : NEUTRAL}"${l.laufend || l.angeschnitten || l.luecke ? ' opacity="0.55"' : stufe && l.copGeschaetzt ? ' fill-opacity="0.55"' : ""}${klick}><title>${escapeHtml(titel)}</title></path>`;
       if (mitStrich) {
         const ye = zuY(l.copErwartet).toFixed(1);
         const ueber = viele ? 0 : 3;
@@ -718,7 +778,7 @@ export const auswertungKarte = {
     // Laeufe ueber SG Ready stehen im Band, zaehlen aber nicht mit. Pausen
     // vor und nach einem solchen Lauf ebenfalls nicht.
     const normal = laeufe.filter((l) => !l.sg);
-    const bewertet = normal.filter((l) => !l.laufend && !l.angeschnitten);
+    const bewertet = normal.filter((l) => !l.laufend && !l.angeschnitten && !l.luecke);
     const n = normal.filter((l) => !l.angeschnitten).length;
     const kurz = bewertet.filter((l) => l.minuten < 10);
     const mLauf = bewertet.length ? bewertet.reduce((s, l) => s + l.minuten, 0) / bewertet.length : null;
@@ -770,7 +830,7 @@ export const auswertungKarte = {
       out += l.sg
         ? `<rect class="lhc-sg-lauf" x="${(xa + 0.7).toFixed(1)}" y="136.7" width="${Math.max(1.6, w - 1.4).toFixed(1)}" height="24.6" rx="4" fill="none" stroke="#98A6BA" stroke-width="1.4" stroke-dasharray="3 2"><title>${escapeHtml(titelL)}</title></rect>`
         : `<rect x="${xa.toFixed(1)}" y="136" width="${w.toFixed(1)}" height="26" rx="4" fill="${f}"${
-          l.laufend || l.angeschnitten ? ' opacity="0.55"' : ""
+          l.laufend || l.angeschnitten || l.luecke ? ' opacity="0.55"' : ""
         }><title>${escapeHtml(titelL)}</title></rect>`;
     });
     // Aussentemperatur als Linie.

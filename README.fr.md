@@ -200,6 +200,7 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `dhw_heater_switch` | Autoriser l'appoint eau chaude | SetDHWHeaterState, switch |
 | `circulation_pump` | Pompe de circulation en marche | Shelly ou interrupteur propre |
 | `circ_switch` | Interrupteur de circulation (cliquable) | interrupteur pour la circulation |
+| `weather` | Prévisions météo | weather, prévision horaire ; vide : automatique. Pour la meilleure heure de charge dans la fenêtre « Surveiller l'eau chaude » |
 | **Commande** | | |
 | `mode_select` | Changer de mode | SetOperationMode, select |
 | **Réglages avancés** | | |

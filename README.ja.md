@@ -200,6 +200,7 @@ entities:
 | `dhw_heater_switch` | 給湯ヒーター許可の切替 | SetDHWHeaterState, switch |
 | `circulation_pump` | 循環ポンプ運転中 | Shellyまたは独自スイッチ |
 | `circ_switch` | 循環スイッチ（クリック可） | 循環の入切スイッチ |
+| `weather` | 天気予報 | weather、1時間ごとの予報。空欄：自動。「給湯を観察」ウィンドウの最適な沸き上げ時刻に使用 |
 | **制御** | | |
 | `mode_select` | 運転モード切替 | SetOperationMode, select |
 | **詳細設定** | | |

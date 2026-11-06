@@ -31,7 +31,7 @@
  */
 import { escapeHtml, fmt, indexBis, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { energie, mittel, ventilAbschnitte } from "./auswertung.js";
+import { energie, lueckenhaft, mittel, ventilAbschnitte, verdichterLaeufe } from "./auswertung.js";
 import { datenblattSchaetzung, TOLERANZ } from "./datenblatt.js";
 import { sgReihe, sgVerstaerkt } from "./sgstufen.js";
 import { tQuantil, wls } from "./statistik.js";
@@ -66,29 +66,40 @@ function dauerAn(reihe, von, bis) {
 /** Zeitintegral einer Leistung in W ueber den Zeitraum, Ergebnis in kWh. */
 const kwh = (reihe, von, bis) => energie(reihe, von, bis);
 
-/** Laeuft der Verdichter laut Eintrag (Zahl ueber 0 oder Zustand an)? */
-function verdichterAn(p) {
-  const n = parseFloat(p.s);
-  if (!Number.isNaN(n)) return n > 0;
-  return zustandAn(p.s) === true;
+/**
+ * Stoppt der Verdichter in einem Warmwasserabschnitt und laeuft wieder an,
+ * ohne dass der Speicher (TOP10) dazwischen um mehr als 1 K abgekuehlt ist,
+ * gilt das als Pause derselben Ladung (etwa Abtauen oder Schutzabschaltung).
+ * Eine neue Ladung beginnt erst nach einem Abfall um mehr als 1 K, der
+ * Aufloesung von TOP10 (eigene Festlegung). Im Betrieb nur Warmwasser
+ * bleibt das Ventil auf Warmwasser; dort trennt so der Abfall die Ladungen.
+ */
+function pausenZusammen(laeufe, temp) {
+  const out = [];
+  laeufe.forEach((l) => {
+    const vor = out[out.length - 1];
+    if (vor) {
+      const a = stand(temp, vor.bis);
+      const b = stand(temp, l.von);
+      if (a !== null && b !== null && !Number.isNaN(a) && !Number.isNaN(b) && b >= a - 1) {
+        vor.bis = l.bis;
+        vor.offen = l.offen;
+        vor.unbekannt += l.unbekannt;
+        vor.pausen += 1;
+        return;
+      }
+    }
+    out.push({ ...l, pausen: 0 });
+  });
+  return out;
 }
 
-/** Zusammenhaengende Verdichterlaeufe innerhalb des Zeitraums. */
-function verdichterLaeufe(vd, von, bis) {
-  const out = [];
-  if (!vd || !vd.length) return out;
-  let start = null;
-  for (let i = Math.max(0, indexBis(vd, von)); i < vd.length && vd[i].t < bis; i++) {
-    const t = Math.max(vd[i].t, von);
-    const an = verdichterAn(vd[i]);
-    if (an && start === null) start = t;
-    else if (!an && start !== null) {
-      if (t > start) out.push({ von: start, bis: t });
-      start = null;
-    }
-  }
-  if (start !== null && bis > start) out.push({ von: start, bis });
-  return out;
+/** Median einer Zahlenliste, ohne Werte null. */
+function median(xs) {
+  const s = xs.filter((v) => v !== null && Number.isFinite(v)).sort((a, b) => a - b);
+  if (!s.length) return null;
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
 /** Hoechster Wert im Zeitraum mit Zeitpunkt, samt Stand zu Beginn. */
@@ -122,12 +133,14 @@ export function wwLadungen(d, ref) {
   // Je Ventilabschnitt Warmwasser die Verdichterlaeufe darin.
   const abschnitte = ventilAbschnitte(d.ventil, d.t0, d.t1)
     .filter((x) => x.ww)
-    .flatMap((x) => verdichterLaeufe(d.vd, x.von, x.bis));
+    .flatMap((x) => pausenZusammen(verdichterLaeufe(d.vd, x.von, x.bis), d.temp));
   const out = [];
   abschnitte.forEach((a) => {
-    const l = { von: a.von, bis: a.bis };
+    const l = { von: a.von, bis: a.bis, pausen: a.pausen };
     l.angeschnitten = a.von <= d.t0 + 1000;
     l.laufend = a.bis >= d.t1 - 1000;
+    // Mehr als 5 % der Zeit ohne bekannten Verdichterzustand: nicht werten.
+    l.luecke = lueckenhaft(a);
     l.minuten = (a.bis - a.von) / 60000;
     l.tStart = stand(d.temp, a.von);
     const max = hoechster(d.temp, a.von, a.bis);
@@ -171,7 +184,7 @@ export function wwLadungen(d, ref) {
         l.copGeschaetzt = s.geschaetzt;
       }
     }
-    l.vollstaendig = !l.angeschnitten && !l.laufend;
+    l.vollstaendig = !l.angeschnitten && !l.laufend && !l.luecke;
     // SG Ready: Ladungen mit Stufe 3 oder 4 zaehlen nicht.
     l.sg = Boolean(d.sg && sgVerstaerkt(d.sg, a.von, a.bis));
     l.stufe = l.vollstaendig && !l.sg && l.copErwartet ? (l.cop / l.copErwartet >= TOLERANZ ? "gut" : "unter") : null;
@@ -180,7 +193,12 @@ export function wwLadungen(d, ref) {
   return out;
 }
 
-/** Haltezeit nach jeder vollstaendigen Ladung. */
+/**
+ * Haltezeit nach jeder Ladung. Nicht gewertet: Ladungen ueber SG Ready,
+ * Ladungen mit unsicherem Ende oder Beginn (unbekannte Werte) und
+ * Ladungen, nach denen der Speicher schon beim Ladeende unter der
+ * Schwelle lag; dann gibt es keine Haltezeit.
+ */
 export function wwHaltezeiten(d, laden, schwelle) {
   const out = [];
   laden.forEach((l, i) => {
@@ -189,17 +207,18 @@ export function wwHaltezeiten(d, laden, schwelle) {
     const ende = l.bis;
     const bis = naechste ? naechste.von : d.t1;
     const h = { ende, tEnde: l.tEnde, naechste: Boolean(naechste) };
-    // Nicht gewertet: nach oder vor einer Ladung ueber SG Ready.
     h.sg = Boolean(l.sg || (naechste && naechste.sg));
+    h.luecke = Boolean(l.luecke || (naechste && naechste.luecke));
     h.stunden = (bis - ende) / STUNDE;
     h.tNachladen = naechste ? stand(d.temp, naechste.von) : null;
-    // Erster Zeitpunkt unter der Schwelle.
+    // Erster Zeitpunkt unter der Schwelle nach dem Ladeende.
     h.unter = null;
+    h.schonUnter = false;
     if (Number.isFinite(schwelle)) {
       const reihe = d.temp || [];
       const beiEnde = stand(reihe, ende);
-      if (beiEnde !== null && !Number.isNaN(beiEnde) && beiEnde < schwelle) h.unter = 0;
-      for (let k = Math.max(0, indexBis(reihe, ende)); h.unter === null && k < reihe.length && reihe[k].t <= bis; k++) {
+      h.schonUnter = beiEnde !== null && !Number.isNaN(beiEnde) && beiEnde < schwelle;
+      for (let k = Math.max(0, indexBis(reihe, ende)); !h.schonUnter && k < reihe.length && reihe[k].t <= bis; k++) {
         if (reihe[k].t < ende) continue;
         if (!Number.isNaN(reihe[k].v) && reihe[k].v < schwelle) {
           h.unter = (reihe[k].t - ende) / STUNDE;
@@ -207,6 +226,7 @@ export function wwHaltezeiten(d, laden, schwelle) {
         }
       }
     }
+    h.gewertet = !h.sg && !h.luecke && !h.schonUnter;
     // Abfall in den Naechten ohne Ladung, ganz innerhalb der Haltezeit.
     const raten = [];
     for (let m = tagEnde(ende); m < bis; m = tagEnde(m)) {
@@ -215,9 +235,9 @@ export function wwHaltezeiten(d, laden, schwelle) {
       if (b > bis) break;
       const va = stand(d.temp, a);
       const vb = stand(d.temp, b);
-      if (va !== null && vb !== null) raten.push((va - vb) / (NACHT[1] - NACHT[0]));
+      if (va !== null && vb !== null && !Number.isNaN(va) && !Number.isNaN(vb)) raten.push((va - vb) / (NACHT[1] - NACHT[0]));
     }
-    h.nacht = raten.length ? raten.reduce((s, x) => s + x, 0) / raten.length : null;
+    h.nacht = raten.length ? raten.reduce((x, v) => x + v, 0) / raten.length : null;
     h.naechte = raten.length;
     out.push(h);
   });
@@ -271,28 +291,40 @@ function uhrzeit(tagStart, minuten) {
 }
 
 /**
- * Beste Startzeit fuer eine Ladung: die Uhrzeit, ab der die folgende
- * Stunde ueber alle ganzen Tage im Mittel am waermsten war. Startzeiten
- * im Abstand von 15 Minuten, die Stunde endet spaetestens um Mitternacht.
+ * Waermste Stunde jedes ganzen Tages im Verlauf: Startzeiten im Abstand
+ * von 15 Minuten, die Stunde endet spaetestens um Mitternacht. Ergebnis je
+ * Tag { tag, minuten, v } mit v = Stundenmittel der Aussentemperatur.
  */
-export function wwBesteStunde(d) {
-  const tage = [];
-  for (let m = tagEnde(d.t0); tagEnde(m) <= d.t1; m = tagEnde(m)) tage.push(m);
-  if (!tage.length || !d.aussen || !d.aussen.length || d.aussen[0].t > tage[0]) return null;
-  let beste = null;
-  for (let min = 0; min <= 23 * 60; min += 15) {
-    let summe = 0;
-    let ok = true;
-    tage.forEach((m) => {
+export function wwWaermsteStunden(d) {
+  const out = [];
+  if (!d.aussen || !d.aussen.length) return out;
+  for (let m = tagEnde(d.t0); tagEnde(m) <= d.t1; m = tagEnde(m)) {
+    if (d.aussen[0].t > m) continue;
+    let beste = null;
+    for (let min = 0; min <= 23 * 60; min += 15) {
       const a = uhrzeit(m, min);
       const v = mittel(d.aussen, a, a + STUNDE, false);
-      if (v === null) ok = false;
-      else summe += v;
-    });
-    if (!ok) continue;
-    const v = summe / tage.length;
-    if (!beste || v > beste.v) beste = { minuten: min, v, tage: tage.length };
+      if (v !== null && (!beste || v > beste.v)) beste = { tag: m, minuten: min, v };
+    }
+    if (beste) out.push(beste);
   }
+  return out;
+}
+
+/** Mittlere Haelfte der Uhrzeiten der waermsten Stunde, ab 3 Tagen. */
+export function wwZeitSpanne(stunden) {
+  if (stunden.length < 3) return null;
+  const s = stunden.map((x) => x.minuten).sort((a, b) => a - b);
+  return { von: s[Math.floor((s.length - 1) * 0.25)], bis: s[Math.ceil((s.length - 1) * 0.75)], n: s.length };
+}
+
+/** Waermste Stunde der Vorhersage ab der laufenden Stunde bis 24 h voraus. */
+export function wwBesteVorhersage(liste, jetzt) {
+  let beste = null;
+  (liste || []).forEach((f) => {
+    if (!(f.t > jetzt - STUNDE && f.t < jetzt + TAG) || !Number.isFinite(f.temp)) return;
+    if (!beste || f.temp > beste.temp) beste = f;
+  });
   return beste;
 }
 
@@ -302,7 +334,7 @@ export const WW_URTEIL_MIN = 8;
 export const WW_KAUM = 1;
 
 /**
- * Urteil, ob Laden am Tag Strom spart, und wie viel im Monat.
+ * Urteil, ob Laden am Tag Strom spart, und wie viel je Tag und im Monat.
  *  1. Gewertet werden ganze Ladungen ohne SG Ready, Desinfektion und
  *     Heizstab, mit Strom und Waerme aus den Leistungswerten.
  *  2. Gewichtete Regression (Gewicht = Waerme der Ladung): Strom je kWh
@@ -311,12 +343,12 @@ export const WW_KAUM = 1;
  *     Carnot-COP, (Tc - To) / Tc, bei gleichem Guetegrad und gleicher
  *     Senke linear mit der Quellentemperatur To faellt.
  *  3. Jede Nachtladung (Sonne zur Mitte der Ladung unter dem Horizont)
- *     wird gedanklich in die beste Stunde desselben Tages gelegt; die
- *     Aussentemperatur dort ist das gemessene Stundenmittel, begrenzt auf
- *     den Bereich der gewerteten Ladungen (keine Hochrechnung darueber).
+ *     an einem ganzen Tag wird gedanklich in die waermste Stunde dieses
+ *     Tages gelegt; deren Aussentemperatur ist gemessen, begrenzt auf den
+ *     Bereich der gewerteten Ladungen (keine Hochrechnung darueber).
  *  4. Ersparnis = Steigung mal Summe (Waerme mal Temperaturunterschied),
- *     auf 30 Tage gerechnet; 95 %-Bereich aus dem Standardfehler der
- *     Steigung mit der t-Verteilung.
+ *     geteilt durch die Zahl der ganzen Tage, im Monat mal 30; 95 %-Bereich
+ *     aus dem Standardfehler der Steigung mit der t-Verteilung.
  *  Nicht enthalten: mehr Waermeverlust, wenn das Wasser laenger warm steht.
  */
 export function wwUrteil(d, laden) {
@@ -330,9 +362,9 @@ export function wwUrteil(d, laden) {
   const basis = { n: gueltig.length, nNacht: nacht.length, min: WW_URTEIL_MIN };
   if (gueltig.length < WW_URTEIL_MIN) return { art: "zu_wenig", ...basis };
   if (!nacht.length) return { art: "keine_nacht", ...basis };
-  const beste = wwBesteStunde(d);
-  if (!beste) return { art: "zu_wenig", ...basis };
-  basis.beste = beste;
+  const stunden = wwWaermsteStunden(d);
+  if (!stunden.length) return { art: "zu_wenig", ...basis };
+  const jeTag = new Map(stunden.map((x) => [x.tag, x]));
   const gw = gueltig.map((l) => l.waerme);
   const sw = gw.reduce((x, v) => x + v, 0);
   const mT = gueltig.reduce((x, l) => x + l.waerme * l.aussen, 0) / sw;
@@ -352,28 +384,28 @@ export function wwUrteil(d, laden) {
   const tMax = Math.max(...gueltig.map((l) => l.aussen));
   const gezaehlt = [];
   nacht.forEach((l) => {
-    const a = uhrzeit(tagBeginn((l.von + l.bis) / 2), beste.minuten);
-    if (a < d.t0 || a + STUNDE > d.t1) return;
-    const ziel = mittel(d.aussen, a, a + STUNDE, false);
-    if (ziel === null) return;
-    gezaehlt.push({ waerme: l.waerme, dT: Math.min(tMax, Math.max(tMin, ziel)) - l.aussen });
+    const s = jeTag.get(tagBeginn((l.von + l.bis) / 2));
+    if (!s) return;
+    gezaehlt.push({ waerme: l.waerme, dT: Math.min(tMax, Math.max(tMin, s.v)) - l.aussen });
   });
   if (!gezaehlt.length) return { art: "zu_wenig", ...basis };
   const k = gezaehlt.reduce((x, g) => x + g.waerme * g.dT, 0);
-  const tage = (d.t1 - d.t0) / TAG;
-  const faktor = 30 / tage;
-  const spar = -steigung * k * faktor;
-  const r1 = -(steigung - tq * se) * k * faktor;
-  const r2 = -(steigung + tq * se) * k * faktor;
-  const lo = Math.min(r1, r2);
-  const hi = Math.max(r1, r2);
+  const tage = stunden.length;
+  // Je Tag; der Monat ist 30 Tage.
+  const proTag = (b) => (-b * k) / tage;
+  const sparTag = proTag(steigung);
+  const r1 = proTag(steigung - tq * se);
+  const r2 = proTag(steigung + tq * se);
+  const loTag = Math.min(r1, r2);
+  const hiTag = Math.max(r1, r2);
   let art = "unsicher";
-  if (hi < 0) art = "nein";
-  else if (hi < WW_KAUM) art = "kaum";
-  else if (lo > 0) art = "ja";
+  if (hiTag < 0) art = "nein";
+  else if (hiTag * 30 < WW_KAUM) art = "kaum";
+  else if (loTag > 0) art = "ja";
   const strom = gueltig.reduce((x, l) => x + l.strom, 0);
   return {
-    art, ...basis, spar, lo, hi, tage, mitStart, steigung, se, df: fit.df,
+    art, ...basis, sparTag, loTag, hiTag, sparMonat: sparTag * 30, loMonat: loTag * 30, hiMonat: hiTag * 30,
+    tage, mitStart, steigung, se, df: fit.df,
     // Steigung bezogen auf den mittleren Strom je kWh Waerme, in % je K.
     jeK: (-steigung / (strom / sw)) * 100,
     dT: gezaehlt.reduce((x, g) => x + g.dT, 0) / gezaehlt.length,
@@ -381,26 +413,46 @@ export function wwUrteil(d, laden) {
   };
 }
 
+/** Mindestzahl ganzer Tage fuer "Eine Ladung am Tag reicht" (eine Woche, eigene Festlegung). */
+export const WW_TAGE_MIN = 7;
+/** Mindesthub einer Ladung fuer die Waerme je K, in K (TOP10 meldet ganze Grad). */
+const HUB_MIN = 5;
+
 /**
- * Reicht eine Ladung je Tag? Nur aus gemessenen Haltezeiten: Faellt der
- * Speicher in einem Fall frueher als 24 h nach dem Ladeende unter die
- * Schwelle, reicht sie nicht immer. Hielt er in allen aussagekraeftigen
- * Faellen mindestens 24 h, reichte sie. Faelle, in denen vor Ablauf von
- * 24 h schon nachgeladen wurde, ohne dass die Schwelle erreicht war,
- * sagen dazu nichts.
+ * Reicht eine Ladung je Tag? Vergleicht die Waerme jedes ganzen Tages aus
+ * den Ladungen mit der Waerme, die der Speicher zwischen voll und der
+ * Schwelle haelt:
+ *  - Waerme je K: Median von Waerme durch Hub (TOP10) der gewerteten
+ *    Ladungen mit mindestens 5 K Hub.
+ *  - voll: Median der hoechsten Speichertemperatur dieser Ladungen.
+ *  - nutzbar = Waerme je K mal (voll minus Schwelle). Der Speicher wird
+ *    dabei als durchmischt gerechnet (eigene Vereinfachung).
+ * Waerme und Waerme je K stammen beide aus TOP40; ein Verlust zwischen
+ * Waermepumpe und Speicher steckt so in beiden gleich drin.
+ * Tage mit SG Ready, Desinfektion, Heizstab oder fehlenden Werten zaehlen
+ * nicht. Ein Urteil gibt es ab 7 solchen Tagen.
  */
-export function wwNachladen(halte) {
-  const erreicht = halte.filter((h) => h.unter !== null);
-  const kurz = erreicht.filter((h) => h.unter < 24);
-  const lang = halte.filter((h) => (h.unter !== null && h.unter >= 24) || (h.unter === null && h.stunden >= 24));
-  const zahlen = erreicht.map((h) => h.unter);
+export function wwEineLadung(d, laden, schwelle) {
+  if (!Number.isFinite(schwelle)) return { art: "ohne" };
+  const gut = laden.filter((l) => l.vollstaendig && !l.sg && !l.steril && !(l.stab > 0));
+  const jeK = gut
+    .filter((l) => l.waerme !== null && l.tStart !== null && l.tEnde !== null && !Number.isNaN(l.tStart) && l.tEnde - l.tStart >= HUB_MIN)
+    .map((l) => l.waerme / (l.tEnde - l.tStart));
+  const voll = median(gut.map((l) => l.tEnde));
+  const tage = [];
+  for (let m = tagEnde(d.t0); tagEnde(m) <= d.t1; m = tagEnde(m)) {
+    const imTag = laden.filter((l) => l.von >= m && l.von < tagEnde(m));
+    if (imTag.some((l) => !l.vollstaendig || l.sg || l.steril || l.stab > 0 || l.waerme === null)) continue;
+    tage.push(imTag.reduce((x, l) => x + l.waerme, 0));
+  }
+  const out = { art: "offen", nTage: tage.length, min: WW_TAGE_MIN, nJeK: jeK.length };
+  if (jeK.length < 3 || voll === null || tage.length < WW_TAGE_MIN) return out;
+  const c = median(jeK);
+  const nutzbar = Math.max(0, c * (voll - schwelle));
+  const nUeber = tage.filter((q) => q > nutzbar).length;
   return {
-    erreicht: erreicht.length,
-    gesamt: halte.filter((h) => h.unter !== null || h.naechste).length,
-    mittel: zahlen.length ? zahlen.reduce((x, v) => x + v, 0) / zahlen.length : null,
-    kuerzeste: zahlen.length ? Math.min(...zahlen) : null,
-    urteil: kurz.length ? "nein" : lang.length ? "ja" : "offen",
-    belege: kurz.length || lang.length,
+    ...out, art: nUeber ? "nein" : "ja", c, voll, nutzbar, nUeber,
+    qMax: Math.max(...tage), qMittel: tage.reduce((x, q) => x + q, 0) / tage.length,
   };
 }
 
@@ -471,6 +523,7 @@ export const warmwasserKarte = {
       e: ww ? ww.e : null,
     };
     const ids = [...new Set(Object.values(felder).filter(Boolean))];
+    const vorhersage = this._wwVorhersageHolen();
     try {
       const antwort = await q.callWS({
         type: "history/history_during_period",
@@ -496,9 +549,47 @@ export const warmwasserKarte = {
       // SG Ready nur mit beiden Kontakten erkennbar.
       d.sgEingerichtet = Boolean(felder.sg1 && felder.sg2);
       d.sg = d.sgEingerichtet ? sgReihe(d.sg1, d.sg2) : null;
+      d.vorhersage = await vorhersage;
       this._wwDaten = d;
     } catch {
       this._wwDaten = null;
+    }
+  },
+
+  /**
+   * Wetter-Entitaet fuer die beste Ladezeit: aus dem Editor, sonst die
+   * erste mit stuendlicher Vorhersage (supported_features Bit 2,
+   * FORECAST_HOURLY).
+   */
+  _wwWetter() {
+    const q = this._hass;
+    if (!q || !q.states) return null;
+    const eigen = this._e("weather");
+    if (eigen) return q.states[eigen] ? eigen : null;
+    return Object.keys(q.states).filter((id) => id.startsWith("weather.")).sort()
+      .find((id) => (Number((q.states[id].attributes || {}).supported_features) & 2) === 2) || null;
+  },
+
+  /**
+   * Stuendliche Vorhersage ueber die Aktion weather.get_forecasts (mit
+   * Rueckgabe). Ergebnis { entity, einheit, liste: [{ t, temp }] } oder null.
+   */
+  async _wwVorhersageHolen() {
+    const id = this._wwWetter();
+    if (!id) return null;
+    try {
+      const r = await this._hass.callWS({
+        type: "call_service", domain: "weather", service: "get_forecasts",
+        service_data: { type: "hourly" }, target: { entity_id: id }, return_response: true,
+      });
+      const f = r && r.response && r.response[id] && r.response[id].forecast;
+      if (!Array.isArray(f)) return null;
+      const liste = f.map((x) => ({ t: Date.parse(x.datetime), temp: Number(x.temperature) }))
+        .filter((x) => Number.isFinite(x.t) && Number.isFinite(x.temp));
+      const att = (this._hass.states[id] || {}).attributes || {};
+      return liste.length ? { entity: id, einheit: att.temperature_unit || "°C", liste } : null;
+    } catch {
+      return null;
     }
   },
 
@@ -580,6 +671,8 @@ export const warmwasserKarte = {
         if (l.laufend) zusatz.push(t("ww_laeuft"));
         if (l.steril) zusatz.push(t("ww_steril"));
         if (l.sg) zusatz.push(t("ww_sg_aktiv"));
+        if (l.luecke) zusatz.push(t("ww_luecke"));
+        if (l.pausen) zusatz.push(tf(t("ww_pausen"), { n: l.pausen }));
         const copKlasse = l.stufe ? ` class="lhc-ww-${l.stufe}${l.copGeschaetzt ? " blass" : ""}"` : "";
         const copTitel = l.copErwartet
           ? ` title="${escapeHtml(tf(t("ww_cop_titel"), { e: fmt(l.copErwartet, 1), p: fmt((l.cop / l.copErwartet) * 100, 0) }) + (l.copGeschaetzt ? ` · ${t("a_c_geschaetzt")}` : ""))}"`
@@ -587,7 +680,7 @@ export const warmwasserKarte = {
         const min = (v) => (v === null ? "--" : `${fmt(v, 0)} min`);
         const k = (v) => (v === null ? "--" : `${fmt(v, 2)} kWh`);
         const tagMax = l.tagMax === null ? "--" : `${grad(l.tagMax)} ${uhr(l.tagMaxZeit)}`;
-        return `<tr${l.sg ? ' class="lhc-ww-aus"' : ""}>
+        return `<tr${l.sg || l.luecke ? ' class="lhc-ww-aus"' : ""}>
           <td>${escapeHtml(zeit(l.von))}${zusatz.length ? `<small>${escapeHtml(zusatz.join(" · "))}</small>` : ""}</td>
           <td>${escapeHtml(fmt(l.minuten, 0))} min</td>
           <td>${escapeHtml(`${l.tStart === null ? "--" : fmt(l.tStart, 1)} → ${grad(l.tEnde)}`)}</td>
@@ -671,17 +764,18 @@ export const warmwasserKarte = {
           ? `${h(x.stunden)} (${grad(x.tNachladen)})`
           : `${h(x.stunden)} · ${t("ww_noch_keine")}`;
         let unter = "--";
-        if (schwelle !== null) unter = x.unter !== null ? h(x.unter) : t("ww_nicht_unter");
-        return `<tr${x.sg ? ' class="lhc-ww-aus"' : ""}>
-          <td>${escapeHtml(`${zeit(x.ende)} · ${grad(x.tEnde)}`)}${x.sg ? `<small>${escapeHtml(t("ww_sg_halte"))}</small>` : ""}</td>
+        if (schwelle !== null) unter = x.schonUnter ? t("ww_schon_unter") : x.unter !== null ? h(x.unter) : t("ww_nicht_unter");
+        const grund = x.sg ? t("ww_sg_halte") : x.luecke ? t("ww_luecke") : "";
+        return `<tr${x.gewertet ? "" : ' class="lhc-ww-aus"'}>
+          <td>${escapeHtml(`${zeit(x.ende)} · ${grad(x.tEnde)}`)}${grund ? `<small>${escapeHtml(grund)}</small>` : ""}</td>
           <td>${escapeHtml(bisNach)}</td>
           <td>${escapeHtml(unter)}</td>
           <td>${escapeHtml(x.nacht === null ? "--" : `${fmt(x.nacht, 2)} K/h`)}</td>
         </tr>`;
       })
       .join("");
-    // Mittelwerte nur aus Haltezeiten ohne SG Ready.
-    const gewertet = halte.filter((x) => !x.sg);
+    // Mittelwerte nur aus gewerteten Haltezeiten.
+    const gewertet = halte.filter((x) => x.gewertet);
     const mit = gewertet.filter((x) => x.naechste);
     const saetze = [];
     if (mit.length) {
@@ -703,40 +797,42 @@ export const warmwasserKarte = {
       ${d.sgEingerichtet ? `<p class="lhc-an-modal-klein">${escapeHtml(t("ww_f_sg_halte"))}</p>` : ""}`;
   },
 
-  /** Reiter Tag oder Nacht: klares Urteil, Ersparnis im Monat, beste Zeit. */
+  /** Reiter Tag oder Nacht: klares Urteil, Ersparnis je Tag und Monat, beste Zeit. */
   _wwTagNachtHtml(d, laden, schwelle) {
     const t = (k) => this._t(k);
     const e = escapeHtml;
     const u = wwUrteil(d, laden);
     const kwh = (v) => fmt(v, Math.abs(v) < 1 ? 2 : 1);
-    const beste = u.beste || (u.art === "sonne" || u.art === "aussen" ? null : wwBesteStunde(d));
-    const zeit = beste ? `${String(Math.floor(beste.minuten / 60)).padStart(2, "0")}:${String(beste.minuten % 60).padStart(2, "0")}` : null;
-    const tage = u.tage ? fmt(u.tage, 0) : "";
+    const uhrText = (min) => `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+    const tage = u.tage ? String(u.tage) : "";
     let klasse = "grau";
     let icon = "!";
     let satz = t("ww_u_daten");
-    let zahl = "";
+    let zahlen = "";
     let fein = "";
+    const zwei = (tag, monat, tagK, monatK) => `<div class="lhc-ww-urteil-zwei">
+        <div class="lhc-ww-urteil-zahl">≈ ${kwh(tag)} kWh <small>${e(t(tagK))}</small></div>
+        <div class="lhc-ww-urteil-zahl">≈ ${kwh(monat)} kWh <small>${e(t(monatK))}</small></div></div>`;
     if (u.art === "ja") {
       klasse = "gruen";
       icon = "✓";
       satz = t("ww_u_ja");
-      zahl = `≈ ${kwh(u.spar)} kWh <small>${e(t("ww_u_monat"))}</small>`;
-      fein = tf(t("ww_u_bereich"), { a: fmt(u.lo, 1), b: fmt(u.hi, 1), t: tage });
+      zahlen = zwei(u.sparTag, u.sparMonat, "ww_u_tag", "ww_u_monat");
+      fein = tf(t("ww_u_bereich"), { a: kwh(u.loTag), b: kwh(u.hiTag), c: fmt(u.loMonat, 1), d: fmt(u.hiMonat, 1), t: tage });
     } else if (u.art === "nein") {
       icon = "✕";
       satz = t("ww_u_nein");
-      zahl = `≈ ${kwh(-u.spar)} kWh <small>${e(t("ww_u_mehr_monat"))}</small>`;
-      fein = tf(t("ww_u_bereich"), { a: fmt(-u.hi, 1), b: fmt(-u.lo, 1), t: tage });
+      zahlen = zwei(-u.sparTag, -u.sparMonat, "ww_u_mehr_tag", "ww_u_mehr_monat");
+      fein = tf(t("ww_u_bereich"), { a: kwh(-u.hiTag), b: kwh(-u.loTag), c: fmt(-u.hiMonat, 1), d: fmt(-u.loMonat, 1), t: tage });
     } else if (u.art === "kaum") {
       icon = "≈";
       satz = t("ww_u_kaum");
-      fein = tf(t("ww_u_kaum_f"), { b: kwh(Math.max(0, u.hi)), t: tage });
+      fein = tf(t("ww_u_kaum_f"), { a: kwh(Math.max(0, u.hiTag)), b: kwh(Math.max(0, u.hiMonat)) });
     } else if (u.art === "unsicher") {
       klasse = "gelb";
       icon = "?";
       satz = t("ww_u_unsicher");
-      fein = tf(t("ww_u_unsicher_f"), { a: fmt(u.lo, 1), b: fmt(u.hi, 1) });
+      fein = tf(t("ww_u_unsicher_f"), { a: kwh(u.loTag), b: kwh(u.hiTag), c: fmt(u.loMonat, 1), d: fmt(u.hiMonat, 1) });
     } else if (u.art === "gleich") {
       klasse = "gelb";
       icon = "?";
@@ -755,22 +851,44 @@ export const warmwasserKarte = {
     }
     const kasten = `<div class="lhc-ww-urteil ${klasse}"><div class="lhc-ww-urteil-icon" aria-hidden="true">${e(icon)}</div><div>
       <div class="lhc-ww-urteil-satz">${e(satz)}</div>
-      ${zahl ? `<div class="lhc-ww-urteil-zahl">${zahl}</div>` : ""}
+      ${zahlen}
       ${fein ? `<div class="lhc-ww-urteil-fein">${e(fein)}</div>` : ""}
     </div></div>`;
-    // Drei Zeilen: beste Zeit, Nachtladungen, ob eine Ladung je Tag reicht.
-    let reicht = t("ww_u_reicht_ohne");
-    if (schwelle !== null) {
-      const nl = wwNachladen(wwHaltezeiten(d, laden, schwelle).filter((h) => !h.sg));
-      if (nl.urteil === "ja") reicht = t("ww_u_reicht_ja");
-      else if (nl.urteil === "nein") reicht = tf(t("ww_u_reicht_nein"), { k: fmt(nl.kuerzeste, 0) });
-      else reicht = t("ww_u_reicht_offen");
+    // Beste Zeit: aus der Vorhersage, sonst die gemessene Spanne.
+    const jetzt = Date.now();
+    const vh = d.vorhersage || null;
+    const beste = vh ? wwBesteVorhersage(vh.liste, jetzt) : null;
+    let zeitWert = "--";
+    let zeitKlein = "";
+    let zeitWie = "";
+    if (beste) {
+      const z = new Date(beste.t);
+      const heute = new Date(jetzt).toDateString() === z.toDateString();
+      zeitWert = `${t(heute ? "ww_u_heute" : "ww_u_morgen")} ${uhrText(z.getHours() * 60 + z.getMinutes())}`;
+      zeitKlein = tf(t("ww_u_vorhersage"), { v: fmt(beste.temp, 0), e: vh.einheit });
+      zeitWie = tf(t("ww_u_w_zeit_v"), { e: vh.entity });
+    } else {
+      const sp = u.art === "sonne" || u.art === "aussen" ? null : wwZeitSpanne(wwWaermsteStunden(d));
+      if (sp) {
+        zeitWert = sp.von === sp.bis ? tf(t("ww_u_zeit_eine"), { a: uhrText(sp.von) })
+          : tf(t("ww_u_zeit_spanne"), { a: uhrText(sp.von), b: uhrText(sp.bis) });
+        zeitWie = tf(t("ww_u_w_zeit_m"), { n: sp.n });
+      }
     }
-    const zeile = (k, v) => `<div class="lhc-ww-zeile"><span>${e(t(k))}</span><b>${e(v)}</b></div>`;
+    // Eine Ladung am Tag: Waerme je Tag gegen nutzbaren Speicher.
+    const el = wwEineLadung(d, laden, schwelle);
+    let reicht = t("ww_u_reicht_offen");
+    let reichtKlein = "";
+    if (el.art === "ohne") reicht = t("ww_u_reicht_ohne");
+    else if (el.art === "ja" || el.art === "nein") {
+      reicht = el.art === "ja" ? t("ww_u_reicht_ja") : tf(t("ww_u_reicht_nein"), { x: el.nUeber, n: el.nTage });
+      reichtKlein = tf(t("ww_u_reicht_werte"), { q: fmt(el.qMax, 1), s: fmt(el.nutzbar, 1) });
+    }
+    const zeile = (k, v, klein) => `<div class="lhc-ww-zeile"><span>${e(t(k))}</span><b>${e(v)}${klein ? ` <i>${e(klein)}</i>` : ""}</b></div>`;
     const zeilen = [
-      zeile("ww_u_k_zeit", zeit || "--"),
+      zeile(beste ? "ww_u_k_zeit" : "ww_u_k_zeit_m", zeitWert, zeitKlein),
       u.n !== undefined ? zeile("ww_u_k_nacht", tf(t("ww_u_nacht_v"), { n: u.nNacht, g: u.n })) : "",
-      zeile("ww_u_k_reicht", reicht),
+      zeile("ww_u_k_reicht", reicht, reichtKlein),
     ].join("");
     const mitZahl = ["ja", "nein", "kaum", "unsicher"].includes(u.art);
     // Aufklappbar: wie gerechnet.
@@ -779,12 +897,20 @@ export const warmwasserKarte = {
       wie.push(tf(t(u.mitStart ? "ww_u_w_k" : "ww_u_w_k_ohne"), {
         p: fmt(Math.abs(u.jeK), 1), r: t(u.jeK >= 0 ? "ww_u_w_weniger" : "ww_u_w_mehr"), n: u.n,
       }));
-      wie.push(tf(t("ww_u_w_dt"), { k: fmt(Math.abs(u.dT), 1), r: t(u.dT >= 0 ? "ww_u_w_kaelter" : "ww_u_w_waermer"), z: zeit }));
-      wie.push(tf(t("ww_u_w_spar"), { m: u.nGezaehlt, z: zeit }));
+      wie.push(tf(t("ww_u_w_dt"), { k: fmt(Math.abs(u.dT), 1), r: t(u.dT >= 0 ? "ww_u_w_kaelter" : "ww_u_w_waermer") }));
+      wie.push(tf(t("ww_u_w_spar"), { m: u.nGezaehlt, t: tage }));
+    }
+    if (zeitWie) wie.push(zeitWie);
+    if (el.art === "ja" || el.art === "nein") {
+      wie.push(tf(t("ww_u_w_reicht"), {
+        q: fmt(el.qMax, 1), m: fmt(el.qMittel, 1), n: el.nTage, v: fmt(el.voll, 0), s: fmt(schwelle, 0), k: fmt(el.nutzbar, 1), c: fmt(el.c, 2),
+      }));
+    } else if (el.art === "offen") {
+      wie.push(tf(t("ww_u_w_reicht_offen"), { n: el.nTage, m: el.min }));
     }
     const q = d.xtop ? "XTOP2 / XTOP5" : "TOP41 / TOP40";
     wie.push(tf(t("ww_u_w_basis"), { q }));
-    wie.push(tf(t("ww_u_w_methode"), { min: WW_URTEIL_MIN, kaum: fmt(WW_KAUM, 0) }));
+    wie.push(tf(t("ww_u_w_methode"), { min: WW_URTEIL_MIN, kaum: fmt(WW_KAUM, 0), tage: WW_TAGE_MIN }));
     return `${kasten}
       <div class="lhc-ww-zeilen">${zeilen}</div>
       ${mitZahl ? `<p class="lhc-an-modal-klein">${e(t("ww_u_verlust"))}</p>` : ""}

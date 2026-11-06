@@ -200,6 +200,7 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `dhw_heater_switch` | Heizstab Warmwasser freigeben | SetDHWHeaterState, switch |
 | `circulation_pump` | Zirkulationspumpe läuft | Shelly oder eigener Schalter |
 | `circ_switch` | Zirkulation Schalter (klickbar) | Switch zum Ein/Ausschalten der Zirkulation |
+| `weather` | Wettervorhersage | weather, stündliche Vorhersage; leer: automatisch. Für die beste Ladezeit im Fenster „Warmwasser beobachten“ |
 | **Steuerung** | | |
 | `mode_select` | Betriebsart umschalten | SetOperationMode, select |
 | **Erweiterte Einstellungen** | | |
