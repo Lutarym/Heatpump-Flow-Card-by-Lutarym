@@ -207,6 +207,10 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             </select>
           </label>
           <label class="ed-row">
+            <span>${this._t("e_ww_nutzbar")}<em>${this._t("e_ww_nutzbar_h")}</em></span>
+            <input type="number" id="opt-ww-nutzbar" min="20" max="70" step="1">
+          </label>
+          <label class="ed-row">
             <span>${this._t("e_zusatz")}<em>${this._t("e_zusatz_h")}</em></span>
             <select id="opt-zusatz">
               <option value="aus">${this._t("o_aus")}</option>
@@ -523,6 +527,10 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-cop-ref", (el) => put({ cop_reference: el.value }));
+    bind("opt-ww-nutzbar", (el) => {
+      const v = parseFloat(el.value);
+      put({ dhw_usable_temp: Number.isFinite(v) ? v : "" });
+    });
 
     const applyMap = (map, merge) => {
       const entities = merge ? { ...this._config.entities, ...map } : { ...map };
@@ -795,6 +803,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
     put("opt-cop-ref", DATENBLAETTER[this._config.cop_reference] ? this._config.cop_reference : "");
+    put("opt-ww-nutzbar", Number.isFinite(parseFloat(this._config.dhw_usable_temp)) ? this._config.dhw_usable_temp : "");
 
     const imFokus = sr.activeElement;
     sr.querySelectorAll("[data-entity]").forEach((input) => {

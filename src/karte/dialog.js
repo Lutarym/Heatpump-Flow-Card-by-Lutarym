@@ -71,6 +71,9 @@ export const dialogKarte = {
       // Klick auf den Hintergrund schliesst, Klick im Kasten nicht.
       if (ev.target && ev.target.id === "dialog") this._schliesseDialog();
     });
+    sr.getElementById("ww-fenster").addEventListener("click", (ev) => {
+      if (ev.target && ev.target.id === "ww-fenster") this._wwSchliessen();
+    });
   },
 
   /** Macht Speicher und Heizkörper anklickbar. */
@@ -87,6 +90,7 @@ export const dialogKarte = {
           { feld: "powerful_mode", typ: "auswahl", titel: "f_turbomodus", texte: POWERFUL_LABELS },
           { feld: "quiet_mode", typ: "auswahl", titel: "f_leisemodus", texte: QUIET_LABELS },
           { feld: "mode_select", typ: "auswahl", titel: "f_betriebsart", texte: MODE_LABELS },
+          { feld: "dhw_temp", typ: "wwknopf", titel: "ww_knopf" },
         ],
       },
       {
@@ -366,7 +370,7 @@ export const dialogKarte = {
                <select id="dlg-a${i}"></select>
              </label>`
 
-          : a.typ === "kurveknopf"
+          : a.typ === "kurveknopf" || a.typ === "wwknopf"
           ? `<button type="button" class="lhc-dialog-action${a.schmal ? " schmal" : ""}" id="dlg-a${i}">${escapeHtml(this._t(a.titel))}</button>`
           : a.typ === "zahl"
           ? `<div class="lhc-num-kompakt">
@@ -391,6 +395,11 @@ export const dialogKarte = {
             entity_id: id,
             option: el.value,
           });
+        });
+      } else if (a.typ === "wwknopf") {
+        el.addEventListener("click", () => {
+          this.shadowRoot.getElementById("dialog").hidden = true;
+          this._wwOeffnen();
         });
       } else if (a.typ === "kurveknopf") {
         const k = this.shadowRoot.getElementById(`dlg-a${i}`);
@@ -487,7 +496,7 @@ export const dialogKarte = {
       const el = this.shadowRoot.getElementById(`dlg-a${i}`);
       const st = this._quelle.states[this._e(a.feld)];
       if (!el) return;
-      if (a.typ === "kurveknopf") return;
+      if (a.typ === "kurveknopf" || a.typ === "wwknopf") return;
       if (a.typ !== "zone" && !st) return;
       if (a.typ === "zahl") {
         // Nur lesbare Entitaeten lassen sich nicht stellen. Die Knoepfe

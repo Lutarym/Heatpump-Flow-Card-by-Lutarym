@@ -23,6 +23,7 @@ import { sgStileKarte } from "./sgstile.js";
 import { auswertungKarte } from "./auswertung.js";
 import { analyseKarte } from "./analyse.js";
 import { laufanalyseKarte } from "./laufanalyse.js";
+import { warmwasserKarte } from "./warmwasser.js";
 import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { verlaufKarte } from "./verlauf.js";
@@ -507,6 +508,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
             <div id="dlg-werte"></div>
           </div>
         </div>
+        <div class="lhc-dialog lhc-ww-fenster" id="ww-fenster" hidden>
+          <div class="lhc-an-modal-box lhc-ww-box" role="dialog" aria-modal="true" aria-labelledby="ww-titel"></div>
+        </div>
       </ha-card>
     `;
     // Alten Inhalt ersetzen, nicht anhaengen. Sonst entstuende bei
@@ -704,6 +708,7 @@ Object.assign(
   auswertungKarte,
   analyseKarte,
   laufanalyseKarte,
+  warmwasserKarte,
   zeitraumKarte,
   optimierenKarte,
   grafikHochKarte,

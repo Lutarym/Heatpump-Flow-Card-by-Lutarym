@@ -450,6 +450,27 @@ export const stilKarte = {
         background: var(--c-1b2431); border: 1px solid var(--line); color: var(--ink);
       }
       .lhc-dialog-action[hidden] { display: none; }
+      /* Fenster Warmwasser beobachten: liegt ueber der Karte. */
+      .lhc-ww-fenster { z-index: 6; }
+      .lhc-ww-fenster .lhc-ww-box { width: min(920px, 100%); }
+      .lhc-ww-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+      .lhc-ww-tab { padding: 5px 12px; font: inherit; font-size: 12.5px; cursor: pointer; border-radius: 9px;
+        color: var(--c-98a6ba); background: var(--c-26303f); border: 1px solid var(--c-3a4557); }
+      .lhc-ww-tab.aktiv { color: #FFFFFF; background: #E0762E; border-color: #E0762E; }
+      .lhc-ww-kopf { margin: 14px 0 6px; font-size: 13.5px; color: var(--c-c9d3e0); }
+      .lhc-ww-kopf:first-child, .lhc-ww-tabs + .lhc-ww-kopf { margin-top: 4px; }
+      .lhc-ww-tab:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
+      .lhc-ww-scroll { overflow-x: auto; }
+      .lhc-ww-tabelle { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--c-e8edf4);
+        font-variant-numeric: tabular-nums; }
+      .lhc-ww-tabelle th { padding: 3px 5px; text-align: left; font-size: 10.5px; font-weight: 600; color: var(--c-7e8ca0);
+        border-bottom: 1px solid var(--c-26303f); white-space: nowrap; }
+      .lhc-ww-tabelle td { padding: 5px; border-bottom: 1px solid var(--c-26303f); white-space: nowrap; vertical-align: top; }
+      .lhc-ww-tabelle td small { display: block; font-size: 10.5px; color: var(--c-7e8ca0); }
+      .lhc-ww-tabelle td.lhc-ww-gut { color: #16A34A; font-weight: 700; }
+      .lhc-ww-tabelle td.lhc-ww-unter { color: #F5B70A; font-weight: 700; }
+      .lhc-ww-tabelle td.blass { opacity: 0.6; }
+      .lhc-ww-tabelle tr.lhc-ww-aus td { opacity: 0.55; }
       .lhc-dialog-action:hover { border-color: var(--c-3e4c61); }
       .lhc-dialog-action.is-an {
         background: #0E2E1C; border-color: #46C07A; color: #BFEFD2;
@@ -488,6 +509,12 @@ export const stilKarte = {
       .lhc-dia-farbe { width: 14px; height: 14px; border-radius: 4px; }
       .lhc-takt-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--c-c9d3e0); }
       .lhc-takt-legende span:not(.lhc-dia-farbe) { margin-right: 8px; }
+      .lhc-leg { display: inline-flex; align-items: center; gap: 6px; }
+      .lhc-leg span:not(.lhc-dia-farbe) { margin-right: 0; }
+      .lhc-quelle { margin-top: 8px; font-size: 11.5px; color: var(--c-7e8ca0); }
+      .lhc-quelle summary { cursor: pointer; width: fit-content; }
+      .lhc-quelle summary:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; border-radius: 4px; }
+      .lhc-quelle .lhc-takt-quelle { margin-top: 6px; }
       .lhc-takt-text { margin: 10px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--c-e8edf4); }
       /* Zeitraum im Fenstertitel. */
       .lhc-zr-kopf { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -600,6 +627,7 @@ export const stilKarte = {
       /* Legende der COP-Saeulen: Erwartungsstrich und flache Spur. */
       .lhc-dia-strich { width: 14px; height: 3px; border-radius: 2px; background: var(--c-e8edf4); }
       .lhc-dia-farbe.flach { height: 5px; }
+      .lhc-dia-farbe.sg { background: transparent; border: 1.4px dashed var(--c-98a6ba); box-sizing: border-box; }
       .lhc-takt-quelle { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--c-7e8ca0); }
       .dia-knopf { cursor: pointer; }
       .dia-knopf .dia-symbol { color: var(--c-98a6ba); }

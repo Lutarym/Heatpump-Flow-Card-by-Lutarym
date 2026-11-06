@@ -159,6 +159,7 @@ export const DEFAULT_CONFIG = {
   language_custom: [],
   buffer_present: "auto",
   cop_reference: "",
+  dhw_usable_temp: "",
   circulation_present: "auto",
   history_width: 450,
   history_style: "takte",

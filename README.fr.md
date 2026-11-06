@@ -81,6 +81,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `profil` | `auto` | `auto` détecte l'intégration automatiquement, sinon l'identifiant d'un profil comme `heishamon_lutarym`, `heishamon` (nommage MQTT), `vicare`, `luxtronik2` ; liste dans le [guide](docs/GERAETEPROFIL.fr.md) |
 | `buffer_present` | `auto` | Ballon tampon : `auto` via TOP99, `true` ou `false` |
 | `cop_reference` | vide | Fiche technique pour la comparaison du COP : `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Seulement alors l'onglet COP colore chaque cycle : vert à partir de 92 % de la fiche technique (tolérance −8 %, HP KEYMARK), jaune en dessous, hors des points d'essai estimé prudemment et dessiné pâle. Vide : COP sans évaluation |
+| `dhw_usable_temp` | vide | Température du ballon en °C en dessous de laquelle l'eau chaude n'est plus utilisable. Sert à la durée de maintien dans la fenêtre « Surveiller l'eau chaude » (bouton dans la fenêtre de la pompe à chaleur). Vide : colonne sans valeur |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
 | `show_history` | `knopf` | Graphiques : `knopf` six boutons en haut à droite ouvrent consommation, SG Ready, températures, COP, cycles et analyse dans une fenêtre, période au choix de 24 heures à 1 an, `true` consommation toujours dans la carte, `false` désactivé |
 | `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |

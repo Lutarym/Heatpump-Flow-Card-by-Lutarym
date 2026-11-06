@@ -24,10 +24,10 @@
 import { escapeHtml, fmt, groesster, indexBis, jePixel, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 import { DATENBLAETTER, TOLERANZ, datenblattSchaetzung } from "./datenblatt.js";
+import { sgReihe, sgVerstaerkt } from "./sgstufen.js";
 import { DW } from "./diagramme.js";
-import { zeitRaster } from "./zeitraum.js";
 
-const HOEHE = { cop: 338, takt: 372 };
+const HOEHE = { cop: 338, takt: 262 };
 
 const FARBE = {
   heiz: "#FF5F52",
@@ -74,7 +74,8 @@ const COP_FARBE = { gut: "#16A34A", unter: "#F5B70A" };
  * im Zeitraum liegt.
  */
 export function copStufe(l) {
-  if (!l || l.copQuote === null || l.copQuote === undefined || l.laufend || l.angeschnitten) return null;
+  // Laeufe ueber SG Ready (Stufe 3 oder 4) werden nicht bewertet.
+  if (!l || l.sg || l.copQuote === null || l.copQuote === undefined || l.laufend || l.angeschnitten) return null;
   return l.copQuote >= TOLERANZ ? "gut" : "unter";
 }
 
@@ -159,7 +160,8 @@ export const auswertungKarte = {
     // Dazu die Vorlaeufe der Heizkreise (TOP36, TOP37) fuer Anlagen mit
     // Puffer und der Startzaehler (TOP12) zum Abgleich der gezaehlten Laeufe.
     const felder = ["compressor", "three_way_valve", "cop_heating", "cop_dhw", "outside_temp", "flow_temp",
-      "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts", "pump_flow"];
+      "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts", "pump_flow",
+      "sg_k1", "sg_k2"];
     const ids = felder.map((f) => this._e(f));
     if (!ids[0] || !this._hass || typeof this._hass.callWS !== "function") {
       this._auswertung = null;
@@ -188,7 +190,7 @@ export const auswertungKarte = {
             }))
             .filter((p) => !Number.isNaN(p.t))
             .map((p) => ({ ...p, v: parseFloat(p.s) }));
-        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss] =
+        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss, k1, k2] =
           ids.map(reihe);
         // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
         const erster = vd.length ? vd[0].t : t0;
@@ -196,6 +198,8 @@ export const auswertungKarte = {
         this._auswertung = {
           t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts,
           durchfluss,
+          // SG Ready nur mit beiden Kontakten erkennbar.
+          sg: ids[14] && ids[15] ? sgReihe(k1, k2) : null,
         };
         this._zeichneAuswertung();
       })
@@ -215,7 +219,7 @@ export const auswertungKarte = {
       for (let a = t1 - 86400000; a > t0 - 1; a -= 86400000) tage.unshift(a);
       const teile = tage.map((a, k) => this._auswertungDemoTag(a, a + 86400000, (k % 5) - 2 - (tage.length - k) * 0.05));
       const out = { t0: tage[0], t1 };
-      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss"].forEach((f) => {
+      ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss", "sg"].forEach((f) => {
         out[f] = teile.flatMap((x) => x[f]).sort((x, y) => x.t - y.t);
       });
       out.starts = this._auswertungDemoZaehler(out.vd);
@@ -255,6 +259,7 @@ export const auswertungKarte = {
     const kreis1 = [{ t: t0, s: "31", v: 31 }];
     const kreis2 = [{ t: t0, s: "28", v: 28 }];
     const durchfluss = [{ t: t0, s: "0", v: 0 }];
+    const heizLaeufe = [];
     [3.2, 7.3, 21.2].forEach((s) => {
       abtau.push({ t: t0 + s * h, s: "1", v: 1 }, { t: t0 + s * h + 6 * 60000, s: "0", v: 0 });
     });
@@ -264,6 +269,7 @@ export const auswertungKarte = {
       const dauer = (s > 10 && s < 17 ? 7 + (i % 3) * 2 : 16 + (i % 4) * 4) * 60000;
       const ww = i === 6 || i === 15;
       vd.push({ t: start, s: "40", v: 40 }, { t: start + dauer, s: "0", v: 0 });
+      if (!ww) heizLaeufe.push({ start, dauer });
       const vl = ww ? 51 : 35 + Math.max(0, 6 - aussenBei(start)) * 0.6;
       vorlauf.push({ t: start, s: "", v: vl }, { t: start + dauer, s: "", v: 30 });
       ruecklauf.push({ t: start, s: "", v: vl - (ww ? 6 : 3.8) }, { t: start + dauer, s: "", v: 29 });
@@ -286,7 +292,15 @@ export const auswertungKarte = {
         ramp(copH, (0.44 + (((i * 7) % 5) - 2) * 0.01) * carnot(aussenBei(start), vl));
       }
     });
-    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss };
+    // SG Ready im Demomodus: Stufe 3 um den ersten Heizlauf zwischen 11 und
+    // 15 Uhr Ortszeit (PV-Ueberschuss). Dieser Lauf wird nicht gewertet.
+    const sg = [{ t: t0, stufe: 2 }];
+    const mittag = heizLaeufe.find((x) => {
+      const std = new Date(x.start).getHours();
+      return std >= 11 && std < 15;
+    });
+    if (mittag) sg.push({ t: mittag.start - 6 * 60000, stufe: 3 }, { t: mittag.start + mittag.dauer + 6 * 60000, stufe: 2 });
+    return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss, sg };
   },
 
   /**
@@ -363,6 +377,8 @@ export const auswertungKarte = {
         l.aussen = s && !Number.isNaN(s.v) ? s.v : null;
       }
       l.bewertung = bewertung(l.minuten);
+      // Ueber SG Ready (Stufe 3 oder 4): nicht gewertet.
+      l.sg = Boolean(d.sg && sgVerstaerkt(d.sg, l.von, l.bis));
     });
     return laeufe;
   },
@@ -452,7 +468,10 @@ export const auswertungKarte = {
    * Vergleichswert. Gelbe Laeufe lassen sich analysieren (laufanalyse.js).
    */
   _zeichneCop(g, liste, d, laeufe) {
-    const mitCop = laeufe.filter((l) => l.cop !== null);
+    // Laeufe ueber SG Ready stehen im Bild, zaehlen aber nirgends mit.
+    const alleCop = laeufe.filter((l) => l.cop !== null);
+    const mitCop = alleCop.filter((l) => !l.sg);
+    const sgCop = alleCop.filter((l) => l.sg);
     const ref = this._copReferenz();
     const gewichtet = (ls, feld) => {
       const auswahl = ls.filter((l) => l[feld] !== null && l[feld] !== undefined);
@@ -462,8 +481,6 @@ export const auswertungKarte = {
     const heiz = mitCop.filter((l) => !l.ww);
     const ww = mitCop.filter((l) => l.ww);
     const z = (v) => (v === null ? "--" : fmt(v, 1));
-    const minH = heiz.length ? kleinster(heiz.map((l) => l.cop)) : null;
-    const maxH = heiz.length ? groesster(heiz.map((l) => l.cop)) : null;
 
     // Stufen je Lauf und Kopf mit der Zahl der bewerteten Laeufe.
     const bewertet = mitCop.filter((l) => copStufe(l));
@@ -478,14 +495,9 @@ export const auswertungKarte = {
     } else if (!bewertet.length) {
       urteil = this._auswertungUrteil(GRAU, "info", this._t("a_c_t_keine"), tf(this._t("a_c_d_ohne"), { n: ohne }));
     } else {
-      const aussen = gewichtet(bewertet, "aussen");
-      const vorlauf = gewichtet(bewertet, "vorlauf");
-      const teile = [tf(this._t("a_c_d_quote"), {
-        p: fmt(quote * 100, 0), a: aussen === null ? "--" : fmt(aussen, 1), v: vorlauf === null ? "--" : fmt(vorlauf, 0),
-      })];
-      const geschaetzt = bewertet.filter((l) => l.copGeschaetzt).length;
-      if (geschaetzt) teile.push(tf(this._t("a_c_d_geschaetzt"), { n: geschaetzt }));
-      if (ohne) teile.push(tf(this._t("a_c_d_ohne"), { n: ohne }));
+      // Kurz: nur der Anteil am Datenblatt. Geschaetzte und unbewertete
+      // Laeufe zeigt das Bild (blass, grau) und die Legende.
+      const teile = [tf(this._t("a_c_d_quote_k"), { p: fmt(quote * 100, 0) })];
       urteil = unter.length
         ? this._auswertungUrteil(COP_FARBE.unter, "warn", tf(this._t("a_c_t_unter"), { u: unter.length, n: bewertet.length }), teile.join(" · "))
         : this._auswertungUrteil(COP_FARBE.gut, "ok", tf(this._t("a_c_t_gut"), { n: bewertet.length }), teile.join(" · "));
@@ -495,9 +507,8 @@ export const auswertungKarte = {
       [z(gewichtet(heiz, "cop")), this._t("a_cop_heiz"), FARBE.heiz],
       [z(gewichtet(ww, "cop")), this._t("a_cop_ww"), FARBE.ww],
       [z(gewichtet(mitCop, "cop")), this._t("a_cop_gesamt")],
-      [minH === null ? "--" : `${fmt(minH, 1)} · ${fmt(maxH, 1)}`, this._t("a_cop_minmax")],
     ]);
-    if (!mitCop.length) {
+    if (!alleCop.length) {
       g.innerHTML = out;
       if (liste) liste.textContent = "";
       return;
@@ -510,7 +521,7 @@ export const auswertungKarte = {
     const oben = 132;
     const unten = 246;
     const zuX = (t) => links + ((t - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links);
-    const werte = mitCop.map((l) => l.cop).concat(mitCop.filter((l) => l.copErwartet !== null).map((l) => l.copErwartet));
+    const werte = alleCop.map((l) => l.cop).concat(alleCop.filter((l) => l.copErwartet !== null && !l.sg).map((l) => l.copErwartet));
     const cMax = Math.max(Math.ceil(groesster(werte)), 5);
     const zuY = (v) => unten - (Math.max(0, v) / cMax) * (unten - oben);
     for (let v = 0; v <= cMax; v++) {
@@ -520,23 +531,27 @@ export const auswertungKarte = {
         <text x="${links - 8}" y="${(zuY(v) + 4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#7E8CA0">${v}</text>`;
     }
     out += `<text x="${links - 8}" y="${oben - 10}" text-anchor="end" font-size="10.5" fill="#7E8CA0">COP</text>`;
-    // Bei vielen Laeufen (laengere Zeitraeume) schmale Saeulen ohne Zahlen;
-    // die Werte stehen im Tooltip.
-    const viele = mitCop.length > 60;
-    let zuletztX = -Infinity;
-    mitCop.forEach((l) => {
+    // Bei vielen Laeufen (laengere Zeitraeume) schmale Saeulen. Die Werte
+    // stehen im Tooltip, nicht ueber den Saeulen.
+    const viele = alleCop.length > 60;
+    alleCop.forEach((l) => {
       const xa = zuX(l.von);
       const w = Math.max(viele ? 1.5 : 5, zuX(l.bis) - xa - (viele ? 0 : 2));
       const y = zuY(l.cop);
       const stufe = copStufe(l);
-      const mitStrich = l.copErwartet !== null;
+      const mitStrich = l.copErwartet !== null && !l.sg;
       const titel = `${this._t(l.ww ? "warmwasser" : "heizung")} · ${fmt(l.minuten, 0)} min · COP ${fmt(l.cop, 1)}${
         mitStrich ? ` · ${tf(this._t(l.copGeschaetzt ? "a_c_dbl_s" : "a_c_dbl"), { c: fmt(l.copErwartet, 1) })} (${fmt(l.copQuote * 100, 0)} %)` : ""
-      }${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""}`;
+      }${l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""}${l.vorlauf !== null ? ` · VL ${fmt(l.vorlauf, 0)} °C` : ""}${
+        l.sg ? ` · ${this._t("a_sg_nicht")}` : ""}`;
       const r = Math.min(3, w / 2, unten - y);
       // Gelbe Saeulen oeffnen per Klick die Analyse des Laufs.
       const klick = stufe === "unter" ? ` data-lauf="${laeufe.indexOf(l)}" class="lhc-cop-klick"` : "";
-      out += `<path d="M${xa.toFixed(1)} ${unten}V${(y + r).toFixed(1)}Q${xa.toFixed(1)} ${y.toFixed(1)} ${(xa + r).toFixed(1)} ${y.toFixed(1)}H${(xa + w - r).toFixed(1)}Q${(xa + w).toFixed(1)} ${y.toFixed(1)} ${(xa + w).toFixed(1)} ${(y + r).toFixed(1)}V${unten}Z"
+      const form = `M${xa.toFixed(1)} ${unten}V${(y + r).toFixed(1)}Q${xa.toFixed(1)} ${y.toFixed(1)} ${(xa + r).toFixed(1)} ${y.toFixed(1)}H${(xa + w - r).toFixed(1)}Q${(xa + w).toFixed(1)} ${y.toFixed(1)} ${(xa + w).toFixed(1)} ${(y + r).toFixed(1)}V${unten}Z`;
+      // SG Ready: nur gestrichelter Umriss, ohne Bewertung.
+      out += l.sg
+        ? `<path class="lhc-sg-lauf" d="${form}" fill="none" stroke="#98A6BA" stroke-width="1.4" stroke-dasharray="3 2"><title>${escapeHtml(titel)}</title></path>`
+        : `<path d="${form}"
                     fill="${stufe ? COP_FARBE[stufe] : NEUTRAL}"${l.laufend || l.angeschnitten ? ' opacity="0.55"' : stufe && l.copGeschaetzt ? ' fill-opacity="0.55"' : ""}${klick}><title>${escapeHtml(titel)}</title></path>`;
       if (mitStrich) {
         const ye = zuY(l.copErwartet).toFixed(1);
@@ -546,12 +561,6 @@ export const auswertungKarte = {
       }
       // Spur darunter: rot Heizen, blau Warmwasser.
       out += `<rect x="${xa.toFixed(1)}" y="${unten + 5}" width="${w.toFixed(1)}" height="5" rx="2" fill="${l.ww ? FARBE.ww : FARBE.heiz}"/>`;
-      // Zahlen ueber Saeule und Vergleichsstrich, solange genug Abstand bleibt.
-      if (!viele && xa - zuletztX >= 26) {
-        const yText = Math.min(y, mitStrich ? zuY(l.copErwartet) : y) - 6;
-        out += `<text x="${(xa + w / 2).toFixed(1)}" y="${yText.toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#E8EDF4" pointer-events="none">${fmt(l.cop, 1)}</text>`;
-        zuletztX = xa;
-      }
     });
     out += this._auswertungAchse(links, rechts, unten + 28, d.t0, d.t1);
     // Aussentemperatur als eigener Streifen mit eigener Beschriftung.
@@ -579,18 +588,23 @@ export const auswertungKarte = {
 
     if (liste) {
       // Stufen mit Zeichen und Text, Farbe nie allein.
+      // Nur Eintraege, die im Bild vorkommen. Zeichen und Farbe bleiben
+      // zusammen, damit ein Umbruch sie nicht trennt.
+      const eintrag = (zeichen, text) => `<span class="lhc-leg">${zeichen}<span>${escapeHtml(this._t(text))}</span></span>`;
+      const farbe = (f, extra = "") => `<span class="lhc-dia-farbe${extra}" style="background:${f}"></span>`;
       const legende = (ref
         ? [
-          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut}"></span><span>${escapeHtml(this._t("a_c_l_gut"))}</span>`,
-          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.unter}"></span><span>${escapeHtml(this._t("a_c_l_unter"))}</span>`,
-          `<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut};opacity:0.55"></span><span>${escapeHtml(this._t("a_c_l_geschaetzt"))}</span>`,
-          `<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_l_ohne"))}</span>`,
-          `<span class="lhc-dia-strich"></span><span>${escapeHtml(this._t("a_c_vergleich"))}</span>`,
+          bewertet.length > unter.length ? eintrag(farbe(COP_FARBE.gut), "a_c_l_gut") : "",
+          unter.length ? eintrag(farbe(COP_FARBE.unter), "a_c_l_unter") : "",
+          bewertet.some((l) => l.copGeschaetzt) ? eintrag(`<span class="lhc-dia-farbe" style="background:${COP_FARBE.gut};opacity:0.55"></span>`, "a_c_l_geschaetzt_k") : "",
+          ohne ? eintrag(farbe("var(--c-6b7a90)"), "a_c_l_ohne") : "",
+          eintrag('<span class="lhc-dia-strich"></span>', "a_c_vergleich_k"),
         ]
-        : [`<span class="lhc-dia-farbe" style="background:var(--c-6b7a90)"></span><span>${escapeHtml(this._t("a_c_saeule"))}</span>`])
+        : [eintrag(farbe("var(--c-6b7a90)"), "a_c_saeule")])
         .concat(
-          `<span class="lhc-dia-farbe flach" style="background:${FARBE.heiz}"></span><span>${escapeHtml(this._t("heizung"))}</span>`,
-          `<span class="lhc-dia-farbe flach" style="background:${FARBE.ww}"></span><span>${escapeHtml(this._t("warmwasser"))}</span>`
+          sgCop.length ? eintrag('<span class="lhc-dia-farbe sg"></span>', "a_sg_nicht") : "",
+          alleCop.some((l) => !l.ww) ? eintrag(farbe(FARBE.heiz, " flach"), "heizung") : "",
+          alleCop.some((l) => l.ww) ? eintrag(farbe(FARBE.ww, " flach"), "warmwasser") : ""
         )
         .join("");
       // Ein Knopf statt einer Liste: Die Analyse beginnt beim schlechtesten
@@ -600,7 +614,8 @@ export const auswertungKarte = {
       liste.innerHTML = `
         <div class="lhc-takt-legende">${legende}</div>
         ${reihe.length ? `<button type="button" class="lhc-an-knopf lhc-cop-analyse" id="cop-analyse">${escapeHtml(tf(this._t("a_c_analysieren_n"), { n: reihe.length }))}</button>` : ""}
-        <p class="lhc-takt-quelle">${escapeHtml(this._t(ref ? "a_c_quelle" : "a_c_quelle_o"))}</p>`;
+        <details class="lhc-quelle"><summary>${escapeHtml(this._t("a_quelle_auf"))}</summary>
+          <p class="lhc-takt-quelle">${escapeHtml(this._t(ref ? "a_c_quelle" : "a_c_quelle_o"))}</p></details>`;
       const knopf = liste.querySelector("#cop-analyse");
       if (knopf) knopf.addEventListener("click", () => this._zeigeLaufAnalyse(reihe[0]));
     }
@@ -608,12 +623,17 @@ export const auswertungKarte = {
 
   /** Taktband mit Bewertung, Aussentemperatur und Stundenampel. */
   _zeichneTakt(g, liste, d, laeufe) {
-    const bewertet = laeufe.filter((l) => !l.laufend && !l.angeschnitten);
-    const n = laeufe.filter((l) => !l.angeschnitten).length;
+    // Laeufe ueber SG Ready stehen im Band, zaehlen aber nicht mit. Pausen
+    // vor und nach einem solchen Lauf ebenfalls nicht.
+    const normal = laeufe.filter((l) => !l.sg);
+    const bewertet = normal.filter((l) => !l.laufend && !l.angeschnitten);
+    const n = normal.filter((l) => !l.angeschnitten).length;
     const kurz = bewertet.filter((l) => l.minuten < 10);
     const mLauf = bewertet.length ? bewertet.reduce((s, l) => s + l.minuten, 0) / bewertet.length : null;
     const pausen = [];
-    for (let i = 1; i < laeufe.length; i++) pausen.push((laeufe[i].von - laeufe[i - 1].bis) / 60000);
+    for (let i = 1; i < laeufe.length; i++) {
+      if (!laeufe[i].sg && !laeufe[i - 1].sg) pausen.push((laeufe[i].von - laeufe[i - 1].bis) / 60000);
+    }
     const mPause = pausen.length ? pausen.reduce((s, p) => s + p, 0) / pausen.length : null;
     // Starts je Tag nur als Messwert; eine feste Grenze gibt es nicht.
     const tage = Math.max((d.t1 - d.t0) / 86400000, 1);
@@ -636,11 +656,11 @@ export const auswertungKarte = {
         : tf(this._t("a_t_kurz_d"), { k: kurz.length, n: bewertet.length, d: fmt(mLauf, 0) });
       out = this._auswertungUrteil(STUFE_FARBE[stufe], stufe === "ok" ? "ok" : stufe === "leicht" ? "info" : "warn", this._t(titel), unterzeile);
     }
+    // Die Zahl kurzer Laeufe steht schon im Kasten oben.
     out += this._auswertungKacheln(60, [
       [tage > 1.5 ? `${n} · ${fmt(jeTag, 0)}/d` : String(n), this._t("a_t_starts_k")],
       [mLauf === null ? "--" : `${fmt(mLauf, 0)} min`, this._t("a_t_lauf")],
       [mPause === null ? "--" : `${fmt(mPause, 0)} min`, this._t("a_t_pause")],
-      [String(kurz.length), this._t("a_t_kurz_k"), kurz.length && stufe ? STUFE_FARBE[stufe] : "#E8EDF4"],
     ]);
     const links = 20;
     const rechts = DW - 20;
@@ -654,10 +674,12 @@ export const auswertungKarte = {
       const f = l.ww ? FARBE.ww : FARBE[l.bewertung];
       const titelL = `${this._t(l.ww ? "warmwasser" : "heizung")} · ${fmt(l.minuten, 0)} min${
         l.aussen !== null ? ` · ${fmt(l.aussen, 1)} °C` : ""
-      }`;
-      out += `<rect x="${xa.toFixed(1)}" y="136" width="${w.toFixed(1)}" height="26" rx="4" fill="${f}"${
-        l.laufend || l.angeschnitten ? ' opacity="0.55"' : ""
-      }><title>${escapeHtml(titelL)}</title></rect>`;
+      }${l.sg ? ` · ${this._t("a_sg_nicht")}` : ""}`;
+      out += l.sg
+        ? `<rect class="lhc-sg-lauf" x="${(xa + 0.7).toFixed(1)}" y="136.7" width="${Math.max(1.6, w - 1.4).toFixed(1)}" height="24.6" rx="4" fill="none" stroke="#98A6BA" stroke-width="1.4" stroke-dasharray="3 2"><title>${escapeHtml(titelL)}</title></rect>`
+        : `<rect x="${xa.toFixed(1)}" y="136" width="${w.toFixed(1)}" height="26" rx="4" fill="${f}"${
+          l.laufend || l.angeschnitten ? ' opacity="0.55"' : ""
+        }><title>${escapeHtml(titelL)}</title></rect>`;
     });
     // Aussentemperatur als Linie.
     const aw = jePixel(d.aussen.filter((p) => !Number.isNaN(p.v)), zuX);
@@ -675,59 +697,7 @@ export const auswertungKarte = {
       out += `<path d="${pfad}" fill="none" stroke="${FARBE.aussen}" stroke-width="2" stroke-linejoin="round"/>
         <text x="${rechts}" y="186" text-anchor="end" font-size="10.5" fill="${FARBE.aussen}">${fmt(aMin, 1)} … ${fmt(aMax, 1)} °C</text>`;
     }
-    // Laeufe nach Aussentemperatur in vier Bereichen.
-    out += `<text x="${links}" y="252" font-size="11" fill="#98A6BA">${escapeHtml(this._t("a_t_baender"))}</text>`;
-    const baender = [
-      [-Infinity, 0, "a_t_b1"],
-      [0, 5, "a_t_b2"],
-      [5, 10, "a_t_b3"],
-      [10, Infinity, "a_t_b4"],
-    ];
-    const bAbstand = 8;
-    const bBreite = (rechts - links - bAbstand * 3) / 4;
-    baender.forEach(([von, bis, text], i) => {
-      const im = bewertet.filter((l) => l.aussen !== null && l.aussen >= von && l.aussen < bis);
-      // Gleiche Stufen wie oben, je Bereich der Aussentemperatur.
-      const tb = taktStufe(im);
-      const f = tb ? STUFE_FARBE[tb.stufe] : "#3A4557";
-      const x = links + i * (bBreite + bAbstand);
-      const zeile = tb
-        ? tf(this._t("a_t_b_zeile"), { n: im.length, d: fmt(tb.mittel, 0), k: tb.kurz })
-        : this._t("a_t_b_leer");
-      out += `<g><rect x="${x.toFixed(1)}" y="258" width="${bBreite.toFixed(1)}" height="42" rx="9" fill="#1C2533"/>
-        <rect x="${x.toFixed(1)}" y="258" width="5" height="42" rx="2.5" fill="${f}"/>
-        <text x="${(x + 13).toFixed(1)}" y="275" font-size="12" font-weight="700" fill="#E8EDF4">${escapeHtml(this._t(text))}</text>
-        <text x="${(x + 13).toFixed(1)}" y="291" font-size="10.5" fill="#98A6BA">${escapeHtml(zeile)}</text></g>`;
-    });
-
-    // Starts je Stunde: Farbe nach dem kuerzesten Lauf, der in der Stunde beginnt.
-    // Starts je Fach: 24 Stunden je Stunde, laenger je 3 Stunden, Tag, Woche.
-    const raster = zeitRaster(d.t0, d.t1);
-    const fachText = { stunde: "a_t_stunde", drei: "a_t_f_drei", tag: "a_t_f_tag", woche: "a_t_f_woche", monat: "a_t_f_monat" }[raster.art];
-    out += `<text x="${links}" y="322" font-size="11" fill="#98A6BA">${escapeHtml(this._t(fachText))}</text>`;
-    const rang = { kurz: 0, gut: 1, sehrGut: 2 };
-    const nF = raster.grenzen.length - 1;
-    for (let i = 0; i < nF; i++) {
-      const von = raster.grenzen[i];
-      const bis = raster.grenzen[i + 1];
-      const imFach = laeufe.filter((l) => !l.angeschnitten && l.von >= von && l.von < bis);
-      let f = FARBE.leer;
-      if (imFach.length) {
-        const schlecht = imFach.reduce((a, l) => (rang[l.bewertung] < rang[a.bewertung] ? l : a), imFach[0]);
-        f = FARBE[schlecht.bewertung];
-      }
-      const xa = links + ((von - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links) + 1;
-      const xb = links + ((bis - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links) - 1;
-      const w = Math.max(1, xb - xa);
-      const zeitText = raster.art === "stunde" ? "" : `${this._zrMarke(von, d.t1 - d.t0)} · `;
-      out += `<rect x="${xa.toFixed(1)}" y="328" width="${w.toFixed(1)}" height="14" rx="4" fill="${f}"><title>${escapeHtml(
-        zeitText + tf(this._t("a_t_stunde_t"), { n: imFach.length })
-      )}</title></rect>`;
-      if (imFach.length >= 2 && w >= String(imFach.length).length * 6 + 4) {
-        out += `<text x="${(xa + w / 2).toFixed(1)}" y="339" text-anchor="middle" font-size="10" font-weight="700" fill="#0A0E14">${imFach.length}</text>`;
-      }
-    }
-    out += this._auswertungAchse(links, rechts, 362, d.t0, d.t1);
+    out += this._auswertungAchse(links, rechts, 248, d.t0, d.t1);
     g.innerHTML = out;
 
     // Ausfuehrliche Bewertung mit Begruendung und Quelle unter dem Bild.
@@ -739,14 +709,16 @@ export const auswertungKarte = {
         ["kurz", "a_t_l_kurz"],
         ["gut", "a_t_l_gut"],
         ["sehrGut", "a_t_l_sehrgut"],
+        ["ww", "warmwasser"],
       ]
-        .map(([k, t]) => `<span class="lhc-dia-farbe" style="background:${FARBE[k]}"></span><span>${escapeHtml(this._t(t))}</span>`)
-        .concat(`<span class="lhc-dia-farbe" style="background:${FARBE.ww}"></span><span>${escapeHtml(this._t("warmwasser"))}</span>`)
+        .map(([k, t]) => `<span class="lhc-leg"><span class="lhc-dia-farbe" style="background:${FARBE[k]}"></span><span>${escapeHtml(this._t(t))}</span></span>`)
+        .concat(laeufe.some((l) => l.sg) ? `<span class="lhc-leg"><span class="lhc-dia-farbe sg"></span><span>${escapeHtml(this._t("a_sg_nicht"))}</span></span>` : "")
         .join("");
       liste.innerHTML = `
         <div class="lhc-takt-legende">${legende}</div>
         ${saetze.length ? `<p class="lhc-takt-text">${escapeHtml(saetze.join(" "))}</p>` : ""}
-        <p class="lhc-takt-quelle">${escapeHtml(this._t("a_t_quelle"))}</p>`;
+        <details class="lhc-quelle"><summary>${escapeHtml(this._t("a_quelle_auf"))}</summary>
+          <p class="lhc-takt-quelle">${escapeHtml(this._t("a_t_quelle"))}</p></details>`;
     }
   },
 };

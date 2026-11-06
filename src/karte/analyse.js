@@ -344,7 +344,8 @@ export const analyseKarte = {
   /** Alle Pruefpunkte berechnen. */
   _anPruefen() {
     const d = this._auswertung;
-    const laeufe = d ? this._auswertungLaeufe(d) : [];
+    // Laeufe ueber SG Ready (Stufe 3 oder 4) zaehlen in keiner Bewertung.
+    const laeufe = (d ? this._auswertungLaeufe(d) : []).filter((l) => !l.sg);
     const heizLaeufe = laeufe.filter((l) => !l.ww && !l.angeschnitten && l.minuten >= 10);
     // Richtwerte je Tag gelten bei laengeren Zeitraeumen im Mittel.
     const tage = d ? Math.max((d.t1 - d.t0) / 86400000, 1) : 1;
