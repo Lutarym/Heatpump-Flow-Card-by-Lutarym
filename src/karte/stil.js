@@ -471,6 +471,24 @@ export const stilKarte = {
       .lhc-ww-tabelle td.lhc-ww-unter { color: #F5B70A; font-weight: 700; }
       .lhc-ww-tabelle td.blass { opacity: 0.6; }
       .lhc-ww-tabelle tr.lhc-ww-aus td { opacity: 0.55; }
+      .lhc-ww-urteil { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: 12px;
+        background: var(--c-1b2431); border: 1px solid var(--c-3a4557); border-left: 5px solid var(--c-7e8ca0); }
+      .lhc-ww-urteil.gruen { border-left-color: #16A34A; }
+      .lhc-ww-urteil.gelb { border-left-color: #F5B70A; }
+      .lhc-ww-urteil-icon { flex: 0 0 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 19px; font-weight: 800; color: #0B0F15; background: var(--c-7e8ca0); }
+      .lhc-ww-urteil.gruen .lhc-ww-urteil-icon { background: #16A34A; }
+      .lhc-ww-urteil.gelb .lhc-ww-urteil-icon { background: #F5B70A; }
+      .lhc-ww-urteil-satz { margin-top: 5px; font-size: 16px; font-weight: 700; color: var(--c-e8edf4); }
+      .lhc-ww-urteil-zahl { margin-top: 6px; font-size: 30px; font-weight: 800; color: var(--c-e8edf4); font-variant-numeric: tabular-nums; }
+      .lhc-ww-urteil-zahl small { font-size: 15px; font-weight: 600; color: var(--c-c9d3e0); }
+      .lhc-ww-urteil-fein { margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--c-98a6ba); }
+      .lhc-ww-zeilen { margin-top: 12px; }
+      .lhc-ww-zeile { display: flex; justify-content: space-between; gap: 12px; padding: 7px 2px; font-size: 13px;
+        color: var(--c-e8edf4); border-bottom: 1px solid var(--c-26303f); }
+      .lhc-ww-zeile span { color: var(--c-98a6ba); }
+      .lhc-ww-zeile b { font-weight: 600; text-align: right; }
+      .lhc-ww-wie { margin: 6px 0 0; padding-left: 16px; line-height: 1.5; color: var(--c-98a6ba); }
       .lhc-dialog-action:hover { border-color: var(--c-3e4c61); }
       .lhc-dialog-action.is-an {
         background: #0E2E1C; border-color: #46C07A; color: #BFEFD2;
