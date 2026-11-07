@@ -461,6 +461,7 @@ export const stilKarte = {
       .lhc-ww-kopf:first-child, .lhc-ww-tabs + .lhc-ww-kopf { margin-top: 4px; }
       .lhc-ww-tab:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
       .lhc-ww-scroll { overflow-x: auto; }
+      .lhc-ab-liste { max-height: 220px; overflow-y: auto; margin-top: 8px; }
       .lhc-ww-tabelle { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--c-e8edf4);
         font-variant-numeric: tabular-nums; }
       .lhc-ww-tabelle th { padding: 3px 5px; text-align: left; font-size: 10.5px; font-weight: 600; color: var(--c-7e8ca0);

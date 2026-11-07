@@ -83,7 +83,7 @@ entities:
 | `cop_reference` | 空 | COP 比較用データシート：`panasonic_tcap_m_12`（Panasonic Aquarea T-CAP M 12 kW、WH-WXG12ME5/ME8）。指定したときだけ COP タブで運転ごとに色分けします：データシートの92 %以上は緑（許容差 −8 %、HP KEYMARK）、未満は黄、試験点の範囲外は推定のみ（推定と表示）で淡色表示。空：COP は評価なし |
 | `dhw_usable_temp` | 空 | 給湯が使えなくなるとみなすタンク温度（°C）。「給湯を観察」ウィンドウ（ヒートポンプのウィンドウのボタン）の保持時間に使います。空：値なし |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
-| `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
+| `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示し、ウィンドウには霜取りタブもあります（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
 | `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
 | `show_reload` | `true` | バッファーと給湯に「再加熱 …」の行を表示 |
 | `show_help` | `true` | カード右下にヘルプの「?」ボタンを表示。ヘルプは HeishaMon の説明のため、HeishaMon のプロファイルとデモモードでのみ表示 |

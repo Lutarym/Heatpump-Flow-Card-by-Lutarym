@@ -56,9 +56,9 @@
  *  - JAZ: aus Werten der Waermepumpe seit 1. Januar, nur eingeschraenkt
  *    mit gemessenen Jahreswerten vergleichbar: nur Messwert.
  */
-import { escapeHtml, fmt, indexBis, numState, rawState, stellbar, zustandAn } from "../hilfsfunktionen.js";
+import { escapeHtml, fmt, indexBis, numState, rawState, stellbar } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { copStufe, copSumme, mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
+import { abtauungen, anAbschnitte, copStufe, copSumme, mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
 import { TOLERANZ } from "./datenblatt.js";
 
 export const QUELLEN = {
@@ -127,18 +127,8 @@ const RANG = { ok: 0, leicht: 1, hinweis: 2, pruefen: 3 };
  * Ventil auf Heizen steht.
  */
 export function anZeiten(reihe, aussen, t0, t1, ventil) {
-  const abschnitte = [];
-  for (let i = 0; i < reihe.length; i++) {
-    const a = Math.max(reihe[i].t, t0);
-    const b = Math.min(i + 1 < reihe.length ? reihe[i + 1].t : t1, t1);
-    if (b <= a) continue;
-    const n = parseFloat(reihe[i].s);
-    const an = Number.isNaN(n) ? zustandAn(reihe[i].s) === true : n > 0;
-    if (!an) continue;
-    const letzter = abschnitte[abschnitte.length - 1];
-    if (letzter && letzter.bis === a) letzter.bis = b;
-    else abschnitte.push({ von: a, bis: b });
-  }
+  // Unbekannte Werte ("unavailable") aendern den Zustand nicht.
+  const abschnitte = anAbschnitte(reihe, t0, t1);
   const raum = ventil
     ? abschnitte.flatMap((x) => ventilAbschnitte(ventil, x.von, x.bis).filter((s) => !s.ww).map((s) => ({ von: s.von, bis: s.bis })))
     : abschnitte;
@@ -588,12 +578,15 @@ export const analyseKarte = {
       });
     }
     if (d && d.abtau.length) {
-      const zeiten = anZeiten(d.abtau, d.aussen, d.t0, d.t1);
+      // Wie im Reiter Abtauen: angeschnittene und laufende Abtauungen zaehlen
+      // mit, gehen aber nicht in die mittlere Dauer ein.
+      const zeiten = abtauungen(d);
+      const ganz = zeiten.filter((x) => !x.vorher && !x.laeuft);
       if (!zeiten.length) {
         punkt({ gruppe: "zusatz", id: "abtauung", stufe: "ok", titel: t("an_t_abtauung"), wert: "0×", richt: t("an_r_abtauung"),
           text: t("an_ab_keine"), quelle: "abtauung" });
-      } else {
-        const m = zeiten.reduce((s, x) => s + x.minuten, 0) / zeiten.length;
+      } else if (ganz.length) {
+        const m = ganz.reduce((s, x) => s + x.minuten, 0) / ganz.length;
         const temps = zeiten.filter((x) => x.aussen !== null).map((x) => x.aussen);
         // Ueber +5 °C liegt ausserhalb des Bereichs, in dem der Verdampfer
         // am haeufigsten vereist; das ist ein Hinweis, keine Bewertung.
