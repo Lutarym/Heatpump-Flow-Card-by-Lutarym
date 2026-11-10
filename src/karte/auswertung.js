@@ -37,7 +37,7 @@ import { DATENBLAETTER, TOLERANZ, datenblattSchaetzung } from "./datenblatt.js";
 import { sgReihe, sgVerstaerkt } from "./sgstufen.js";
 import { DW } from "./diagramme.js";
 
-const HOEHE = { cop: 338, takt: 262 };
+const HOEHE = { cop: 338, takt: 262, abtau: 262 };
 
 const FARBE = {
   heiz: "#FF5F52",
@@ -47,6 +47,9 @@ const FARBE = {
   gut: "#84CC16",
   sehrGut: "#22C55E",
   leer: "#1C2533",
+  // Abtauen wie das Symbol in der Karte, Laeufe blass dahinter.
+  abtau: "#3E9BE0",
+  lauf: "#2E3A4D",
 };
 
 /** Farben der Stufen der Taktung, wie in der Analyse. */
@@ -215,6 +218,50 @@ export function verdichterLaeufe(vd, von, bis) {
  */
 export function lueckenhaft(lauf) {
   return lauf.unbekannt > 0.05 * (lauf.bis - lauf.von);
+}
+
+/**
+ * Abschnitte im Zeitraum, in denen ein Zustand an ist (Zahl ueber 0 oder
+ * an). Unbekannte Eintraege aendern den Zustand nicht.
+ */
+export function anAbschnitte(reihe, t0, t1) {
+  const out = [];
+  const r = reihe || [];
+  let an = false;
+  for (let i = 0; i < r.length; i++) {
+    const z = verdichterZustand(r[i].s);
+    if (z !== null) an = z;
+    const a = Math.max(r[i].t, t0);
+    const b = Math.min(i + 1 < r.length ? r[i + 1].t : t1, t1);
+    if (b <= a || !an) continue;
+    const letzter = out[out.length - 1];
+    if (letzter && letzter.bis === a) letzter.bis = b;
+    else out.push({ von: a, bis: b });
+  }
+  return out;
+}
+
+/**
+ * Abtauungen aus TOP26 im Zeitraum: Dauer, Aussentemperatur als Mittel
+ * waehrend der Abtauung, Betrieb nach dem Umschaltventil zur Mitte.
+ * vorher: begann vor dem Zeitraum, laeuft: dauert noch an. Beide zaehlen
+ * mit, gehen aber nicht in die mittlere Dauer ein.
+ */
+export function abtauungen(d) {
+  if (!d || !d.abtau) return [];
+  return anAbschnitte(d.abtau, d.t0, d.t1).map((x) => {
+    const mitte = (x.von + x.bis) / 2;
+    const abschnitt = ventilAbschnitte(d.ventil, mitte, mitte + 1)[0];
+    return {
+      von: x.von,
+      bis: x.bis,
+      minuten: (x.bis - x.von) / 60000,
+      aussen: d.aussen && d.aussen.length ? mittel(d.aussen, x.von, x.bis, false) : null,
+      ww: Boolean(abschnitt && abschnitt.ww),
+      vorher: x.von <= d.t0,
+      laeuft: x.bis >= d.t1,
+    };
+  });
 }
 
 /**
@@ -563,12 +610,16 @@ export const auswertungKarte = {
       this._zeichneAnalyse();
       return;
     }
-    if (art !== "cop" && art !== "takt") return;
+    if (art !== "cop" && art !== "takt" && art !== "abtau") return;
     const sr = this.shadowRoot;
     const g = sr && sr.getElementById(`dia-${art}`);
     if (!g) return;
     const liste = sr.getElementById("dia-liste");
     const d = this._auswertung;
+    if (art === "abtau") {
+      this._zeichneAbtau(g, liste, d);
+      return;
+    }
     const laeufe = d ? this._auswertungLaeufe(d) : [];
     if (d) this._auswertungHinweis(d);
     if (!d || !laeufe.length) {
@@ -872,5 +923,123 @@ export const auswertungKarte = {
         <details class="lhc-quelle"><summary>${escapeHtml(this._t("a_quelle_auf"))}</summary>
           <p class="lhc-takt-quelle">${escapeHtml(this._t("a_t_quelle"))}</p></details>`;
     }
+  },
+
+  /**
+   * Wann abgetaut wurde: Abtauungen als Marken ueber den Laeufen, darunter
+   * die Aussentemperatur mit dem Bereich, in dem der Verdampfer am
+   * haeufigsten vereist (-5 bis +5 °C, 42watt "Abtauen"), und eine Liste.
+   * Bewertet wird wie in der Analyse nur die mittlere Dauer (bis 15 min).
+   */
+  _zeichneAbtau(g, liste, d) {
+    const sr = this.shadowRoot;
+    const leer = sr.getElementById("dia-leer");
+    if (!d) {
+      g.innerHTML = "";
+      if (liste) liste.textContent = "";
+      if (leer) leer.textContent = this._t("kein_verlauf");
+      this._diaLeer(true);
+      return;
+    }
+    this._auswertungHinweis(d);
+    this._diaLeer(false);
+    const t = (k) => this._t(k);
+    if (!this._config.demo && !this._e("defrost")) {
+      g.innerHTML = this._auswertungUrteil(GRAU, "info", t("a_ab_t_fehlt"), t("a_ab_d_fehlt"));
+      if (liste) liste.textContent = "";
+      return;
+    }
+    const ab = abtauungen(d);
+    const ganz = ab.filter((x) => !x.vorher && !x.laeuft);
+    const m = ganz.length ? ganz.reduce((s, x) => s + x.minuten, 0) / ganz.length : null;
+    const temps = ab.filter((x) => x.aussen !== null).map((x) => x.aussen);
+    const aMin = temps.length ? Math.min(...temps) : null;
+    const aMax = temps.length ? Math.max(...temps) : null;
+    const tage = Math.max((d.t1 - d.t0) / 86400000, 1);
+    const unterzeile = m === null ? "" : temps.length
+      ? tf(t("a_ab_d"), { n: ab.length, d: fmt(m, 0), a: fmt(aMin, 0), b: fmt(aMax, 0) })
+      : tf(t("a_ab_d_ohne"), { n: ab.length, d: fmt(m, 0) });
+    let out;
+    if (!ab.length) out = this._auswertungUrteil(STUFE_FARBE.ok, "ok", t("a_ab_t_keine"), "");
+    else if (m === null) out = this._auswertungUrteil(GRAU, "info", tf(t("a_ab_t_n"), { n: ab.length }), "");
+    else if (m > 15) out = this._auswertungUrteil(STUFE_FARBE.hinweis, "warn", t("a_ab_t_lang"), unterzeile);
+    else out = this._auswertungUrteil(STUFE_FARBE.ok, "ok", t("a_ab_t_ok"), unterzeile);
+    out += this._auswertungKacheln(60, [
+      [tage > 1.5 ? `${ab.length} · ${fmt(ab.length / tage, 1)}/d` : String(ab.length), t("a_ab_k_n")],
+      [m === null ? "--" : `${fmt(m, 0)} min`, t("a_ab_k_dauer")],
+      [aMin === null ? "--" : `${fmt(aMin, 0)} … ${fmt(aMax, 0)} °C`, t("a_ab_k_aussen")],
+    ]);
+    const links = 20;
+    const rechts = DW - 20;
+    const zuX = (x) => links + ((x - d.t0) / (d.t1 - d.t0 || 1)) * (rechts - links);
+    const zeit = (x) => {
+      const dt = new Date(x);
+      const uhr = `${String(dt.getHours()).padStart(2, "0")}:${String(dt.getMinutes()).padStart(2, "0")}`;
+      try {
+        return `${dt.toLocaleDateString(this._sp(), { weekday: "short", day: "2-digit", month: "2-digit" })} ${uhr}`;
+      } catch {
+        return `${this._zrDatum(x, false)} ${uhr}`;
+      }
+    };
+    // Band: Verdichterlaeufe blass, Abtauungen als Marken darueber.
+    out += `<text x="${links}" y="128" font-size="11" fill="#98A6BA">${escapeHtml(t("a_ab_band"))}</text>
+      <rect x="${links}" y="134" width="${rechts - links}" height="30" rx="7" fill="${FARBE.leer}"/>`;
+    verdichterLaeufe(d.vd, d.t0, d.t1).forEach((l) => {
+      const xa = zuX(l.von);
+      out += `<rect x="${xa.toFixed(1)}" y="136" width="${Math.max(1, zuX(l.bis) - xa).toFixed(1)}" height="26" rx="3" fill="${FARBE.lauf}"/>`;
+    });
+    ab.forEach((x) => {
+      const xa = zuX(x.von);
+      const titel = `${zeit(x.von)} · ${fmt(x.minuten, 0)} min${x.aussen !== null ? ` · ${fmt(x.aussen, 1)} °C` : ""} · ${t(x.ww ? "warmwasser" : "heizung")}${
+        x.laeuft ? ` · ${t("a_ab_laeuft")}` : ""}`;
+      out += `<rect x="${(xa - 1).toFixed(1)}" y="136" width="${Math.max(3, zuX(x.bis) - xa + 2).toFixed(1)}" height="26" rx="2" fill="${FARBE.abtau}"><title>${escapeHtml(titel)}</title></rect>`;
+    });
+    // Aussentemperatur mit dem Bereich -5 bis +5 °C.
+    const aw = jePixel((d.aussen || []).filter((p) => !Number.isNaN(p.v)), zuX);
+    out += `<text x="${links}" y="186" font-size="11" fill="${FARBE.aussen}">${escapeHtml(t("aussentemperatur"))}</text>`;
+    if (aw.length >= 2) {
+      const lo = kleinster(aw.map((p) => p.v));
+      const hi = groesster(aw.map((p) => p.v));
+      const oben = 194;
+      const unten = 228;
+      const zuY = (v) => unten - ((v - lo) / (hi - lo || 1)) * (unten - oben);
+      const bo = Math.min(5, hi);
+      const bu = Math.max(-5, lo);
+      if (bo > bu) {
+        out += `<rect x="${links}" y="${zuY(bo).toFixed(1)}" width="${rechts - links}" height="${Math.max(1, zuY(bu) - zuY(bo)).toFixed(1)}" fill="#98A6BA" fill-opacity="0.12"/>`;
+      }
+      let pfad = "";
+      aw.forEach((p, i) => {
+        const x = zuX(Math.max(p.t, d.t0));
+        pfad += `${i ? `H${x.toFixed(1)}V` : `M${x.toFixed(1)} `}${zuY(p.v).toFixed(1)}`;
+      });
+      pfad += `H${rechts}`;
+      out += `<path d="${pfad}" fill="none" stroke="${FARBE.aussen}" stroke-width="2" stroke-linejoin="round"/>
+        <text x="${rechts}" y="186" text-anchor="end" font-size="10.5" fill="${FARBE.aussen}">${fmt(lo, 1)} … ${fmt(hi, 1)} °C</text>`;
+    }
+    out += this._auswertungAchse(links, rechts, 248, d.t0, d.t1);
+    g.innerHTML = out;
+    if (!liste) return;
+    const eintrag = (zeichen, k) => `<span class="lhc-leg">${zeichen}<span>${escapeHtml(t(k))}</span></span>`;
+    const legende = [
+      eintrag(`<span class="lhc-dia-farbe" style="background:${FARBE.abtau}"></span>`, "a_ab_l_abtau"),
+      eintrag(`<span class="lhc-dia-farbe" style="background:${FARBE.lauf}"></span>`, "a_ab_l_lauf"),
+      eintrag('<span class="lhc-dia-farbe" style="background:#98A6BA;opacity:0.3"></span>', "a_ab_l_bereich"),
+    ].join("");
+    const zeilen = ab.slice().reverse().map((x) => {
+      const zusatz = x.laeuft ? t("a_ab_laeuft") : x.vorher ? t("a_ab_vorher") : "";
+      return `<tr><td>${escapeHtml(zeit(x.von))}${zusatz ? `<small>${escapeHtml(zusatz)}</small>` : ""}</td>
+        <td>${fmt(x.minuten, 0)} min</td><td>${x.aussen === null ? "--" : `${fmt(x.aussen, 1)} °C`}</td>
+        <td>${escapeHtml(t(x.ww ? "warmwasser" : "heizung"))}</td></tr>`;
+    }).join("");
+    // Wie in der Analyse: Abtauungen ueber +5 °C nur als Hinweis ohne Bewertung.
+    const plus = temps.some((v) => v > 5);
+    liste.innerHTML = `
+      <div class="lhc-takt-legende">${legende}</div>
+      ${plus ? `<p class="lhc-takt-text">${escapeHtml(t("a_ab_plus"))}</p>` : ""}
+      ${ab.length ? `<div class="lhc-ww-scroll lhc-ab-liste"><table class="lhc-ww-tabelle"><thead><tr>${["a_ab_s_beginn", "a_ab_s_dauer", "a_ab_s_aussen", "a_ab_s_betrieb"]
+        .map((k) => `<th>${escapeHtml(t(k))}</th>`).join("")}</tr></thead><tbody>${zeilen}</tbody></table></div>` : ""}
+      <details class="lhc-quelle"><summary>${escapeHtml(t("a_quelle_auf"))}</summary>
+        <p class="lhc-takt-quelle">${escapeHtml(t("a_ab_quelle"))}</p></details>`;
   },
 };

@@ -83,7 +83,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `cop_reference` | vide | Fiche technique pour la comparaison du COP : `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Seulement alors l'onglet COP colore chaque cycle : vert à partir de 92 % de la fiche technique (tolérance −8 %, HP KEYMARK), jaune en dessous, hors des points d'essai seulement estimé, signalé comme estimation et dessiné pâle. Vide : COP sans évaluation |
 | `dhw_usable_temp` | vide | Température du ballon en °C en dessous de laquelle l'eau chaude n'est plus utilisable. Sert à la durée de maintien dans la fenêtre « Surveiller l'eau chaude » (bouton dans la fenêtre de la pompe à chaleur). Vide : colonne sans valeur |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
-| `show_history` | `knopf` | Graphiques : `knopf` six boutons en haut à droite ouvrent consommation, SG Ready, températures, COP, cycles et analyse dans une fenêtre, période au choix de 24 heures à 1 an, `true` consommation toujours dans la carte, `false` désactivé |
+| `show_history` | `knopf` | Graphiques : `knopf` six boutons en haut à droite ouvrent consommation, SG Ready, températures, COP, cycles et analyse dans une fenêtre (avec en plus l'onglet dégivrage), période au choix de 24 heures à 1 an, `true` consommation toujours dans la carte, `false` désactivé |
 | `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |
 | `show_reload` | `true` | Afficher la ligne « Recharge à … » dans le ballon tampon et l'eau chaude |
 | `show_help` | `true` | Afficher le bouton « ? » de l'aide en bas à droite de la carte ; l'aide décrit HeishaMon et n'apparaît qu'avec les profils HeishaMon et en mode démo |
@@ -200,7 +200,10 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `dhw_heater_switch` | Autoriser l'appoint eau chaude | SetDHWHeaterState, switch |
 | `circulation_pump` | Pompe de circulation en marche | Shelly ou interrupteur propre |
 | `circ_switch` | Interrupteur de circulation (cliquable) | interrupteur pour la circulation |
-| `weather` | Prévisions météo | weather, prévision horaire ; vide : automatique. Pour la meilleure heure de charge dans la fenêtre « Surveiller l'eau chaude » |
+| `weather` | Prévisions météo | weather, prévision horaire ; vide : comme HeishaMon by Lutarym, sinon automatique. Pour la meilleure heure de charge dans la fenêtre « Surveiller l'eau chaude » |
+| `dhw_warmest` | Eau chaude à l'heure la plus chaude | HeishaMon by Lutarym 1.4.0 ou plus récent, switch. Bouton dans la fenêtre de la pompe à chaleur ; sépare les jours avec et sans le plan pour l'onglet « Optimisation » dans la fenêtre « Surveiller l'eau chaude » |
+| `dhw_planned` | Charge d'eau chaude prévue | HeishaMon by Lutarym 1.4.0 ou plus récent, sensor. Dans la fenêtre de la pompe à chaleur et comme « Charge prévue » dans l'onglet « Jour ou nuit » |
+| `dhw_last_charge` | Dernière charge d'eau chaude | HeishaMon by Lutarym 1.4.0 ou plus récent, sensor. Dans la fenêtre de la pompe à chaleur ; marque les charges démarrées par l'intégration |
 | **Commande** | | |
 | `mode_select` | Changer de mode | SetOperationMode, select |
 | **Réglages avancés** | | |

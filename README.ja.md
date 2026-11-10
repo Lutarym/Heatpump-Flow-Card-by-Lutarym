@@ -83,7 +83,7 @@ entities:
 | `cop_reference` | 空 | COP 比較用データシート：`panasonic_tcap_m_12`（Panasonic Aquarea T-CAP M 12 kW、WH-WXG12ME5/ME8）。指定したときだけ COP タブで運転ごとに色分けします：データシートの92 %以上は緑（許容差 −8 %、HP KEYMARK）、未満は黄、試験点の範囲外は推定のみ（推定と表示）で淡色表示。空：COP は評価なし |
 | `dhw_usable_temp` | 空 | 給湯が使えなくなるとみなすタンク温度（°C）。「給湯を観察」ウィンドウ（ヒートポンプのウィンドウのボタン）の保持時間に使います。空：値なし |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
-| `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
+| `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示し、ウィンドウには霜取りタブもあります（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
 | `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
 | `show_reload` | `true` | バッファーと給湯に「再加熱 …」の行を表示 |
 | `show_help` | `true` | カード右下にヘルプの「?」ボタンを表示。ヘルプは HeishaMon の説明のため、HeishaMon のプロファイルとデモモードでのみ表示 |
@@ -200,7 +200,10 @@ entities:
 | `dhw_heater_switch` | 給湯ヒーター許可の切替 | SetDHWHeaterState, switch |
 | `circulation_pump` | 循環ポンプ運転中 | Shellyまたは独自スイッチ |
 | `circ_switch` | 循環スイッチ（クリック可） | 循環の入切スイッチ |
-| `weather` | 天気予報 | weather、1時間ごとの予報。空欄：自動。「給湯を観察」ウィンドウの最適な沸き上げ時刻に使用 |
+| `weather` | 天気予報 | weather、1時間ごとの予報。空欄：HeishaMon by Lutarym と同じ、なければ自動。「給湯を観察」ウィンドウの最適な沸き上げ時刻に使用 |
+| `dhw_warmest` | 最も暖かい時間帯に給湯 | HeishaMon by Lutarym 1.4.0 以降、switch。ヒートポンプのウィンドウのボタン。「給湯を観察」ウィンドウの「最適化」タブで予定ありの日と予定なしの日を分けます |
+| `dhw_planned` | 給湯の予定時刻 | HeishaMon by Lutarym 1.4.0 以降、sensor。ヒートポンプのウィンドウと、「昼か夜か」タブの「予定の給湯」に表示 |
+| `dhw_last_charge` | 前回の給湯運転 | HeishaMon by Lutarym 1.4.0 以降、sensor。ヒートポンプのウィンドウに表示。統合が開始した沸き上げに印を付けます |
 | **制御** | | |
 | `mode_select` | 運転モード切替 | SetOperationMode, select |
 | **詳細設定** | | |

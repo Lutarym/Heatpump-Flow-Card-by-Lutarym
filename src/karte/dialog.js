@@ -90,6 +90,11 @@ export const dialogKarte = {
           { feld: "powerful_mode", typ: "auswahl", titel: "f_turbomodus", texte: POWERFUL_LABELS },
           { feld: "quiet_mode", typ: "auswahl", titel: "f_leisemodus", texte: QUIET_LABELS },
           { feld: "mode_select", typ: "auswahl", titel: "f_betriebsart", texte: MODE_LABELS },
+          // HeishaMon by Lutarym ab 1.4.0: Warmwasser zur waermsten Tageszeit,
+          // Schalter sowie geplante und letzte Warmwasserladung.
+          { feld: "dhw_planned", typ: "trenner" },
+          { feld: "dhw_warmest", typ: "schalter", an: "f_waermste_aus", aus: "f_waermste_an" },
+          { feld: "dhw_planned", typ: "wwplan" },
           { feld: "dhw_temp", typ: "wwknopf", titel: "ww_knopf" },
         ],
       },
@@ -372,6 +377,14 @@ export const dialogKarte = {
 
           : a.typ === "kurveknopf" || a.typ === "wwknopf"
           ? `<button type="button" class="lhc-dialog-action${a.schmal ? " schmal" : ""}" id="dlg-a${i}">${escapeHtml(this._t(a.titel))}</button>`
+          : a.typ === "trenner"
+          ? `<div class="lhc-trenner" id="dlg-a${i}"></div>`
+          : a.typ === "wwplan"
+          ? `<div class="lhc-plan" id="dlg-a${i}" hidden>
+               <div class="lhc-num-kompakt"><span>${escapeHtml(this._t("fld_dhw_planned"))}</span><output data-plan="wert"></output></div>
+               <div class="lhc-plan-info" data-plan="info" hidden></div>
+               <div class="lhc-num-kompakt" data-plan="zeile-letzte"><span>${escapeHtml(this._t("fld_dhw_last_charge"))}</span><output data-plan="letzte"></output></div>
+             </div>`
           : a.typ === "zahl"
           ? `<div class="lhc-num-kompakt">
                <span class="lhc-field-label">${escapeHtml(this._t(a.titel))}</span>
@@ -387,7 +400,8 @@ export const dialogKarte = {
 
     liste.forEach((a, i) => {
       const el = this.shadowRoot.getElementById(`dlg-a${i}`);
-      if (!el) return;
+      // Nur Anzeige, nichts zu bedienen.
+      if (!el || a.typ === "trenner" || a.typ === "wwplan") return;
       if (a.typ === "auswahl") {
         el.addEventListener("change", () => {
           const id = this._e(a.feld);
@@ -496,8 +510,21 @@ export const dialogKarte = {
       const el = this.shadowRoot.getElementById(`dlg-a${i}`);
       const st = this._quelle.states[this._e(a.feld)];
       if (!el) return;
-      if (a.typ === "kurveknopf" || a.typ === "wwknopf") return;
+      if (a.typ === "kurveknopf" || a.typ === "wwknopf" || a.typ === "trenner") return;
       if (a.typ !== "zone" && !st) return;
+      if (a.typ === "wwplan") {
+        // Geplante und letzte Ladung von HeishaMon by Lutarym.
+        const p = this._wwPlanTexte(this._wwPlan());
+        el.hidden = !p;
+        if (!p) return;
+        const teil = (k) => el.querySelector(`[data-plan="${k}"]`);
+        teil("wert").textContent = p.wert;
+        teil("info").textContent = p.info.join(" · ");
+        teil("info").hidden = !p.info.length;
+        teil("letzte").textContent = p.letzte || "--";
+        teil("zeile-letzte").hidden = !this._e("dhw_last_charge");
+        return;
+      }
       if (a.typ === "zahl") {
         // Nur lesbare Entitaeten lassen sich nicht stellen. Die Knoepfe
         // bleiben sichtbar, aber ausgegraut, und die Beschriftung sagt

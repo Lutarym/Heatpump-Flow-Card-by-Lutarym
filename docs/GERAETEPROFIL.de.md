@@ -288,6 +288,10 @@ Die Spalte „Panasonic (HeishaMon)“ zeigt die Schlüssel aus dem eingebauten 
 | `dhw_heater_switch` | Heizstab Warmwasser freigeben | `switch`, `input_boolean` | `setdhwheaterstate` |
 | `circulation_pump` | Zirkulationspumpe läuft | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (keins) |
 | `circ_switch` | Zirkulation Schalter (klickbar) | `switch`, `input_boolean` | (keins) |
+| `weather` | Wettervorhersage | `weather` | (keins) |
+| `dhw_warmest` | Warmwasser zur wärmsten Tageszeit | `switch`, `input_boolean` | `dhw_warmest_time` |
+| `dhw_planned` | Geplante Warmwasserladung | `sensor` | `dhw_planned` |
+| `dhw_last_charge` | Letzte Warmwasserladung | `sensor` | `dhw_last_charge` |
 
 **Steuerung**
 

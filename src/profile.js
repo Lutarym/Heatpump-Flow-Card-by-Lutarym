@@ -2,7 +2,7 @@
  * Geraeteprofile: eingebaute Profile, Pruefung, Erkennung nach Profil.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { COMMAND_TO_FIELD, COP_TO_FIELD, FIELD_DOMAIN, INTEGRATION_DOMAIN, TOPIC_TO_FIELD } from "./erkennung.js";
+import { COMMAND_TO_FIELD, COP_TO_FIELD, FIELD_DOMAIN, INTEGRATION_DOMAIN, PLAN_TO_FIELD, TOPIC_TO_FIELD } from "./erkennung.js";
 import { ENTITY_FIELDS } from "./felder.js";
 import { stellbar } from "./hilfsfunktionen.js";
 import { HERSTELLER_PROFILE } from "./hersteller.js";
@@ -106,6 +106,8 @@ export function eingebautesProfil(id) {
   Object.keys(COP_TO_FIELD).forEach((k) =>
     dazu(COP_TO_FIELD[k], mqtt ? `sensor.heishamon*_${k}` : k)
   );
+  // Warmwasser zur waermsten Tageszeit gibt es nur in HeishaMon by Lutarym (ab 1.4.0).
+  if (!mqtt) Object.keys(PLAN_TO_FIELD).forEach((k) => dazu(PLAN_TO_FIELD[k], k));
   return {
     format: PROFIL_FORMAT,
     version: PROFIL_VERSION,

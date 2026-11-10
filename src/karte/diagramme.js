@@ -92,7 +92,7 @@ export const diagrammeKarte = {
                     aria-label="${escapeHtml(this._t("f_schliessen"))}">&times;</button>
           </div>
           <div class="lhc-hilfe-chips" id="dia-reiter">
-            ${reiter("verbrauch", this._t("verbrauch"))}${reiter("sg", "SG Ready")}${reiter("temp", this._t("d_temperaturen"))}${reiter("cop", "COP")}${reiter("takt", this._t("d_taktung"))}${reiter("analyse", this._t("d_analyse"))}
+            ${reiter("verbrauch", this._t("verbrauch"))}${reiter("sg", "SG Ready")}${reiter("temp", this._t("d_temperaturen"))}${reiter("cop", "COP")}${reiter("takt", this._t("d_taktung"))}${reiter("abtau", this._t("d_abtauen"))}${reiter("analyse", this._t("d_analyse"))}
           </div>
           <div class="lhc-zr-hinweis" id="dia-zr-hinweis" hidden></div>
           <svg viewBox="0 0 ${DW} ${DH}" class="lhc-dia-svg" id="dia-svg" preserveAspectRatio="xMidYMid meet">
@@ -101,6 +101,7 @@ export const diagrammeKarte = {
             <g id="dia-temp"></g>
             <g id="dia-cop"></g>
             <g id="dia-takt"></g>
+            <g id="dia-abtau"></g>
             <text class="value-sp verlauf-text" id="dia-leer" x="${DW / 2}" y="${DH / 2}"
                   text-anchor="middle" opacity="0">${escapeHtml(this._t("kein_verlauf"))}</text>
           </svg>
@@ -218,6 +219,7 @@ export const diagrammeKarte = {
       temp: this._t("d_temperaturen"),
       cop: "COP",
       takt: this._t("d_taktung"),
+      abtau: this._t("d_abtauen"),
       analyse: this._t("an_titel"),
     };
     const wahl = sr.getElementById("dia-zeitraum");
@@ -227,7 +229,7 @@ export const diagrammeKarte = {
     sr.querySelectorAll("#dia-reiter button").forEach((b) =>
       b.classList.toggle("aktiv", b.dataset.reiter === art)
     );
-    ["verbrauch", "sg", "temp", "cop", "takt", "analyse"].forEach((a) => {
+    ["verbrauch", "sg", "temp", "cop", "takt", "abtau", "analyse"].forEach((a) => {
       const g = sr.getElementById(`dia-${a}`);
       if (g) g.setAttribute("display", a === art ? "inline" : "none");
     });
@@ -246,7 +248,7 @@ export const diagrammeKarte = {
     const leer = sr.getElementById("dia-leer");
     if (leer) leer.textContent = this._t("kein_verlauf");
     // SG Ready braucht nur ein flaches Band, die anderen die volle Hoehe.
-    const hoch = art === "sg" ? this._sgHoehe() : art === "cop" || art === "takt" ? this._auswertungHoehe(art) : DH;
+    const hoch = art === "sg" ? this._sgHoehe() : art === "cop" || art === "takt" || art === "abtau" ? this._auswertungHoehe(art) : DH;
     sr.getElementById("dia-svg").setAttribute("viewBox", `0 0 ${DW} ${hoch}`);
     sr.getElementById("dia-leer").setAttribute("y", String(hoch / 2));
     if (art === "verbrauch") {
@@ -258,7 +260,7 @@ export const diagrammeKarte = {
     } else if (art === "temp") {
       this._holeTemperaturen();
       this._zeichneDiaTemp();
-    } else if (art === "cop" || art === "takt") {
+    } else if (art === "cop" || art === "takt" || art === "abtau") {
       this._holeAuswertung();
       this._zeichneAuswertung();
     } else if (art === "analyse") {

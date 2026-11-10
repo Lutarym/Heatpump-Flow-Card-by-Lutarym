@@ -290,6 +290,10 @@ The column "Panasonic (HeishaMon)" shows the keys of the built-in profile, which
 | `dhw_heater_switch` | Allow heating element, hot water | `switch`, `input_boolean` | `setdhwheaterstate` |
 | `circulation_pump` | Circulation pump running | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (none) |
 | `circ_switch` | Circulation switch (clickable) | `switch`, `input_boolean` | (none) |
+| `weather` | Weather forecast | `weather` | (none) |
+| `dhw_warmest` | Hot water at the warmest time of day | `switch`, `input_boolean` | `dhw_warmest_time` |
+| `dhw_planned` | Planned hot water charge | `sensor` | `dhw_planned` |
+| `dhw_last_charge` | Last hot water charge | `sensor` | `dhw_last_charge` |
 
 **Control**
 

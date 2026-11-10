@@ -290,6 +290,10 @@ La colonne « Panasonic (HeishaMon) » montre les clés du profil intégré, ce 
 | `dhw_heater_switch` | Autoriser l'appoint eau chaude | `switch`, `input_boolean` | `setdhwheaterstate` |
 | `circulation_pump` | Pompe de circulation en marche | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (aucun) |
 | `circ_switch` | Interrupteur de circulation (cliquable) | `switch`, `input_boolean` | (aucun) |
+| `weather` | Prévisions météo | `weather` | (aucun) |
+| `dhw_warmest` | Eau chaude à l'heure la plus chaude | `switch`, `input_boolean` | `dhw_warmest_time` |
+| `dhw_planned` | Charge d'eau chaude prévue | `sensor` | `dhw_planned` |
+| `dhw_last_charge` | Dernière charge d'eau chaude | `sensor` | `dhw_last_charge` |
 
 **Commande**
 

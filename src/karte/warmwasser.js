@@ -31,7 +31,7 @@
  */
 import { escapeHtml, fmt, indexBis, zustandAn } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { energie, lueckenhaft, mittel, ventilAbschnitte, verdichterLaeufe } from "./auswertung.js";
+import { energie, lueckenhaft, mittel, ventilAbschnitte, verdichterLaeufe, verdichterZustand } from "./auswertung.js";
 import { datenblattSchaetzung, TOLERANZ } from "./datenblatt.js";
 import { sgReihe, sgVerstaerkt } from "./sgstufen.js";
 import { tQuantil, wls } from "./statistik.js";
@@ -44,6 +44,25 @@ export const WW_MIN_N = 3;
 const BEREICH = 2;
 /** Nachtfenster ohne Ladung fuer den Abfall, Stunden ab Mitternacht. */
 const NACHT = [0, 5];
+/**
+ * Warmwasser zur waermsten Tageszeit (HeishaMon by Lutarym ab 1.4.0): eine
+ * Ladung gilt als von der Integration gestartet, wenn deren Start in der
+ * Ladung liegt oder hoechstens so lange vor ihrem Beginn (eigene Festlegung).
+ */
+export const WW_PLAN_VOR = 10 * 60000;
+
+/**
+ * Starts der Integration aus dem Verlauf des Sensors "Letzte
+ * Warmwasserladung". Sein Zustand ist der Zeitpunkt des Starts.
+ */
+export function wwPlanStarts(reihe) {
+  const out = [];
+  (reihe || []).forEach((p) => {
+    const t = Date.parse(p.s);
+    if (Number.isFinite(t) && !out.includes(t)) out.push(t);
+  });
+  return out.sort((a, b) => a - b);
+}
 
 /** Wert einer Reihe zu einem Zeitpunkt (letzter Stand davor). */
 function stand(reihe, t) {
@@ -185,6 +204,7 @@ export function wwLadungen(d, ref) {
       }
     }
     l.vollstaendig = !l.angeschnitten && !l.laufend && !l.luecke;
+    l.plan = (d.planStarts || []).some((s) => s >= a.von - WW_PLAN_VOR && s <= a.bis);
     // SG Ready: Ladungen mit Stufe 3 oder 4 zaehlen nicht.
     l.sg = Boolean(d.sg && sgVerstaerkt(d.sg, a.von, a.bis));
     l.stufe = l.vollstaendig && !l.sg && l.copErwartet ? (l.cop / l.copErwartet >= TOLERANZ ? "gut" : "unter") : null;
@@ -333,6 +353,33 @@ export const WW_URTEIL_MIN = 8;
 /** Darunter lohnt sich das Laden am Tag kaum, kWh je Monat (eigene Festlegung). */
 export const WW_KAUM = 1;
 
+/** Ganze Ladung ohne SG Ready, Desinfektion und Heizstab, mit allen Messwerten. */
+function gewertet(l) {
+  return l.vollstaendig && !l.steril && !l.sg && !(l.stab > 0) && l.strom !== null && l.waerme !== null
+    && l.waerme > 0 && l.aussen !== null && l.tStart !== null && !Number.isNaN(l.tStart);
+}
+
+/**
+ * Gewichtete Regression des Stroms je kWh Waerme gegen Aussentemperatur
+ * und Speichertemperatur beim Start, Gewicht = Waerme der Ladung. Ohne
+ * Loesung mit der Speichertemperatur nur gegen die Aussentemperatur.
+ */
+export function wwRegression(gueltig) {
+  const gw = gueltig.map((l) => l.waerme);
+  const sw = gw.reduce((x, v) => x + v, 0);
+  const mT = gueltig.reduce((x, l) => x + l.waerme * l.aussen, 0) / sw;
+  const mS = gueltig.reduce((x, l) => x + l.waerme * l.tStart, 0) / sw;
+  const y = gueltig.map((l) => l.strom / l.waerme);
+  let mitStart = true;
+  let fit = wls(gueltig.map((l) => [1, l.aussen - mT, l.tStart - mS]), y, gw);
+  if (!fit) {
+    mitStart = false;
+    fit = wls(gueltig.map((l) => [1, l.aussen - mT]), y, gw);
+  }
+  if (!fit || !(fit.kov[1][1] >= 0)) return null;
+  return { fit, mitStart, sw };
+}
+
 /**
  * Urteil, ob Laden am Tag Strom spart, und wie viel je Tag und im Monat.
  *  1. Gewertet werden ganze Ladungen ohne SG Ready, Desinfektion und
@@ -356,8 +403,7 @@ export function wwUrteil(d, laden) {
   if (!d.aussen || !d.aussen.length) return { art: "aussen" };
   const ganz = laden.filter((l) => l.vollstaendig && !l.steril && !l.sg && !(l.stab > 0));
   if (ganz.length && ganz.every((l) => l.strom === null || l.waerme === null)) return { art: "leistung" };
-  const gueltig = ganz.filter((l) => l.strom !== null && l.waerme !== null && l.waerme > 0
-    && l.aussen !== null && l.tStart !== null && !Number.isNaN(l.tStart));
+  const gueltig = laden.filter(gewertet);
   const nacht = gueltig.filter((l) => sonneOben(d.sonne, (l.von + l.bis) / 2) === false);
   const basis = { n: gueltig.length, nNacht: nacht.length, min: WW_URTEIL_MIN };
   if (gueltig.length < WW_URTEIL_MIN) return { art: "zu_wenig", ...basis };
@@ -365,18 +411,9 @@ export function wwUrteil(d, laden) {
   const stunden = wwWaermsteStunden(d);
   if (!stunden.length) return { art: "zu_wenig", ...basis };
   const jeTag = new Map(stunden.map((x) => [x.tag, x]));
-  const gw = gueltig.map((l) => l.waerme);
-  const sw = gw.reduce((x, v) => x + v, 0);
-  const mT = gueltig.reduce((x, l) => x + l.waerme * l.aussen, 0) / sw;
-  const mS = gueltig.reduce((x, l) => x + l.waerme * l.tStart, 0) / sw;
-  const y = gueltig.map((l) => l.strom / l.waerme);
-  let mitStart = true;
-  let fit = wls(gueltig.map((l) => [1, l.aussen - mT, l.tStart - mS]), y, gw);
-  if (!fit) {
-    mitStart = false;
-    fit = wls(gueltig.map((l) => [1, l.aussen - mT]), y, gw);
-  }
-  if (!fit || !(fit.kov[1][1] >= 0)) return { art: "gleich", ...basis };
+  const reg = wwRegression(gueltig);
+  if (!reg) return { art: "gleich", ...basis };
+  const { fit, mitStart, sw } = reg;
   const steigung = fit.beta[1];
   const se = Math.sqrt(fit.kov[1][1]);
   const tq = tQuantil(0.975, fit.df);
@@ -410,6 +447,158 @@ export function wwUrteil(d, laden) {
     jeK: (-steigung / (strom / sw)) * 100,
     dT: gezaehlt.reduce((x, g) => x + g.dT, 0) / gezaehlt.length,
     nGezaehlt: gezaehlt.length,
+  };
+}
+
+/**
+ * Ganze Tage mit Plan ("an": Schalter "Warmwasser zur waermsten
+ * Tageszeit" den ganzen Tag an), ohne Plan ("aus": den ganzen Tag aus oder
+ * vor dem ersten Eintrag, die Integration 1.4.0 gab es noch nicht) und
+ * "wechsel". Unbekannte Werte halten den letzten bekannten Stand.
+ */
+export function wwPlanTage(reihe, t0, t1) {
+  const out = new Map();
+  // "unavailable", "unknown" und leer gelten als unbekannt, nicht als aus.
+  const r = (reihe || []).map((p) => ({ t: p.t, an: verdichterZustand(p.s) })).filter((p) => p.an !== null);
+  for (let m = tagEnde(t0); tagEnde(m) <= t1; m = tagEnde(m)) {
+    const e = tagEnde(m);
+    const i = indexBis(r, m);
+    const werte = new Set([i >= 0 ? r[i].an : false]);
+    r.forEach((p) => {
+      if (p.t > m && p.t < e) werte.add(p.an);
+    });
+    out.set(m, werte.size > 1 ? "wechsel" : werte.has(true) ? "an" : "aus");
+  }
+  return out;
+}
+
+/**
+ * Mindestzahl gewerteter Ladungen je Zeitraum mit und ohne Plan (eigene
+ * Festlegung). Kleiner als bei Tag oder Nacht, weil Home Assistant den
+ * Verlauf ohne eigene Einstellung nur 10 Tage haelt (Recorder,
+ * purge_keep_days); die t-Verteilung im 95 %-Bereich traegt die kleine Zahl.
+ */
+export const WW_OPT_MIN = 5;
+
+/** Gewichtete Mittel von Abstand und Speicher beim Start samt Kovarianz (Linearisierung). */
+function mittelKov(xs) {
+  const sw = xs.reduce((x, p) => x + p.w, 0);
+  const ma = xs.reduce((x, p) => x + p.w * p.a, 0) / sw;
+  const ms = xs.reduce((x, p) => x + p.w * p.s, 0) / sw;
+  const f = xs.length / (xs.length - 1) / (sw * sw);
+  const summe = (fn) => xs.reduce((x, p) => x + p.w * p.w * fn(p), 0) * f;
+  return {
+    sw, ma, ms,
+    vaa: summe((p) => (p.a - ma) ** 2), vss: summe((p) => (p.s - ms) ** 2), vas: summe((p) => (p.a - ma) * (p.s - ms)),
+  };
+}
+
+/**
+ * Bringt "Warmwasser zur waermsten Tageszeit" (HeishaMon by Lutarym ab
+ * 1.4.0) etwas? Vergleich ganzer Tage mit und ohne Plan (wwPlanTage):
+ *  1. Je gewertete Ladung der Abstand ihrer Aussentemperatur zur
+ *     waermsten Stunde ihres Tages. So zaehlt die Uhrzeit, nicht ob die
+ *     Tage waermer oder kaelter waren.
+ *  2. Mittel je Zeitraum nach Waerme gewichtet, ebenso die
+ *     Speichertemperatur beim Start.
+ *  3. Ersparnis je Tag = -(b1 * Unterschied Abstand + b2 * Unterschied
+ *     Speicher) * gewertete Waerme mit Plan je Tag, b aus derselben
+ *     Regression wie Tag oder Nacht. 95 %-Bereich aus Regression und beiden
+ *     Mittelwerten, Fehlerfortpflanzung erster Ordnung (Naeherung).
+ *  Annahme: ohne Plan waeren die Ladungen so verteilt gewesen wie an den
+ *  Tagen ohne Plan. Nicht enthalten: Waermeverlust und Zapfen.
+ * Dazu Pruefpunkte an den Tagen mit Plan: wie viele Ladungen die
+ * Integration gestartet hat, Heizstab dabei, Speicher unter der Schwelle.
+ */
+export function wwOptimierung(d, laden, schwelle) {
+  if (!d.planTage) return { art: "kein_schalter" };
+  const tagArt = (t) => d.planTage.get(tagBeginn(t));
+  const anTagen = laden.filter((l) => tagArt(l.von) === "an");
+  const vonPlan = anTagen.filter((l) => l.plan);
+  const pruef = { nAn: anTagen.length, nPlan: vonPlan.length, stab: null, unter: null };
+  const stabBekannt = vonPlan.filter((l) => l.stab !== null);
+  if (stabBekannt.length) {
+    const mit = stabBekannt.filter((l) => l.stab > 0);
+    pruef.stab = { k: mit.length, n: stabBekannt.length, min: mit.reduce((x, l) => x + l.stab, 0) };
+  }
+  if (Number.isFinite(schwelle)) {
+    const halte = new Map(wwHaltezeiten(d, laden, schwelle).map((h) => [h.ende, h]));
+    const hs = vonPlan.map((l) => halte.get(l.bis)).filter((h) => h && !h.sg && !h.luecke);
+    pruef.unter = { k: hs.filter((h) => h.schonUnter || h.unter !== null).length, n: hs.length };
+  }
+  if (!d.aussen || !d.aussen.length) return { art: "aussen", ...pruef };
+  const ganz = laden.filter((l) => l.vollstaendig && !l.steril && !l.sg && !(l.stab > 0));
+  if (ganz.length && ganz.every((l) => l.strom === null || l.waerme === null)) return { art: "leistung", ...pruef };
+  const gueltig = laden.filter(gewertet);
+  const stunden = wwWaermsteStunden(d);
+  const jeTag = new Map(stunden.map((x) => [x.tag, x]));
+  const punkte = [];
+  gueltig.forEach((l) => {
+    const tag = tagBeginn((l.von + l.bis) / 2);
+    const st = jeTag.get(tag);
+    if (st) punkte.push({ a: l.aussen - st.v, s: l.tStart, w: l.waerme, art: d.planTage.get(tag) });
+  });
+  const mit = punkte.filter((p) => p.art === "an");
+  const ohne = punkte.filter((p) => p.art === "aus");
+  const tageMit = stunden.filter((x) => d.planTage.get(x.tag) === "an").length;
+  const tageOhne = stunden.filter((x) => d.planTage.get(x.tag) === "aus").length;
+  const basis = { ...pruef, nMit: mit.length, nOhne: ohne.length, tageMit, tageOhne, min: WW_OPT_MIN };
+  if (mit.length < WW_OPT_MIN) return { art: "zu_wenig", ...basis };
+  if (ohne.length < WW_OPT_MIN) return { art: "keine_basis", ...basis };
+  const reg = wwRegression(gueltig);
+  if (!reg) return { art: "gleich", ...basis };
+  const M = mittelKov(mit);
+  const O = mittelKov(ohne);
+  const dA = M.ma - O.ma;
+  const dS = M.ms - O.ms;
+  const W = M.sw / tageMit;
+  const K = reg.fit.kov;
+  const b1 = reg.fit.beta[1];
+  const b2 = reg.mitStart ? reg.fit.beta[2] : 0;
+  const sparTag = -W * (b1 * dA + b2 * dS);
+  // Gradient nach b1, b2, dA, dS; Regression und Mittelwerte unabhaengig.
+  const g = [-W * dA, -W * dS, -W * b1, -W * b2];
+  const vb = reg.mitStart ? [K[1][1], K[1][2], K[2][2]] : [K[1][1], 0, 0];
+  const vd = [M.vaa + O.vaa, M.vas + O.vas, M.vss + O.vss];
+  const varS = g[0] * g[0] * vb[0] + 2 * g[0] * g[1] * vb[1] + g[1] * g[1] * vb[2]
+    + g[2] * g[2] * vd[0] + 2 * g[2] * g[3] * vd[1] + g[3] * g[3] * vd[2];
+  const tq = tQuantil(0.975, Math.max(1, Math.min(reg.fit.df, mit.length - 1, ohne.length - 1)));
+  const halb = tq * Math.sqrt(Math.max(0, varS));
+  const loTag = sparTag - halb;
+  const hiTag = sparTag + halb;
+  let art = "unsicher";
+  if (hiTag < 0) art = "nein";
+  else if (hiTag * 30 < WW_KAUM) art = "kaum";
+  else if (loTag > 0) art = "ja";
+  // Strom und Waerme je ganzem Tag, gemessen, nur Tage mit lauter ganzen Ladungen.
+  const gemessen = (artTag) => {
+    const tage = [];
+    stunden.forEach((x) => {
+      if (d.planTage.get(x.tag) !== artTag) return;
+      const e = tagEnde(x.tag);
+      const imTag = laden.filter((l) => l.von >= x.tag && l.von < e);
+      if (imTag.some((l) => !l.vollstaendig || l.strom === null || l.waerme === null)) return;
+      tage.push({
+        strom: imTag.reduce((x2, l) => x2 + l.strom, 0),
+        waerme: imTag.reduce((x2, l) => x2 + l.waerme, 0),
+        aussen: mittel(d.aussen, x.tag, e, false),
+      });
+    });
+    if (!tage.length) return null;
+    const m = (k) => {
+      const v = tage.map((x) => x[k]).filter((x) => x !== null);
+      return v.length ? v.reduce((x, y) => x + y, 0) / v.length : null;
+    };
+    return { n: tage.length, strom: m("strom"), waerme: m("waerme"), aussen: m("aussen") };
+  };
+  const strom = gueltig.reduce((x, l) => x + l.strom, 0);
+  const verh = strom / reg.sw;
+  return {
+    art, ...basis, sparTag, loTag, hiTag, sparMonat: sparTag * 30, loMonat: loTag * 30, hiMonat: hiTag * 30,
+    aMit: M.ma, aOhne: O.ma, sMit: M.ms, sOhne: O.ms, W, mitStart: reg.mitStart,
+    // Wirkung je K in % des mittleren Stroms je kWh Waerme.
+    jeKAussen: (-b1 / verh) * 100, jeKStart: (b2 / verh) * 100,
+    messungMit: gemessen("an"), messungOhne: gemessen("aus"),
   };
 }
 
@@ -493,7 +682,7 @@ export const warmwasserKarte = {
     const jetzt = Date.now();
     const t0 = jetzt - 31 * TAG;
     if (this._config.demo) {
-      this._wwDaten = this._wwDemo(jetzt - 21 * TAG, jetzt);
+      this._wwDaten = this._wwDemo(jetzt - 31 * TAG, jetzt);
       return;
     }
     this._wwDaten = null;
@@ -519,6 +708,8 @@ export const warmwasserKarte = {
       cop: this._e("cop_dhw"),
       pv: this._e("pv_power"),
       sonne: q.states && q.states["sun.sun"] ? "sun.sun" : null,
+      plan: this._e("dhw_last_charge"),
+      schalter: this._e("dhw_warmest"),
       w: ww ? ww.w : null,
       e: ww ? ww.e : null,
     };
@@ -549,6 +740,9 @@ export const warmwasserKarte = {
       // SG Ready nur mit beiden Kontakten erkennbar.
       d.sgEingerichtet = Boolean(felder.sg1 && felder.sg2);
       d.sg = d.sgEingerichtet ? sgReihe(d.sg1, d.sg2) : null;
+      d.planDa = Boolean(felder.plan);
+      d.planStarts = wwPlanStarts(d.plan);
+      d.planTage = felder.schalter ? wwPlanTage(d.schalter, d.t0, d.t1) : null;
       d.vorhersage = await vorhersage;
       this._wwDaten = d;
     } catch {
@@ -566,8 +760,108 @@ export const warmwasserKarte = {
     if (!q || !q.states) return null;
     const eigen = this._e("weather");
     if (eigen) return q.states[eigen] ? eigen : null;
+    // Ohne Eintrag dieselbe wie HeishaMon by Lutarym (Warmwasser zur
+    // waermsten Tageszeit), damit Karte und Integration gleich rechnen.
+    const plan = q.states[this._e("dhw_planned")];
+    const integ = plan && plan.attributes ? plan.attributes.wetter_entity : null;
+    if (integ && q.states[integ]) return integ;
     return Object.keys(q.states).filter((id) => id.startsWith("weather.")).sort()
       .find((id) => (Number((q.states[id].attributes || {}).supported_features) & 2) === 2) || null;
+  },
+
+  /**
+   * Warmwasser zur waermsten Tageszeit aus HeishaMon by Lutarym (ab
+   * 1.4.0). null ohne die Entitaet "Geplante Warmwasserladung".
+   * Ein oder aus zaehlt nach dem Schalter: Nach einem Neustart meldet die
+   * Integration den Status "aus", auch wenn der Schalter an ist und heute
+   * schon geladen wurde (warmwasser.py, Status nur beim Planen gesetzt).
+   */
+  _wwPlan() {
+    const q = this._quelle;
+    const st = q && q.states ? q.states[this._e("dhw_planned")] : null;
+    if (!st) return null;
+    const a = st.attributes || {};
+    const schalter = q.states[this._e("dhw_warmest")];
+    const zeit = (v) => {
+      const t = typeof v === "string" ? Date.parse(v) : NaN;
+      return Number.isFinite(t) ? t : null;
+    };
+    const zahl = (v) => (v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v));
+    const letzte = q.states[this._e("dhw_last_charge")];
+    const wetter = a.wetter_entity ? q.states[a.wetter_entity] : null;
+    // Unbekannter Schalter: dann zaehlt der Status der Integration.
+    const zustand = schalter ? verdichterZustand(schalter.state) : null;
+    return {
+      an: zustand === null ? a.status !== "aus" : zustand,
+      status: a.status || null,
+      zeit: zeit(st.state),
+      temp: zahl(a.hoechsttemperatur),
+      einheit: (wetter && wetter.attributes && wetter.attributes.temperature_unit) || "°C",
+      gestartet: zeit(a.gestartet),
+      maxMin: zahl(a.hoechstdauer_min),
+      tagErledigt: typeof a.tag_erledigt === "string" ? a.tag_erledigt : null,
+      letzte: letzte ? zeit(letzte.state) : null,
+      wetter: a.wetter_entity || null,
+    };
+  },
+
+  /** "heute", "morgen" oder "gestern" fuer einen Zeitpunkt, sonst null. */
+  _wwTagWort(ms, jetzt = Date.now()) {
+    const k = Math.round((tagBeginn(ms) - tagBeginn(jetzt)) / TAG);
+    if (k === 0) return this._t("ww_u_heute");
+    if (k === 1) return this._t("ww_u_morgen");
+    if (k === -1) return this._t("ww_u_gestern");
+    return null;
+  },
+
+  /** "heute 14:00", "gestern 13:02", sonst Datum und Uhrzeit. */
+  _wwTagZeit(ms, jetzt = Date.now()) {
+    const z = new Date(ms);
+    const uhr = `${String(z.getHours()).padStart(2, "0")}:${String(z.getMinutes()).padStart(2, "0")}`;
+    return `${this._wwTagWort(ms, jetzt) || this._zrDatum(ms, false)} ${uhr}`;
+  },
+
+  /**
+   * Texte zum Plan der Integration: Wert der geplanten Ladung, Hinweise
+   * und die letzte Ladung. aus: Schalter aus.
+   */
+  _wwPlanTexte(p, jetzt = Date.now()) {
+    if (!p) return null;
+    const t = (k) => this._t(k);
+    const letzte = p.letzte === null ? null : this._wwTagZeit(p.letzte, jetzt);
+    if (!p.an) return { aus: true, laeuft: false, wert: t("f_plan_aus"), info: [], letzte };
+    if (p.status === "laeuft") {
+      const z = p.gestartet === null ? null : new Date(p.gestartet);
+      const uhr = z ? `${String(z.getHours()).padStart(2, "0")}:${String(z.getMinutes()).padStart(2, "0")}` : "--";
+      return {
+        aus: false, laeuft: true, letzte,
+        wert: tf(t("ww_u_plan_laeuft"), { z: uhr }),
+        info: p.maxMin === null ? [] : [tf(t("f_plan_ende"), { m: fmt(p.maxMin, 0) })],
+      };
+    }
+    const info = [];
+    if (p.zeit !== null && p.temp !== null) info.push(tf(t("f_plan_vorhersage"), { v: fmt(p.temp, 0), e: p.einheit }));
+    // Was heute oder gestern geschah; tag_erledigt gilt auch fuer
+    // uebersprungene Tage.
+    let tag = null;
+    const m = p.tagErledigt ? p.tagErledigt.match(/^(\d{4})-(\d{2})-(\d{2})$/) : null;
+    if (m) {
+      const ms = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+      const k = Math.round((tagBeginn(ms) - tagBeginn(jetzt)) / TAG);
+      if (k === 0 || k === -1) tag = this._wwTagWort(ms, jetzt);
+    }
+    const satz = {
+      erledigt: "f_plan_erledigt", beendet_hoechstdauer: "f_plan_hoechstdauer",
+      uebersprungen_speicher_voll: "f_plan_voll", uebersprungen_modus_ohne_warmwasser: "f_plan_modus",
+      nicht_angenommen: "f_plan_abgelehnt", aus: "f_plan_fertig",
+    }[p.status];
+    if (satz && tag) info.push(tf(t(satz), { tag, m: p.maxMin === null ? "--" : fmt(p.maxMin, 0) }));
+    else if (p.status === "fehler_befehl") info.push(t("f_plan_fehler"));
+    else if (p.status === "keine_vorhersage") info.push(tf(t("f_plan_keine"), { e: p.wetter || "weather" }));
+    return {
+      aus: false, laeuft: false, letzte, info,
+      wert: p.zeit === null ? t("f_plan_offen") : this._wwTagZeit(p.zeit, jetzt),
+    };
   },
 
   /**
@@ -632,16 +926,20 @@ export const warmwasserKarte = {
         : tf(t("ww_soll"), { s: fmt(soll, 0) }));
     }
     const reiter = (k) => `<button type="button" class="lhc-ww-tab${this._wwReiter === k ? " aktiv" : ""}" data-ww-reiter="${k}">${escapeHtml(t(`ww_r_${k}`))}</button>`;
+    // Reiter Optimierung nur mit HeishaMon by Lutarym ab 1.4.0.
+    const optimierung = Boolean(d.planTage || d.planDa);
+    if (this._wwReiter === "optimierung" && !optimierung) this._wwReiter = "tagnacht";
     let inhalt = "";
     if (this._wwReiter === "aussen") inhalt = this._wwAussenHtml(laden);
     else if (this._wwReiter === "tagnacht") inhalt = this._wwTagNachtHtml(d, laden, schwelle);
+    else if (this._wwReiter === "optimierung" && optimierung) inhalt = this._wwOptimierungHtml(d, laden, schwelle);
     else if (this._wwReiter === "halte") inhalt = this._wwHalteHtml(d, laden, schwelle, zeit, grad);
     else inhalt = this._wwLadenHtml(d, laden, zeit, uhr, grad);
     const box = sr.querySelector("#ww-fenster .lhc-ww-box");
     box.innerHTML = `
       <h3 id="ww-titel">${escapeHtml(t("ww_titel"))}</h3>
       <div class="lhc-an-modal-sub">${escapeHtml(sub.join(" · "))}</div>
-      <div class="lhc-ww-tabs" role="tablist">${reiter("tagnacht")}${reiter("ladungen")}${reiter("aussen")}${reiter("halte")}</div>
+      <div class="lhc-ww-tabs" role="tablist">${reiter("tagnacht")}${optimierung ? reiter("optimierung") : ""}${reiter("ladungen")}${reiter("aussen")}${reiter("halte")}</div>
       ${inhalt}
       <div class="lhc-an-modal-knoepfe"><button type="button" class="lhc-an-btn" id="ww-zu">${escapeHtml(t("an_opt_zu"))}</button></div>`;
     box.querySelector("#ww-zu").addEventListener("click", () => this._wwSchliessen());
@@ -673,6 +971,7 @@ export const warmwasserKarte = {
         if (l.sg) zusatz.push(t("ww_sg_aktiv"));
         if (l.luecke) zusatz.push(t("ww_luecke"));
         if (l.pausen) zusatz.push(tf(t("ww_pausen"), { n: l.pausen }));
+        if (l.plan) zusatz.push(t("ww_plan"));
         const copKlasse = l.stufe ? ` class="lhc-ww-${l.stufe}${l.copGeschaetzt ? " blass" : ""}"` : "";
         const copTitel = l.copErwartet
           ? ` title="${escapeHtml(tf(t("ww_cop_titel"), { e: fmt(l.copErwartet, 1), p: fmt((l.cop / l.copErwartet) * 100, 0) }) + (l.copGeschaetzt ? ` · ${t("a_c_geschaetzt")}` : ""))}"`
@@ -702,6 +1001,7 @@ export const warmwasserKarte = {
       leistung ? tf(t("ww_f_leistung"), { q: d.xtop ? "XTOP2 / XTOP5" : "TOP41 / TOP40" }) : "",
       integ ? t("ww_f_integration") : "",
       t("ww_f_erkennung"),
+      laden.some((l) => l.plan) ? t("ww_f_plan") : "",
       this._copReferenz() ? t("ww_f_datenblatt") : "",
       t(d.sgEingerichtet ? "ww_f_sg" : "ww_f_sg_ohne"),
     ].filter(Boolean);
@@ -854,14 +1154,22 @@ export const warmwasserKarte = {
       ${zahlen}
       ${fein ? `<div class="lhc-ww-urteil-fein">${e(fein)}</div>` : ""}
     </div></div>`;
-    // Beste Zeit: aus der Vorhersage, sonst die gemessene Spanne.
+    // Beste Zeit: geplant von HeishaMon by Lutarym, sonst aus der
+    // Vorhersage, sonst die gemessene Spanne.
     const jetzt = Date.now();
-    const vh = d.vorhersage || null;
+    const p = this._wwPlan();
+    const pt = this._wwPlanTexte(p, jetzt);
+    const plan = pt && !pt.aus ? pt : null;
+    const vh = plan ? null : d.vorhersage || null;
     const beste = vh ? wwBesteVorhersage(vh.liste, jetzt) : null;
     let zeitWert = "--";
     let zeitKlein = "";
     let zeitWie = "";
-    if (beste) {
+    if (plan) {
+      zeitWert = plan.wert;
+      zeitKlein = plan.info.length ? tf(t("ww_u_klammer"), { x: plan.info.join(" · ") }) : "";
+      zeitWie = tf(t("ww_u_w_plan"), { e: p.wetter || "weather", m: p.maxMin === null ? "--" : fmt(p.maxMin, 0) });
+    } else if (beste) {
       const z = new Date(beste.t);
       const heute = new Date(jetzt).toDateString() === z.toDateString();
       zeitWert = `${t(heute ? "ww_u_heute" : "ww_u_morgen")} ${uhrText(z.getHours() * 60 + z.getMinutes())}`;
@@ -886,7 +1194,7 @@ export const warmwasserKarte = {
     }
     const zeile = (k, v, klein) => `<div class="lhc-ww-zeile"><span>${e(t(k))}</span><b>${e(v)}${klein ? ` <i>${e(klein)}</i>` : ""}</b></div>`;
     const zeilen = [
-      zeile(beste ? "ww_u_k_zeit" : "ww_u_k_zeit_m", zeitWert, zeitKlein),
+      zeile(plan ? "ww_u_k_plan" : beste ? "ww_u_k_zeit" : "ww_u_k_zeit_m", zeitWert, zeitKlein),
       u.n !== undefined ? zeile("ww_u_k_nacht", tf(t("ww_u_nacht_v"), { n: u.nNacht, g: u.n })) : "",
       zeile("ww_u_k_reicht", reicht, reichtKlein),
     ].join("");
@@ -918,6 +1226,104 @@ export const warmwasserKarte = {
   },
 
   /**
+   * Reiter Optimierung: bringt Warmwasser zur waermsten Tageszeit etwas?
+   * Urteil wie Tag oder Nacht, darunter Pruefpunkte an den Tagen mit Plan.
+   */
+  _wwOptimierungHtml(d, laden, schwelle) {
+    const t = (k) => this._t(k);
+    const e = escapeHtml;
+    const o = wwOptimierung(d, laden, schwelle);
+    const kwh = (v) => fmt(v, Math.abs(v) < 1 ? 2 : 1);
+    const k1 = (v) => fmt(v, 1);
+    let klasse = "grau";
+    let icon = "!";
+    let satz = t("ww_o_daten");
+    let zahlen = "";
+    let fein = "";
+    const zwei = (tag, monat, tagK, monatK) => `<div class="lhc-ww-urteil-zwei">
+        <div class="lhc-ww-urteil-zahl">≈ ${kwh(tag)} kWh <small>${e(t(tagK))}</small></div>
+        <div class="lhc-ww-urteil-zahl">≈ ${kwh(monat)} kWh <small>${e(t(monatK))}</small></div></div>`;
+    const tage = tf(t("ww_o_tage"), { m: o.tageMit, o: o.tageOhne });
+    if (o.art === "ja") {
+      klasse = "gruen";
+      icon = "✓";
+      satz = t("ww_o_ja");
+      zahlen = zwei(o.sparTag, o.sparMonat, "ww_u_tag", "ww_u_monat");
+      fein = `${tf(t("ww_o_bereich"), { a: kwh(o.loTag), b: kwh(o.hiTag), c: k1(o.loMonat), d: k1(o.hiMonat) })} · ${tage}`;
+    } else if (o.art === "nein") {
+      icon = "✕";
+      satz = t("ww_o_nein");
+      zahlen = zwei(-o.sparTag, -o.sparMonat, "ww_u_mehr_tag", "ww_u_mehr_monat");
+      fein = `${tf(t("ww_o_bereich"), { a: kwh(-o.hiTag), b: kwh(-o.loTag), c: k1(-o.hiMonat), d: k1(-o.loMonat) })} · ${tage}`;
+    } else if (o.art === "kaum") {
+      icon = "≈";
+      satz = t("ww_o_kaum");
+      fein = `${tf(t("ww_u_kaum_f"), { a: kwh(Math.max(0, o.hiTag)), b: kwh(Math.max(0, o.hiMonat)) })} · ${tage}`;
+    } else if (o.art === "unsicher") {
+      klasse = "gelb";
+      icon = "?";
+      satz = t("ww_o_unsicher");
+      fein = `${tf(t("ww_u_unsicher_f"), { a: kwh(o.loTag), b: kwh(o.hiTag), c: k1(o.loMonat), d: k1(o.hiMonat) })} · ${tage}`;
+    } else if (o.art === "zu_wenig" || o.art === "keine_basis") {
+      icon = "…";
+      satz = t(o.art === "zu_wenig" ? "ww_o_zu_wenig" : "ww_o_keine_basis");
+      fein = tf(t("ww_o_anzahl"), { m: o.nMit, o: o.nOhne, n: o.min, d: this._zrDatum(d.t0, false) });
+    } else if (o.art === "gleich") {
+      klasse = "gelb";
+      icon = "?";
+      satz = t("ww_o_unsicher");
+      fein = t("ww_u_f_gleich");
+    } else if (o.art === "kein_schalter") {
+      fein = t("ww_o_f_schalter");
+    } else {
+      fein = t(`ww_u_f_${o.art}`);
+    }
+    const kasten = `<div class="lhc-ww-urteil ${klasse}"><div class="lhc-ww-urteil-icon" aria-hidden="true">${e(icon)}</div><div>
+      <div class="lhc-ww-urteil-satz">${e(satz)}</div>
+      ${zahlen}
+      ${fein ? `<div class="lhc-ww-urteil-fein">${e(fein)}</div>` : ""}
+    </div></div>`;
+    const zeile = (k, v, klein) => `<div class="lhc-ww-zeile"><span>${e(k)}</span><b>${e(v)}${klein ? ` <i>${e(klein)}</i>` : ""}</b></div>`;
+    const mitZahl = ["ja", "nein", "kaum", "unsicher"].includes(o.art);
+    const zeilen = [];
+    if (o.nAn !== undefined) zeilen.push(zeile(t("ww_o_k_gestartet"), tf(t("ww_u_nacht_v"), { n: o.nPlan, g: o.nAn })));
+    if (mitZahl) {
+      zeilen.push(zeile(t("ww_o_k_abstand"), tf(t("ww_o_mit_ohne"), { a: `${k1(o.aMit)} K`, b: `${k1(o.aOhne)} K` })));
+      zeilen.push(zeile(t("ww_o_k_start"), tf(t("ww_o_mit_ohne"), { a: `${k1(o.sMit)} °C`, b: `${k1(o.sOhne)} °C` })));
+    }
+    if (o.stab) {
+      zeilen.push(zeile(t("ww_o_k_stab"), o.stab.k
+        ? tf(t("ww_o_stab_v"), { k: o.stab.k, n: o.stab.n, m: fmt(o.stab.min, 0) })
+        : o.stab.n ? t("ww_o_nie") : "--"));
+    }
+    if (o.unter) {
+      zeilen.push(zeile(tf(t("ww_o_k_unter"), { s: fmt(schwelle, 0) }), o.unter.k
+        ? tf(t("ww_o_unter_v"), { k: o.unter.k, n: o.unter.n })
+        : o.unter.n ? t("ww_o_nie") : "--"));
+    }
+    const wie = [t("ww_o_w_tage")];
+    if (mitZahl) {
+      wie.push(tf(t("ww_o_w_abstand"), { a: k1(o.aMit), b: k1(o.aOhne) }));
+      const vz = (v) => `${v > 0 ? "+" : ""}${k1(v)}`;
+      wie.push(tf(t(o.mitStart ? "ww_o_w_spar" : "ww_o_w_spar_ohne"), {
+        p: vz(-o.jeKAussen), s: vz(o.jeKStart), w: kwh(o.W), m: o.tageMit,
+      }));
+      if (o.messungMit && o.messungOhne) {
+        wie.push(tf(t("ww_o_w_gemessen"), {
+          a: kwh(o.messungMit.strom), b: kwh(o.messungOhne.strom), c: kwh(o.messungMit.waerme), d: kwh(o.messungOhne.waerme),
+          e: o.messungMit.aussen === null ? "--" : k1(o.messungMit.aussen), f: o.messungOhne.aussen === null ? "--" : k1(o.messungOhne.aussen),
+        }));
+      }
+    }
+    wie.push(t("ww_o_w_annahme"));
+    wie.push(tf(t("ww_o_w_methode"), { min: WW_OPT_MIN, kaum: fmt(WW_KAUM, 0), v: Math.round(WW_PLAN_VOR / 60000) }));
+    return `${kasten}
+      <div class="lhc-ww-zeilen">${zeilen.join("")}</div>
+      ${mitZahl ? `<p class="lhc-an-modal-klein">${e(t("ww_o_verlust"))}</p>` : ""}
+      <details class="lhc-quelle"><summary>${e(t("ww_u_wie"))}</summary><ul class="lhc-ww-wie">${wie.map((x) => `<li>${e(x)}</li>`).join("")}</ul></details>`;
+  },
+
+  /**
    * Nachgebildete Daten fuer den Demomodus: eine Ladung je Tag zu
    * wechselnden Zeiten, Zapfen morgens und abends. Keine Messung.
    */
@@ -931,8 +1337,26 @@ export const warmwasserKarte = {
     };
     const startStunden = [3.2, 13.7, 6.9, 14.2, 2.5, 12.8, 21.0, 13.2, 4.4];
     const tage = Math.ceil((t1 - tag0) / TAG);
+    // Warmwasser zur waermsten Tageszeit: die letzten 10 ganzen Tage mit
+    // Plan, Start der Integration um 14:00, Verdichter 14:02; an zwei
+    // Tagen zusaetzlich nachts geladen. Eingeschaltet am Tag davor um 16:00.
+    const planBeginn = new Date(tagBeginn(t1));
+    planBeginn.setDate(planBeginn.getDate() - 10);
+    const schaltetAn = planBeginn.getTime() - 8 * STUNDE;
+    const um = (m, std, min) => {
+      const z = new Date(m);
+      z.setHours(std, min, 0, 0);
+      return z.getTime();
+    };
+    const mitPlan = [];
+    for (let m = planBeginn.getTime(); m < t1; m = tagEnde(m)) {
+      if (um(m, 14, 2) < t1) mitPlan.push(um(m, 14, 2));
+    }
+    const nachts = [mitPlan[2], mitPlan[6]].filter(Boolean).map((x) => um(x, 5, 30));
     const starts = Array.from({ length: tage }, (_, k) => tag0 + k * TAG + startStunden[k % startStunden.length] * STUNDE)
-      .filter((s) => s > t0 && s < t1);
+      .filter((s) => s > t0 && s < schaltetAn)
+      .concat(mitPlan, nachts)
+      .sort((a, b) => a - b);
     const d = { demo: true, t0, t1, xtop: false, sgEingerichtet: true };
     ["temp", "ventil", "vd", "aussen", "vorlauf", "abtau", "stabI", "stabE", "steril", "cop", "pv", "w", "e", "sonne"].forEach((k) => {
       d[k] = [];
@@ -989,6 +1413,10 @@ export const warmwasserKarte = {
     // laeuft die Ladung um 12:48 ueber SG Ready und zaehlt nicht.
     const sgAn = tag0 + 5 * TAG + 12.5 * STUNDE;
     d.sg = [{ t: t0, stufe: 2 }, { t: sgAn, stufe: 3 }, { t: sgAn + 75 * 60000, stufe: 2 }].filter((p, i) => i === 0 || (p.t > t0 && p.t < t1));
+    d.planDa = true;
+    d.planStarts = mitPlan.map((s) => s - 2 * 60000);
+    d.schalter = [{ t: t0, s: "off", v: NaN }, { t: schaltetAn, s: "on", v: NaN }];
+    d.planTage = wwPlanTage(d.schalter, t0, t1);
     return d;
   },
 };

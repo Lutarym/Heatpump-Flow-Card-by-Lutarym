@@ -83,7 +83,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `cop_reference` | empty | Datasheet for the COP comparison: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Only then does the COP tab colour each run: green from 92 % of the datasheet (tolerance −8 %, HP KEYMARK), yellow below, outside the rating points only estimated, marked as an estimate and drawn pale. Empty: COP not rated |
 | `dhw_usable_temp` | empty | Tank temperature in °C below which hot water counts as no longer usable. Used for the holding time in the window "Monitor hot water" (button in the heat pump window). Empty: column without a value |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
-| `show_history` | `knopf` | Charts: `knopf` six buttons at the top right open energy, SG Ready, temperatures, COP, cycling and analysis in a window, period selectable from 24 hours to 1 year, `true` energy always in the card, `false` off |
+| `show_history` | `knopf` | Charts: `knopf` six buttons at the top right open energy, SG Ready, temperatures, COP, cycling and analysis in a window (with an extra tab for defrosts), period selectable from 24 hours to 1 year, `true` energy always in the card, `false` off |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
 | `show_reload` | `true` | Show the “Reloads at …” line in buffer and hot water |
 | `show_help` | `true` | Show the “?” help button at the bottom right of the card; the help describes HeishaMon and only appears with HeishaMon profiles and in demo mode |
@@ -200,7 +200,10 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `dhw_heater_switch` | Allow heating element, hot water | SetDHWHeaterState, switch |
 | `circulation_pump` | Circulation pump running | Shelly or own switch |
 | `circ_switch` | Circulation switch (clickable) | switch to turn circulation on and off |
-| `weather` | Weather forecast | weather, hourly forecast; empty: automatic. For the best charging time in the window "Monitor hot water" |
+| `weather` | Weather forecast | weather, hourly forecast; empty: as in HeishaMon by Lutarym, otherwise automatic. For the best charging time in the window "Monitor hot water" |
+| `dhw_warmest` | Hot water at the warmest time of day | HeishaMon by Lutarym 1.4.0 or newer, switch. Button in the heat pump window; separates days with and without the plan for the tab "Optimisation" in the window "Monitor hot water" |
+| `dhw_planned` | Planned hot water charge | HeishaMon by Lutarym 1.4.0 or newer, sensor. In the heat pump window and as "Planned charge" in the tab "Day or night" |
+| `dhw_last_charge` | Last hot water charge | HeishaMon by Lutarym 1.4.0 or newer, sensor. In the heat pump window; marks the charges started by the integration |
 | **Control** | | |
 | `mode_select` | Switch operating mode | SetOperationMode, select |
 | **Advanced settings** | | |

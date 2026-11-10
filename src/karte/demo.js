@@ -35,7 +35,7 @@ export const demoKarte = {
       kamin_temp: 72.4, kamin_pump: 1, solar_temp: 41.0, solar_pump: 0,
       cop_heating: 4.3, cop_dhw: 3.1, heater_internal: 0, heater_external: 0,
       operating_hours: 1462, compressor_starts: 2381, room_heater_hours: 3, dhw_heater_hours: 11,
-      holiday_mode: "off", main_schedule: "off",
+      holiday_mode: "off", main_schedule: "off", dhw_warmest: "on",
       heating_off_temp: 18, heater_on_temp: -8, heat_delta: 3, steril_temp: 65, steril_time: 10, pump_max_duty: 160,
     };
     const states = {};
@@ -46,6 +46,30 @@ export const demoKarte = {
       }
       states[`demo.${feld}`] = { state: String(werte[feld]), attributes: attrs };
     });
+    // Warmwasser zur waermsten Tageszeit (HeishaMon by Lutarym ab 1.4.0):
+    // vor 15 Uhr fuer heute 14:00 geplant, danach heute erledigt und
+    // morgen 13:00 geplant. Erfundene Werte wie alles im Demomodus.
+    const jetzt = new Date();
+    const um = (tage, std, min) => {
+      const z = new Date(jetzt);
+      z.setDate(z.getDate() + tage);
+      z.setHours(std, min, 0, 0);
+      return z;
+    };
+    const datum = (z) => `${z.getFullYear()}-${String(z.getMonth() + 1).padStart(2, "0")}-${String(z.getDate()).padStart(2, "0")}`;
+    const fertig = jetzt.getHours() >= 15;
+    states["demo.dhw_planned"] = {
+      state: (fertig ? um(1, 13, 0) : um(0, 14, 0)).toISOString(),
+      attributes: {
+        status: fertig ? "erledigt" : "geplant", hoechsttemperatur: fertig ? 8 : 9,
+        tag_erledigt: datum(fertig ? jetzt : um(-1, 12, 0)), gestartet: null,
+        hoechstdauer_min: 120, wetter_entity: "weather.forecast_home", device_class: "timestamp",
+      },
+    };
+    states["demo.dhw_last_charge"] = {
+      state: (fertig ? um(0, 14, 2) : um(-1, 13, 2)).toISOString(),
+      attributes: { device_class: "timestamp" },
+    };
     states["demo.mode_select"] = {
       state: "mode_4",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3", "mode_4", "mode_5", "mode_6"] },

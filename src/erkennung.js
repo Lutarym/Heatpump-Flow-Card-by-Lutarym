@@ -104,6 +104,18 @@ export const COP_TO_FIELD = {
 
 const COP_MUSTER = /_(cop_(?:heating|dhw))$/;
 
+/**
+ * Warmwasser zur waermsten Tageszeit, HeishaMon by Lutarym ab 1.4.0:
+ * Schalter, geplanter Start und Start der letzten erzwungenen Ladung.
+ */
+export const PLAN_TO_FIELD = {
+  dhw_warmest_time: "dhw_warmest",
+  dhw_planned: "dhw_planned",
+  dhw_last_charge: "dhw_last_charge",
+};
+
+const PLAN_MUSTER = /_(dhw_(?:warmest_time|planned|last_charge))$/;
+
 export const FIELD_DOMAIN = {
   hk1_setpoint: ["number", "input_number"],
   hk2_setpoint: ["number", "input_number"],
@@ -133,6 +145,10 @@ export const FIELD_DOMAIN = {
   circ_switch: ["switch", "input_boolean"],
   sg_k1: ["switch", "input_boolean", "binary_sensor", "sensor"],
   sg_k2: ["switch", "input_boolean", "binary_sensor", "sensor"],
+  dhw_warmest: ["switch", "input_boolean"],
+  dhw_planned: ["sensor"],
+  dhw_last_charge: ["sensor"],
+  weather: ["weather"],
 };
 
 export function detectIntegration(hass, profil) {
@@ -142,7 +158,7 @@ export function detectIntegration(hass, profil) {
   if (!hass) return result;
 
   const assign = (key, entityId) => {
-    const field = TOPIC_TO_FIELD[key] || COMMAND_TO_FIELD[key] || COP_TO_FIELD[key];
+    const field = TOPIC_TO_FIELD[key] || COMMAND_TO_FIELD[key] || COP_TO_FIELD[key] || PLAN_TO_FIELD[key];
     if (!field || !entityId) return;
     const allowed = FIELD_DOMAIN[field];
     if (allowed && !allowed.includes(entityId.split(".")[0])) return;
@@ -169,6 +185,7 @@ export function detectIntegration(hass, profil) {
       const key =
         (entityId.match(COP_MUSTER) || [])[1] ||
         entry.translation_key ||
+        (entityId.match(PLAN_MUSTER) || [])[1] ||
         (entityId.match(/_(top\d+)$/) || [])[1] ||
         (entityId.match(/heishamon_(set\w+)$/) || [])[1] ||
         null;
@@ -188,6 +205,10 @@ export function detectIntegration(hass, profil) {
     if (/^sensor\.heishamon_/.test(entityId)) {
       const c = entityId.match(COP_MUSTER);
       if (c) assign(c[1], entityId);
+    }
+    if (/^(?:sensor|switch)\.heishamon_/.test(entityId)) {
+      const w = entityId.match(PLAN_MUSTER);
+      if (w) assign(w[1], entityId);
     }
     const m = entityId.match(
       /^(?:sensor|number|switch|select)\.heishamon_((?:top\d+)|(?:set\w+))$/

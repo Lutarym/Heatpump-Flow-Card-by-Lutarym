@@ -290,6 +290,10 @@
 | `dhw_heater_switch` | 給湯ヒーター許可の切替 | `switch`, `input_boolean` | `setdhwheaterstate` |
 | `circulation_pump` | 循環ポンプ運転中 | `switch`, `input_boolean`, `binary_sensor`, `sensor` | （なし） |
 | `circ_switch` | 循環スイッチ（クリック可） | `switch`, `input_boolean` | （なし） |
+| `weather` | 天気予報 | `weather` | （なし） |
+| `dhw_warmest` | 最も暖かい時間帯に給湯 | `switch`, `input_boolean` | `dhw_warmest_time` |
+| `dhw_planned` | 給湯の予定時刻 | `sensor` | `dhw_planned` |
+| `dhw_last_charge` | 前回の給湯運転 | `sensor` | `dhw_last_charge` |
 
 **制御**
 

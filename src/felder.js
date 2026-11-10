@@ -118,7 +118,10 @@ export const ENTITY_FIELDS = [
   { key: "dhw_heater_switch", label: "Heizstab Warmwasser schalten", group: "Warmwasser", hint: "SetDHWHeaterState, switch" },
   { key: "circulation_pump", label: "Zirkulationspumpe läuft", group: "Warmwasser", hint: "Shelly oder eigener Schalter" },
   { key: "circ_switch", label: "Zirkulation Schalter (klickbar)", group: "Warmwasser", hint: "Switch zum Ein/Ausschalten der Zirkulation" },
-  { key: "weather", label: "Wettervorhersage", group: "Warmwasser", hint: "weather, stündliche Vorhersage; leer: automatisch" },
+  { key: "weather", label: "Wettervorhersage", group: "Warmwasser", hint: "weather, stündliche Vorhersage; leer: wie HeishaMon by Lutarym, sonst automatisch" },
+  { key: "dhw_warmest", label: "Warmwasser zur wärmsten Tageszeit", group: "Warmwasser", hint: "HeishaMon by Lutarym 1.4.0+, switch" },
+  { key: "dhw_planned", label: "Geplante Warmwasserladung", group: "Warmwasser", hint: "HeishaMon by Lutarym 1.4.0+, sensor" },
+  { key: "dhw_last_charge", label: "Letzte Warmwasserladung", group: "Warmwasser", hint: "HeishaMon by Lutarym 1.4.0+, sensor" },
 
   { key: "mode_select", label: "Betriebsart umschalten", group: "Steuerung", hint: "SetOperationMode, select" },
 

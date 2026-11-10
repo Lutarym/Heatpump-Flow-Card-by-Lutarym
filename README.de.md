@@ -83,7 +83,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `cop_reference` | leer | Datenblatt für den COP-Vergleich: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Nur damit färbt der Reiter COP jeden Lauf: grün ab 92 % des Datenblatts (Toleranz −8 %, HP KEYMARK), gelb darunter, außerhalb der Prüfpunkte nur geschätzt, als Schätzung gekennzeichnet und blass gezeichnet. Leer: COP ohne Bewertung |
 | `dhw_usable_temp` | leer | Speichertemperatur in °C, unter der das Warmwasser als nicht mehr nutzbar gilt. Für die Haltezeit im Fenster „Warmwasser beobachten“ (Knopf im Fenster der Wärmepumpe). Leer: Spalte ohne Wert |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
-| `show_history` | `knopf` | Diagramme: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster, Zeitraum wählbar von 24 Stunden bis 1 Jahr, `true` Verbrauch dauerhaft in der Karte, `false` aus |
+| `show_history` | `knopf` | Diagramme: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster (dort zusätzlich der Reiter Abtauen), Zeitraum wählbar von 24 Stunden bis 1 Jahr, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
 | `show_reload` | `true` | Zeile „Lädt ab …“ in Puffer und Warmwasser anzeigen |
 | `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen; die Hilfe beschreibt HeishaMon und erscheint nur bei HeishaMon-Profilen und im Demomodus |
@@ -200,7 +200,10 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `dhw_heater_switch` | Heizstab Warmwasser freigeben | SetDHWHeaterState, switch |
 | `circulation_pump` | Zirkulationspumpe läuft | Shelly oder eigener Schalter |
 | `circ_switch` | Zirkulation Schalter (klickbar) | Switch zum Ein/Ausschalten der Zirkulation |
-| `weather` | Wettervorhersage | weather, stündliche Vorhersage; leer: automatisch. Für die beste Ladezeit im Fenster „Warmwasser beobachten“ |
+| `weather` | Wettervorhersage | weather, stündliche Vorhersage; leer: wie HeishaMon by Lutarym, sonst automatisch. Für die beste Ladezeit im Fenster „Warmwasser beobachten“ |
+| `dhw_warmest` | Warmwasser zur wärmsten Tageszeit | HeishaMon by Lutarym ab 1.4.0, switch. Knopf im Fenster der Wärmepumpe; trennt Tage mit und ohne Plan für den Reiter „Optimierung“ im Fenster „Warmwasser beobachten“ |
+| `dhw_planned` | Geplante Warmwasserladung | HeishaMon by Lutarym ab 1.4.0, sensor. Im Fenster der Wärmepumpe und als „Geplante Ladung“ im Reiter „Tag oder Nacht“ |
+| `dhw_last_charge` | Letzte Warmwasserladung | HeishaMon by Lutarym ab 1.4.0, sensor. Im Fenster der Wärmepumpe; kennzeichnet die Ladungen, die die Integration gestartet hat |
 | **Steuerung** | | |
 | `mode_select` | Betriebsart umschalten | SetOperationMode, select |
 | **Erweiterte Einstellungen** | | |
