@@ -207,6 +207,29 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             </select>
           </label>
           <label class="ed-row">
+            <span>${this._t("e_heizlast")}<em>${this._t("e_heizlast_h")}</em></span>
+            <input type="number" id="opt-heizlast" min="0" step="0.1">
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_nat")}<em>${this._t("e_nat_h")}</em></span>
+            <input type="number" id="opt-nat" min="-40" max="10" step="0.1">
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_wp_leistung")}<em>${this._t("e_wp_leistung_h")}</em></span>
+            <input type="number" id="opt-wp-leistung" min="0" step="0.1">
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_wp_bezug")}<em>${this._t("e_wp_bezug_h")}</em></span>
+            <select id="opt-wp-bezug">
+              <option value="">${this._t("e_wp_bei_nat")}</option>
+              <option value="a7">${this._t("e_wp_bei_7")}</option>
+            </select>
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_stab_max")}<em>${this._t("e_stab_max_h")}</em></span>
+            <input type="number" id="opt-stab-max" min="0" max="100" step="0.5">
+          </label>
+          <label class="ed-row">
             <span>${this._t("e_ww_nutzbar")}<em>${this._t("e_ww_nutzbar_h")}</em></span>
             <input type="number" id="opt-ww-nutzbar" min="20" max="70" step="1">
           </label>
@@ -527,6 +550,11 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-puffer", (el) => put({ buffer_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-cop-ref", (el) => put({ cop_reference: el.value }));
+    bind("opt-wp-bezug", (el) => put({ hp_capacity_ref: el.value === "a7" ? "a7" : "" }));
+    [["opt-heizlast", "heat_load_kw"], ["opt-nat", "design_outdoor_temp"], ["opt-wp-leistung", "hp_capacity_kw"], ["opt-stab-max", "heater_share_max"]].forEach(([id, key]) => bind(id, (el) => {
+      const v = parseFloat(el.value);
+      put({ [key]: Number.isFinite(v) ? v : "" });
+    }));
     bind("opt-ww-nutzbar", (el) => {
       const v = parseFloat(el.value);
       put({ dhw_usable_temp: Number.isFinite(v) ? v : "" });
@@ -803,7 +831,10 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-puffer", this._config.buffer_present === true ? "ja" : this._config.buffer_present === false ? "nein" : "auto");
     put("opt-zirk", this._config.circulation_present === true ? "ja" : this._config.circulation_present === false ? "nein" : "auto");
     put("opt-cop-ref", DATENBLAETTER[this._config.cop_reference] ? this._config.cop_reference : "");
+    put("opt-wp-bezug", this._config.hp_capacity_ref === "a7" ? "a7" : "");
     put("opt-ww-nutzbar", Number.isFinite(parseFloat(this._config.dhw_usable_temp)) ? this._config.dhw_usable_temp : "");
+    [["opt-heizlast", "heat_load_kw"], ["opt-nat", "design_outdoor_temp"], ["opt-wp-leistung", "hp_capacity_kw"], ["opt-stab-max", "heater_share_max"]]
+      .forEach(([id, key]) => put(id, Number.isFinite(parseFloat(this._config[key])) ? this._config[key] : ""));
 
     const imFokus = sr.activeElement;
     sr.querySelectorAll("[data-entity]").forEach((input) => {

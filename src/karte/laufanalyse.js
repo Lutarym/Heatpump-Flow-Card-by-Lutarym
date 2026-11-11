@@ -141,29 +141,10 @@ export const laufanalyseKarte = {
     // Heizstab
     if (stab > 0) {
       befunde.push({ text: tf(t("la_stab"), { m: z(stab, 0) }), quelle: "wirkungsgrad" });
-      const grenzeStab = this._anWert("heater_on_temp");
-      const plus = stabZeiten.filter((x) => x.aussen !== null && x.aussen > -3);
-      const aPlus = plus.length ? Math.max(...plus.map((x) => x.aussen)) : null;
-      const ohneAussen = stabZeiten.some((x) => x.aussen === null);
-      if (l.ww) {
-        ohne.push(t("la_ov_stab_ww"));
-      } else if (aPlus === null) {
-        ohne.push(t(ohneAussen ? "la_ov_stab_ohne" : "la_ov_stab_kalt"));
-      } else if (grenzeStab === null) {
-        ohne.push(t("an_ov_allg"));
-      } else if (grenzeStab > -3) {
-        // Wie in der Analyse: Einschaltgrenze in die Mitte des ueblichen
-        // Bivalenzpunkts (-3 bis -7 °C, Stiebel Eltron ueber 42watt).
-        const aktion = this._anVorschlag(
-          [this._anAenderung("heater_on_temp", -5, "SetHeaterOnOutdoorTemp", "°C")],
-          tf(t("an_g_biv"), { v: z(grenzeStab, 0) }),
-          t("an_g_biv_h")
-        );
-        if (aktion) vorschlaege.push(aktion);
-        else ohne.push(t("an_ov_allg"));
-      } else {
-        ohne.push(tf(t("la_ov_stab_grenze"), { g: z(grenzeStab, 0), a: z(aPlus, 0) }));
-      }
+      // Kein Vorschlag fuer die Einschaltgrenze: Passend ist der
+      // Bivalenzpunkt der Anlage (Heizlast, Norm-Aussentemperatur des
+      // Standorts, Leistung der Waermepumpe); den kennt die Karte nicht.
+      ohne.push(t(l.ww ? "la_ov_stab_ww" : "la_ov_stab_biv"));
     } else {
       ok.push(t("la_ok_stab"));
     }

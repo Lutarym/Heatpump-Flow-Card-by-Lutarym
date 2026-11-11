@@ -266,6 +266,7 @@ export const diagrammeKarte = {
     } else if (art === "analyse") {
       this._holeAuswertung();
       if (typeof this._ladeJaz === "function") this._ladeJaz();
+      if (typeof this._ladeJahrAussen === "function") this._ladeJahrAussen();
       this._zeichneAnalyse();
     }
   },

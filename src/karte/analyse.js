@@ -33,12 +33,33 @@
  *  - COP: Vergleich mit dem Datenblatt des im Editor gewaehlten Geraets bei
  *    gleicher Aussen- und Vorlauftemperatur, Toleranz -8 % (HP KEYMARK),
  *    siehe datenblatt.js. Ohne Datenblatt nur Messwert.
- *  - Bivalenzpunkt monoenergetischer Luft-Wasser-Anlagen meist -3 bis
- *    -7 °C (Stiebel Eltron Planungshandbuch), 42watt "Bivalenzpunkt".
- *  - Heizstab: Warnzeichen, wenn er oberhalb von 0 °C ueber laengere Zeit
- *    laeuft (42watt "Heizstab"); eine Grenze in Minuten nennt die Quelle
- *    nicht. TOP60 meldet den Heizstab fuer Raum oder Warmwasser (HeishaMon
- *    ProtocolByteDecrypt), darum zaehlen nur Zeiten im Heizbetrieb.
+ *  - Bivalenzpunkt der Anlage: aus Heizlast, Norm-Aussentemperatur des
+ *    Standorts und Heizleistung der Waermepumpe (Editor) und der Heizgrenze
+ *    TOP77, siehe _anBivalenz (BWP-Leitfaden Waermepumpendimensionierung,
+ *    BWP-Klimakarte nach DIN/TS 12831-1, 42watt "Bivalenzpunkt"). Feste
+ *    Bereiche wie -3 bis -7 °C sind Planungswerte und werden nicht benutzt.
+ *  - Heizleistung, Auslegung: Leistungsanteil nach BWP-Leitfaden (Heizleistung
+ *    bei Norm-Aussentemperatur / Norm-Heizlast, empfohlen 50 bis 80 %, mit
+ *    dem Wert bei -7 °C 70 bis 90 %); darunter Hinweis mit den fehlenden kW,
+ *    darueber leichte Abweichung. Dazu der Anteil des Heizstabs an der
+ *    Heizwaerme im Jahr
+ *    nach dem Bin-Verfahren der EN 14825 (Heizlastgerade, die Waermepumpe
+ *    deckt bis zu ihrer Heizleistung, den Rest der Heizstab mit COP 1;
+ *    Energistyrelsen 2011). Statt der Stunden des Referenzklimas zaehlen die
+ *    Stundenmittel der Aussentemperatur der letzten 365 Tage aus der
+ *    Langzeitstatistik, mindestens 8000 von 8760 (eigene Festlegung). Ein
+ *    Hoechstanteil ist keine Norm; bewertet wird nur gegen den Wert im
+ *    Editor. Zu klein: Hinweis mit der noetigen Heizleistung.
+ *  - Heizstab, Einschaltgrenze (TOP78): in Ordnung, wenn weniger als 1 K vom
+ *    Bivalenzpunkt. Zu hoch: Der Heizstab laeuft, wo die Waermepumpe allein
+ *    reicht; zu tief: Raeume koennen kuehl werden (42watt "Bivalenzpunkt").
+ *    Fehlen Angaben, nur Messwert.
+ *  - Heizstab, Laufzeit: Hinweis, wenn er ueber dem Bivalenzpunkt lief;
+ *    dort reicht die Waermepumpe laut den Angaben allein, und der Heizstab
+ *    macht aus 1 kWh Strom 1 kWh Waerme (42watt "Heizstab"). Fehlen
+ *    Angaben, nur Messwert. TOP60 meldet den Heizstab fuer Raum oder
+ *    Warmwasser (HeishaMon ProtocolByteDecrypt), darum zaehlen nur Zeiten im
+ *    Heizbetrieb.
  *  - Abtauung typischerweise 5 bis 15 min, am haeufigsten bei -5 bis +5 °C
  *    (42watt "Abtauen"). Eine Temperaturgrenze fuer "deutliche Plusgrade"
  *    nennt die Quelle nicht, darum dort nur ein Hinweis ohne Bewertung.
@@ -70,8 +91,10 @@ export const QUELLEN = {
   cop: ["Panasonic: Aquarea T-CAP M, Katalog 2025", "https://cdn.aircon.panasonic.eu/uploads/DE/Catalogues/2025/DE-LFLTAQM2501.pdf"],
   keymark: ["HP KEYMARK, Annex A: Toleranz COP −8 %", "https://www.dincertco.de/media/dincertco/dokumente_1/certification_schemes/w%C3%A4rmepumpen_heat-pump_keymark_annex-a.pdf"],
   wirkungsgrad: ["42watt: Wirkungsgrad (COP, Carnot)", "https://42watt.de/magazin/wirkungsgrad-warmepumpe"],
-  bivalenz: ["42watt: Bivalenzpunkt (Stiebel Eltron)", "https://42watt.de/magazin/bivalenzpunkt-warmepumpe-einfach-erklart"],
-  heizstab: ["42watt: Heizstab (Fraunhofer-Feldtests)", "https://42watt.de/magazin/heizstab-warmepumpe"],
+  bivalenz: ["42watt: Bivalenzpunkt", "https://42watt.de/magazin/bivalenzpunkt-warmepumpe-einfach-erklart"],
+  bwp_dim: ["BWP: Leitfaden Wärmepumpendimensionierung", "https://www.waermepumpe.de/fileadmin/user_upload/waermepumpe/07_Publikationen/BWP_LF_WPDimensionierung.pdf"],
+  heizstab: ["42watt: Heizstab", "https://42watt.de/magazin/heizstab-warmepumpe"],
+  en14825: ["Energistyrelsen: SCOP nach EN 14825 (Bin-Verfahren)", "https://ens.dk/media/718/download"],
   abtauung: ["42watt: Abtauen", "https://42watt.de/magazin/warmepumpe-abtauen"],
   warmwasser: ["Umweltbundesamt: Trinkwarmwasserkonzepte (2023)", "https://www.umweltbundesamt.de/sites/default/files/medien/11850/publikationen/factsheet_trinkwarmwasserkonzepte.pdf"],
   legionellen: ["Bundestag WD 8-3000-021/23 (DVGW)", "https://bundestag.de/resource/blob/947272/cc7cce64da5a0983382949ac996e72ff/WD-8-021-23-pdf-data.pdf"],
@@ -138,6 +161,42 @@ export function anZeiten(reihe, aussen, t0, t1, ventil) {
   });
   return raum;
 }
+
+/**
+ * Anteil des Heizstabs an der Heizwaerme nach dem Bin-Verfahren der
+ * EN 14825: je Stunde die Heizlast aus der Heizlastgeraden (Norm-Heizlast
+ * bei Norm-Aussentemperatur, 0 kW an der Heizgrenze); die Waermepumpe deckt
+ * bis zu ihrer Heizleistung, den Rest der Heizstab. Gibt 0 bis 1 oder null.
+ */
+export function stabAnteil(temps, last, nat, grenze, leistung) {
+  let waerme = 0;
+  let stab = 0;
+  temps.forEach((t) => {
+    if (!(t < grenze)) return;
+    const l = (last * (grenze - t)) / (grenze - nat);
+    waerme += l;
+    if (l > leistung) stab += l - leistung;
+  });
+  return waerme > 0 ? stab / waerme : null;
+}
+
+/** Heizleistung in kW, bei der der Heizstab genau den Anteil ziel (0 bis 1) liefert. */
+export function noetigeLeistung(temps, last, nat, grenze, ziel) {
+  let lo = 0;
+  let hi = 0;
+  temps.forEach((t) => {
+    if (t < grenze) hi = Math.max(hi, (last * (grenze - t)) / (grenze - nat));
+  });
+  for (let i = 0; i < 50; i++) {
+    const m = (lo + hi) / 2;
+    if (stabAnteil(temps, last, nat, grenze, m) > ziel) lo = m;
+    else hi = m;
+  }
+  return hi;
+}
+
+/** Stundenwerte, die fuer die Jahresrechnung mindestens vorliegen muessen (eigene Festlegung). */
+export const JAHR_MIN_STUNDEN = 8000;
 
 export const analyseKarte = {
   /** Heizflaeche eines Heizkreises laut Editor. */
@@ -243,6 +302,65 @@ export const analyseKarte = {
     const bereich = id.split(".")[0];
     if (!this._config.demo && bereich !== "select" && bereich !== "input_select" && !befehl) return null;
     return { feld, id, ist: istText, neu: neuText, option, auswahl: true, befehl, nutzlast };
+  },
+
+  /**
+   * Bivalenzpunkt aus den Angaben im Editor: Schnittpunkt der Heizlastgeraden
+   * mit der Heizleistung der Waermepumpe. Die Heizlast faellt gerade von der
+   * Norm-Heizlast bei Norm-Aussentemperatur auf 0 kW an der Heizgrenze
+   * (BWP-Leitfaden Waermepumpendimensionierung, Abb. 5 und Glossar; Formel
+   * nach 42watt "Bivalenzpunkt"). Heizleistung: Datenblattwert bei
+   * Norm-Aussentemperatur und Vorlauftemperatur der Anlage, sonst bei -7 °C
+   * (BWP-Leitfaden S. 14). Eigene Festlegungen: Die Heizleistung gilt als
+   * gleichbleibend, und als Heizgrenze dient TOP77 "Heizen aus ab
+   * Aussentemperatur".
+   */
+  _anBivalenz() {
+    const zahl = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
+    const last = zahl(this._config.heat_load_kw);
+    const nat = zahl(this._config.design_outdoor_temp);
+    const wp = zahl(this._config.hp_capacity_kw);
+    const grenze = this._anWert("heating_off_temp");
+    const fehlt = [];
+    if (!(last > 0)) fehlt.push("an_biv_f_last");
+    if (!Number.isFinite(nat)) fehlt.push("an_biv_f_nat");
+    if (!(wp > 0)) fehlt.push("an_biv_f_wp");
+    if (grenze === null || (Number.isFinite(nat) && grenze <= nat)) fehlt.push("an_biv_f_grenze");
+    if (fehlt.length) return { fehlt };
+    return { punkt: grenze - (wp / last) * (grenze - nat), last, nat, wp, grenze, fehlt };
+  },
+
+  /**
+   * Stundenmittel der Aussentemperatur der letzten 365 Tage aus der
+   * Langzeitstatistik, fuer die Auslegung. Hoechstens einmal je Stunde.
+   */
+  async _ladeJahrAussen() {
+    const id = this._e("outside_temp");
+    const q = this._hass;
+    if (!id || this._config.demo || !q || typeof q.callWS !== "function" || this._jahrAussenLaeuft) return;
+    const jetzt = Date.now();
+    if (this._jahrAussen && this._jahrAussen.id === id && jetzt - this._jahrAussen.zeit < 3600000) return;
+    this._jahrAussenLaeuft = true;
+    // Nur ganze Stunden, die laufende Stunde fehlt in der Statistik noch.
+    const ende = Math.floor(jetzt / 3600000) * 3600000;
+    let werte = [];
+    try {
+      const antwort = await q.callWS({
+        type: "recorder/statistics_during_period",
+        start_time: new Date(ende - 365 * 86400000).toISOString(),
+        end_time: new Date(ende).toISOString(),
+        statistic_ids: [id],
+        period: "hour",
+        types: ["mean"],
+      });
+      werte = ((antwort && antwort[id]) || []).filter((z) => z.mean !== null && Number.isFinite(Number(z.mean))).map((z) => Number(z.mean));
+    } catch {
+      // Keine Langzeitstatistik: die Auslegung bleibt ohne Jahreswerte.
+    } finally {
+      this._jahrAussenLaeuft = false;
+    }
+    this._jahrAussen = { id, zeit: jetzt, werte };
+    if (this._diaArt === "analyse") this._zeichneAnalyse();
   },
 
   /** Vorschlag aus mehreren Aenderungen, leer gibt null. */
@@ -546,36 +664,112 @@ export const analyseKarte = {
 
     /* ---------- Zusatzheizung und Abtauung ---------- */
     const stabGrenze = this._anWert("heater_on_temp");
-    if (stabGrenze !== null) {
-      const stufe = stabGrenze <= -3 ? "ok" : "hinweis";
+    const biv = this._anBivalenz();
+    const bivDaten = biv.fehlt.length ? null : { b: z(biv.punkt, 1), l: z(biv.last, 1), n: z(biv.nat, 1), w: z(biv.wp, 1), g: z(biv.grenze, 0) };
+    const bivFehlt = () => tf(t("an_biv_fehlt"), { f: biv.fehlt.map((k) => t(k)).join(", ") });
+    // Heizleistung, Auslegung. Leistungsanteil nach BWP-Leitfaden
+    // Waermepumpendimensionierung (S. 14 bis 16): maximale Heizleistung bei
+    // Norm-Aussentemperatur geteilt durch die Norm-Heizlast, empfohlen 50 bis
+    // 80 %; ist nur die Herstellerangabe bei -7 °C bekannt, 70 bis 90 %.
+    // Darunter ist von Unterdimensionierung auszugehen, darueber soll geprueft
+    // werden, ob ein kleineres Geraet reicht. Die Farbgrenzen der Abb. 10
+    // stehen nicht als Zahlen im Text; es gelten die Textwerte (eigene
+    // Zuordnung). Dazu der Anteil des Heizstabs im Jahr (Bin-Verfahren).
+    const zahlWert = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
+    const rund1 = (v) => Math.round(v * 10) / 10;
+    const lastH = zahlWert(this._config.heat_load_kw);
+    const leistungH = zahlWert(this._config.hp_capacity_kw);
+    if (lastH > 0 && leistungH > 0) {
+      const bei7 = this._config.hp_capacity_ref === "a7";
+      const [lo, hi] = bei7 ? [70, 90] : [50, 80];
+      const la = (leistungH / lastH) * 100;
+      const natH = zahlWert(this._config.design_outdoor_temp);
+      const bei = bei7 ? t("an_ausl_bei7") : Number.isFinite(natH) ? tf(t("an_ausl_bei_nat"), { n: z(natH, 1) }) : t("an_ausl_bei_norm");
+      const pmin = rund1((lo / 100) * lastH);
+      const d = { la: z(la, 0), lo: z(lo, 0), hi: z(hi, 0), l: z(lastH, 1), w: z(leistungH, 1), bei, pmin: z(pmin, 1), f: z(rund1(pmin - rund1(leistungH)), 1) };
+      let stufe = la < lo ? "hinweis" : la > hi ? "leicht" : "ok";
+      const teile = [tf(t(stufe === "hinweis" ? "an_ausl_bwp_klein" : stufe === "leicht" ? "an_ausl_bwp_gross" : "an_ausl_bwp_ok"), d)];
+      const max = zahlWert(this._config.heater_share_max);
+      const mitMax = Number.isFinite(max) && max > 0 && max < 100;
+      const x = mitMax ? z(max, Number.isInteger(max) ? 0 : 1) : "";
+      let mitJahr = false;
+      if (!bivDaten) {
+        teile.push(tf(t("an_ausl_jahr_fehlt"), { f: biv.fehlt.map((k) => t(k)).join(", ") }));
+      } else {
+        const jahr = this._jahrAussen && this._jahrAussen.id === this._e("outside_temp") ? this._jahrAussen.werte : [];
+        const d3 = { ...bivDaten, h: z(jahr.length, 0), hm: z(JAHR_MIN_STUNDEN, 0), x };
+        if (jahr.length >= JAHR_MIN_STUNDEN) {
+          mitJahr = true;
+          const anteil = stabAnteil(jahr, biv.last, biv.nat, biv.grenze, biv.wp) || 0;
+          const zuKlein = mitMax && anteil * 100 > max;
+          const noetig = zuKlein ? rund1(noetigeLeistung(jahr, biv.last, biv.nat, biv.grenze, max / 100)) : null;
+          const d4 = { ...d3, a: z(anteil * 100, 1), p: noetig !== null ? z(noetig, 1) : "", f: noetig !== null ? z(rund1(noetig - rund1(biv.wp)), 1) : "" };
+          teile.push(tf(t(!mitMax ? "an_ausl_info" : zuKlein ? "an_ausl_klein" : "an_ausl_ok"), d4), tf(t("an_ausl_daten"), d4));
+          if (zuKlein) stufe = "hinweis";
+        } else {
+          teile.push(tf(t("an_ausl_wenig"), d3));
+        }
+      }
       punkt({
-        gruppe: "zusatz", id: "bivalenz", stufe, titel: t("an_t_bivalenz"), wert: `${z(stabGrenze, 0)} °C`,
-        wertText: t("an_w_bivalenz"), richt: t("an_r_bivalenz"), text: t(stufe === "ok" ? "an_biv_ok" : "an_biv_hoch"),
-        tipp: t("an_tip_bivalenz"), quelle: "bivalenz",
-        aktion: stufe === "ok"
-          ? null
-          : this._anVorschlag(
-            [this._anAenderung("heater_on_temp", -5, "SetHeaterOnOutdoorTemp", "°C")],
-            tf(t("an_g_biv"), { v: z(stabGrenze, 0) }),
-            t("an_g_biv_h")
-          ),
+        gruppe: "zusatz", id: "auslegung", stufe, titel: t("an_t_ausl"), wert: `${z(leistungH, 1)} kW`,
+        wertText: tf(t("an_w_ausl_la"), d),
+        richt: mitMax ? `${tf(t("an_r_ausl_bwp"), d)}, ${tf(t("an_r_ausl_max"), { x })}` : tf(t("an_r_ausl_bwp"), d),
+        text: teile.join(" "), quelle: mitJahr ? ["bwp_dim", "en14825"] : "bwp_dim", ohne: t("an_ov_ausl"),
       });
+    }
+    if (stabGrenze !== null) {
+      if (bivDaten) {
+        // Der Heizstab soll erst unter dem Bivalenzpunkt freigegeben sein
+        // (42watt "Heizstab", "Bivalenzpunkt"). Stellbereich TOP78: -15 bis
+        // 20 °C; liegt der Bivalenzpunkt ausserhalb, ist der Rand das Ziel.
+        // Passend: weniger als 1 K vom Ziel, die Schrittweite der Einstellung.
+        // Vorschlag: das Ziel gerundet. Beides eigene Festlegung.
+        const ziel = Math.max(-15, Math.min(20, biv.punkt));
+        const rand = ziel !== biv.punkt;
+        const abw = stabGrenze - ziel;
+        const stufe = Math.abs(abw) < 1 ? "ok" : "hinweis";
+        const vorschlag = Math.round(ziel);
+        const d2 = { ...bivDaten, k: z(Math.abs(stabGrenze - biv.punkt), 1), v: z(stabGrenze, 0), s: z(vorschlag, 0) };
+        punkt({
+          gruppe: "zusatz", id: "bivalenz", stufe, titel: t("an_t_bivalenz"), wert: `${z(stabGrenze, 0)} °C`,
+          wertText: t("an_w_bivalenz"), richt: tf(t(rand ? "an_r_biv_rand" : "an_r_biv"), d2),
+          text: `${tf(t(stufe !== "ok" ? (abw > 0 ? "an_biv_hoch" : "an_biv_tief") : rand ? "an_biv_passt_rand" : "an_biv_passt"), d2)} ${tf(t("an_biv_daten"), d2)}`,
+          tipp: stufe === "ok" ? "" : tf(t("an_tip_biv"), d2), quelle: ["bivalenz", "bwp_dim"],
+          aktion: stufe === "ok" ? null : this._anVorschlag(
+            [this._anAenderung("heater_on_temp", vorschlag, "SetHeaterOnOutdoorTemp", "°C")],
+            tf(t("an_g_biv"), d2), t("an_g_biv_h")),
+        });
+      } else {
+        punkt({
+          gruppe: "zusatz", id: "bivalenz", stufe: "info", titel: t("an_t_bivalenz"), wert: `${z(stabGrenze, 0)} °C`,
+          wertText: t("an_w_bivalenz"), text: `${t("an_biv_info")} ${bivFehlt()}`, quelle: ["bivalenz", "bwp_dim"],
+        });
+      }
     }
     if (d && (d.stabIntern.length || d.stabExtern.length)) {
       // Nur Heizbetrieb: TOP60 meldet den Heizstab auch beim Warmwasser.
       const zeiten = anZeiten(d.stabIntern, d.aussen, d.t0, d.t1, d.ventil).concat(anZeiten(d.stabExtern, d.aussen, d.t0, d.t1, d.ventil));
       const gesamt = zeiten.reduce((s, x) => s + x.minuten, 0);
-      const warm = zeiten.filter((x) => x.aussen !== null && x.aussen > 0).reduce((s, x) => s + x.minuten, 0);
-      const ohneAussen = zeiten.filter((x) => x.aussen === null).reduce((s, x) => s + x.minuten, 0);
-      // In Ordnung nur, wenn er sicher nie bei Plusgraden lief. Sonst nur
-      // Messwert: Fuer "laengere Zeit" nennt die Quelle keine Minuten.
-      const sicher = warm === 0 && ohneAussen === 0;
-      punkt({
-        gruppe: "zusatz", id: "heizstab", stufe: sicher ? "ok" : "info", titel: t("an_t_heizstab"), wert: `${z(gesamt, 0)} min`,
-        wertText: tf(t("an_w_heizstab"), { w: z(warm, 0) }), richt: t("an_r_heizstab"),
-        text: gesamt === 0 ? t("an_hs_aus") : sicher ? t("an_hs_ok") : tf(t("an_hs_info"), { w: z(warm, 0) }),
-        quelle: "heizstab",
-      });
+      if (bivDaten) {
+        // Ueber dem Bivalenzpunkt deckt die Waermepumpe laut den Angaben die
+        // Heizlast allein (42watt: Einschaltgrenze zu hoch gesetzt).
+        const drueber = zeiten.filter((x) => x.aussen !== null && x.aussen > biv.punkt).reduce((s, x) => s + x.minuten, 0);
+        const ohneAussen = zeiten.filter((x) => x.aussen === null).reduce((s, x) => s + x.minuten, 0);
+        const stufe = drueber > 0 ? "hinweis" : ohneAussen > 0 ? "info" : "ok";
+        const d2 = { ...bivDaten, m: z(drueber, 0) };
+        punkt({
+          gruppe: "zusatz", id: "heizstab", stufe, titel: t("an_t_heizstab"), wert: `${z(gesamt, 0)} min`,
+          wertText: gesamt > 0 ? tf(t("an_w_hs_biv"), d2) : "", richt: tf(t("an_r_hs_biv"), d2),
+          text: gesamt === 0 ? t("an_hs_aus") : tf(t(drueber > 0 ? "an_hs_drueber" : ohneAussen > 0 ? "an_hs_ohne_aussen" : "an_hs_drunter"), d2),
+          quelle: ["bivalenz", "heizstab"], ohne: t("an_ov_hs_biv"),
+        });
+      } else {
+        punkt({
+          gruppe: "zusatz", id: "heizstab", stufe: gesamt === 0 ? "ok" : "info", titel: t("an_t_heizstab"), wert: `${z(gesamt, 0)} min`,
+          text: gesamt === 0 ? t("an_hs_aus") : `${t("an_hs_info")} ${bivFehlt()}`,
+          quelle: gesamt === 0 ? "heizstab" : ["heizstab", "bwp_dim"],
+        });
+      }
     }
     if (d && d.abtau.length) {
       // Wie im Reiter Abtauen: angeschnittene und laufende Abtauungen zaehlen
