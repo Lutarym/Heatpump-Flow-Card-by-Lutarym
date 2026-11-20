@@ -5,6 +5,7 @@
 import { escapeHtml } from "../hilfsfunktionen.js";
 import { DEMO_PAARE } from "../konstanten.js";
 import { wertText } from "../texte.js";
+import { demoIntegration } from "./integration.js";
 
 export const demoKarte = {
   /**
@@ -70,6 +71,8 @@ export const demoKarte = {
       state: (fertig ? um(0, 14, 2) : um(-1, 13, 2)).toISOString(),
       attributes: { device_class: "timestamp" },
     };
+    // Auswertungen der Integration HeishaMon by Lutarym ab 1.7.0.
+    demoIntegration(states);
     states["demo.mode_select"] = {
       state: "mode_4",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3", "mode_4", "mode_5", "mode_6"] },

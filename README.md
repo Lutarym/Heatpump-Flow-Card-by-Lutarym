@@ -18,6 +18,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Language packs: export a language as a file, translate it yourself or adjust it and import it again; see the [language pack guide](docs/SPRACHPAKET.md)
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
+- Analysis with one tab per optimisation (heating curve, cycling, pump, hot water, backup heater, defrost, efficiency, power & PV, system), explained in plain words with guide values and sources; uses the evaluations of HeishaMon by Lutarym from 1.7.0 and the values of HeishaMon 4.3.0 and 4.4.x (TOP144 to TOP198)
 - Landscape and portrait layout
 - Visual editor with automatic detection of the integration, import and export of the configuration
 - Four languages: English, German, French and Japanese
@@ -85,8 +86,10 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `heat_load_kw` | empty | Design heating load of the house in kW (EN 12831). With `design_outdoor_temp`, `hp_capacity_kw` and the heating limit TOP77, the analysis calculates the bivalence point and compares "heater on below" (TOP78) and the heater run time with it |
 | `design_outdoor_temp` | empty | Design outdoor temperature of the location in °C, e.g. from the BWP climate map (Germany, by postcode) |
 | `hp_capacity_kw` | empty | Heating capacity of the heat pump in kW from the datasheet, at the design outdoor temperature and your flow temperature; if missing, the value at −7 °C. Counts as constant |
-| `hp_capacity_ref` | empty | Where `hp_capacity_kw` applies: empty = design outdoor temperature, `a7` = −7 °C (manufacturer value). The analysis point "Heating capacity, sizing" compares the capacity share (capacity / design heating load) with the BWP recommendation: 50 to 80 %, with the −7 °C value 70 to 90 %; below that a hint with the missing kW |
+| `hp_capacity_ref` | empty | Where `hp_capacity_kw` applies: empty = design outdoor temperature, `a7` = −7 °C (manufacturer value). The analysis point "Heating capacity, sizing" uses the capacity share (capacity / design heating load) of the BWP guideline: below 50 % (with the −7 °C value: below 70 %) a hint "too small" with the missing kW; above that "fine" without a hint |
 | `heater_share_max` | empty | Your target: at most this share of the annual space heat in % from the backup heater. The analysis point "Heating capacity, sizing" then shows a hint with the missing kW. Empty: share without rating |
+| `hk1_room_target` | empty | Desired room temperature of circuit 1 in °C. The analysis (tab Heating curve) compares it with the room sensor `hk1_room_temp`: within ±0.5 K fine (own decision: step size of the input), otherwise a slight deviation with the procedure of EnergieSchweiz |
+| `hk2_room_target` | empty | Like `hk1_room_target`, for circuit 2 and `hk2_room_temp` |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
 | `show_history` | `knopf` | Charts: `knopf` six buttons at the top right open energy, SG Ready, temperatures, COP, cycling and analysis in a window (with an extra tab for defrosts), period selectable from 24 hours to 1 year, `true` energy always in the card, `false` off |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
@@ -178,12 +181,14 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `hk1_pump` | Circuit 1 pump running | TOP124 |
 | `hk1_setpoint` | Circuit 1 adjustable target | TOP27, number |
 | `hk1_switch` | Circuit 1 on and off | own switch, optional |
+| `hk1_room_temp` | Circuit 1 room temperature | room sensor, optional |
 | **Circuit 2** | | |
 | `hk2_water` | Circuit 2 water temperature | TOP37 |
 | `hk2_water_target` | Circuit 2 water target | TOP43 |
 | `hk2_pump` | Circuit 2 pump running | TOP123 |
 | `hk2_setpoint` | Circuit 2 adjustable target | TOP34, number |
 | `hk2_switch` | Circuit 2 on and off | own switch, optional |
+| `hk2_room_temp` | Circuit 2 room temperature | room sensor, optional |
 | `hk3_water, hk4_water` | Water temperature circuit 3, 4 | own entity, °C |
 | `hk3_pump, hk4_pump` | Pump circuit 3, 4 running | own switch or sensor |
 | `hk3_switch, hk4_switch` | Circuit 3, 4 on and off | own switch, optional |

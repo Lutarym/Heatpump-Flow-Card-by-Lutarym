@@ -40,9 +40,9 @@
  *    Bereiche wie -3 bis -7 °C sind Planungswerte und werden nicht benutzt.
  *  - Heizleistung, Auslegung: Leistungsanteil nach BWP-Leitfaden (Heizleistung
  *    bei Norm-Aussentemperatur / Norm-Heizlast, empfohlen 50 bis 80 %, mit
- *    dem Wert bei -7 °C 70 bis 90 %); darunter Hinweis mit den fehlenden kW,
- *    darueber leichte Abweichung. Dazu der Anteil des Heizstabs an der
- *    Heizwaerme im Jahr
+ *    dem Wert bei -7 °C 70 bis 90 %); unter 50 % (70 %) Hinweis mit den
+ *    fehlenden kW, darueber in Ordnung ohne Hinweis (Vorgabe des Nutzers).
+ *    Dazu der Anteil des Heizstabs an der Heizwaerme im Jahr
  *    nach dem Bin-Verfahren der EN 14825 (Heizlastgerade, die Waermepumpe
  *    deckt bis zu ihrer Heizleistung, den Rest der Heizstab mit COP 1;
  *    Energistyrelsen 2011). Statt der Stunden des Referenzklimas zaehlen die
@@ -77,7 +77,7 @@
  *  - JAZ: aus Werten der Waermepumpe seit 1. Januar, nur eingeschraenkt
  *    mit gemessenen Jahreswerten vergleichbar: nur Messwert.
  */
-import { escapeHtml, fmt, indexBis, numState, rawState, stellbar } from "../hilfsfunktionen.js";
+import { fmt, indexBis, numState, rawState, stellbar } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 import { abtauungen, anAbschnitte, copStufe, copSumme, mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
 import { TOLERANZ } from "./datenblatt.js";
@@ -100,6 +100,12 @@ export const QUELLEN = {
   legionellen: ["Bundestag WD 8-3000-021/23 (DVGW)", "https://bundestag.de/resource/blob/947272/cc7cce64da5a0983382949ac996e72ff/WD-8-021-23-pdf-data.pdf"],
   druck: ["Vattenfall: Wasserdruck der Heizung", "https://www.vattenfall.de/infowelt-energie/nachhaltig-heizen/wasserdruck-der-heizung"],
   jaz: ["42watt: Jahresarbeitszahl (BEG, Fraunhofer)", "https://42watt.de/magazin/jahresarbeitszahl"],
+  ez_heizkurve: ["EnergieSchweiz, Stadt Zürich: Faktenblatt Wärmepumpe, Heizkurve (2023)", "https://www.ewz.ch/content/dam/stzh/energie/Startseite/beratung-froerderung/Faktenblatt_Waermepumpe-Heizkurve.pdf"],
+  uba_raum: ["Umweltbundesamt: Heizen, Raumtemperatur", "https://www.umweltbundesamt.de/umwelttipps-fuer-den-alltag/heizen-bauen/heizen-raumtemperatur"],
+  pana_ww: ["Panasonic Servicehandbuch WH-MXC16J9E8: Tank heat up time (max)", "https://www.taloon.com/media/attachments/PANWH-MXC16J9E8_Huolto_1.pdf"],
+  hm_topics: ["HeishaMon: MQTT-Topics (TOP144 bis TOP198, Topic-Gruppen)", "https://github.com/heishamon/HeishaMon/blob/main/MQTT-Topics.md"],
+  hm_firmware: ["HeishaMon: aktuelle Produktionsversion", "https://github.com/heishamon/HeishaMon/tree/main/binaries"],
+  integration: ["HeishaMon by Lutarym: Betriebsanalyse", "https://github.com/Lutarym/Heishamon-by-Lutarym"],
 };
 
 /*
@@ -107,7 +113,7 @@ export const QUELLEN = {
  * Hexwert fuer SVG (die Themen ersetzen ihn), css der Wert fuer HTML.
  * Grau fuer "leicht" ist bewusst keine Vorstufe von Rot.
  */
-const STUFEN = {
+export const STUFEN = {
   ok: { farbe: "#22C55E", css: "#22C55E", zeichen: "✓", text: "an_ok", zahl: "an_z_ok" },
   leicht: { farbe: "#98A6BA", css: "var(--c-98a6ba)", zeichen: "ⓘ", text: "an_leicht", zahl: "an_z_leicht" },
   hinweis: { farbe: "#F59E0B", css: "#F59E0B", zeichen: "!", text: "an_hinweis", zahl: "an_z_hinweis" },
@@ -117,7 +123,7 @@ const STUFEN = {
 };
 
 /** Stufen mit Bewertung, in der Reihenfolge von gut nach schlecht. */
-const BEWERTET = ["ok", "leicht", "hinweis", "pruefen"];
+export const BEWERTET = ["ok", "leicht", "hinweis", "pruefen"];
 
 /** Nur bei diesen Stufen gibt es Knopf, Tipp und "Kein Vorschlag". */
 export const AUFFAELLIG = ["hinweis", "pruefen"];
@@ -142,7 +148,7 @@ function vlText(stufe, art) {
 }
 
 /** Rangfolge der Stufen, um den schlechtesten Heizkreis zu finden. */
-const RANG = { ok: 0, leicht: 1, hinweis: 2, pruefen: 3 };
+export const RANG = { ok: 0, leicht: 1, hinweis: 2, pruefen: 3 };
 
 /**
  * Zeiten in Minuten, in denen eine Reihe "an" meldet, mit der
@@ -671,24 +677,23 @@ export const analyseKarte = {
     // Waermepumpendimensionierung (S. 14 bis 16): maximale Heizleistung bei
     // Norm-Aussentemperatur geteilt durch die Norm-Heizlast, empfohlen 50 bis
     // 80 %; ist nur die Herstellerangabe bei -7 °C bekannt, 70 bis 90 %.
-    // Darunter ist von Unterdimensionierung auszugehen, darueber soll geprueft
-    // werden, ob ein kleineres Geraet reicht. Die Farbgrenzen der Abb. 10
-    // stehen nicht als Zahlen im Text; es gelten die Textwerte (eigene
-    // Zuordnung). Dazu der Anteil des Heizstabs im Jahr (Bin-Verfahren).
+    // Darunter ist von Unterdimensionierung auszugehen. Bewertet wird nur
+    // diese Untergrenze; nach oben gibt es keinen Hinweis (Vorgabe des
+    // Nutzers). Dazu der Anteil des Heizstabs im Jahr (Bin-Verfahren).
     const zahlWert = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
     const rund1 = (v) => Math.round(v * 10) / 10;
     const lastH = zahlWert(this._config.heat_load_kw);
     const leistungH = zahlWert(this._config.hp_capacity_kw);
     if (lastH > 0 && leistungH > 0) {
       const bei7 = this._config.hp_capacity_ref === "a7";
-      const [lo, hi] = bei7 ? [70, 90] : [50, 80];
+      const lo = bei7 ? 70 : 50;
       const la = (leistungH / lastH) * 100;
       const natH = zahlWert(this._config.design_outdoor_temp);
       const bei = bei7 ? t("an_ausl_bei7") : Number.isFinite(natH) ? tf(t("an_ausl_bei_nat"), { n: z(natH, 1) }) : t("an_ausl_bei_norm");
       const pmin = rund1((lo / 100) * lastH);
-      const d = { la: z(la, 0), lo: z(lo, 0), hi: z(hi, 0), l: z(lastH, 1), w: z(leistungH, 1), bei, pmin: z(pmin, 1), f: z(rund1(pmin - rund1(leistungH)), 1) };
-      let stufe = la < lo ? "hinweis" : la > hi ? "leicht" : "ok";
-      const teile = [tf(t(stufe === "hinweis" ? "an_ausl_bwp_klein" : stufe === "leicht" ? "an_ausl_bwp_gross" : "an_ausl_bwp_ok"), d)];
+      const d = { la: z(la, 0), lo: z(lo, 0), l: z(lastH, 1), w: z(leistungH, 1), bei, pmin: z(pmin, 1), f: z(rund1(pmin - rund1(leistungH)), 1) };
+      let stufe = la < lo ? "hinweis" : "ok";
+      const teile = [tf(t(stufe === "hinweis" ? "an_ausl_bwp_klein" : "an_ausl_bwp_ok"), d)];
       const max = zahlWert(this._config.heater_share_max);
       const mitMax = Number.isFinite(max) && max > 0 && max < 100;
       const x = mitMax ? z(max, Number.isInteger(max) ? 0 : 1) : "";
@@ -869,104 +874,9 @@ export const analyseKarte = {
         tipp: t("an_tip_stoerung"), quelle: "", ohne: t("an_ov_stoerung"),
       });
     }
+    // Neue Punkte, Werte der Integration und Zuordnung zu den Reitern
+    // (analysereiter.js). Gezeichnet wird dort.
+    this._anErgaenze(punkte, punkt, { d, laeufe, heizLaeufe, tage, puffer });
     return punkte;
-  },
-
-  /** Zeichnet die Analyse als Karten in das Fenster. */
-  _zeichneAnalyse() {
-    if (this._diaArt !== "analyse") return;
-    const sr = this.shadowRoot;
-    const liste = sr && sr.getElementById("dia-liste");
-    if (!liste) return;
-    this._diaLeer(false);
-    if (this._auswertung) this._auswertungHinweis(this._auswertung);
-    const punkte = this._anPruefen();
-    this._anPunkte = punkte;
-    const zahl = { ok: 0, leicht: 0, hinweis: 0, pruefen: 0, info: 0, unbekannt: 0 };
-    punkte.forEach((p) => zahl[p.stufe]++);
-    const bewertet = BEWERTET.reduce((s, k) => s + zahl[k], 0);
-    const offen = punkte.filter((p) => p.stufe === "pruefen").concat(punkte.filter((p) => p.stufe === "hinweis"));
-    // Urteil nur aus den bewerteten Punkten, ohne Wertung darueber hinaus.
-    let titel = "an_g_gut";
-    let n = 0;
-    if (!bewertet) titel = "an_g_leer";
-    else if (zahl.pruefen) [titel, n] = ["an_g_pruefen", zahl.pruefen + zahl.hinweis];
-    else if (zahl.hinweis) [titel, n] = ["an_g_hinweis", zahl.hinweis];
-    else if (zahl.leicht) [titel, n] = ["an_g_leicht", zahl.leicht];
-    const potenzial = offen.slice(0, 3).map((p) => p.titel).join(", ");
-
-    // Ring mit den Anteilen der bewerteten Stufen; die Zahl in der Mitte
-    // zaehlt "in Ordnung" und "leichte Abweichung".
-    const umfang = 2 * Math.PI * 34;
-    let versatz = 0;
-    const ring = BEWERTET
-      .map((k) => {
-        const anteil = bewertet ? zahl[k] / bewertet : 0;
-        if (!anteil) return "";
-        const l = anteil * umfang;
-        const s = `<circle cx="42" cy="42" r="34" fill="none" stroke="${STUFEN[k].farbe}" stroke-width="10"
-          stroke-dasharray="${Math.max(0, l - 2).toFixed(1)} ${umfang.toFixed(1)}" stroke-dashoffset="${(-versatz).toFixed(1)}"
-          transform="rotate(-90 42 42)"/>`;
-        versatz += l;
-        return s;
-      })
-      .join("");
-    const zaehler = BEWERTET.map((k) => [STUFEN[k].css, zahl[k], STUFEN[k].zahl])
-      .concat([["var(--c-7e8ca0)", zahl.info + zahl.unbekannt, "an_z_ohne"]]);
-    const kopf = `<div class="lhc-an-gesamt">
-        <svg viewBox="0 0 84 84" class="lhc-an-ring"><circle cx="42" cy="42" r="34" fill="none" stroke="#26303F" stroke-width="10"/>${ring}
-          <text x="42" y="48" text-anchor="middle" font-size="18" font-weight="700" fill="#E8EDF4">${zahl.ok + zahl.leicht}/${bewertet}</text></svg>
-        <div class="lhc-an-urteil"><b>${escapeHtml(tf(this._t(titel), { n: tf(this._t(n === 1 ? "an_n_1" : "an_n_n"), { n }) }))}</b>
-          ${potenzial ? `<span>${escapeHtml(tf(this._t("an_g_potenzial"), { p: potenzial }))}</span>` : ""}</div>
-        <div class="lhc-an-zahlen">${zaehler
-          .map(([farbe, wert, text]) => `<div><b style="color:${farbe}">${wert}</b><span>${escapeHtml(this._t(text))}</span></div>`)
-          .join("")}</div>
-      </div>`;
-
-    const quellenHtml = (q) =>
-      []
-        .concat(q || [])
-        .map((k) => QUELLEN[k])
-        .filter(Boolean)
-        .map((x) => `<a href="${escapeHtml(x[1])}" target="_blank" rel="noopener noreferrer">${escapeHtml(x[0])}</a>`)
-        .join(" · ");
-    const gruppen = [["heiz", "an_gr_heiz"], ["zusatz", "an_gr_zusatz"], ["anlage", "an_gr_anlage"]];
-    const karten = gruppen
-      .map(([g, tt]) => {
-        const inGruppe = punkte.filter((p) => p.gruppe === g);
-        if (!inGruppe.length) return "";
-        return `<div class="lhc-an-gruppe">${escapeHtml(this._t(tt))}</div><div class="lhc-an-raster">${inGruppe
-          .map((p) => {
-            const st = STUFEN[p.stufe];
-            const q = quellenHtml(p.quelle);
-            const nr = punkte.indexOf(p);
-            // Bewertete Stufen mit Flaeche, "nur Messwert" und "keine Daten"
-            // nur umrandet und ohne farbigen Rand an der Karte.
-            const chip = st.neutral
-              ? `<i class="neutral" style="color:${st.css}">`
-              : `<i style="color:${st.css};background:color-mix(in srgb, ${st.css} 14%, transparent)">`;
-            return `<div class="lhc-an-karte" data-stufe="${p.stufe}" style="border-left-color:${st.neutral ? "var(--c-3a4557)" : st.css}">
-                <div class="lhc-an-kopf"><b>${escapeHtml(p.titel)}</b>
-                  ${chip}${st.zeichen} ${escapeHtml(this._t(st.text))}</i></div>
-                <div class="lhc-an-wert"><span><b>${escapeHtml(p.wert)}</b> ${escapeHtml(p.wertText || "")}</span>
-                  ${p.richt ? `<span>${escapeHtml(this._t(p.stufe === "info" ? "an_vergleich" : "an_richtwert"))} <b>${escapeHtml(p.richt)}</b></span>` : ""}</div>
-                ${p.text ? `<p>${escapeHtml(p.text)}</p>` : ""}
-                ${p.tipp ? `<p class="lhc-an-tipp">${escapeHtml(p.tipp)}</p>` : ""}
-                ${p.aktion ? `<button type="button" class="lhc-an-knopf" data-vorschlag="${nr}">⚙ ${escapeHtml(this._t("an_opt_knopf"))}</button>` : ""}
-                ${!p.aktion && p.ohne ? `<p class="lhc-an-ohne">${escapeHtml(p.ohne)}</p>` : ""}
-                ${q ? `<div class="lhc-an-quelle">${escapeHtml(this._t("an_quelle"))}: ${q}</div>` : ""}
-              </div>`;
-          })
-          .join("")}</div>`;
-      })
-      .join("");
-    liste.innerHTML = `<div class="lhc-an">${kopf}${karten}
-      <p class="lhc-takt-quelle">${escapeHtml(this._t("an_fuss"))}</p></div>`;
-    liste.querySelectorAll("[data-vorschlag]").forEach((b) => {
-      b.addEventListener("click", () => {
-        const p = this._anPunkte && this._anPunkte[Number(b.dataset.vorschlag)];
-        if (p && p.aktion) this._zeigeVorschlag(p);
-      });
-    });
   },
 };

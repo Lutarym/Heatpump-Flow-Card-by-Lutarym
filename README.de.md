@@ -18,6 +18,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Sprachpakete: eine Sprache als Datei exportieren, selbst übersetzen oder anpassen und wieder importieren; siehe [Anleitung Sprachpakete](docs/SPRACHPAKET.de.md)
 - Verbrauchsverlauf der letzten 24 Stunden, gefärbt nach Heizung, Warmwasser und Standby, darunter der SG-Ready-Verlauf
 - Anlagen ohne Heizungspuffer, automatisch erkannt über TOP99 oder fest einstellbar
+- Analyse mit einem Reiter je Optimierung (Heizkurve, Takten, Pumpe, Warmwasser, Heizstab, Abtauen, Effizienz, Strom & PV, Anlage), in einfachen Worten erklärt, mit Richtwerten und Quellen; nutzt die Auswertungen von HeishaMon by Lutarym ab 1.7.0 und die Werte von HeishaMon 4.3.0 und 4.4.x (TOP144 bis TOP198)
 - Quer- und Hochformat
 - Grafischer Editor mit automatischer Erkennung der Integration, Konfiguration aus- und einlesen
 - Vier Sprachen: Englisch, Deutsch, Französisch und Japanisch
@@ -85,8 +86,10 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `heat_load_kw` | leer | Norm-Heizlast des Hauses in kW (DIN EN 12831). Mit `design_outdoor_temp`, `hp_capacity_kw` und der Heizgrenze TOP77 rechnet die Analyse den Bivalenzpunkt und vergleicht „Heizstab ein unter“ (TOP78) und die Laufzeit des Heizstabs damit |
 | `design_outdoor_temp` | leer | Norm-Außentemperatur des Standorts in °C, z. B. aus der BWP-Klimakarte nach Postleitzahl |
 | `hp_capacity_kw` | leer | Heizleistung der Wärmepumpe in kW laut Datenblatt, bei Norm-Außentemperatur und deiner Vorlauftemperatur; fehlt er, der Wert bei −7 °C. Gilt als gleichbleibend |
-| `hp_capacity_ref` | leer | Wofür `hp_capacity_kw` gilt: leer = Norm-Außentemperatur, `a7` = −7 °C (Herstellerangabe). Der Analysepunkt „Heizleistung, Auslegung“ vergleicht den Leistungsanteil (Heizleistung / Norm-Heizlast) mit der Empfehlung des BWP: 50 bis 80 %, mit dem Wert bei −7 °C 70 bis 90 %; darunter ein Hinweis mit den fehlenden kW |
+| `hp_capacity_ref` | leer | Wofür `hp_capacity_kw` gilt: leer = Norm-Außentemperatur, `a7` = −7 °C (Herstellerangabe). Der Analysepunkt „Heizleistung, Auslegung“ nutzt den Leistungsanteil (Heizleistung / Norm-Heizlast) aus dem BWP-Leitfaden: unter 50 % (mit dem Wert bei −7 °C unter 70 %) ein Hinweis „zu klein“ mit den fehlenden kW, darüber „in Ordnung“ ohne Hinweis |
 | `heater_share_max` | leer | Deine Vorgabe: höchstens dieser Anteil der Heizwärme im Jahr in % vom Heizstab. Der Analysepunkt „Heizleistung, Auslegung“ zeigt dann einen Hinweis mit den fehlenden kW. Leer: Anteil ohne Bewertung |
+| `hk1_room_target` | leer | Wunsch-Raumtemperatur von HK1 in °C. Die Analyse (Reiter Heizkurve) vergleicht sie mit dem Raumfühler `hk1_room_temp`: innerhalb von ±0,5 K in Ordnung (eigene Festlegung: Schrittweite der Eingabe), sonst leichte Abweichung mit dem Vorgehen nach EnergieSchweiz |
+| `hk2_room_target` | leer | Wie `hk1_room_target`, für HK2 und `hk2_room_temp` |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
 | `show_history` | `knopf` | Diagramme: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster (dort zusätzlich der Reiter Abtauen), Zeitraum wählbar von 24 Stunden bis 1 Jahr, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
@@ -178,12 +181,14 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `hk1_pump` | HK1 Pumpe läuft | TOP124 |
 | `hk1_setpoint` | HK1 Sollwert einstellbar | TOP27, number |
 | `hk1_switch` | HK1 ein und aus | eigener Schalter, optional |
+| `hk1_room_temp` | HK1 Raumtemperatur | Raumfühler, optional |
 | **Heizkreis 2** | | |
 | `hk2_water` | HK2 Wassertemperatur | TOP37 |
 | `hk2_water_target` | HK2 Wasser Sollwert | TOP43 |
 | `hk2_pump` | HK2 Pumpe läuft | TOP123 |
 | `hk2_setpoint` | HK2 Sollwert einstellbar | TOP34, number |
 | `hk2_switch` | HK2 ein und aus | eigener Schalter, optional |
+| `hk2_room_temp` | HK2 Raumtemperatur | Raumfühler, optional |
 | `hk3_water, hk4_water` | Wassertemperatur HK3, HK4 | eigene Entität, °C |
 | `hk3_pump, hk4_pump` | Pumpe HK3, HK4 läuft | eigener Schalter oder Sensor |
 | `hk3_switch, hk4_switch` | HK3, HK4 ein und aus | eigener Schalter, optional |

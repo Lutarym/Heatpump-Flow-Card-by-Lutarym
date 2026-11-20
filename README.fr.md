@@ -18,6 +18,7 @@ Carte Lovelace animée pour Home Assistant qui affiche une pompe à chaleur Pana
 - Packs de langue : exporter une langue dans un fichier, la traduire ou l'adapter et l'importer de nouveau ; voir le [guide des packs de langue](docs/SPRACHPAKET.fr.md)
 - Graphique de consommation sur 24 heures, coloré selon chauffage, eau chaude et veille, avec l'historique SG Ready en dessous
 - Installations sans ballon tampon, détectées automatiquement via TOP99 ou réglées manuellement
+- Analyse avec un onglet par optimisation (courbe de chauffe, cycles, pompe, eau chaude, résistance, dégivrage, efficacité, électricité & PV, installation), expliquée simplement avec valeurs indicatives et sources ; utilise les évaluations de HeishaMon by Lutarym à partir de 1.7.0 et les valeurs de HeishaMon 4.3.0 et 4.4.x (TOP144 à TOP198)
 - Disposition paysage et portrait
 - Éditeur visuel avec détection automatique de l'intégration, import et export de la configuration
 - Quatre langues : anglais, allemand, français et japonais
@@ -85,8 +86,10 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `heat_load_kw` | vide | Charge de chauffage de base de la maison en kW (EN 12831). Avec `design_outdoor_temp`, `hp_capacity_kw` et la limite de chauffage TOP77, l'analyse calcule le point de bivalence et y compare « appoint en dessous de » (TOP78) et la durée de fonctionnement de l'appoint |
 | `design_outdoor_temp` | vide | Température extérieure de base du site en °C, p. ex. carte climatique BWP (Allemagne, par code postal) |
 | `hp_capacity_kw` | vide | Puissance calorifique de la pompe à chaleur en kW selon la fiche technique, à la température extérieure de base et à votre température de départ ; à défaut, la valeur à −7 °C. Considérée comme constante |
-| `hp_capacity_ref` | vide | À quoi s'applique `hp_capacity_kw` : vide = température extérieure de base, `a7` = −7 °C (valeur du fabricant). Le point d'analyse « Puissance, dimensionnement » compare la part de puissance (puissance / charge de chauffage de base) à la recommandation du BWP : 50 à 80 %, avec la valeur à −7 °C 70 à 90 % ; en dessous, une remarque avec les kW manquants |
+| `hp_capacity_ref` | vide | À quoi s'applique `hp_capacity_kw` : vide = température extérieure de base, `a7` = −7 °C (valeur du fabricant). Le point d'analyse « Puissance, dimensionnement » utilise la part de puissance (puissance / charge de chauffage de base) du guide BWP : en dessous de 50 % (avec la valeur à −7 °C, en dessous de 70 %) une remarque « trop petite » avec les kW manquants, au-dessus « correct » sans remarque |
 | `heater_share_max` | vide | Votre objectif : au maximum cette part de la chaleur de chauffage annuelle en % par l'appoint. Le point d'analyse « Puissance, dimensionnement » affiche alors une remarque avec les kW manquants. Vide : part sans évaluation |
+| `hk1_room_target` | vide | Température ambiante souhaitée du circuit 1 en °C. L'analyse (onglet Courbe de chauffe) la compare à la sonde `hk1_room_temp` : à ±0,5 K près correct (choix propre : pas de saisie), sinon léger écart avec la démarche d'EnergieSchweiz |
+| `hk2_room_target` | vide | Comme `hk1_room_target`, pour le circuit 2 et `hk2_room_temp` |
 | `circulation_present` | `auto` | Circulation : `auto` dès qu'une entité est attribuée, `true` ou `false` |
 | `show_history` | `knopf` | Graphiques : `knopf` six boutons en haut à droite ouvrent consommation, SG Ready, températures, COP, cycles et analyse dans une fenêtre (avec en plus l'onglet dégivrage), période au choix de 24 heures à 1 an, `true` consommation toujours dans la carte, `false` désactivé |
 | `show_target` | `true` | Afficher la ligne « Cible … » dans le ballon tampon et l'eau chaude |
@@ -178,12 +181,14 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `hk1_pump` | Circuit 1 pompe en marche | TOP124 |
 | `hk1_setpoint` | Circuit 1 consigne réglable | TOP27, number |
 | `hk1_switch` | Circuit 1 marche et arrêt | interrupteur propre, facultatif |
+| `hk1_room_temp` | Température ambiante circuit 1 | sonde d'ambiance, facultatif |
 | **Circuit 2** | | |
 | `hk2_water` | Circuit 2 température d'eau | TOP37 |
 | `hk2_water_target` | Circuit 2 consigne d'eau | TOP43 |
 | `hk2_pump` | Circuit 2 pompe en marche | TOP123 |
 | `hk2_setpoint` | Circuit 2 consigne réglable | TOP34, number |
 | `hk2_switch` | Circuit 2 marche et arrêt | interrupteur propre, facultatif |
+| `hk2_room_temp` | Température ambiante circuit 2 | sonde d'ambiance, facultatif |
 | `hk3_water, hk4_water` | Température d'eau circuits 3, 4 | entité propre, °C |
 | `hk3_pump, hk4_pump` | Pompe circuits 3, 4 en marche | interrupteur ou capteur propre |
 | `hk3_switch, hk4_switch` | Circuits 3, 4 marche et arrêt | interrupteur propre, facultatif |

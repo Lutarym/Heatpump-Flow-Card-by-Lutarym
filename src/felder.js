@@ -85,12 +85,14 @@ export const ENTITY_FIELDS = [
   { key: "hk1_pump", label: "HK1 Pumpe läuft", group: "Heizkreis 1", hint: "TOP124" },
   { key: "hk1_setpoint", label: "HK1 Sollwert einstellbar", group: "Heizkreis 1", hint: "TOP27, number" },
   { key: "hk1_switch", label: "HK1 ein und aus", group: "Heizkreis 1", hint: "eigener Schalter, optional" },
+  { key: "hk1_room_temp", label: "HK1 Raumtemperatur", group: "Heizkreis 1", hint: "Raumfühler, optional" },
 
   { key: "hk2_water", label: "HK2 Wassertemperatur", group: "Heizkreis 2", hint: "TOP37" },
   { key: "hk2_water_target", label: "HK2 Wasser Sollwert", group: "Heizkreis 2", hint: "TOP43" },
   { key: "hk2_pump", label: "HK2 Pumpe läuft", group: "Heizkreis 2", hint: "TOP123" },
   { key: "hk2_setpoint", label: "HK2 Sollwert einstellbar", group: "Heizkreis 2", hint: "TOP34, number" },
   { key: "hk2_switch", label: "HK2 ein und aus", group: "Heizkreis 2", hint: "eigener Schalter, optional" },
+  { key: "hk2_room_temp", label: "HK2 Raumtemperatur", group: "Heizkreis 2", hint: "Raumfühler, optional" },
 
   { key: "hk3_water", label: "HK3 Wassertemperatur", group: "Heizkreis 3", hint: "eigene Entität, °C" },
   { key: "hk3_pump", label: "HK3 Pumpe läuft", group: "Heizkreis 3", hint: "eigener Schalter oder Sensor" },
@@ -169,6 +171,8 @@ export const DEFAULT_CONFIG = {
   hp_capacity_kw: "",
   hp_capacity_ref: "",
   heater_share_max: "",
+  hk1_room_target: "",
+  hk2_room_target: "",
   circulation_present: "auto",
   history_width: 450,
   history_style: "takte",

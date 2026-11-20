@@ -335,7 +335,7 @@ export const auswertungKarte = {
     // Puffer und der Startzaehler (TOP12) zum Abgleich der gezaehlten Laeufe.
     const felder = ["compressor", "three_way_valve", "cop_heating", "cop_dhw", "outside_temp", "flow_temp",
       "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts", "pump_flow",
-      "sg_k1", "sg_k2"];
+      "sg_k1", "sg_k2", "dhw_temp", "hk1_room_temp", "hk2_room_temp"];
     const ids = felder.map((f) => this._e(f));
     if (!ids[0] || !this._hass || typeof this._hass.callWS !== "function") {
       this._auswertung = null;
@@ -363,8 +363,8 @@ export const auswertungKarte = {
         // Inzwischen anderer Zeitraum gewaehlt: Antwort verwerfen.
         if (this._zrSchluessel() !== sp.k) return;
         const reihe = (id) => verlaufsReihe(antwort, id);
-        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss, k1, k2] =
-          ids.map(reihe);
+        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss, k1, k2,
+          wwTemp, raum1, raum2] = ids.map(reihe);
         const [heizW, heizE, wwW, wwE] = leistung.map((id) => (id ? reihe(id) : null));
         // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
         const erster = vd.length ? vd[0].t : t0;
@@ -373,6 +373,8 @@ export const auswertungKarte = {
           t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts,
           durchfluss,
           heizW, heizE, wwW, wwE,
+          // Speichertemperatur (TOP10) und Raumfuehler fuer die Analyse.
+          wwTemp, raum1, raum2,
           // SG Ready nur mit beiden Kontakten erkennbar.
           sg: ids[14] && ids[15] ? sgReihe(k1, k2) : null,
         };
@@ -395,7 +397,7 @@ export const auswertungKarte = {
       const teile = tage.map((a, k) => this._auswertungDemoTag(a, a + 86400000, (k % 5) - 2 - (tage.length - k) * 0.05));
       const out = { t0: tage[0], t1 };
       ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss", "sg",
-        "heizW", "heizE", "wwW", "wwE"].forEach((f) => {
+        "heizW", "heizE", "wwW", "wwE", "wwTemp", "raum1", "raum2"].forEach((f) => {
         out[f] = teile.flatMap((x) => x[f]).sort((x, y) => x.t - y.t);
       });
       out.starts = this._auswertungDemoZaehler(out.vd);
@@ -489,8 +491,29 @@ export const auswertungKarte = {
       return std >= 11 && std < 15;
     });
     if (mittag) sg.push({ t: mittag.start - 6 * 60000, stufe: 3 }, { t: mittag.start + mittag.dauer + 6 * 60000, stufe: 2 });
+    // Speicher und Raeume im Demomodus (nachgebildet): Der Speicher faellt
+    // langsam und steigt bei jeder Warmwasserladung auf 50,5 °C, die Raeume
+    // schwanken im Tageslauf leicht.
+    const wwTemp = [{ t: t0, s: "", v: 47.6 }];
+    let speicher = 47.6;
+    let zuletzt = t0;
+    ventil.filter((p) => p.v === 1).forEach((p) => {
+      const ende = ventil.find((q) => q.t > p.t && q.v === 0);
+      speicher -= ((p.t - zuletzt) / h) * 0.35;
+      wwTemp.push({ t: p.t, s: "", v: speicher }, { t: ende ? ende.t : p.t, s: "", v: 50.5 });
+      speicher = 50.5;
+      zuletzt = ende ? ende.t : p.t;
+    });
+    wwTemp.push({ t: t1, s: "", v: speicher - ((t1 - zuletzt) / h) * 0.35 });
+    const raum1 = [];
+    const raum2 = [];
+    for (let t = t0; t <= t1; t += h / 2) {
+      const welle = Math.sin(((t - t0) / h - 9) / 24 * 2 * Math.PI);
+      raum1.push({ t, s: "", v: 21.6 + 0.3 * welle });
+      raum2.push({ t, s: "", v: 19.1 + 0.2 * welle });
+    }
     return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss, sg,
-      heizW, heizE, wwW, wwE };
+      heizW, heizE, wwW, wwE, wwTemp, raum1, raum2 };
   },
 
   /**

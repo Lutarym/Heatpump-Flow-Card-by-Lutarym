@@ -22,6 +22,8 @@ import { optimierenKarte } from "./optimieren.js";
 import { sgStileKarte } from "./sgstile.js";
 import { auswertungKarte } from "./auswertung.js";
 import { analyseKarte } from "./analyse.js";
+import { analyseReiterKarte } from "./analysereiter.js";
+import { integrationKarte } from "./integration.js";
 import { laufanalyseKarte } from "./laufanalyse.js";
 import { warmwasserKarte } from "./warmwasser.js";
 import { stilKarte } from "./stil.js";
@@ -31,6 +33,19 @@ import { HOLD_MS } from "../konstanten.js";
 import { PROFILE, profilFeldnamen } from "../profile.js";
 import { EIGENE_SPRACHEN, SPRACH_STAND, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { gruppenText, t } from "../texte.js";
+
+// Safari und jeder Browser auf iPhone und iPad nutzen WebKit. WebKit gibt
+// bewegten Teilen in einer SVG-Grafik keine eigene Zeichenebene. Gemessen in
+// WebKitGTK 2.52 (gleiche Zeichentechnik): Jedes Bild der Animation kostet
+// etwa 90 % von einem erzwungenen Neuzeichnen der ganzen Karte, und die
+// Schritte kamen ungleichmaessig (16 bis 33 ms). Dort laufen die Bewegungen darum mit hoechstens 30 statt 60
+// Schritten je Sekunde (eigene Festlegung), das halbiert die Zeichenarbeit.
+// Chrome, Edge und Android melden "Chrome/" und bleiben bei 60.
+const UA = typeof navigator !== "undefined" ? String(navigator.userAgent || "") : "";
+const WEBKIT = /AppleWebKit\//.test(UA) && !/(Chrome|Chromium)\//.test(UA);
+// 1000/30 ms, abzueglich Spielraum fuer ungenaue Zeitstempel. Bei 60 Hz
+// zaehlt so jedes zweite Bild, bei 120 Hz jedes vierte.
+const WEBKIT_ABSTAND_MS = 1000 / 30 - 4;
 
 /* ------------------------------------------------------------------ *
  *  Karte
@@ -568,6 +583,13 @@ export class LutarymHeatpumpCard extends HTMLElement {
         return;
       }
 
+      // WebKit: Bild auslassen, bis 1/30 s vergangen ist. Die Zeit laeuft
+      // weiter, das naechste gezeichnete Bild holt sie nach.
+      if (WEBKIT && time - lastTime < WEBKIT_ABSTAND_MS) {
+        this._animLoop = requestAnimationFrame(tick);
+        return;
+      }
+
       // Hoechstens 0,1 s je Bild: Nach einem Haenger oder Tabwechsel
       // springen Luefter und Laufpunkte sonst sichtbar weiter.
       const deltaTime = Math.min(Math.max((time - lastTime) / 1000, 0), 0.1);
@@ -707,6 +729,8 @@ Object.assign(
   sgStileKarte,
   auswertungKarte,
   analyseKarte,
+  analyseReiterKarte,
+  integrationKarte,
   laufanalyseKarte,
   warmwasserKarte,
   zeitraumKarte,

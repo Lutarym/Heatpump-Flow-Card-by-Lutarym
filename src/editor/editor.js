@@ -230,6 +230,14 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <input type="number" id="opt-stab-max" min="0" max="100" step="0.5">
           </label>
           <label class="ed-row">
+            <span>${this._t("e_raum1")}<em>${this._t("e_raum_h")}</em></span>
+            <input type="number" id="opt-raum1" min="10" max="30" step="0.5">
+          </label>
+          <label class="ed-row">
+            <span>${this._t("e_raum2")}<em>${this._t("e_raum_h")}</em></span>
+            <input type="number" id="opt-raum2" min="10" max="30" step="0.5">
+          </label>
+          <label class="ed-row">
             <span>${this._t("e_ww_nutzbar")}<em>${this._t("e_ww_nutzbar_h")}</em></span>
             <input type="number" id="opt-ww-nutzbar" min="20" max="70" step="1">
           </label>
@@ -551,7 +559,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-zirk", (el) => put({ circulation_present: el.value === "ja" ? true : el.value === "nein" ? false : "auto" }));
     bind("opt-cop-ref", (el) => put({ cop_reference: el.value }));
     bind("opt-wp-bezug", (el) => put({ hp_capacity_ref: el.value === "a7" ? "a7" : "" }));
-    [["opt-heizlast", "heat_load_kw"], ["opt-nat", "design_outdoor_temp"], ["opt-wp-leistung", "hp_capacity_kw"], ["opt-stab-max", "heater_share_max"]].forEach(([id, key]) => bind(id, (el) => {
+    [["opt-heizlast", "heat_load_kw"], ["opt-nat", "design_outdoor_temp"], ["opt-wp-leistung", "hp_capacity_kw"], ["opt-stab-max", "heater_share_max"], ["opt-raum1", "hk1_room_target"], ["opt-raum2", "hk2_room_target"]].forEach(([id, key]) => bind(id, (el) => {
       const v = parseFloat(el.value);
       put({ [key]: Number.isFinite(v) ? v : "" });
     }));
@@ -833,7 +841,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-cop-ref", DATENBLAETTER[this._config.cop_reference] ? this._config.cop_reference : "");
     put("opt-wp-bezug", this._config.hp_capacity_ref === "a7" ? "a7" : "");
     put("opt-ww-nutzbar", Number.isFinite(parseFloat(this._config.dhw_usable_temp)) ? this._config.dhw_usable_temp : "");
-    [["opt-heizlast", "heat_load_kw"], ["opt-nat", "design_outdoor_temp"], ["opt-wp-leistung", "hp_capacity_kw"], ["opt-stab-max", "heater_share_max"]]
+    [["opt-heizlast", "heat_load_kw"], ["opt-nat", "design_outdoor_temp"], ["opt-wp-leistung", "hp_capacity_kw"], ["opt-stab-max", "heater_share_max"], ["opt-raum1", "hk1_room_target"], ["opt-raum2", "hk2_room_target"]]
       .forEach(([id, key]) => put(id, Number.isFinite(parseFloat(this._config[key])) ? this._config[key] : ""));
 
     const imFokus = sr.activeElement;
