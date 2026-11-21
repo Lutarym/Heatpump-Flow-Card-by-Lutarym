@@ -102,7 +102,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |
 | `history_style` | `takte` | Energy chart style: `takte` (ring and cycle band), `balken` (bars per hour), `leuchten` (glowing line with cycle marks), `linie` (previous line) |
 | `sg_style` | `spuren` | SG Ready chart style: `spuren` (lane per state), `stufen` (step line), `uhr` (24-hour clock), `band` (wide band with share bar) |
-| `power_style` | `verlauf` | Power & PV chart style in the analysis: `verlauf` (sun curve), `bogen` (sun arc with the last 7 days), `balken` (hourly bars with a grid of the last 7 days) |
+| `power_style` | `verlauf` | Power & PV chart style in the analysis: `verlauf` (sun curve), `bogen` (today's sun arc, from two days in the period also the individual days), `balken` (bars per hour, per 3 hours or per day, from two days also a grid per day and hour). The period counts in calendar days: 24 hours means today from midnight |
 | `card_width` | `0` | Width in pixels, 0 is automatic |
 | `card_height` | `0` | Height in pixels, 0 is automatic |
 | `pipe_inner_mm` | `0` | Inner pipe diameter in mm, colours the flow rate, 0 is off |

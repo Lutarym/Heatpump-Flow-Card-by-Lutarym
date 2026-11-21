@@ -4,25 +4,31 @@
  * sind waehlbar (Option power_style):
  *   verlauf  Sonnenverlauf: PV-Leistung und Strom der Waermepumpe ueber
  *            den Zeitraum, Nacht dunkel, darunter SG Ready als Band.
- *   bogen    Sonnenbogen: der Tag von Sonnenaufgang bis Sonnenuntergang
- *            als Bogen, gruen wo die Waermepumpe mit eigenem Strom lief,
- *            dazu SG Ready als Ring und die letzten 7 Tage.
- *   balken   Stundenbalken: Strom der Waermepumpe je Stunde (bei laengeren
- *            Zeitraeumen je 3 Stunden oder je Tag) mit der PV-Erzeugung,
- *            dazu ein Raster der letzten 7 Tage.
+ *   bogen    Sonnenbogen: der heutige Tag von Sonnenaufgang bis
+ *            Sonnenuntergang als Bogen, gruen wo die Waermepumpe mit eigenem
+ *            Strom lief, dazu SG Ready als Ring und ab zwei Tagen je Tag
+ *            eine Saeule.
+ *   balken   Stundenbalken: Strom der Waermepumpe je Stunde (bei mehreren
+ *            Tagen je 3 Stunden oder je Tag) mit der PV-Erzeugung, ab zwei
+ *            Tagen dazu ein Raster je Tag und Stunde.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
+ *
+ * Zeitraum in ganzen Kalendertagen (Wunsch des Nutzers, 5.33.1):
+ * "24 Stunden" ist der heutige Tag ab Mitternacht, "3 Tage" und "7 Tage"
+ * sind heute und die Tage davor, laengere Zeitraeume hoechstens 31 Tage
+ * wie die Analyse. Die Grafiken reichen bis zum Ende des heutigen Tages,
+ * nach "jetzt" bleiben sie leer.
  *
  * Gerechnet wird wie in netzstrom.js und in HeishaMon by Lutarym 1.7.0
  * (analyse.py): je Zeitabschnitt kommt min(Leistung der Waermepumpe,
  * max(0, Netzbezug)) aus dem Netz, der Rest ist eigener Strom (PV direkt
  * oder Batterie). Abschnitte, in denen einer der beiden Werte fehlt,
  * zaehlen fuer diese Aufteilung nicht. Quellen sind die Felder
- * power_now, grid_power und pv_power aus dem Verlauf von Home Assistant
- * (hoechstens 31 Tage wie die Analyse). Sonnenaufgang und Sonnenuntergang
- * stammen aus dem Verlauf von sun.sun (Zustand above_horizon und
- * below_horizon), ein noch kommender Untergang aus dem Attribut
- * next_setting. Die Laeufe fuer SG Ready kommen aus der Analyse
- * (Kontakte K1 und K2).
+ * power_now, grid_power und pv_power aus dem Verlauf von Home Assistant.
+ * Sonnenaufgang und Sonnenuntergang stammen aus dem Verlauf von sun.sun
+ * (Zustand above_horizon und below_horizon), noch kommende aus den
+ * Attributen next_rising und next_setting. Die Stufen von SG Ready kommen
+ * aus der Analyse (Kontakte K1 und K2).
  *
  * Eigene Festlegungen der Karte:
  *  - Die Waermepumpe gilt in einem Abschnitt als laufend, wenn ihre
@@ -30,10 +36,10 @@
  *  - SG Ready "aktiv" heisst Stufe 3 oder 4 (Einschaltempfehlung oder
  *    Anlaufbefehl).
  */
-import { escapeHtml, fmt, indexBis } from "../hilfsfunktionen.js";
+import { escapeHtml, fmt, indexBis, runderSchritt } from "../hilfsfunktionen.js";
 import { SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
-import { verlaufsReihe } from "./auswertung.js";
+import { verdichterLaeufe, verlaufsReihe } from "./auswertung.js";
 import { inWatt } from "./netzstrom.js";
 
 const STILE = ["verlauf", "bogen", "balken"];
@@ -42,7 +48,12 @@ const STUNDE = 3600000;
 const TAG = 86400000;
 const FUENF_MINUTEN = 5 * MINUTE;
 
-/** Ab dieser mittleren Leistung laeuft die Waermepumpe (eigene Festlegung). */
+/**
+ * Ob die Waermepumpe lief, sagt der Verdichter (TOP8 ueber 0 Hz). Der
+ * gemessene Strom enthaelt auch Pumpen und Bereitschaft. Nur ohne
+ * Verdichterverlauf gilt sie ab dieser mittleren Leistung als laufend
+ * (eigene Festlegung).
+ */
 const LAEUFT_W = 100;
 
 /** Farben: PV, eigener Strom; Netz und neutrale Toene aus der Palette (Themen). */
@@ -62,6 +73,13 @@ function tagesbeginn(t) {
 function tagPlus(t, n) {
   const d = new Date(t);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n).getTime();
+}
+
+/** Naechste volle Stunde im Abstand von schritt Stunden nach t, in Ortszeit. */
+function stundePlus(t, schritt) {
+  const d = new Date(t);
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours() + schritt).getTime();
+  return x > t ? x : t + schritt * STUNDE;
 }
 
 /** Uhrzeit hh:mm in Ortszeit. */
@@ -145,6 +163,26 @@ export function stromSummen(r, grenzen) {
   return out;
 }
 
+/**
+ * Wie stromSummen, aber nur bis jetzt (t1): Der laufende Abschnitt endet
+ * bei t1 (teil, rasterBis ist sein Ende im Raster), spaetere Abschnitte
+ * sind leer (zukunft). So reicht nichts in die Zukunft.
+ */
+export function summenBis(r, grenzen, t1) {
+  const vor = grenzen.filter((g) => g < t1);
+  const out = vor.length ? stromSummen(r, vor.concat([t1])) : [];
+  const k = vor.length;
+  if (out.length && k < grenzen.length && grenzen[k] > t1) {
+    const letzter = out[out.length - 1];
+    letzter.teil = true;
+    letzter.rasterBis = grenzen[k];
+  }
+  for (let i = Math.max(k, 0); i + 1 < grenzen.length; i++) {
+    if (grenzen[i] >= t1) out.push({ ...leer(grenzen[i], grenzen[i + 1]), zukunft: true });
+  }
+  return out;
+}
+
 /** Summe mehrerer Stufenreihen [{t, v}] zu einer (fehlende Werte zaehlen 0). */
 function summeReihen(reihen) {
   const zeiten = [...new Set(reihen.flatMap((r) => r.map((p) => p.t)))].sort((a, b) => a - b);
@@ -160,16 +198,16 @@ function summeReihen(reihen) {
 /**
  * Tageslicht aus dem Verlauf von sun.sun: [{auf, unter, angeschnitten}].
  * angeschnitten: Die Sonne stand schon zu Beginn des Verlaufs am Himmel,
- * auf ist dann kein Sonnenaufgang. unter ist null, wenn der Untergang noch
- * kommt und kein next_setting bekannt ist.
+ * auf ist dann kein Sonnenaufgang. Steht die Sonne gerade am Himmel, kommt
+ * der Untergang aus next_setting; geht sie vor dem Ende des Zeitraums noch
+ * auf, kommen Aufgang und Untergang aus next_rising und next_setting.
  */
-function tageslicht(sonne, naechsterUntergang) {
+function tageslicht(sonne, naechsterAufgang, naechsterUntergang, ende) {
   const out = [];
-  if (!sonne || !sonne.length) return out;
   let auf = null;
   let angeschnitten = false;
   let zuletzt = null;
-  sonne.forEach((p, i) => {
+  (sonne || []).forEach((p, i) => {
     if (p.oben === null) return;
     if (p.oben && zuletzt !== true) {
       auf = p.t;
@@ -180,7 +218,12 @@ function tageslicht(sonne, naechsterUntergang) {
     }
     zuletzt = p.oben;
   });
-  if (auf !== null) out.push({ auf, unter: Number.isFinite(naechsterUntergang) ? naechsterUntergang : null, angeschnitten, offen: true });
+  if (auf !== null) {
+    out.push({ auf, unter: Number.isFinite(naechsterUntergang) ? naechsterUntergang : null, angeschnitten });
+  } else if (Number.isFinite(naechsterAufgang) && naechsterAufgang < ende) {
+    out.push({ auf: naechsterAufgang, unter: Number.isFinite(naechsterUntergang) && naechsterUntergang > naechsterAufgang ? naechsterUntergang : null,
+      angeschnitten: false });
+  }
   return out;
 }
 
@@ -202,9 +245,8 @@ function sgAbschnitte(sg, t0, t1) {
 
 /** Huebsche Obergrenze einer Achse mit hoechstens vier Linien. */
 function skala(max) {
-  const roh = Math.max(max * 1.25, 0.5);
-  const schritte = [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500];
-  const schritt = schritte.find((s) => roh / s <= 4) || 1000;
+  const roh = Math.max(Number.isFinite(max) ? max * 1.25 : 0, 0.5);
+  const schritt = runderSchritt(roh / 4, [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500]);
   return { oben: Math.ceil(roh / schritt) * schritt, schritt };
 }
 
@@ -238,20 +280,25 @@ export const stromReiterKarte = {
     return { wp: this._e("power_now"), netz: this._e("grid_power"), pv: this._e("pv_power"), sonne };
   },
 
-  /** Zeitraum der Analyse; Bogen und Balken brauchen dazu die letzten 7 Tage. */
+  /**
+   * Zeitraum in ganzen Kalendertagen: von Mitternacht des ersten Tages bis
+   * jetzt (t1), gezeichnet bis Mitternacht nach heute (ende).
+   */
   _stromFenster() {
     const sp = this._zrSpanne();
-    const t0 = sp.tVerlauf;
-    const ab = this._stromStil() === "verlauf" ? t0 : Math.min(t0, tagPlus(sp.t1, -6));
-    return { k: sp.k, t0, t1: sp.t1, ab };
+    const t1 = sp.t1;
+    const anzahl = { "24h": 1, "3d": 3, "7d": 7 }[sp.k];
+    const t0 = anzahl ? tagPlus(t1, 1 - anzahl) : Math.max(tagesbeginn(sp.t0), tagPlus(t1, -30));
+    const ende = tagPlus(t1, 1);
+    return { k: sp.k, t0, t1, ende, tage: Math.max(1, Math.round((ende - t0) / TAG)) };
   },
 
   _stromSchluessel() {
     const ids = this._stromIds();
-    return [this._zrSchluessel(), this._stromStil(), ids.wp, ids.netz, ids.pv, ids.sonne, this._config.demo ? "demo" : ""].join("|");
+    return [this._zrSchluessel(), tagesbeginn(Date.now()), ids.wp, ids.netz, ids.pv, ids.sonne, this._config.demo ? "demo" : ""].join("|");
   },
 
-  /** Berechnete Daten, wenn sie zum Zeitraum und zur Darstellung passen. */
+  /** Berechnete Daten, wenn sie zum Zeitraum und zum heutigen Tag passen. */
   _stromDaten() {
     const c = this._stromCache;
     return c && c.schluessel === this._stromSchluessel() ? c.daten : null;
@@ -280,7 +327,7 @@ export const stromReiterKarte = {
     try {
       const antwort = await q.callWS({
         type: "history/history_during_period",
-        start_time: new Date(f.ab).toISOString(),
+        start_time: new Date(f.t0).toISOString(),
         end_time: new Date(f.t1).toISOString(),
         entity_ids: [ids.wp, ids.netz, ids.pv, ids.sonne].filter(Boolean),
         include_start_time_state: true,
@@ -294,13 +341,13 @@ export const stromReiterKarte = {
       const sonne = ids.sonne
         ? verlaufsReihe(antwort, ids.sonne).map((p) => ({ t: p.t, oben: p.s === "above_horizon" ? true : p.s === "below_horizon" ? false : null }))
         : null;
-      const s = st["sun.sun"];
-      const untergang = s && s.attributes ? Date.parse(s.attributes.next_setting) : NaN;
-      daten = this._stromRechne({ wp: watt(ids.wp), netz: watt(ids.netz), pv: watt(ids.pv), sonne, untergang }, f);
+      const a = st["sun.sun"] && st["sun.sun"].attributes ? st["sun.sun"].attributes : {};
+      daten = this._stromRechne({ wp: watt(ids.wp), netz: watt(ids.netz), pv: watt(ids.pv), sonne,
+        aufgang: Date.parse(a.next_rising), untergang: Date.parse(a.next_setting) }, f);
     } catch {
       daten = null;
     }
-    // Inzwischen anderer Zeitraum oder andere Darstellung: Antwort verwerfen.
+    // Inzwischen anderer Zeitraum oder ein neuer Tag: Antwort verwerfen.
     if (!this._stromCache || this._stromCache.schluessel !== schluessel) return;
     this._stromCache = { schluessel, zeit: Date.now(), laedt: false, daten, fehler: !daten };
     if (this._diaArt === "analyse") this._zeichneAnalyse();
@@ -312,24 +359,26 @@ export const stromReiterKarte = {
    * bewoelkt, Haus 400 W, abends deckt eine Batterie bis 18:20.
    */
   _stromDemo(f) {
-    const a = this._auswertungDemo(f.ab - TAG, f.t1);
+    const a = this._auswertungDemo(f.t0 - TAG, f.t1);
     const wp = summeReihen([a.heizE || [], a.wwE || []]);
     // Bewoelkung je Tag, der letzte Wert ist heute (Beispielwerte).
     const wolken = [0.55, 0.85, 0.35, 0.7, 0.2, 0.9, 1];
     const pv = [];
     const sonne = [];
     const batterie = [];
+    let aufgang = NaN;
     let untergang = NaN;
     const heute = tagesbeginn(f.t1);
-    for (let tag = tagesbeginn(f.ab); tag < f.t1; tag = tagPlus(tag, 1)) {
+    for (let tag = f.t0; tag < f.t1; tag = tagPlus(tag, 1)) {
       const ta = tag + (7 * 60 + 58) * MINUTE;
       const tu = tag + (16 * 60 + 4) * MINUTE;
       const vor = Math.round((heute - tag) / TAG);
       const faktor = wolken[(((wolken.length - 1 - vor) % wolken.length) + wolken.length) % wolken.length];
-      if (ta >= f.ab && ta < f.t1) sonne.push({ t: ta, oben: true });
-      if (tu >= f.ab && tu < f.t1) sonne.push({ t: tu, oben: false });
-      if (tu >= f.t1 && ta < f.t1) untergang = tu;
-      for (let t = Math.ceil(Math.max(tag, f.ab) / FUENF_MINUTEN) * FUENF_MINUTEN; t < Math.min(tagPlus(tag, 1), f.t1); t += FUENF_MINUTEN) {
+      if (ta < f.t1) sonne.push({ t: ta, oben: true });
+      else aufgang = ta;
+      if (tu < f.t1) sonne.push({ t: tu, oben: false });
+      else untergang = tu;
+      for (let t = tag; t < Math.min(tagPlus(tag, 1), f.t1); t += FUENF_MINUTEN) {
         const m = t + FUENF_MINUTEN / 2;
         let p = 0;
         if (m > ta && m < tu) {
@@ -342,8 +391,8 @@ export const stromReiterKarte = {
       // Nach sonnigen Tagen deckt die Batterie den Abend bis 18:20.
       if (faktor >= 0.5) batterie.push([tu, tag + (18 * 60 + 20) * MINUTE]);
     }
-    // Zustand zu Beginn: oben, wenn als Erstes ein Untergang kommt.
-    sonne.unshift({ t: f.ab, oben: sonne.length ? !sonne[0].oben : false });
+    // Um Mitternacht ist die Sonne unter dem Horizont.
+    sonne.unshift({ t: f.t0, oben: false });
     const zeiten = [...new Set([...wp.map((p) => p.t), ...pv.map((p) => p.t), ...batterie.flat()])].sort((x, y) => x - y);
     const netz = zeiten.map((t) => {
       const iw = indexBis(wp, t);
@@ -353,64 +402,52 @@ export const stromReiterKarte = {
       const bat = batterie.some(([b0, b1]) => t >= b0 && t < b1) ? w + 400 : 0;
       return { t, v: Math.round(w + 400 - p - bat) };
     });
-    return { wp, netz, pv, sonne, untergang };
+    // Verdichterlaeufe aus denselben Beispieldaten wie die Leistung.
+    return { wp, netz, pv, sonne, aufgang, untergang, vd: a.vd };
   },
 
   /** Rechnet aus dem Verlauf alles, was Kacheln und Grafiken brauchen. */
   _stromRechne(roh, f) {
-    const { t0, t1, ab } = f;
+    const { t0, t1, ende, tage } = f;
     if (!roh || !roh.wp || !roh.wp.length) return null;
     const r = { wp: roh.wp, netz: roh.netz && roh.netz.length ? roh.netz : null, pv: roh.pv && roh.pv.length ? roh.pv : null };
     const summe = stromSummen(r, [t0, t1])[0] || leer(t0, t1);
-    const spanne = t1 - t0;
 
-    // Sonnenverlauf: gleich breite Abschnitte ueber den Zeitraum.
-    const breite = spanne <= 1.05 * TAG ? 5 * MINUTE : spanne <= 3.05 * TAG ? 15 * MINUTE : spanne <= 8 * TAG ? STUNDE : 3 * STUNDE;
-    const n = Math.max(1, Math.round(spanne / breite));
-    const verlauf = stromSummen(r, [...Array(n + 1)].map((_, i) => t0 + (i * spanne) / n));
+    // Sonnenverlauf: gleich breite Abschnitte vom ersten Tag bis Mitternacht nach heute.
+    const breite = tage <= 1 ? 5 * MINUTE : tage <= 3 ? 15 * MINUTE : tage <= 8 ? STUNDE : 3 * STUNDE;
+    const n = Math.max(1, Math.round((ende - t0) / breite));
+    const verlauf = summenBis(r, [...Array(n + 1)].map((_, i) => t0 + (i * (ende - t0)) / n), t1);
 
-    // Balken: ganze Stunden, bei bis zu 3 Tagen je 3 Stunden, sonst Tage.
-    const art = spanne <= 1.05 * TAG ? "stunde" : spanne <= 3.05 * TAG ? "drei" : "tag";
+    // Balken: Stunden (ein Tag), 3 Stunden (bis 3 Tage), sonst Tage.
+    const art = tage <= 1 ? "stunde" : tage <= 3 ? "drei" : "tag";
     const grenzen = [t0];
-    if (art === "tag") {
-      for (let x = tagPlus(t0, 1); x < t1; x = tagPlus(x, 1)) grenzen.push(x);
-    } else {
-      const schritt = art === "drei" ? 3 : 1;
-      const d = new Date(t0);
-      let x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(d.getHours() / schritt) * schritt + schritt).getTime();
-      while (x < t1) {
-        grenzen.push(x);
-        const y = new Date(x);
-        x = new Date(y.getFullYear(), y.getMonth(), y.getDate(), y.getHours() + schritt).getTime();
-      }
+    for (let x = t0; x < ende;) {
+      x = Math.min(art === "tag" ? tagPlus(x, 1) : stundePlus(x, art === "drei" ? 3 : 1), ende);
+      grenzen.push(x);
     }
-    grenzen.push(t1);
-    const balken = { art, bins: stromSummen(r, grenzen) };
+    const balken = { art, bins: summenBis(r, grenzen, t1) };
 
-    const licht = tageslicht(roh.sonne, roh.untergang);
+    const licht = tageslicht(roh.sonne, roh.aufgang, roh.untergang, ende);
 
-    // Letzte 7 Tage, wenn der Verlauf so weit reicht.
-    const heute = tagesbeginn(t1);
-    const tag0 = tagPlus(heute, -6);
-    let tage7 = null;
+    // Ab zwei Tagen: je Tag eine Saeule (Bogen) und ein Raster je Stunde (Balken).
+    let tagSummen = null;
     let raster = null;
-    if (ab <= tag0) {
-      const tg = [...Array(7)].map((_, i) => tagPlus(tag0, i)).concat([t1]);
-      tage7 = stromSummen(r, tg);
-      const stunden = [tag0];
-      for (let x = tag0; x < t1;) {
-        const y = new Date(x);
-        x = new Date(y.getFullYear(), y.getMonth(), y.getDate(), y.getHours() + 1).getTime();
-        stunden.push(Math.min(x, t1));
+    if (tage >= 2) {
+      const tg = [...Array(tage)].map((_, i) => tagPlus(t0, i)).concat([ende]);
+      tagSummen = summenBis(r, tg, t1);
+      const stunden = [t0];
+      for (let x = t0; x < ende;) {
+        x = Math.min(stundePlus(x, 1), ende);
+        stunden.push(x);
       }
-      const zellen = stromSummen(r, stunden);
-      raster = tg.slice(0, 7).map((tag) => {
+      const zellen = summenBis(r, stunden, t1);
+      raster = tg.slice(0, tage).map((tag) => {
         const reihe = [...Array(24)].map(() => null);
         zellen
           .filter((z) => z.von >= tag && z.von < tagPlus(tag, 1))
           .forEach((z) => {
             const s = new Date(z.von).getHours();
-            if (!reihe[s]) reihe[s] = leer(z.von, z.bis);
+            if (!reihe[s]) reihe[s] = { ...leer(z.von, z.bis), zukunft: z.zukunft };
             ["wp", "eigen", "netz", "pv", "dWp", "dBeide", "dPv"].forEach((k) => {
               reihe[s][k] += z[k];
             });
@@ -420,24 +457,49 @@ export const stromReiterKarte = {
       });
     }
 
-    // Sonnenbogen: der letzte Tag, an dem die Sonne aufgegangen ist.
+    // Sonnenbogen: immer der heutige Tag, Aufgang und Untergang notfalls aus
+    // next_rising und next_setting.
+    const heute = tagesbeginn(t1);
     let bogen = null;
-    const l = [...licht].reverse().find((x) => !x.angeschnitten && x.auf <= t1 && x.auf >= ab && x.unter && x.unter > x.auf);
+    const l = licht.find((x) => !x.angeschnitten && x.auf >= heute && x.auf < ende && x.unter && x.unter > x.auf);
     if (l) {
-      const tagA = tagesbeginn(l.auf);
-      const tagE = Math.min(tagPlus(tagA, 1), t1);
       const bisJetzt = Math.min(l.unter, t1);
       const slots = [];
-      for (let x = l.auf; x < bisJetzt; x += 10 * MINUTE) slots.push(x);
-      slots.push(bisJetzt);
+      if (l.auf < t1) {
+        for (let x = l.auf; x < bisJetzt; x += 10 * MINUTE) slots.push(x);
+        slots.push(bisJetzt);
+      }
       const teile = slots.length > 1 ? stromSummen(r, slots) : [];
-      const [nacht] = stromSummen(r, [tagA, l.auf]);
-      const [tag] = stromSummen(r, [tagA, tagE]);
-      const abend = l.unter < tagE ? stromSummen(r, [l.unter, tagE])[0] : null;
-      bogen = { auf: l.auf, unter: l.unter, offen: l.unter > t1, tagA, tagE, heute: tagA === heute, teile, nacht, tag, abend };
+      const [nacht] = stromSummen(r, [heute, Math.min(l.auf, t1)]);
+      const [tag] = stromSummen(r, [heute, t1]);
+      const abend = l.unter < t1 ? stromSummen(r, [l.unter, t1])[0] : null;
+      bogen = { auf: l.auf, unter: l.unter, offen: l.unter > t1, teile, nacht, tag, abend };
     }
-    return { t0, t1, ab, roh: r, mitNetz: Boolean(r.netz) && summe.dBeide > 0, mitPv: Boolean(r.pv) && summe.dPv > 0,
-      mitSonne: Boolean(roh.sonne && roh.sonne.length), summe, verlauf, balken, licht, bogen, tage7, raster };
+    return { t0, t1, ende, tage, roh: r, mitNetz: Boolean(r.netz) && summe.dBeide > 0, mitPv: Boolean(r.pv) && summe.dPv > 0,
+      mitSonne: Boolean(roh.sonne && roh.sonne.length), summe, verlauf, balken, licht, bogen, tagSummen, raster,
+      vdDemo: roh.vd || null };
+  },
+
+  /**
+   * Verdichterlaeufe im Fenster: im Demomodus aus den Beispieldaten,
+   * sonst aus dem Verlauf der Analyse (TOP8). null ohne Verlauf.
+   */
+  _stromLaeufe(d) {
+    const a = this._auswertung;
+    const vd = d.vdDemo || (a && a.vd);
+    if (!vd || !vd.length) return null;
+    const m = this._stromLaeufeMerk;
+    if (m && m.d === d && m.vd === vd) return m.info;
+    const ab = d.vdDemo ? d.t0 : Math.max(d.t0, a.t0);
+    const info = { ab, laeufe: verdichterLaeufe(vd, ab, d.t1) };
+    this._stromLaeufeMerk = { d, vd, info };
+    return info;
+  },
+
+  /** Lief die Waermepumpe zwischen von und bis? s: Summen des Abschnitts. */
+  _stromLaeuft(info, von, bis, s) {
+    if (info && von >= info.ab) return info.laeufe.some((l) => l.von < bis && l.bis > von);
+    return s.dWp > 0 && s.wp / (s.dWp / STUNDE) >= LAEUFT_W;
   },
 
   /**
@@ -493,8 +555,8 @@ export const stromReiterKarte = {
     const t = (k) => this._t(k);
     let c = this._stromCache;
     const hinweis = (k) => `<div class="lhc-an-box lhc-sp-box"><p class="lhc-sp-hinweis">${e(t(k))}</p></div>`;
-    // Andere Darstellung oder anderer Zeitraum, etwa nach einer Aenderung im
-    // Editor bei offenem Fenster: neu laden (zeichnet nach dem Laden neu).
+    // Anderer Zeitraum oder ein neuer Tag bei offenem Fenster: neu laden
+    // (zeichnet nach dem Laden neu).
     if (!c || c.schluessel !== this._stromSchluessel()) {
       this._ladeStrom();
       c = this._stromCache;
@@ -506,10 +568,11 @@ export const stromReiterKarte = {
     const stil = this._stromStil();
     const merk = this._stromHtmlMerk;
     const sg = this._auswertung && this._auswertung.sg;
-    if (merk && merk.d === d && merk.sg === sg && merk.stil === stil && merk.sprache === this._sp()) return merk.html;
+    const vd = this._auswertung && this._auswertung.vd;
+    if (merk && merk.d === d && merk.sg === sg && merk.vd === vd && merk.stil === stil && merk.sprache === this._sp()) return merk.html;
     let html = stil === "bogen" ? this._stromBogen(d) : stil === "balken" ? this._stromBalken(d) : this._stromVerlauf(d);
     if (!d.mitNetz) html += hinweis("sp_fehlt_netz");
-    this._stromHtmlMerk = { d, sg, stil, sprache: this._sp(), html };
+    this._stromHtmlMerk = { d, sg, vd, stil, sprache: this._sp(), html };
     return html;
   },
 
@@ -520,14 +583,48 @@ export const stromReiterKarte = {
       .join("")}</div>`;
   },
 
-  /** Fuenf Zeitmarken unter einer Grafik, die letzte heisst "jetzt". */
-  _stromAchse(t0, t1) {
-    let out = "";
-    for (let i = 0; i <= 4; i++) {
-      const text = i === 4 ? this._t("jetzt") : this._zrMarke(t0 + (i * (t1 - t0)) / 4, t1 - t0);
-      out += `<span class="${i === 0 ? "a" : i === 4 ? "e" : ""}" style="left:${i * 25}%">${e(text)}</span>`;
+  /** Kurzer Wochentag in der Sprache der Karte, heute heisst "heute". */
+  _stromTagName(tag, heute) {
+    if (tag === heute) return this._t("sp_heute");
+    try {
+      return new Date(tag).toLocaleDateString(this._sp(), { weekday: "short" });
+    } catch {
+      return this._zrDatum(tag, false);
     }
-    return `<div class="lhc-sp-x">${out}</div>`;
+  },
+
+  /**
+   * Zeitachse unter Verlauf und Balken: an einem Tag 00:00 bis 24:00 und
+   * "jetzt", bei mehreren Tagen der Wochentag mittig unter jedem Tag (bis
+   * 8 Tage) oder jedes n-te Datum.
+   */
+  _stromAchse(d) {
+    const { t0, ende, t1, tage } = d;
+    const p = (zeit) => ((zeit - t0) / (ende - t0)) * 100;
+    const marken = [];
+    const heute = tagesbeginn(t1);
+    if (tage <= 1) {
+      const pj = p(t1);
+      const d0 = new Date(t0);
+      [0, 6, 12, 18, 24].forEach((h) => {
+        const pos = h === 24 ? 100 : p(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate(), h).getTime());
+        // Die Marke "jetzt" ersetzt eine Uhrzeit, die zu nah daneben stuende.
+        if (Math.abs(pos - pj) >= 7) marken.push({ pos, text: `${zwei(h)}:00`, kl: h === 0 ? "a" : h === 24 ? "e" : "" });
+      });
+      marken.push({ pos: pj, text: this._t("jetzt"), kl: `jetzt${pj > 95 ? " e" : pj < 5 ? " a" : ""}` });
+    } else if (tage <= 8) {
+      for (let i = 0; i < tage; i++) {
+        const tag = tagPlus(t0, i);
+        marken.push({ pos: p((tag + tagPlus(tag, 1)) / 2), text: this._stromTagName(tag, heute), kl: tag === heute ? "heute" : "" });
+      }
+    } else {
+      const jede = Math.ceil(tage / 6);
+      for (let i = 0; i < tage; i += jede) {
+        const tag = tagPlus(t0, i);
+        marken.push({ pos: p(tag), text: this._zrDatum(tag, false), kl: i === 0 ? "a" : "" });
+      }
+    }
+    return `<div class="lhc-sp-x">${marken.map((m) => `<span class="${m.kl}" style="left:${m.pos.toFixed(2)}%">${e(m.text)}</span>`).join("")}</div>`;
   },
 
   /** Beschriftung der Hochachse. */
@@ -549,10 +646,10 @@ export const stromReiterKarte = {
     return out;
   },
 
-  /** Band mit den Stufen von SG Ready zwischen t0 und t1. */
-  _stromSgBand(sg, t0, t1, name) {
+  /** Band mit den Stufen von SG Ready, Lage im gezeichneten Bereich t0 bis ende. */
+  _stromSgBand(sg, t0, ende, name) {
     if (!sg) return "";
-    const zuP = (t) => ((t - t0) / (t1 - t0)) * 100;
+    const zuP = (t) => ((t - t0) / (ende - t0)) * 100;
     const teile = sg.abschnitte
       .filter((a) => a.stufe !== 2)
       .map((a) => {
@@ -596,23 +693,34 @@ export const stromReiterKarte = {
     return art === "drei" ? `${tagName} ${zeit}`.trim() : zeit;
   },
 
+  /** Senkrechte Linie bei "jetzt" in einer Grafik von t0 bis ende. */
+  _stromJetzt(d) {
+    if (d.t1 >= d.ende) return "";
+    const x = (((d.t1 - d.t0) / (d.ende - d.t0)) * 1000).toFixed(1);
+    return `<line class="lhc-sp-jetzt" x1="${x}" x2="${x}" y1="0" y2="100"/>`;
+  },
+
   /* ---------- A: Sonnenverlauf ---------- */
   _stromVerlauf(d) {
     const t = (k) => this._t(k);
-    const { t0, t1 } = d;
-    const x = (zeit) => (((zeit - t0) / (t1 - t0)) * 1000).toFixed(1);
+    const { t0, t1, ende } = d;
+    const x = (zeit) => (((zeit - t0) / (ende - t0)) * 1000).toFixed(1);
     const kwVon = (wh, ms) => (ms > 0 ? wh / (ms / STUNDE) / 1000 : 0);
-    const bins = d.verlauf.map((b) => {
-      const eigen = d.mitNetz ? kwVon(b.eigen, b.dBeide) : 0;
-      const netz = d.mitNetz ? kwVon(b.netz, b.dBeide) : 0;
-      return { von: b.von, bis: b.bis, pv: d.mitPv ? kwVon(b.pv, b.dPv) : 0, wp: kwVon(b.wp, b.dWp), eigen, netz };
-    });
+    // Nur bis jetzt: Abschnitte in der Zukunft bleiben leer.
+    const bins = d.verlauf
+      .filter((b) => !b.zukunft)
+      .map((b) => {
+        const eigen = d.mitNetz ? kwVon(b.eigen, b.dBeide) : 0;
+        const netz = d.mitNetz ? kwVon(b.netz, b.dBeide) : 0;
+        return { von: b.von, bis: b.bis, pv: d.mitPv ? kwVon(b.pv, b.dPv) : 0, wp: kwVon(b.wp, b.dWp), eigen, netz };
+      });
     const max = Math.max(0.1, ...bins.map((b) => Math.max(b.pv, d.mitNetz ? b.eigen + b.netz : b.wp)));
     const sk = skala(max);
     const y = (v) => (100 - (v / sk.oben) * 100).toFixed(2);
     // Stufenflaeche zwischen unten und oben je Abschnitt.
     const flaeche = (oben, unten) => {
-      let p = `M${x(t0)} ${y(unten(bins[0]))}`;
+      if (!bins.length) return "";
+      let p = `M${x(bins[0].von)} ${y(unten(bins[0]))}`;
       bins.forEach((b) => {
         p += `L${x(b.von)} ${y(oben(b))}L${x(b.bis)} ${y(oben(b))}`;
       });
@@ -621,20 +729,20 @@ export const stromReiterKarte = {
     };
     let nacht = "";
     if (d.mitSonne) {
-      // Nacht: alles im Zeitraum ausserhalb des Tageslichts.
+      // Nacht: alles bis Mitternacht nach heute ausserhalb des Tageslichts.
       let von = t0;
       d.licht
-        .filter((l) => (l.unter === null || l.unter > t0) && l.auf < t1)
+        .filter((l) => (l.unter === null || l.unter > t0) && l.auf < ende)
         .forEach((l) => {
           if (l.auf > von) nacht += `<rect class="lhc-sp-nacht" x="${x(von)}" y="0" width="${(x(l.auf) - x(von)).toFixed(1)}" height="100"/>`;
-          von = Math.max(von, l.unter === null ? t1 : l.unter);
+          von = Math.max(von, l.unter === null ? ende : l.unter);
         });
-      if (von < t1) nacht += `<rect class="lhc-sp-nacht" x="${x(von)}" y="0" width="${(x(t1) - x(von)).toFixed(1)}" height="100"/>`;
+      if (von < ende) nacht += `<rect class="lhc-sp-nacht" x="${x(von)}" y="0" width="${(x(ende) - x(von)).toFixed(1)}" height="100"/>`;
     }
     let pv = "";
-    if (d.mitPv) {
+    if (d.mitPv && bins.length) {
       const punkte = bins.map((b) => `${x((b.von + b.bis) / 2)} ${y(b.pv)}`);
-      pv = `<path class="lhc-sp-pvf" d="M${x(t0)} 100L${punkte.join("L")}L${x(t1)} 100Z"/>
+      pv = `<path class="lhc-sp-pvf" d="M${x(bins[0].von)} 100L${punkte.join("L")}L${x(bins[bins.length - 1].bis)} 100Z"/>
         <path class="lhc-sp-pvl" d="M${punkte.join("L")}"/>`;
     }
     const wp = d.mitNetz
@@ -642,15 +750,15 @@ export const stromReiterKarte = {
       : `<path class="lhc-sp-netz" d="${flaeche((b) => b.wp, () => 0)}"/>`;
     // Sonne ueber dem hoechsten PV-Wert, Auf- und Untergang nur bei einem Tag.
     let oben = "";
-    if (d.mitPv) {
+    if (d.mitPv && bins.length) {
       const spitze = bins.reduce((a, b) => (b.pv > a.pv ? b : a), bins[0]);
       if (spitze.pv > 0.05) {
         oben += `<span class="lhc-sp-sonne" style="left:clamp(15px, ${(x((spitze.von + spitze.bis) / 2) / 10).toFixed(2)}%, calc(100% - 15px));top:${y(spitze.pv)}%">${sonnenBild()}</span>`;
       }
     }
-    if (d.mitSonne && t1 - t0 <= 1.05 * TAG) {
+    if (d.mitSonne && d.tage <= 1) {
       const marke = (zeit, k) => {
-        const p = (zeit - t0) / (t1 - t0);
+        const p = (zeit - t0) / (ende - t0);
         if (p < 0 || p > 1) return "";
         return `<span class="lhc-sp-zeit${p < 0.08 ? " a" : p > 0.92 ? " e" : ""}" style="left:${(p * 100).toFixed(2)}%">${e(tf(t(k), { z: uhr(zeit) }))}</span>`;
       };
@@ -659,9 +767,10 @@ export const stromReiterKarte = {
         if (l.unter !== null) oben += marke(l.unter, "sp_untergang");
       });
     }
-    // Felder zum Darueberfahren je Stunde (bzw. 3 Stunden oder Tag).
+    // Felder zum Darueberfahren je Stunde (bzw. 3 Stunden oder Tag), nur bis jetzt.
     const treffer = d.balken.bins
-      .map((b) => `<i class="lhc-sp-hit" style="left:${(x(b.von) / 10).toFixed(2)}%;width:${((x(b.bis) - x(b.von)) / 10).toFixed(2)}%"
+      .filter((b) => !b.zukunft)
+      .map((b) => `<i class="lhc-sp-hit" style="left:${(x(b.von) / 10).toFixed(2)}%;width:${((x(b.rasterBis || b.bis) - x(b.von)) / 10).toFixed(2)}%"
         title="${e(this._stromTitel(b, this._stromZeit(b, d.balken.art)))}"></i>`)
       .join("");
     const sg = this._stromSg(t0, t1);
@@ -671,12 +780,12 @@ export const stromReiterKarte = {
     else legende.push([NETZ_CSS, t("sp_l_wp")]);
     legende.push(...this._stromSgLegende(sg));
     if (d.mitSonne) legende.push(["rgba(0,0,0,0.45)", t("sp_l_nacht"), true]);
-    return `<div class="lhc-an-box lhc-sp-box"><b class="lhc-an-boxkopf">${e(t("sp_a_titel"))}</b>
+    return `<div class="lhc-an-box lhc-sp-box"><b class="lhc-an-boxkopf">${e(t(d.tage <= 1 ? "sp_a_titel_heute" : "sp_a_titel"))}</b>
       <div class="lhc-sp-a">${this._stromHochachse(sk, "kW")}
         <div class="lhc-sp-flaeche"><svg class="lhc-sp-svg" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">${nacht}${this._stromGitter(sk)}${pv}${wp}
-          <line class="lhc-sp-null" x1="0" x2="1000" y1="100" y2="100"/></svg>${treffer}${oben}</div>
-        <span></span>${this._stromAchse(t0, t1)}
-        ${this._stromSgBand(sg, t0, t1, t("sp_sg"))}</div>
+          ${this._stromJetzt(d)}<line class="lhc-sp-null" x1="0" x2="1000" y1="100" y2="100"/></svg>${treffer}${oben}</div>
+        <span></span>${this._stromAchse(d)}
+        ${this._stromSgBand(sg, t0, ende, t("sp_sg"))}</div>
       ${this._stromLegende(legende)}</div>`;
   },
 
@@ -701,9 +810,10 @@ export const stromReiterKarte = {
       };
       // Gleiche Abschnitte hintereinander zusammenfassen.
       const stuecke = [];
+      const info = this._stromLaeufe(d);
       b.teile.forEach((s) => {
         const ms = s.bis - s.von;
-        const laeuft = s.dWp > 0 && s.wp / (s.dWp / STUNDE) >= LAEUFT_W;
+        const laeuft = this._stromLaeuft(info, s.von, s.bis, s);
         const art = !laeuft ? "" : d.mitNetz && s.dBeide ? (s.eigen >= s.netz ? "lhc-sp-be" : "lhc-sp-bn") : "lhc-sp-bn";
         const letztes = stuecke[stuecke.length - 1];
         if (art && letztes && letztes.art === art && letztes.bis === s.von) letztes.bis = s.bis;
@@ -723,36 +833,33 @@ export const stromReiterKarte = {
       const kachel = (titel, s, offen) => {
         const g = s ? (s.eigen + s.netz) / 1000 : 0;
         const wert = offen || !s ? "--" : `${fmt(d.mitNetz ? g : s.wp / 1000, 1)} kWh`;
-        const unter = offen ? t("sp_b_offen") : s && d.mitNetz && g > 0.01 ? tf(t("sp_b_anteil"), { p: fmt((100 * s.eigen) / 1000 / g, 0) }) : "";
+        // Noch offen: vor Sonnenaufgang "kommt noch", danach "die Sonne scheint noch".
+        const unter = offen ? t(jetzt < b.auf ? "sp_b_spaeter" : "sp_b_offen") : s && d.mitNetz && g > 0.01 ? tf(t("sp_b_anteil"), { p: fmt((100 * s.eigen) / 1000 / g, 0) }) : "";
         return `<div class="lhc-an-kachel"><span>${e(titel)}</span><b>${e(wert)}</b>${unter ? `<small>${e(unter)}</small>` : ""}</div>`;
       };
       const legende = d.mitNetz ? [[F.eigen, t("sp_l_lief_eigen")], [NETZ_CSS, t("sp_l_lief_netz")]] : [[NETZ_CSS, t("sp_l_lief")]];
       legende.push(["var(--c-1c2533)", t("sp_l_aus"), true]);
-      teile.push(`<div class="lhc-an-box lhc-sp-box lhc-sp-breit"><b class="lhc-an-boxkopf">${e(t(b.heute ? "sp_b_titel_heute" : "sp_b_titel_gestern"))}</b>
+      teile.push(`<div class="lhc-an-box lhc-sp-box lhc-sp-breit"><b class="lhc-an-boxkopf">${e(t("sp_b_titel_heute"))}</b>
         <div class="lhc-sp-bogen"><svg viewBox="0 0 400 214" aria-hidden="true">
             <line x1="6" x2="394" y1="${CY}" y2="${CY}" stroke="#46536A" stroke-width="2"/>
             ${bogen(b.auf, b.unter, "lhc-sp-bh", 30)}${stuecke.map((s) => bogen(s.von, s.bis + 1000, s.art, 24)).join("")}${sonne}</svg>
           <div class="lhc-sp-mitte">${anteil !== null
-    ? `<b>${e(fmt(anteil, 0))} %</b><span>${e(t(b.heute ? "sp_b_eigen_heute" : "sp_b_eigen_gestern"))}</span><small>${e(tf(t("sp_b_von"), { e: fmt(tag.eigen / 1000, 1), g: fmt(gesamt, 1) }))}</small>`
-    : `<b class="grau">${e(fmt(tag.wp / 1000, 1))} kWh</b><span>${e(t(b.heute ? "sp_b_wp_heute" : "sp_b_wp_gestern"))}</span>`}</div></div>
+    ? `<b>${e(fmt(anteil, 0))} %</b><span>${e(t("sp_b_eigen_heute"))}</span><small>${e(tf(t("sp_b_von"), { e: fmt(tag.eigen / 1000, 1), g: fmt(gesamt, 1) }))}</small>`
+    : `<b class="grau">${e(fmt(tag.wp / 1000, 1))} kWh</b><span>${e(t("sp_b_wp_heute"))}</span>`}</div></div>
         <div class="lhc-sp-zeiten"><span>${e(tf(t("sp_aufgang"), { z: uhr(b.auf) }))}</span><span>${e(tf(t("sp_untergang"), { z: uhr(b.unter) }))}</span></div>
         <div class="lhc-sp-zwei">${kachel(tf(t("sp_b_nacht"), { z: uhr(b.auf) }), b.nacht, false)}${kachel(tf(t("sp_b_abend"), { z: uhr(b.unter) }), b.abend, b.offen)}</div>
         ${this._stromLegende(legende)}</div>`);
     }
-    // Rechts: SG Ready des Tages und die letzten 7 Tage.
-    const rechts = [this._stromSgRing(d), this._stromSieben(d)].filter(Boolean).join("");
+    // Rechts: SG Ready heute und ab zwei Tagen je Tag eine Saeule.
+    const rechts = [this._stromSgRing(d), this._stromTage(d)].filter(Boolean).join("");
     return `<div class="lhc-sp-reihe">${teile.join("")}${rechts ? `<div class="lhc-sp-spalte">${rechts}</div>` : ""}</div>`;
   },
 
-  /** SG Ready des Bogentages als Ring. */
+  /** SG Ready heute als Ring. */
   _stromSgRing(d) {
     const t = (k) => this._t(k);
-    const b = d.bogen;
-    const von = b ? b.tagA : tagesbeginn(d.t1);
-    const bis = b ? b.tagE : d.t1;
-    const heute = !b || b.heute;
-    const kopf = `<b class="lhc-an-boxkopf">${e(t(heute ? "sp_sg_titel_heute" : "sp_sg_titel_gestern"))}</b>`;
-    const sg = this._stromSg(von, bis);
+    const kopf = `<b class="lhc-an-boxkopf">${e(t("sp_sg_titel_heute"))}</b>`;
+    const sg = this._stromSg(tagesbeginn(d.t1), d.t1);
     if (!sg) {
       const an = typeof this._intZahl === "function" ? this._intZahl("top149") : null;
       const zusatz = an === null ? "" : ` ${t(an > 0 ? "sp_sg_top_an" : "sp_sg_top_aus")}`;
@@ -769,7 +876,7 @@ export const stromReiterKarte = {
       <text x="60" y="61" text-anchor="middle" font-size="22" font-weight="700" fill="${farbe}">${e(fmt(anteil, 0))} %</text>
       <text x="60" y="78" text-anchor="middle" font-size="9.5" fill="#98A6BA">${e(t(mitWp ? "sp_sg_wp" : "sp_sg_zeit"))}</text></svg>`;
     const zeile = !sg.aktivMs
-      ? t(heute ? "sp_sg_nie_heute" : "sp_sg_nie_gestern")
+      ? t("sp_sg_nie_heute")
       : mitWp
         ? tf(t("sp_sg_aktiv_kwh"), { d: dauerText(sg.aktivMs), k: fmt(sg.aktivWh / 1000, 1) })
         : tf(t("sp_sg_aktiv"), { d: dauerText(sg.aktivMs) });
@@ -781,60 +888,58 @@ export const stromReiterKarte = {
       ${stufen ? `<div class="lhc-sp-leg mitte">${stufen}</div>` : ""}</div>`;
   },
 
-  /** Die letzten 7 Tage als Saeulen: Strom der Waermepumpe, gruen der eigene Teil. */
-  _stromSieben(d) {
+  /** Ab zwei Tagen: je Tag des Zeitraums eine Saeule, gruen der eigene Teil. */
+  _stromTage(d) {
     const t = (k) => this._t(k);
-    if (!d.tage7) return "";
-    const max = Math.max(0.1, ...d.tage7.map((x) => (d.mitNetz ? x.eigen + x.netz : x.wp) / 1000));
+    if (!d.tagSummen || d.tage < 2) return "";
+    const max = Math.max(0.1, ...d.tagSummen.map((x) => (d.mitNetz ? x.eigen + x.netz : x.wp) / 1000));
     const heute = tagesbeginn(d.t1);
-    const saeulen = d.tage7
-      .map((x) => {
+    const jede = d.tage <= 8 ? 1 : Math.ceil(d.tage / 6);
+    const saeulen = d.tagSummen
+      .map((x, i) => {
         const g = (d.mitNetz ? x.eigen + x.netz : x.wp) / 1000;
-        const name = x.von === heute ? t("sp_heute") : (() => {
-          try {
-            return new Date(x.von).toLocaleDateString(this._sp(), { weekday: "short" });
-          } catch {
-            return this._zrDatum(x.von, false);
-          }
-        })();
+        // Bis 8 Tage jeder Wochentag, sonst jedes n-te Datum und "heute".
+        let name = "";
+        if (d.tage <= 8 || x.von === heute) name = this._stromTagName(x.von, heute);
+        else if (i % jede === 0 && d.tage - 1 - i >= 3) name = this._zrDatum(x.von, false);
         if (!x.dWp) {
-          return `<div class="lhc-sp-tag"><div class="lhc-sp-platz"><i class="lhc-sp-prozent" style="bottom:0">--</i></div><b>${e(name)}</b></div>`;
+          return `<div class="lhc-sp-tag"><div class="lhc-sp-platz"><i class="lhc-sp-prozent" style="bottom:0">${d.tage <= 8 ? "--" : ""}</i></div><b>${e(name)}</b></div>`;
         }
         const h = (g / max) * 100;
         const anteil = d.mitNetz && g > 0.01 ? (100 * x.eigen) / 1000 / g : null;
         const titel = `${this._zrDatum(x.von, false)}: ${fmt(g, 1)} kWh${anteil !== null ? `, ${tf(t("sp_tip_eigen"), { p: fmt(anteil, 0) })}` : ""}`;
+        // Bei vielen Tagen keine Zahl ueber der Saeule, nur beim Darueberfahren.
+        const zahl = anteil !== null && d.tage <= 8 ? `${e(fmt(anteil, 0))} %` : "";
         return `<div class="lhc-sp-tag${x.von === heute ? " heute" : ""}" title="${e(titel)}"><div class="lhc-sp-platz">
             <div class="lhc-sp-saeule" style="height:${h.toFixed(1)}%">${anteil !== null
     ? `<span class="n" style="height:${(100 - anteil).toFixed(1)}%"></span><span class="g" style="height:${anteil.toFixed(1)}%"></span>`
     : `<span class="n" style="height:100%"></span>`}</div>
-            <i class="lhc-sp-prozent${anteil !== null && anteil >= 30 ? " gut" : ""}" style="bottom:calc(${h.toFixed(1)}% + 3px)">${anteil !== null ? `${e(fmt(anteil, 0))} %` : ""}</i></div>
+            <i class="lhc-sp-prozent${anteil !== null && anteil >= 30 ? " gut" : ""}" style="bottom:calc(${h.toFixed(1)}% + 3px)">${zahl}</i></div>
           <b>${e(name)}</b></div>`;
       })
       .join("");
     const legende = d.mitNetz ? [[F.eigen, t("sp_l_eigen_kurz")], [NETZ_CSS, t("sp_l_netz_kurz")]] : [[NETZ_CSS, t("sp_l_wp")]];
-    return `<div class="lhc-an-box lhc-sp-box"><b class="lhc-an-boxkopf">${e(t("sp_7_titel"))}</b><div class="lhc-sp-tage">${saeulen}</div>
-      ${this._stromLegende(legende)}${d.mitNetz ? `<div class="lhc-sp-fuss">${e(t("sp_7_zahl"))}</div>` : ""}</div>`;
+    return `<div class="lhc-an-box lhc-sp-box"><b class="lhc-an-boxkopf">${e(tf(t("sp_tage_titel"), { n: d.tage }))}</b>
+      <div class="lhc-sp-tage${d.tage > 8 ? " viele" : ""}">${saeulen}</div>
+      ${this._stromLegende(legende)}${d.mitNetz ? `<div class="lhc-sp-fuss">${e(t(d.tage <= 8 ? "sp_7_zahl" : "sp_tage_zahl"))}</div>` : ""}</div>`;
   },
 
   /* ---------- C: Stundenbalken ---------- */
   _stromBalken(d) {
     const t = (k) => this._t(k);
-    const { t0, t1 } = d;
-    const bins = d.balken.bins;
-    const x = (zeit) => ((zeit - t0) / (t1 - t0)) * 1000;
+    const { t0, t1, ende } = d;
+    const bins = d.balken.bins.filter((b) => !b.zukunft);
+    const x = (zeit) => ((zeit - t0) / (ende - t0)) * 1000;
     const max = Math.max(0.05, ...bins.map((b) => Math.max(d.mitPv ? b.pv / 1000 : 0, (d.mitNetz ? b.eigen + b.netz : b.wp) / 1000)));
     const sk = skala(max);
     const y = (kwh) => 100 - (kwh / sk.oben) * 100;
-    // Angebrochen: Rand des Zeitraums oder die laufende Stunde. Blass, ohne PV-Punkt.
-    const teil = (b) => {
-      if (d.balken.art === "tag") return b.von !== tagesbeginn(b.von) || b.bis !== tagPlus(b.von, 1);
-      return b.bis - b.von < (d.balken.art === "drei" ? 3 : 1) * STUNDE - 1000;
-    };
     let saeulen = "";
     const pvPunkte = [];
     bins.forEach((b) => {
-      const blass = teil(b) ? " teil" : "";
-      const breite = x(b.bis) - x(b.von);
+      // Laufender Abschnitt: blass, an seinem Platz im Raster, ohne PV-Punkt.
+      const blass = b.teil ? " teil" : "";
+      const bis = b.rasterBis || b.bis;
+      const breite = x(bis) - x(b.von);
       const luecke = Math.min(breite * 0.14, 6);
       const x0 = (x(b.von) + luecke).toFixed(1);
       const w = Math.max(0.5, breite - 2 * luecke).toFixed(1);
@@ -846,7 +951,7 @@ export const stromReiterKarte = {
       } else if (b.wp > 0) {
         saeulen += `<rect class="lhc-sp-netz${blass}" x="${x0}" y="${y(b.wp / 1000).toFixed(2)}" width="${w}" height="${(100 - y(b.wp / 1000)).toFixed(2)}"/>`;
       }
-      if (d.mitPv && b.dPv && !blass) pvPunkte.push({ x: x((b.von + b.bis) / 2), v: b.pv / 1000 });
+      if (d.mitPv && b.dPv && !b.teil) pvPunkte.push({ x: x((b.von + bis) / 2), v: b.pv / 1000 });
     });
     // PV-Linie nur, wo die Sonne Strom brachte, mit je einem Nachbarn am Rand.
     let pv = "";
@@ -863,29 +968,23 @@ export const stromReiterKarte = {
       if (spitze.v > 0.02) oben = `<span class="lhc-sp-sonne" style="left:clamp(15px, ${(spitze.x / 10).toFixed(2)}%, calc(100% - 15px));top:${y(spitze.v).toFixed(2)}%">${sonnenBild()}</span>`;
     }
     const treffer = bins
-      .map((b) => `<i class="lhc-sp-hit" style="left:${(x(b.von) / 10).toFixed(2)}%;width:${((x(b.bis) - x(b.von)) / 10).toFixed(2)}%"
+      .map((b) => `<i class="lhc-sp-hit" style="left:${(x(b.von) / 10).toFixed(2)}%;width:${((x(b.rasterBis || b.bis) - x(b.von)) / 10).toFixed(2)}%"
         title="${e(this._stromTitel(b, this._stromZeit(b, d.balken.art)))}"></i>`)
       .join("");
-    // Achse: bei Stunden jede dritte volle Stunde, sonst hoechstens acht Marken.
-    const jede = d.balken.art === "stunde" ? 3 : Math.max(1, Math.ceil(bins.length / 8));
-    const marken = bins
+    // Achse: alle Abschnitte des Zeitraums, auch die noch kommenden.
+    const alle = d.balken.bins;
+    const heute = tagesbeginn(t1);
+    const jede = d.balken.art === "stunde" ? 3 : d.balken.art === "drei" ? 4 : alle.length <= 8 ? 1 : Math.ceil(alle.length / 7);
+    const marken = alle
       .map((b, i) => {
+        if (i % jede) return "";
         const dt = new Date(b.von);
-        const voll = d.balken.art === "stunde" ? dt.getMinutes() === 0 && dt.getHours() % 3 === 0 : i % jede === 0 && (i > 0 || bins.length < 3);
-        if (!voll) return "";
-        const mitte = ((x(b.von) + x(b.bis)) / 2 / 10).toFixed(2);
+        const mitte = ((x(b.von) + x(b.rasterBis || b.bis)) / 2 / 10).toFixed(2);
         let text;
         if (d.balken.art === "stunde") text = `${zwei(dt.getHours())}:00`;
-        else {
-          let wt = "";
-          try {
-            wt = dt.toLocaleDateString(this._sp(), { weekday: "short" });
-          } catch {
-            wt = "";
-          }
-          text = d.balken.art === "drei" ? `${wt} ${zwei(dt.getHours())}`.trim() : bins.length <= 8 ? wt || this._zrDatum(b.von, false) : this._zrDatum(b.von, false);
-        }
-        return `<span style="left:${mitte}%">${e(text)}</span>`;
+        else if (d.balken.art === "drei") text = `${this._stromTagName(tagesbeginn(b.von), -1)} ${zwei(dt.getHours())}`;
+        else text = alle.length <= 8 ? this._stromTagName(b.von, heute) : this._zrDatum(b.von, false);
+        return `<span class="${b.von === heute && d.balken.art === "tag" ? "heute" : ""}" style="left:${mitte}%">${e(text)}</span>`;
       })
       .join("");
     // SG Ready: Marke unter jedem Abschnitt mit Stufe 3 oder 4.
@@ -894,11 +993,12 @@ export const stromReiterKarte = {
     if (sg) {
       const marken3 = bins
         .map((b) => {
+          const bis = b.rasterBis || b.bis;
           const teile = sg.abschnitte.filter((a) => (a.stufe === 3 || a.stufe === 4) && a.bis > b.von && a.von < b.bis);
           if (!teile.length) return "";
           const ms = teile.reduce((s, a) => s + Math.min(a.bis, b.bis) - Math.max(a.von, b.von), 0);
           const stufe = teile.some((a) => a.stufe === 4) ? 4 : 3;
-          const breite = x(b.bis) - x(b.von);
+          const breite = x(bis) - x(b.von);
           const luecke = Math.min(breite * 0.14, 6);
           return `<i style="left:${((x(b.von) + luecke) / 10).toFixed(2)}%;width:${(Math.max(0.5, breite - 2 * luecke) / 10).toFixed(2)}%;background:${SG_STATES[stufe].farbe}"
             title="${e(`${this._stromZeit(b, d.balken.art)} · ${t(SG_STATES[stufe].lang)} ${dauerText(ms)}`)}"></i>`;
@@ -909,36 +1009,32 @@ export const stromReiterKarte = {
     const legende = d.mitNetz ? [[F.eigen, t("sp_l_eigen_kurz")], [NETZ_CSS, t("sp_l_netzstrom")]] : [[NETZ_CSS, t("sp_l_wp")]];
     if (d.mitPv) legende.push([F.pv, t(`sp_l_pv_${d.balken.art}`)]);
     if (sg && (sg.dauer[3] || sg.dauer[4])) legende.push([SG_STATES[3].farbe, t("sp_l_sg_aktiv")]);
-    if (bins.some(teil)) legende.push(["rgba(34, 197, 94, 0.4)", t("sp_l_teil")]);
+    if (bins.some((b) => b.teil)) legende.push(["rgba(34, 197, 94, 0.4)", t("sp_l_teil")]);
     const kasten1 = `<div class="lhc-an-box lhc-sp-box"><b class="lhc-an-boxkopf">${e(t(`sp_c_titel_${d.balken.art}`))}</b>
       <div class="lhc-sp-a">${this._stromHochachse(sk, "kWh")}
         <div class="lhc-sp-flaeche"><svg class="lhc-sp-svg" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">${this._stromGitter(sk)}${saeulen}${pv}
-          <line class="lhc-sp-null" x1="0" x2="1000" y1="100" y2="100"/></svg>${treffer}${oben}</div>
+          ${this._stromJetzt(d)}<line class="lhc-sp-null" x1="0" x2="1000" y1="100" y2="100"/></svg>${treffer}${oben}</div>
         <span></span><div class="lhc-sp-x mitte">${marken}</div>${sgZeile}</div>
       ${this._stromLegende(legende)}</div>`;
     return kasten1 + this._stromRaster(d);
   },
 
-  /** Raster der letzten 7 Tage: je Stunde der Anteil eigener Strom. */
+  /** Ab zwei Tagen: Raster je Tag und Stunde mit dem Anteil eigener Strom. */
   _stromRaster(d) {
     const t = (k) => this._t(k);
-    if (!d.raster || !d.mitNetz) return "";
+    if (!d.raster || d.tage < 2 || !d.mitNetz) return "";
     const heute = tagesbeginn(d.t1);
+    const info = this._stromLaeufe(d);
     let zeilen = "";
     d.raster.forEach((r) => {
-      let name;
-      try {
-        name = r.tag === heute ? t("sp_heute") : new Date(r.tag).toLocaleDateString(this._sp(), { weekday: "short" });
-      } catch {
-        name = this._zrDatum(r.tag, false);
-      }
+      const name = d.tage <= 8 ? this._stromTagName(r.tag, heute) : r.tag === heute ? t("sp_heute") : this._zrDatum(r.tag, false);
       zeilen += `<b class="${r.tag === heute ? "heute" : ""}">${e(name)}</b>`;
       r.zellen.forEach((z, s) => {
-        if (!z || !z.dWp) {
+        if (!z || z.zukunft || !z.dWp) {
           zeilen += `<i class="leer"></i>`;
           return;
         }
-        const laeuft = z.wp / (z.dWp / STUNDE) >= LAEUFT_W;
+        const laeuft = this._stromLaeuft(info, z.von, z.bis, z);
         const zeit = `${this._zrDatum(r.tag, false)} ${zwei(s)}:00`;
         if (!laeuft || !z.dBeide) {
           zeilen += `<i class="aus" title="${e(`${zeit} · ${t("sp_l_aus")}`)}"></i>`;
@@ -949,7 +1045,7 @@ export const stromReiterKarte = {
       });
     });
     const fuss = `<span></span>${[0, 6, 12, 18].map((s) => `<span class="lhc-sp-rx">${zwei(s)}:00</span>`).join("")}`;
-    return `<div class="lhc-an-box lhc-sp-box"><b class="lhc-an-boxkopf">${e(t("sp_r_titel"))}</b>
+    return `<div class="lhc-an-box lhc-sp-box"><b class="lhc-an-boxkopf">${e(tf(t("sp_r_titel"), { n: d.tage }))}</b>
       <div class="lhc-sp-raster">${zeilen}${fuss}</div>
       ${this._stromLegende([[F.eigen, t("sp_l_ganz_eigen")], [`linear-gradient(90deg, ${F.netz}, ${F.eigen})`, t("sp_l_gemischt")], [NETZ_CSS, t("sp_l_ganz_netz")], ["transparent", t("sp_l_aus"), true]])}</div>`;
   },

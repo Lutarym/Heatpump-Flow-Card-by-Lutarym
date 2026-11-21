@@ -5,6 +5,7 @@
 import { attr, clamp, fmt, groesster, indexBis, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
 import { NEUTRAL, SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
+import { inKwh } from "./netzstrom.js";
 
 export const verlaufKarte = {
   /**
@@ -43,8 +44,9 @@ export const verlaufKarte = {
       // Je nach Fassung heisst das Feld "s" oder "state".
       const roh = reihe[0].s !== undefined ? reihe[0].s : reihe[0].state;
       const wert = parseFloat(roh);
-      if (!Number.isNaN(wert)) {
-        this._tagStart = wert;
+      if (Number.isFinite(wert)) {
+        // In kWh wie die Anzeige (aktualisieren.js).
+        this._tagStart = inKwh(wert, attr(this._quelle, id, "unit_of_measurement", ""));
         this._tagStartTag = mitternacht;
         this._render();
       }

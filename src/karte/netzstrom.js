@@ -12,7 +12,7 @@
  * grid_power (positiv Bezug, negativ Einspeisung) und power_now
  * (Leistung der Waermepumpe), hoechstens alle fuenf Minuten neu.
  */
-import { fmt } from "../hilfsfunktionen.js";
+import { fmt, schreibAttr, schreibText } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 import { verlaufsReihe } from "./auswertung.js";
 
@@ -23,6 +23,14 @@ export function inWatt(wert, einheit) {
   const e = String(einheit || "").trim();
   if (e === "kW") return wert * 1000;
   if (e === "MW") return wert * 1e6;
+  return wert;
+}
+
+/** Energie in kWh, gemeldet in Wh, kWh oder MWh. */
+export function inKwh(wert, einheit) {
+  const e = String(einheit || "").trim();
+  if (e === "Wh") return wert / 1000;
+  if (e === "MWh") return wert * 1000;
   return wert;
 }
 
@@ -126,13 +134,13 @@ export const netzstromKarte = {
   _zeigeNetz() {
     const n = this._netzHeute();
     const gruppe = this._animEl("pv-group");
-    if (gruppe) gruppe.setAttribute("opacity", n ? "1" : "0");
+    if (gruppe) schreibAttr(gruppe, "opacity", n ? "1" : "0");
     const wert = this._animEl("pv-v");
-    if (wert) wert.textContent = n ? `${fmt(n.netz, 1)} kWh` : "--";
+    if (wert) schreibText(wert, n ? `${fmt(n.netz, 1)} kWh` : "--");
     const anteil = this._animEl("pv-anteil");
     if (anteil) {
       const a = n && Number.isFinite(n.anteil) ? Math.min(100, Math.max(0, n.anteil)) : null;
-      anteil.textContent = a === null ? "" : tf(this._t("pv_anteil_kurz"), { p: fmt(a, 0) });
+      schreibText(anteil, a === null ? "" : tf(this._t("pv_anteil_kurz"), { p: fmt(a, 0) }));
     }
     // Mittig zwischen den Trennlinien: Mit Untertext ruecken Beschriftung,
     // Wert und Untertext um den Versatz des Layouts nach oben, ohne stehen
@@ -142,7 +150,7 @@ export const netzstromKarte = {
     ["pv-label", "pv-v", "pv-anteil"].forEach((id) => {
       const el = this._animEl(id);
       const basis = el ? Number(el.getAttribute("data-y")) : NaN;
-      if (Number.isFinite(basis)) el.setAttribute("y", String(basis + (mitAnteil ? versatz : 0)));
+      if (Number.isFinite(basis)) schreibAttr(el, "y", String(basis + (mitAnteil ? versatz : 0)));
     });
   },
 

@@ -3,7 +3,7 @@
  * Verbrauch, SG Ready und Temperaturen.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { escapeHtml, fmt, groesster, jePixel, kleinster } from "../hilfsfunktionen.js";
+import { escapeHtml, fmt, groesster, jePixel, kleinster, runderSchritt } from "../hilfsfunktionen.js";
 
 /** Abmessungen der Zeichenflaeche im Fenster. */
 export const DW = 640;
@@ -402,7 +402,7 @@ export const diagrammeKarte = {
     const alle = arten.flatMap(([f]) => reihen[f].flatMap((p) => (reihen.statistik ? [p.v, p.min, p.max] : [p.v])));
     // Runde Schritte von 5, 10 oder 20 Grad, damit die Achse lesbar bleibt.
     const roh = (groesster(alle) - kleinster(alle)) / 4;
-    const schritt = roh <= 5 ? 5 : roh <= 10 ? 10 : 20;
+    const schritt = runderSchritt(roh, [5, 10, 20]);
     const min = Math.floor(kleinster(alle) / schritt) * schritt;
     let max = Math.ceil(groesster(alle) / schritt) * schritt;
     if (max - min < schritt * 2) max = min + schritt * 2;

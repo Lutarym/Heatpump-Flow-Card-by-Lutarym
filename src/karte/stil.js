@@ -196,6 +196,12 @@ export const stilKarte = {
         background: #5A9BD8; border: 2px solid var(--c-0f1826); cursor: pointer;
       }
       .lhc-svg { width: 100%; height: auto; display: block; }
+      /* Eigene Ebenen fuer bewegte Teile (ebenen.js), genau ueber der Grafik. */
+      .lhc-scene { position: relative; }
+      .lhc-svg.lhc-ebene {
+        position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+        pointer-events: none; will-change: transform;
+      }
 
       .pipe-shell {
         fill: none; stroke: var(--c-0b1017); stroke-width: 18;
@@ -399,7 +405,7 @@ export const stilKarte = {
       .klickbar { cursor: pointer; }
       /* Kein filter: der zwingt den Browser, die Vektorgrafik zu rastern,
          dadurch werden Linien und Schrift beim Ueberfahren unscharf. */
-      .klickbar:hover { opacity: 0.82; }
+      .klickbar:hover, .klickbar.lhc-schwebt { opacity: 0.82; }
       .lhc-dialog {
         position: absolute; inset: 0; z-index: 5;
         display: flex; align-items: center; justify-content: center;
@@ -706,6 +712,7 @@ export const stilKarte = {
       .lhc-sp-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
       .lhc-sp-gl { stroke: var(--c-26303f); stroke-width: 1; vector-effect: non-scaling-stroke; }
       .lhc-sp-null { stroke: var(--c-46536a); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .lhc-sp-jetzt { stroke: var(--c-98a6ba); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
       .lhc-sp-nacht { fill: #000000; opacity: 0.3; }
       .lhc.thema-hell .lhc-sp-nacht { opacity: 0.09; }
       .lhc-sp-pvf { fill: #FBBF24; opacity: 0.22; }
@@ -726,6 +733,9 @@ export const stilKarte = {
       .lhc-sp-x span { position: absolute; top: 0; transform: translateX(-50%); font-size: 11px; color: var(--c-7e8ca0); white-space: nowrap; }
       .lhc-sp-x span.a { transform: none; }
       .lhc-sp-x span.e { transform: translateX(-100%); }
+      .lhc-sp-x span.jetzt, .lhc-sp-x span.heute { color: var(--c-e8edf4); font-weight: 600; }
+      .lhc-sp-x span.jetzt.e { transform: translateX(-100%); }
+      .lhc-sp-x span.jetzt.a { transform: none; }
       .lhc-sp-sgname { font-size: 11px; color: var(--c-98a6ba); text-align: right; white-space: nowrap; }
       .lhc-sp-band, .lhc-sp-marken { position: relative; height: 12px; min-width: 0; }
       .lhc-sp-band { border-radius: 3px; background: var(--c-26303f); overflow: hidden; }
@@ -759,6 +769,7 @@ export const stilKarte = {
       .lhc-sp-ring { display: block; width: 120px; height: 120px; margin: 0 auto; }
       .lhc-sp-sgzeile { margin-top: 4px; font-size: 13px; color: var(--c-c3d0e0); }
       .lhc-sp-tage { display: flex; gap: 6px; height: 150px; }
+      .lhc-sp-tage.viele { gap: 2px; }
       .lhc-sp-tag { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; }
       .lhc-sp-platz { position: relative; flex: 1 1 auto; width: 100%; margin-top: 20px; }
       .lhc-sp-saeule { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 40px; display: flex; flex-direction: column;
@@ -820,8 +831,8 @@ export const stilKarte = {
       .lhc-takt-quelle { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--c-7e8ca0); }
       .dia-knopf { cursor: pointer; }
       .dia-knopf .dia-symbol { color: var(--c-98a6ba); }
-      .dia-knopf:hover rect, .dia-knopf:focus-visible rect { stroke: #E0762E; }
-      .dia-knopf:hover .dia-symbol, .dia-knopf:focus-visible .dia-symbol { color: #E0762E; }
+      .dia-knopf:hover rect, .dia-knopf:focus-visible rect, .dia-knopf.lhc-schwebt rect { stroke: #E0762E; }
+      .dia-knopf:hover .dia-symbol, .dia-knopf:focus-visible .dia-symbol, .dia-knopf.lhc-schwebt .dia-symbol { color: #E0762E; }
       .dia-knopf:focus { outline: none; }
       .lhc-kurve-box {
         /* Eine Spalte braucht weniger Platz als zwei. */
@@ -881,7 +892,8 @@ export const stilKarte = {
       .lhc-tuer-blatt svg { display: block; width: 100%; height: 100%; overflow: visible; }
       .tuer-knopf { cursor: pointer; outline: none; }
       .tuer-knopf:hover > circle:first-of-type,
-      .tuer-knopf:focus-visible > circle:first-of-type { stroke: #E0762E; }
+      .tuer-knopf:focus-visible > circle:first-of-type,
+      .tuer-knopf.lhc-schwebt > circle:first-of-type { stroke: #E0762E; }
       .lhc-tuer {
         position: absolute; z-index: 4; box-sizing: border-box;
         display: flex; flex-direction: column; gap: 6px; padding: 10px 10px;

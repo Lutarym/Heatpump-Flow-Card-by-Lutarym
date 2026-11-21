@@ -2,9 +2,10 @@
  * Aktualisiert Werte, Farben und Animationen bei jeder Aenderung.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { animationAn, attr, clamp, fmt, isOn, loadColor, numState, rawState, thermalColor, verdichterWert, warmwasserZustand } from "../hilfsfunktionen.js";
+import { animationAn, attr, clamp, fmt, isOn, loadColor, numState, rawState, schreibAttr, schreibStil, schreibText, thermalColor, verdichterWert, warmwasserZustand } from "../hilfsfunktionen.js";
 import { BUBBLE_COUNT, COMP_MAX_HZ, COMP_MIN_HZ, DRUCK_MAX, DRUCK_MIN, MODE_LABELS, NEUTRAL, PUMP_SECONDS, SG_STATES, VALVE_LABELS } from "../konstanten.js";
 import { tf, wertText } from "../texte.js";
+import { inKwh, inWatt } from "./netzstrom.js";
 
 export const aktualisierenKarte = {
   _sgMode() {
@@ -43,10 +44,10 @@ export const aktualisierenKarte = {
     let i = 0;
     zeilen.forEach((z) => {
       if (!z.zeigen) {
-        z.el.textContent = "";
+        schreibText(z.el, "");
         return;
       }
-      z.el.setAttribute("y", String(start + i * abstand));
+      schreibAttr(z.el, "y", String(start + i * abstand));
       i++;
     });
   },
@@ -77,15 +78,15 @@ export const aktualisierenKarte = {
 
     const set = (id, text) => {
       const el = this._animEl(id);
-      if (el) el.textContent = text;
+      if (el) schreibText(el, text);
     };
     const paint = (id, color) => {
       const el = this._animEl(id);
-      if (el) el.setAttribute("stop-color", color);
+      if (el) schreibAttr(el, "stop-color", color);
     };
     const zeige = (id, sichtbar) => {
       const el = this._animEl(id);
-      if (el) el.setAttribute("opacity", sichtbar ? "1" : "0");
+      if (el) schreibAttr(el, "opacity", sichtbar ? "1" : "0");
     };
     const abzeichen = (id, aktiv) => {
       const el = this._animEl(id);
@@ -106,13 +107,13 @@ export const aktualisierenKarte = {
         if (!el) return;
         const aktiv = animate && laeuft && an === true;
         el.classList.toggle("is-on", aktiv);
-        if (farbe) el.style.stroke = farbe;
+        if (farbe) schreibStil(el, "stroke", farbe);
         if (aktiv) {
           const isRev = el.classList.contains("rev");
           this._animState.set(id, { type: "flow", reverse: isRev });
         } else {
           this._animState.delete(id);
-          el.setAttribute("stroke-dashoffset", "0");
+          schreibAttr(el, "stroke-dashoffset", "0");
         }
       });
     };
@@ -141,7 +142,7 @@ export const aktualisierenKarte = {
     const alertEl = this._animEl("alert");
     if (alertEl) {
       alertEl.hidden = !stoerung;
-      if (stoerung) alertEl.textContent = tf(this._t("s_stoerung"), { v: err });
+      if (stoerung) schreibText(alertEl, tf(this._t("s_stoerung"), { v: err }));
     }
 
     /* Außenfühler */
@@ -151,7 +152,7 @@ export const aktualisierenKarte = {
     const outColor = thermalColor(outside, oMin, oMax);
     set("outside-v", outside === null ? "--" : `${fmt(outside)} °C`);
     const aussenEl = this._animEl("outside-v");
-    if (aussenEl) aussenEl.style.fill = outColor;
+    if (aussenEl) schreibStil(aussenEl, "fill", outColor);
 
     /* Außengerät */
     const vd = verdichterWert(hass, this._e("compressor"));
@@ -167,7 +168,7 @@ export const aktualisierenKarte = {
     if (compEl) {
       const prozent = vd.einheit === "%";
       const last = vd.nurAnAus ? (comp > 0 ? COMP_MAX_HZ : 0) : comp;
-      compEl.style.fill = loadColor(last, prozent ? 0 : COMP_MIN_HZ, prozent ? 100 : COMP_MAX_HZ);
+      schreibStil(compEl, "fill", loadColor(last, prozent ? 0 : COMP_MIN_HZ, prozent ? 100 : COMP_MAX_HZ));
     }
 
     // Meldet die Waermepumpe ausdruecklich aus, steht alles still.
@@ -196,7 +197,7 @@ export const aktualisierenKarte = {
       const glowStoerung = animate && stoerung;
       const glowBetrieb = animate && laeuft && comp !== null && comp > 0;
       const glowAn = glowStoerung || glowBetrieb;
-      glow.setAttribute("stroke", glowStoerung ? "#EF4444" : "#22C55E");
+      schreibAttr(glow, "stroke", glowStoerung ? "#EF4444" : "#22C55E");
       if (glowAn) {
         this._animState.set("unit-glow", {
           type: "pulse",
@@ -206,7 +207,7 @@ export const aktualisierenKarte = {
         });
       } else {
         this._animState.delete("unit-glow");
-        glow.setAttribute("opacity", "0");
+        schreibAttr(glow, "opacity", "0");
       }
     }
 
@@ -214,7 +215,7 @@ export const aktualisierenKarte = {
     const sgGroup = this._animEl("sg-group");
     if (sgGroup) {
       const konfiguriert = Boolean(this._e("sg_k1")) && Boolean(this._e("sg_k2"));
-      sgGroup.setAttribute("opacity", konfiguriert ? "1" : "0");
+      schreibAttr(sgGroup, "opacity", konfiguriert ? "1" : "0");
       if (konfiguriert) {
         const sg = this._sgMode();
         const info = SG_STATES[sg];
@@ -224,8 +225,8 @@ export const aktualisierenKarte = {
         if (t) {
           // Das helle Grau fuer "Normal" folgt der Farbdarstellung.
           const stil = farbe === "#C3D0E0" ? "var(--c-c3d0e0)" : farbe;
-          t.style.fill = stil;
-          t.style.color = stil;
+          schreibStil(t, "fill", stil);
+          schreibStil(t, "color", stil);
         }
         for (let i = 1; i <= 4; i++) {
           const seg = this._animEl(`sg-seg-${i}`);
@@ -233,25 +234,33 @@ export const aktualisierenKarte = {
           const aktiv = sg === i;
           // Das zutreffende Segment wird hoeher und leuchtet, die
           // uebrigen bleiben flach und gedaempft.
-          seg.setAttribute("fill", aktiv ? farbe : "#3A4658");
-          seg.setAttribute("height", aktiv ? "17" : "11");
-          seg.setAttribute("y", aktiv ? "-3" : "0");
-          seg.style.color = farbe;
+          schreibAttr(seg, "fill", aktiv ? farbe : "#3A4658");
+          schreibAttr(seg, "height", aktiv ? "17" : "11");
+          schreibAttr(seg, "y", aktiv ? "-3" : "0");
+          schreibStil(seg, "color", farbe);
           seg.classList.toggle("is-active", aktiv);
         }
       }
     }
 
     /* Stromverbrauch, nur sichtbar wenn ein Wert vorliegt */
-    const leistung = numState(hass, this._e("power_now"));
-    const energie = numState(hass, this._e("energy_today"));
+    // Einheit der Entitaet beachten: Leistung in W oder kW, Energie in Wh, kWh oder MWh.
+    const einheit = (k) => attr(hass, this._e(k), "unit_of_measurement", "");
+    const leistungRoh = numState(hass, this._e("power_now"));
+    const leistung = leistungRoh === null ? null : inWatt(leistungRoh, einheit("power_now"));
+    const energieRoh = numState(hass, this._e("energy_today"));
+    const energie = energieRoh === null ? null : inKwh(energieRoh, einheit("energy_today"));
     zeige("verbrauch-group", leistung !== null || energie !== null);
     set("power-now-v", leistung === null ? "--" : `${fmt(leistung / 1000, 2)} kW`);
     // Tagesverbrauch, sofern der Stand von Mitternacht bekannt ist.
     let energieAnzeige = energie;
     if (this._config.energy_daily !== false && energie !== null) {
       this._ladeTagesstart();
-      if (this._tagStart !== undefined && energie >= this._tagStart) {
+      // Nur der Stand von heute null Uhr. Nach Mitternacht gilt bis zum
+      // Nachladen der Gesamtstand, sonst stuende dort der Verbrauch seit gestern.
+      const heute = new Date();
+      heute.setHours(0, 0, 0, 0);
+      if (this._tagStart !== undefined && this._tagStartTag === heute.getTime() && energie >= this._tagStart) {
         energieAnzeige = energie - this._tagStart;
       }
     }
@@ -375,7 +384,7 @@ export const aktualisierenKarte = {
         this._config.show_door !== false && this._tuerFelder().length ? "" : "none";
     }
     const hilfeKnopf = this.shadowRoot.getElementById("hilfe-knopf");
-    if (hilfeKnopf) hilfeKnopf.style.display = this._config.show_help === false || !this._hilfePasst() ? "none" : "";
+    if (hilfeKnopf) schreibStil(hilfeKnopf, "display", this._config.show_help === false || !this._hilfePasst() ? "none" : "");
     this._speicherZeilen("buf");
     this._speicherZeilen("dhw");
     // TOP2 meldet das einmalige Aufheizen, TOP69 den Legionellenschutz.
@@ -408,10 +417,10 @@ export const aktualisierenKarte = {
         else if (v > 0.8) farbe = "#E0A62E";
         else farbe = "#46C07A";
       }
-      flowEl.style.fill = farbe;
+      schreibStil(flowEl, "fill", farbe);
       // Die Geschwindigkeit steht als Beschriftung bereit, ohne den
       // sichtbaren Text zu veraendern.
-      if (hinweis) flowEl.setAttribute("aria-label", `${flowEl.textContent} = ${hinweis}`);
+      if (hinweis) schreibAttr(flowEl, "aria-label", `${flowEl.textContent} = ${hinweis}`);
       else flowEl.removeAttribute("aria-label");
     }
 
@@ -425,15 +434,15 @@ export const aktualisierenKarte = {
       const druckfarbe = druckOk ? "#46C07A" : "#D62B2B";
       const needle = this._animEl("press-needle");
       if (needle) {
-        needle.setAttribute("transform", `rotate(${-120 + 240 * clamp(bar / 4, 0, 1)})`);
-        needle.setAttribute("stroke", druckfarbe);
+        schreibAttr(needle, "transform", `rotate(${-120 + 240 * clamp(bar / 4, 0, 1)})`);
+        schreibAttr(needle, "stroke", druckfarbe);
       }
       const druckText = this._animEl("press-v");
-      if (druckText) druckText.style.fill = druckfarbe;
+      if (druckText) schreibStil(druckText, "fill", druckfarbe);
       // Unter dem Mindestdruck blinken Wert und Warndreieck.
       const zuNiedrig = bar < DRUCK_MIN;
       const warn = this._animEl("press-warn");
-      if (warn) warn.setAttribute("opacity", zuNiedrig ? "1" : "0");
+      if (warn) schreibAttr(warn, "opacity", zuNiedrig ? "1" : "0");
       if (zuNiedrig && animate) {
         this._animState.set("press-v", {
           type: "pulse", duration: 1.1, min: 0.15, max: 1,
@@ -444,7 +453,7 @@ export const aktualisierenKarte = {
       } else {
         this._animState.delete("press-v");
         this._animState.delete("press-warn");
-        if (druckText) druckText.setAttribute("opacity", "1");
+        if (druckText) schreibAttr(druckText, "opacity", "1");
       }
     }
 
@@ -496,21 +505,21 @@ export const aktualisierenKarte = {
       if (anAus === false) txt = wertText("Aus", this._sp());
       else if (abtaut) txt = this._t("r_abtauen");
       else if (art !== null && MODE_LABELS[art] !== undefined) txt = wertText(MODE_LABELS[art], this._sp());
-      modusText.textContent = txt;
+      schreibText(modusText, txt);
     }
     Object.keys(modusFarben).forEach((k) => {
       const el = this._animEl(`modus-${k}`);
       if (!el) return;
       const dabei =
         k === "betrieb" ? anAus === true : k === "abtauen" ? abtaut : umfasst[k];
-      el.style.color = dabei ? modusFarben[k] : "var(--c-2e3847)";
+      schreibStil(el, "color", dabei ? modusFarben[k] : "var(--c-2e3847)");
       if (blinkt[k] && animate) {
         this._animState.set(`modus-${k}`, {
           type: "pulse", duration: 1.4, min: 0.3, max: 1,
         });
       } else {
         this._animState.delete(`modus-${k}`);
-        el.setAttribute("opacity", "1");
+        schreibAttr(el, "opacity", "1");
       }
     });
 
@@ -528,11 +537,11 @@ export const aktualisierenKarte = {
     const pfeilfarbe = col(flow);
     ["valve-heiz-line", "valve-ww-line"].forEach((id) => {
       const el = this._animEl(id);
-      if (el) el.setAttribute("stroke", pfeilfarbe);
+      if (el) schreibAttr(el, "stroke", pfeilfarbe);
     });
     ["valve-heiz-head", "valve-ww-head"].forEach((id) => {
       const el = this._animEl(id);
-      if (el) el.setAttribute("fill", pfeilfarbe);
+      if (el) schreibAttr(el, "fill", pfeilfarbe);
     });
 
     /* Welche Kreise sind ueberhaupt aktiviert?
@@ -645,11 +654,11 @@ export const aktualisierenKarte = {
         // ueberschreibt dabei jeden Inline-Stil. Ausgeblendete Blasen
         // bekommen deshalb gar keine Animation, sonst blieben sie
         // sichtbar in der Luft stehen.
-        el.style.animationName = i < sichtbar ? "" : "none";
+        schreibStil(el, "animationName", i < sichtbar ? "" : "none");
         // Ausgeblendete Blasen sofort unsichtbar machen. Sonst bleiben
         // sie am Boden liegen, wenn die Animationsschleife nicht laeuft.
         if (i >= sichtbar && el.getAttribute("opacity") !== "0") {
-          el.setAttribute("opacity", "0");
+          schreibAttr(el, "opacity", "0");
           el.removeAttribute("transform");
         }
       });
@@ -676,11 +685,11 @@ export const aktualisierenKarte = {
       const temp = numState(hass, this._e(`${art}_temp`));
       const pumpe = isOn(hass, this._e(`${art}_pump`)) === true;
       const tEl = this._animEl(`${art}-v`);
-      if (tEl) tEl.textContent = temp === null ? "--" : `${fmt(temp, 1)} °C`;
+      if (tEl) schreibText(tEl, temp === null ? "--" : `${fmt(temp, 1)} °C`);
       const pEl = this._animEl(`${art}-pump-v`);
       if (pEl) {
         // Wie bei den Heizkreisen nur der Zustand, direkt an der Pumpe.
-        pEl.textContent = this._e(`${art}_pump`) ? wertText(pumpe ? "läuft" : "aus", this._sp()) : "";
+        schreibText(pEl, this._e(`${art}_pump`) ? wertText(pumpe ? "läuft" : "aus", this._sp()) : "");
       }
       // Feuer im Kamin und Sonne ueber der Solarthermie haengen an der
       // Temperatur, ab der eingestellten Grenze.
@@ -706,11 +715,11 @@ export const aktualisierenKarte = {
         if (!el) return;
         const aktiv = animate && pumpe;
         el.classList.toggle("is-on", aktiv);
-        el.style.stroke = farbe;
+        schreibStil(el, "stroke", farbe);
         if (aktiv) this._animState.set(id, { type: "flow", reverse: false });
         else {
           this._animState.delete(id);
-          el.setAttribute("stroke-dashoffset", "0");
+          schreibAttr(el, "stroke-dashoffset", "0");
         }
       });
       if (pumpe) laedt = true;
@@ -722,7 +731,7 @@ export const aktualisierenKarte = {
   _kaminFeuer(an, animate) {
     const sichtbar = (id, ja) => {
       const el = this._animEl(id);
-      if (el) el.setAttribute("opacity", ja ? "1" : "0");
+      if (el) schreibAttr(el, "opacity", ja ? "1" : "0");
     };
     sichtbar("kamin-schein", an);
     sichtbar("kamin-flamme", an);
@@ -735,7 +744,7 @@ export const aktualisierenKarte = {
       this._animState.delete("kamin-feuer");
       this._animState.delete("kamin-glut");
       if (feuer) feuer.removeAttribute("transform");
-      if (glut) glut.setAttribute("opacity", "0.3");
+      if (glut) schreibAttr(glut, "opacity", "0.3");
     }
   },
 
@@ -746,11 +755,11 @@ export const aktualisierenKarte = {
 
     const set = (id, text) => {
       const el = this._animEl(id);
-      if (el) el.textContent = text;
+      if (el) schreibText(el, text);
     };
     const paint = (id, color) => {
       const el = this._animEl(id);
-      if (el) el.setAttribute("stop-color", color);
+      if (el) schreibAttr(el, "stop-color", color);
     };
 
     paint(`rad${n}-top`, col(water));
@@ -793,12 +802,12 @@ export const aktualisierenKarte = {
       el.classList.toggle("is-on", aktiv);
       // Mit Puffer tragen beide die Puffertemperatur, ohne Puffer der
       // Zulauf den Vorlauf und der Abgang den Ruecklauf der Waermepumpe.
-      el.style.stroke = d ? (i === 0 ? d.vl : d.rl) : col(buf);
+      schreibStil(el, "stroke", d ? (i === 0 ? d.vl : d.rl) : col(buf));
       if (aktiv) {
         this._animState.set(id, { type: "flow", reverse: false });
       } else {
         this._animState.delete(id);
-        el.setAttribute("stroke-dashoffset", "0");
+        schreibAttr(el, "stroke-dashoffset", "0");
       }
     });
 
@@ -810,7 +819,7 @@ export const aktualisierenKarte = {
         this._animState.set(`hk${n}-waerme`, { type: "pulse", duration: 2.4, min: 0.25, max: 0.85 });
       } else {
         this._animState.delete(`hk${n}-waerme`);
-        waerme.setAttribute("opacity", sichtbar ? "0.7" : "0");
+        schreibAttr(waerme, "opacity", sichtbar ? "0.7" : "0");
       }
     }
 
@@ -826,7 +835,7 @@ export const aktualisierenKarte = {
    */
   _spin(rotorId, rpm, labelId, unit, festeDauer, erlaubt) {
     const label = this.shadowRoot.getElementById(labelId);
-    if (label) label.textContent = rpm === null ? "--" : `${fmt(rpm, 0)} ${unit}`;
+    if (label) schreibText(label, rpm === null ? "--" : `${fmt(rpm, 0)} ${unit}`);
     const el = this.shadowRoot.getElementById(rotorId);
     if (!el) return;
     const animate = animationAn(this._config);

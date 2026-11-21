@@ -9,6 +9,8 @@
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
 
+import { schreibAttr } from "../hilfsfunktionen.js";
+
 const STILE = ["strahlen", "funkeln", "roehren"];
 const ZELLEN = 15;
 const FUNKEN = [[0.2, 0.3], [0.55, 0.7], [0.8, 0.25], [0.4, 0.55], [0.7, 0.45]];
@@ -140,7 +142,7 @@ export const solarKarte = {
   _solarSonne(an, animate) {
     const deck = (id, wert) => {
       const el = this._animEl(id);
-      if (el) el.setAttribute("opacity", wert);
+      if (el) schreibAttr(el, "opacity", wert);
     };
     deck("solar-sonne", an ? "1" : "0");
     deck("solar-sonne-aus", an ? "0" : "1");

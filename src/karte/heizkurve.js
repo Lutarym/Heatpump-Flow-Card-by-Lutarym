@@ -2,7 +2,7 @@
  * Heizkurven-Dialog.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { clamp, dezimalFuer, escapeHtml, fmt, numState, setzeDezimal, stellbar } from "../hilfsfunktionen.js";
+import { clamp, dezimalFuer, escapeHtml, fmt, numState, runderSchritt, setzeDezimal, stellbar } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 
 export const heizkurveKarte = {
@@ -186,8 +186,7 @@ export const heizkurveKarte = {
     if (!(A_MAX > A_MIN) || !(T_MAX > T_MIN)) return;
     const px = (a) => links + ((clamp(a, A_MIN, A_MAX) - A_MIN) / (A_MAX - A_MIN)) * (rechts - links);
     const py = (t) => unten - ((clamp(t, T_MIN, T_MAX) - T_MIN) / (T_MAX - T_MIN)) * (unten - oben);
-    const schritt = (bereich, hoechstens) =>
-      [1, 2, 5, 10, 15, 20, 25].find((s) => s >= bereich / hoechstens) || 25;
+    const schritt = (bereich, hoechstens) => runderSchritt(bereich / hoechstens, [1, 2, 5, 10, 15, 20, 25]);
     const marken = (min, max, anzahl) => {
       const s = schritt(max - min, anzahl);
       const raus = [];

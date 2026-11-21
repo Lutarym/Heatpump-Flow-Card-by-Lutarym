@@ -126,7 +126,8 @@ export const tuerKarte = {
     const h = Number(rahmen.getAttribute("height"));
     const k = karte.getBoundingClientRect();
     const r = rahmen.getBoundingClientRect();
-    const kopie = gruppe.cloneNode(true);
+    // Mit den Teilen, die zur fluessigen Animation auf eigenen Ebenen liegen.
+    const kopie = this._vollKopie(gruppe);
     kopie.removeAttribute("class");
     kopie.querySelectorAll("[id]").forEach((n) => {
       // Der Weichzeichner kostet bei jedem Bild Rechenzeit.

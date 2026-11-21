@@ -30,24 +30,13 @@ import { laufanalyseKarte } from "./laufanalyse.js";
 import { warmwasserKarte } from "./warmwasser.js";
 import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
+import { ebenenKarte } from "./ebenen.js";
 import { verlaufKarte } from "./verlauf.js";
 import { HOLD_MS } from "../konstanten.js";
 import { PROFILE, profilFeldnamen } from "../profile.js";
 import { EIGENE_SPRACHEN, SPRACH_STAND, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { gruppenText, t } from "../texte.js";
 
-// Safari und jeder Browser auf iPhone und iPad nutzen WebKit. WebKit gibt
-// bewegten Teilen in einer SVG-Grafik keine eigene Zeichenebene. Gemessen in
-// WebKitGTK 2.52 (gleiche Zeichentechnik): Jedes Bild der Animation kostet
-// etwa 90 % von einem erzwungenen Neuzeichnen der ganzen Karte, und die
-// Schritte kamen ungleichmaessig (16 bis 33 ms). Dort laufen die Bewegungen darum mit hoechstens 30 statt 60
-// Schritten je Sekunde (eigene Festlegung), das halbiert die Zeichenarbeit.
-// Chrome, Edge und Android melden "Chrome/" und bleiben bei 60.
-const UA = typeof navigator !== "undefined" ? String(navigator.userAgent || "") : "";
-const WEBKIT = /AppleWebKit\//.test(UA) && !/(Chrome|Chromium)\//.test(UA);
-// 1000/30 ms, abzueglich Spielraum fuer ungenaue Zeitstempel. Bei 60 Hz
-// zaehlt so jedes zweite Bild, bei 120 Hz jedes vierte.
-const WEBKIT_ABSTAND_MS = 1000 / 30 - 4;
 
 /* ------------------------------------------------------------------ *
  *  Karte
@@ -117,6 +106,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
           if (bewegungReduziert()) {
             if (this._animLoop) cancelAnimationFrame(this._animLoop);
             this._animLoop = null;
+            this._ebenenAufloesen();
           } else if (this._built && !this._animLoop) {
             this._startAnimationLoop();
           }
@@ -212,6 +202,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
         const id = this._e(k);
         if (id) ids.add(id);
       });
+      // Netzstrom heute aus der Integration steht in der Grafik (netzstrom.js).
+      const netz = typeof this._intId === "function" ? this._intId("pv_share_today") : null;
+      if (netz) ids.add(netz);
       this._beobachtet = ids;
       this._beobachtetFuer = this._config;
     }
@@ -465,6 +458,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
     if (this._animLoop) cancelAnimationFrame(this._animLoop);
     this._animTime = 0;
     this._animState.clear();
+    // Der alte Baum wird ersetzt, seine Ebenen mit ihm.
+    this._ebenenAufloesen(true);
 
     const root = document.createElement("div");
     root.innerHTML = `
@@ -573,6 +568,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
     // Animation aus (Editor oder Geraet bei "Automatisch"): keine Schleife.
     if (!animationAn(this._config)) {
       this._animLoop = null;
+      // Ohne Bewegung braucht es keine eigenen Ebenen.
+      this._ebenenAufloesen();
       return;
     }
     let lastTime = performance.now();
@@ -582,13 +579,6 @@ export class LutarymHeatpumpCard extends HTMLElement {
       if (this._unsichtbar) {
         // Pausiert, der Beobachter startet die Schleife wieder.
         this._animLoop = null;
-        return;
-      }
-
-      // WebKit: Bild auslassen, bis 1/30 s vergangen ist. Die Zeit laeuft
-      // weiter, das naechste gezeichnete Bild holt sie nach.
-      if (WEBKIT && time - lastTime < WEBKIT_ABSTAND_MS) {
-        this._animLoop = requestAnimationFrame(tick);
         return;
       }
 
@@ -602,6 +592,16 @@ export class LutarymHeatpumpCard extends HTMLElement {
       if (!sr) {
         this._animLoop = requestAnimationFrame(tick);
         return;
+      }
+
+      // Bewegte Teile auf eigene Ebenen legen (ebenen.js), sobald die
+      // Karte sichtbar ist. Nach Aenderungen hoechstens einmal je Sekunde
+      // pruefen, ob die Aufteilung noch stimmt.
+      if (!this._ebenen) this._ebenenPlanen();
+      else if (this._ebenen.geaendert && time - this._ebenen.zuletzt > 1000) this._ebenenPruefen();
+      else if (time - (this._ebenen.schwebtGeprueft || 0) > 500) {
+        this._ebenen.schwebtGeprueft = time;
+        this._ebenenSchweben();
       }
 
       // Flowdots animieren (stroke-dashoffset)
@@ -724,6 +724,7 @@ Object.assign(
   dialogKarte,
   hilfeKarte,
   tuerKarte,
+  ebenenKarte,
   grafikQuerKarte,
   grafikKlassischKarte,
   solarKarte,

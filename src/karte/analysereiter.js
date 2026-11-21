@@ -247,12 +247,15 @@ export const analyseReiterKarte = {
       const g = (s.eigen + s.netz) / 1000;
       const werte = { h: z(g > 0 ? (100 * s.eigen) / 1000 / g : 0, 0), g: z(g, 1), n: z(s.netz / 1000, 1), e: z(s.eigen / 1000, 1) };
       const sg = this._stromSg(sd.t0, sd.t1);
-      let kurz = tf(t("sp_kurz"), werte);
+      // "24 Stunden" ist im Reiter Strom & PV der heutige Tag (5.33.1).
+      const heute = sd.tage === 1;
+      let kurz = tf(t(heute ? "sp_kurz_heute" : "sp_kurz"), werte);
       if (sg && !sg.aktivMs) kurz += ` ${t("sp_kurz_sg_nie")}`;
       else if (sg) {
         kurz += ` ${tf(t(sg.anteilWp !== null ? "sp_kurz_sg" : "sp_kurz_sg_zeit"), { d: dauerText(sg.aktivMs), s: z(sg.anteilWp !== null ? sg.anteilWp : sg.anteilZeit, 0) })}`;
       }
-      punkt({ gruppe: "anlage", id: "pv", stufe: "info", titel: t("an_t_pv"), wert: `${werte.h} %`, wertText: t("sp_w_pv"), text: tf(t("sp_pv_text"), werte), kurz });
+      punkt({ gruppe: "anlage", id: "pv", stufe: "info", titel: t("an_t_pv"), wert: `${werte.h} %`, wertText: t(heute ? "an_w_pv_karte" : "sp_w_pv"),
+        text: tf(t(heute ? "an_pv_text_karte" : "sp_pv_text"), werte), kurz });
     } else if ((!pv || pv.zahl === null) && eigen && eigen.quelle === "karte" && Number.isFinite(eigen.anteil)) {
       const werte = { h: z(Math.min(100, Math.max(0, eigen.anteil)), 0), n: z(eigen.netz, 1), g: z(eigen.gesamt, 1) };
       punkt({ gruppe: "anlage", id: "pv", stufe: "info", titel: t("an_t_pv"), wert: `${werte.h} %`, wertText: t("an_w_pv_karte"),
@@ -429,7 +432,7 @@ export const analyseReiterKarte = {
         // Zeitraum laut Karte (stromreiter.js): Strom, eigener Strom, Netz.
         const s = sd.summe;
         const g = (s.eigen + s.netz) / 1000;
-        k(t("sp_k_wp"), `${z(g, 1)} kWh`, t("sp_k_wp_s"));
+        k(t("sp_k_wp"), `${z(g, 1)} kWh`, t(sd.tage === 1 ? "sp_k_wp_s_heute" : "sp_k_wp_s"));
         k(t("sp_k_eigen"), `${z(s.eigen / 1000, 1)} kWh`, tf(t("sp_k_eigen_s"), { p: z(g > 0 ? (100 * s.eigen) / 1000 / g : 0, 0) }), false, "#22C55E");
         const preis = this._stromPreis();
         k(t("sp_k_netz"), `${z(s.netz / 1000, 1)} kWh`, preis ? tf(t("sp_k_netz_s"), { e: z(((s.netz / 1000) * preis) / 100, 2), p: z(preis, 0) }) : "", false,

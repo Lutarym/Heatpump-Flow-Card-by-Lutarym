@@ -102,7 +102,7 @@ entities:
 | `history_width` | `450` | 使用量グラフの幅、250〜700 |
 | `history_style` | `takte` | 使用量グラフの表示：`takte`（リングとサイクル帯）、`balken`（1時間ごとの棒グラフ）、`leuchten`（光る線とサイクル表示）、`linie`（従来の線） |
 | `sg_style` | `spuren` | SG Ready の表示：`spuren`（状態ごとの行）、`stufen`（階段状の線）、`uhr`（24時間時計）、`band`（幅広の帯と割合バー） |
-| `power_style` | `verlauf` | 分析の「電力と PV」の表示：`verlauf`（太陽の推移）、`bogen`（太陽の弧と過去 7 日間）、`balken`（時間ごとの棒グラフと過去 7 日間のマス目） |
+| `power_style` | `verlauf` | 分析の「電力と PV」の表示：`verlauf`（太陽の推移）、`bogen`（今日の太陽の弧。期間が 2 日以上なら各日も表示）、`balken`（1 時間ごと、3 時間ごと、または 1 日ごとの棒グラフ。期間が 2 日以上なら日と時間のマス目も表示）。期間は暦日で数えます：24 時間は今日の午前 0 時からです |
 | `card_width` | `0` | 幅（ピクセル）、0 で自動 |
 | `card_height` | `0` | 高さ（ピクセル）、0 で自動 |
 | `pipe_inner_mm` | `0` | 配管内径（mm）、流量を色分け、0 で無効 |

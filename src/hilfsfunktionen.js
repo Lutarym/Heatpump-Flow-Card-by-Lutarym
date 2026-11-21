@@ -84,7 +84,8 @@ export function numState(hass, entityId) {
   const st = hass.states[entityId];
   if (!st) return null;
   const v = parseFloat(st.state);
-  return Number.isNaN(v) ? null : v;
+  // Unendlich ist kein Messwert ("Infinity", "1e400").
+  return Number.isFinite(v) ? v : null;
 }
 
 export function rawState(hass, entityId) {
@@ -352,3 +353,50 @@ export function jePixel(reihe, zuX) {
   if (out[out.length - 1] !== letzter) out.push(letzter);
   return out;
 }
+
+/*
+ * Schreiben nur bei Aenderung. Home Assistant meldet sich oft, ohne dass
+ * sich ein Wert der Karte aendert. Gleiche Werte erneut zu setzen, zeichnet
+ * trotzdem neu und loest die Pruefung der Ebenen aus (ebenen.js).
+ */
+export function schreibText(el, wert) {
+  if (!el) return;
+  const s = wert === null || wert === undefined ? "" : String(wert);
+  if (el.textContent !== s) el.textContent = s;
+}
+
+export function schreibAttr(el, name, wert) {
+  if (!el) return;
+  const s = String(wert);
+  if (el.getAttribute(name) !== s) el.setAttribute(name, s);
+}
+
+// Browser schreiben Stilwerte um (Farben). Gemerkt wird darum der gesetzte
+// und der danach gelesene Wert; aendert ihn jemand anders, wird neu gesetzt.
+const STILE = new WeakMap();
+export function schreibStil(el, name, wert) {
+  if (!el) return;
+  let m = STILE.get(el);
+  if (!m) {
+    m = {};
+    STILE.set(el, m);
+  }
+  const v = m[name];
+  if (v && v.roh === wert && el.style[name] === v.ist) return;
+  el.style[name] = wert;
+  m[name] = { roh: wert, ist: el.style[name] };
+}
+
+/**
+ * Runder Achsenschritt, mindestens roh: aus der Liste, darueber 1, 2, 2,5,
+ * 5 oder 10 der passenden Zehnerpotenz. So bleibt die Zahl der Linien auch
+ * bei unsinnig grossen Werten klein.
+ */
+export function runderSchritt(roh, liste) {
+  if (!Number.isFinite(roh) || roh <= 0) return liste[0];
+  const s = liste.find((x) => x >= roh);
+  if (s !== undefined) return s;
+  const basis = Math.pow(10, Math.floor(Math.log10(roh)));
+  return [1, 2, 2.5, 5, 10].map((f) => f * basis).find((x) => x >= roh * (1 - 1e-12));
+}
+

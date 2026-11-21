@@ -2,7 +2,7 @@
  * COP von heute und Jahresarbeitszahl.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { copMittel, fmt, numState } from "../hilfsfunktionen.js";
+import { copMittel, fmt, numState, schreibText } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 import { energie, verlaufsReihe } from "./auswertung.js";
 
@@ -223,11 +223,11 @@ export const kennzahlenKarte = {
     el.querySelectorAll("output[data-jaz]").forEach((o) => {
       const r = this._config.demo ? demo[o.dataset.jaz] : this._jaz && this._jaz[o.dataset.jaz];
       if (!r) {
-        o.textContent = "--";
+        schreibText(o, "--");
         return;
       }
       const w = o.dataset.w;
-      o.textContent = w === "jaz" ? fmt(r.waerme / r.strom, 1) : ganz.format(r[w]);
+      schreibText(o, w === "jaz" ? fmt(r.waerme / r.strom, 1) : ganz.format(r[w]));
       // Reicht die Statistik nicht bis zum 1. Januar zurueck, steht unter
       // der Tabelle, ab wann gerechnet wurde.
       if (r.erster && r.erster - r.ab > 86400000 && (frueh === null || r.erster < frueh)) frueh = r.erster;

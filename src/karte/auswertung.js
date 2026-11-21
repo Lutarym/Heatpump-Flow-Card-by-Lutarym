@@ -120,7 +120,10 @@ export function verlaufsReihe(antwort, id) {
   return ((antwort && id && antwort[id]) || [])
     .map((p) => ({ t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed), s: p.s !== undefined ? p.s : p.state }))
     .filter((p) => !Number.isNaN(p.t))
-    .map((p) => ({ ...p, v: parseFloat(p.s) }));
+    .map((p) => {
+      const v = parseFloat(p.s);
+      return { ...p, v: Number.isFinite(v) ? v : NaN };
+    });
 }
 
 /**
