@@ -329,6 +329,12 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
               ${["spuren", "stufen", "uhr", "band"].map((v) => `<option value="${v}">${this._t(`o_sgstil_${v}`)}</option>`).join("")}
             </select>
           </label>
+          <label class="ed-row">
+            <span>${this._t("e_stromstil")}<em>${this._t("e_stromstil_h")}</em></span>
+            <select id="opt-stromstil">
+              ${["verlauf", "bogen", "balken"].map((v) => `<option value="${v}">${this._t(`o_stromstil_${v}`)}</option>`).join("")}
+            </select>
+          </label>
           <label class="ed-row ed-check">
             <input type="checkbox" id="opt-hilfe">
             <span>${this._t("e_hilfe_zeigen")}<em>${this._t("e_hilfe_zeigen_h")}</em></span>
@@ -528,6 +534,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-vbreite", (el) => put({ history_width: parseInt(el.value, 10) || 450 }));
     bind("opt-vstil", (el) => put({ history_style: el.value }));
     bind("opt-sgstil", (el) => put({ sg_style: el.value }));
+    bind("opt-stromstil", (el) => put({ power_style: el.value }));
     bind("opt-kxmin", (el) => put({ curve_x_min: parseInt(el.value, 10) }));
     bind("opt-kxmax", (el) => put({ curve_x_max: parseInt(el.value, 10) }));
     bind("opt-kymin", (el) => put({ curve_y_min: parseInt(el.value, 10) }));
@@ -785,6 +792,7 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     put("opt-vbreite", String(this._config.history_width || 450));
     put("opt-vstil", this._config.history_style || "takte");
     put("opt-sgstil", this._config.sg_style || "spuren");
+    put("opt-stromstil", this._config.power_style || "verlauf");
     put("opt-kxmin", String(this._config.curve_x_min));
     put("opt-kxmax", String(this._config.curve_x_max));
     put("opt-kymin", String(this._config.curve_y_min));

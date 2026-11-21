@@ -28,8 +28,10 @@
  */
 import { escapeHtml, fmt } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
+import { SG_STATES } from "../konstanten.js";
 import { AUFFAELLIG, BEWERTET, GRENZE, MIT_KNOPF, QUELLEN, RANG, STUFEN } from "./analyse.js";
 import { mittel } from "./auswertung.js";
+import { dauerText } from "./stromreiter.js";
 import { wwLadungen } from "./warmwasser.js";
 
 /** Reiter in ihrer Reihenfolge, ohne den Ueberblick. */
@@ -233,25 +235,25 @@ export const analyseReiterKarte = {
       }
     }
 
-    /* ---- Strom & PV: Heizkosten, PV-Anteil, SG Ready ---- */
-    const preis = [this._int("dhw_cost_per_day"), this._int("dhw_cost_last")]
-      .map((w) => (w ? parseFloat(w.attr.preis_ct_kwh) : NaN))
-      .find((x) => Number.isFinite(x) && x > 0);
-    const heizStrom = laeufe.filter((l) => !l.ww && Number.isFinite(l.eHeiz)).reduce((s, l) => s + l.eHeiz, 0);
-    const mitStrom = laeufe.some((l) => !l.ww && Number.isFinite(l.eHeiz));
-    if (preis && mitStrom) {
-      const kwhTag = heizStrom / tage;
-      const euro = (kwhTag * preis) / 100;
-      const werte = { e: z(euro, 2), k: z(kwhTag, 1), p: z(preis, 1) };
-      punkt({
-        gruppe: "anlage", id: "kosten", stufe: "info", titel: t("an_t_kosten"), wert: `${z(euro, 2)} €`, wertText: tf(t("an_w_kosten"), werte),
-        text: tf(t("an_kosten_text"), werte), kurz: tf(t("an_ku_kosten"), werte), quelle: "integration",
-      });
-    }
+    /* ---- Strom & PV: eigener Strom, Heizkosten, SG Ready ---- */
+    // Der Anteil eigener Strom kommt zuerst, er ist "Kurz gesagt" des Reiters.
+    // Mit Netzbezug und Leistung rechnet die Karte ihn fuer den Zeitraum
+    // (stromreiter.js), sonst wie bisher fuer heute.
+    const sd = typeof this._stromDaten === "function" ? this._stromDaten() : null;
     const pv = this._int("pv_share_today");
-    // Ohne Wert der Integration rechnet die Karte selbst (netzstrom.js).
     const eigen = typeof this._netzHeute === "function" ? this._netzHeute() : null;
-    if ((!pv || pv.zahl === null) && eigen && eigen.quelle === "karte" && Number.isFinite(eigen.anteil)) {
+    if (sd && sd.mitNetz) {
+      const s = sd.summe;
+      const g = (s.eigen + s.netz) / 1000;
+      const werte = { h: z(g > 0 ? (100 * s.eigen) / 1000 / g : 0, 0), g: z(g, 1), n: z(s.netz / 1000, 1), e: z(s.eigen / 1000, 1) };
+      const sg = this._stromSg(sd.t0, sd.t1);
+      let kurz = tf(t("sp_kurz"), werte);
+      if (sg && !sg.aktivMs) kurz += ` ${t("sp_kurz_sg_nie")}`;
+      else if (sg) {
+        kurz += ` ${tf(t(sg.anteilWp !== null ? "sp_kurz_sg" : "sp_kurz_sg_zeit"), { d: dauerText(sg.aktivMs), s: z(sg.anteilWp !== null ? sg.anteilWp : sg.anteilZeit, 0) })}`;
+      }
+      punkt({ gruppe: "anlage", id: "pv", stufe: "info", titel: t("an_t_pv"), wert: `${werte.h} %`, wertText: t("sp_w_pv"), text: tf(t("sp_pv_text"), werte), kurz });
+    } else if ((!pv || pv.zahl === null) && eigen && eigen.quelle === "karte" && Number.isFinite(eigen.anteil)) {
       const werte = { h: z(Math.min(100, Math.max(0, eigen.anteil)), 0), n: z(eigen.netz, 1), g: z(eigen.gesamt, 1) };
       punkt({ gruppe: "anlage", id: "pv", stufe: "info", titel: t("an_t_pv"), wert: `${werte.h} %`, wertText: t("an_w_pv_karte"),
         text: tf(t("an_pv_text_karte"), werte), kurz: tf(t("an_pv_text_karte"), werte) });
@@ -266,6 +268,18 @@ export const analyseReiterKarte = {
           quelle: "integration" });
       }
     }
+    const preis = this._stromPreis();
+    const heizStrom = laeufe.filter((l) => !l.ww && Number.isFinite(l.eHeiz)).reduce((s, l) => s + l.eHeiz, 0);
+    const mitStrom = laeufe.some((l) => !l.ww && Number.isFinite(l.eHeiz));
+    if (preis && mitStrom) {
+      const kwhTag = heizStrom / tage;
+      const euro = (kwhTag * preis) / 100;
+      const werte = { e: z(euro, 2), k: z(kwhTag, 1), p: z(preis, 1) };
+      punkt({
+        gruppe: "anlage", id: "kosten", stufe: "info", titel: t("an_t_kosten"), wert: `${z(euro, 2)} €`, wertText: tf(t("an_w_kosten"), werte),
+        text: tf(t("an_kosten_text"), werte), kurz: tf(t("an_ku_kosten"), werte), quelle: "integration",
+      });
+    }
     const sgAn = this._intZahl("top149");
     if (sgAn !== null) {
       const pz = (x) => {
@@ -278,7 +292,7 @@ export const analyseReiterKarte = {
       };
       const werte = { h1: pz("top154"), w1: pz("top155"), h2: pz("top156"), w2: pz("top157"), ph1: kw("top185"), pw1: kw("top184"), ph2: kw("top188"), pw2: kw("top187") };
       punkt({
-        gruppe: "anlage", id: "sgein", stufe: "info", titel: t("an_t_sgein"), wert: t(sgAn > 0 ? "an_an" : "an_aus"),
+        gruppe: "anlage", id: "sgein", stufe: "info", titel: t("an_t_sgein"), wert: t(sgAn > 0 ? "an_sg_ein" : "an_sg_aus"),
         text: sgAn > 0 ? tf(t("an_sgein_text"), werte) : t("an_sgein_aus"), kurz: sgAn > 0 ? tf(t("an_ku_sgein"), werte) : t("an_sgein_aus"),
         quelle: "hm_topics",
       });
@@ -326,9 +340,10 @@ export const analyseReiterKarte = {
     const t = (k) => this._t(k);
     const z = (v, s = 1) => fmt(v, s);
     const out = [];
-    const k = (n, w, s, warn) => {
+    // farbe: kleines Farbfeld vor dem Namen, wie in der Legende der Grafik.
+    const k = (n, w, s, warn, farbe) => {
       if (w === null || w === undefined || w === "" || w === "--") return;
-      out.push({ n, w: String(w), s: s || "", warn: Boolean(warn) });
+      out.push({ n, w: String(w), s: s || "", warn: Boolean(warn), farbe: farbe || "" });
     };
     const ausPunkt = (id, n) => {
       const p = punkte.find((x) => x.id === id);
@@ -409,18 +424,37 @@ export const analyseReiterKarte = {
       ausPunkt("copww", t("an_k_copww"));
       ausPunkt("jaz", t("an_k_jaz"));
     } else if (r === "strom") {
-      const netz = typeof this._netzHeute === "function" ? this._netzHeute() : null;
-      if (netz) k(t("netzstrom_heute"), `${z(netz.netz, 1)} kWh`, netz.quelle === "integration" ? intS : t("an_q_karte"));
-      if (netz && netz.quelle === "karte" && Number.isFinite(netz.anteil)) k(t("an_k_pv_heute"), `${z(Math.min(100, Math.max(0, netz.anteil)), 0)} %`, t("an_q_karte"));
-      const pv = iv("pv_share_today");
-      if (pv && pv.zahl !== null) {
-        k(t("an_k_pv_heute"), `${z(pv.zahl, 0)} %`, intS);
-        if (Number.isFinite(parseFloat(pv.attr.pv_anteil_7_tage))) k(t("an_k_pv_7"), `${z(parseFloat(pv.attr.pv_anteil_7_tage), 0)} %`, intS);
+      const sd = typeof this._stromDaten === "function" ? this._stromDaten() : null;
+      if (sd && sd.mitNetz) {
+        // Zeitraum laut Karte (stromreiter.js): Strom, eigener Strom, Netz.
+        const s = sd.summe;
+        const g = (s.eigen + s.netz) / 1000;
+        k(t("sp_k_wp"), `${z(g, 1)} kWh`, t("sp_k_wp_s"));
+        k(t("sp_k_eigen"), `${z(s.eigen / 1000, 1)} kWh`, tf(t("sp_k_eigen_s"), { p: z(g > 0 ? (100 * s.eigen) / 1000 / g : 0, 0) }), false, "#22C55E");
+        const preis = this._stromPreis();
+        k(t("sp_k_netz"), `${z(s.netz / 1000, 1)} kWh`, preis ? tf(t("sp_k_netz_s"), { e: z(((s.netz / 1000) * preis) / 100, 2), p: z(preis, 0) }) : "", false,
+          "var(--c-55637a)");
+      } else {
+        const netz = typeof this._netzHeute === "function" ? this._netzHeute() : null;
+        if (netz) k(t("netzstrom_heute"), `${z(netz.netz, 1)} kWh`, netz.quelle === "integration" ? intS : t("an_q_karte"));
+        if (netz && netz.quelle === "karte" && Number.isFinite(netz.anteil)) k(t("an_k_pv_heute"), `${z(Math.min(100, Math.max(0, netz.anteil)), 0)} %`, t("an_q_karte"));
+        const pv = iv("pv_share_today");
+        if (pv && pv.zahl !== null) {
+          k(t("an_k_pv_heute"), `${z(pv.zahl, 0)} %`, intS);
+          if (Number.isFinite(parseFloat(pv.attr.pv_anteil_7_tage))) k(t("an_k_pv_7"), `${z(parseFloat(pv.attr.pv_anteil_7_tage), 0)} %`, intS);
+        }
       }
+      // SG Ready: wie lange Stufe 3 oder 4 anlag und welcher Teil des Stroms
+      // in dieser Zeit lief. Ohne die Kontakte K1 und K2 die Einstellung TOP149.
+      const a = this._auswertung;
+      const sg = sd ? this._stromSg(sd.t0, sd.t1) : a ? this._stromSg(a.t0, a.t1) : null;
+      if (sg) {
+        k(t("sp_k_sg"), dauerText(sg.aktivMs), sg.anteilWp !== null ? tf(t("sp_k_sg_wp"), { p: z(sg.anteilWp, 0) }) : tf(t("sp_k_sg_zeit"), { p: z(sg.anteilZeit, 0) }),
+          false, SG_STATES[3].farbe);
+      } else ausPunkt("sgein", t("an_t_sgein"));
       ausPunkt("kosten", t("an_k_heizkosten"));
       const kost = iv("dhw_cost_per_day");
       if (kost && kost.zahl !== null) k(t("an_k_wwkosten"), `${z(kost.zahl, 2)} €`, `${intS}, ${t("an_7t")}`);
-      ausPunkt("sgein", t("an_k_sg"));
     } else if (r === "anlage") {
       ausPunkt("druck", t("an_k_druck"));
       ausPunkt("stoerung", t("an_k_stoerung"));
@@ -503,7 +537,7 @@ export const analyseReiterKarte = {
     const chip = (stufe, kurz) => {
       const st = STUFEN[stufe];
       const stil = st.neutral ? "" : `background:color-mix(in srgb, ${st.css} 14%, transparent)`;
-      return `<i class="lhc-an-chip${st.neutral ? " neutral" : ""}" style="color:${st.css};${stil}">${st.zeichen} ${e(t(kurz ? STUFEN[stufe].zahl || st.text : st.text))}</i>`;
+      return `<i class="lhc-an-chip${st.neutral ? " neutral" : ""}" style="color:${st.css};${stil}">${st.zeichen} ${e(t(kurz ? STUFEN[stufe].zahl || st.text : st.reiter || st.text))}</i>`;
     };
     // Knopf zur Analyse je Lauf (COP unter 92 %), wie im Reiter COP.
     const laeufeKnopf = (p, nr) => {
@@ -596,8 +630,11 @@ export const analyseReiterKarte = {
     const panels = reiter.map((x) => {
       const r = x.r;
       const kacheln = this._anKacheln(r, x.ps)
-        .map((k) => `<div class="lhc-an-kachel${k.warn ? " warn" : ""}"><span>${e(k.n)}</span><b>${e(k.w)}</b>${k.s ? `<small>${e(k.s)}</small>` : ""}</div>`)
+        .map((k) => `<div class="lhc-an-kachel${k.warn ? " warn" : ""}"><span>${k.farbe ? `<i class="lhc-an-mark" style="background:${k.farbe}"></i>` : ""}${e(k.n)}</span>
+          <b>${e(k.w)}</b>${k.s ? `<small>${e(k.s)}</small>` : ""}</div>`)
         .join("");
+      // Strom & PV: die gewaehlte Grafik unter den Kacheln (stromreiter.js).
+      const stromGrafik = r === "strom" && typeof this._stromGrafik === "function" ? this._stromGrafik() : "";
       // Was du tun kannst: auffaellige Punkte mit Schritt, Tipp oder Grund,
       // dazu Schritte und Knoepfe leichter Abweichungen, wo es belegte gibt.
       const schritte = [];
@@ -628,6 +665,7 @@ export const analyseReiterKarte = {
           <div class="lhc-an-ziel">${e(t(`an_rz_${r}`))}</div>
           <div class="lhc-an-kurz" style="border-color:${st.neutral ? "var(--c-3a4557)" : st.css}"><b>${e(t("an_kurz"))}</b><span>${e(kurzVon(x))}</span></div>
           ${kacheln ? `<div class="lhc-an-gruppe">${e(t("an_deine"))}</div><div class="lhc-an-kacheln">${kacheln}</div>` : ""}
+          ${stromGrafik}
           <div class="lhc-an-zwei${grafik ? "" : " eins"}"><div class="lhc-an-box"><b class="lhc-an-boxkopf">${e(t("an_tun"))}</b>${tun}</div>${grafik}</div>
           <details class="lhc-an-klapp" data-klapp="${r}:warum"${offen(`${r}:warum`, true) ? " open" : ""}><summary>${e(t("an_warum"))}</summary>
             <p>${e(t(`an_rw_${r}`))}</p>

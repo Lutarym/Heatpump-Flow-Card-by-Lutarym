@@ -267,6 +267,8 @@ export const diagrammeKarte = {
       this._holeAuswertung();
       if (typeof this._ladeJaz === "function") this._ladeJaz();
       if (typeof this._ladeJahrAussen === "function") this._ladeJahrAussen();
+      // Strom & PV: Leistung, Netzbezug, PV und Sonne (stromreiter.js).
+      if (typeof this._ladeStrom === "function") this._ladeStrom();
       this._zeichneAnalyse();
     }
   },

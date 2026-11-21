@@ -22,6 +22,12 @@ export const stilKarte = {
       .lhc.thema-kontrast { --c-080c12: #000000; --c-0b1017: #000000; --c-0d1219: #000000; --c-0d131b: #000000; --c-0e1620: #131313; --c-0f151e: #111111; --c-0f1826: #1E1E1E; --c-131a24: #212121; --c-161d28: #2A2A2A; --c-1b2431: #383838; --c-1c2533: #3B3B3B; --c-1e2836: #404040; --c-212b39: #454545; --c-222c3a: #474747; --c-232c3a: #474747; --c-26303f: #4E4E4E; --c-2a3446: #555555; --c-2a3b52: #5E5E5E; --c-2b3546: #565656; --c-2e3847: #595959; --c-2e4661: #6B6B6B; --c-33415a: #686868; --c-3a4557: #6B6B6B; --c-3a4658: #6C6C6C; --c-3a4757: #6C6C6C; --c-3e4c61: #747474; --c-46536a: #7D7D7D; --c-55637a: #8E8E8E; --c-55657f: #919191; --c-6b7a90: #A4A4A4; --c-7e8ca0: #B4B4B4; --c-8fa8c8: #CCCCCC; --c-98a6ba: #CACACA; --c-c3d0e0: #EAEAEA; --c-c9d3e0: #EDEDED; --c-ddebfa: #FDFDFD; --c-e8edf4: #FFFFFF; }
       .lhc.thema-nacht { --c-080c12: #030507; --c-0b1017: #030507; --c-0d1219: #030507; --c-0d131b: #030507; --c-0e1620: #040709; --c-0f151e: #040608; --c-0f1826: #06080B; --c-131a24: #07090B; --c-161d28: #080B0D; --c-1b2431: #0C0E11; --c-1c2533: #0C0F12; --c-1e2836: #0E1014; --c-212b39: #0F1216; --c-222c3a: #101316; --c-232c3a: #101316; --c-26303f: #121519; --c-2a3446: #14171C; --c-2a3b52: #171B1F; --c-2b3546: #15181C; --c-2e3847: #16191D; --c-2e4661: #1C2025; --c-33415a: #1B1F24; --c-3a4557: #1C2026; --c-3a4658: #1D2126; --c-3a4757: #1D2126; --c-3e4c61: #20242A; --c-46536a: #24282E; --c-55637a: #2B3038; --c-55657f: #2D3239; --c-6b7a90: #363C45; --c-7e8ca0: #3F464F; --c-8fa8c8: #4D5460; --c-98a6ba: #4C535F; --c-c3d0e0: #606977; --c-c9d3e0: #616A79; --c-ddebfa: #6D7787; --c-e8edf4: #6E7888; }
       .lhc.thema-ha { --c-080c12: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0b1017: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0d1219: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0d131b: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 0%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0e1620: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 1%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0f151e: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 1%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-0f1826: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 3%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-131a24: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 3%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-161d28: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 5%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-1b2431: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 8%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-1c2533: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 9%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-1e2836: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 10%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-212b39: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 11%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-222c3a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 12%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-232c3a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 12%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-26303f: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 14%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2a3446: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 16%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2a3b52: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 19%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2b3546: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 16%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2e3847: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 17%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-2e4661: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-33415a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 22%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3a4557: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3a4658: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3a4757: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 24%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-3e4c61: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 27%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-46536a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 31%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-55637a: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 38%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-55657f: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 39%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-6b7a90: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 48%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-7e8ca0: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 56%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-8fa8c8: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 69%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-98a6ba: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 68%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-c3d0e0: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 87%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-c9d3e0: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 88%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-ddebfa: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 99%, var(--ha-card-background, var(--card-background-color, #0D131B))); --c-e8edf4: color-mix(in srgb, var(--primary-text-color, #E8EDF4) 100%, var(--ha-card-background, var(--card-background-color, #0D131B))); }
+      /* Farbe fuer "nur Messwerte" je Thema (5.33.0). */
+      .lhc { --c-info: #60A5FA; }
+      .lhc.thema-hell { --c-info: #2563EB; }
+      .lhc.thema-kontrast { --c-info: #93C5FD; }
+      .lhc.thema-nacht { --c-info: #3B5E8C; }
+      .lhc.thema-ha { --c-info: var(--info-color, #60A5FA); }
       [fill="#080C12" i] { fill: var(--c-080c12); }
       [stroke="#080C12" i] { stroke: var(--c-080c12); }
       [stop-color="#080C12" i] { stop-color: var(--c-080c12); }
@@ -621,7 +627,9 @@ export const stilKarte = {
       .lhc-an-dot.leicht { background: var(--c-98a6ba); }
       .lhc-an-dot.hinweis { background: #F59E0B; }
       .lhc-an-dot.pruefen { background: #EF4444; }
-      .lhc-an-dot.info, .lhc-an-dot.unbekannt { background: transparent; border: 1.5px solid var(--c-98a6ba); width: 8px; height: 8px; }
+      .lhc-an-dot.unbekannt { background: transparent; border: 1.5px solid var(--c-98a6ba); width: 8px; height: 8px; }
+      /* Nur Messwerte: blau statt grau (5.33.0). */
+      .lhc-an-dot.info { background: var(--c-info); }
       .lhc-an-chip { margin-left: auto; padding: 1px 9px; border-radius: 9px; font-style: normal; font-size: 11.5px; white-space: nowrap; }
       .lhc-an-chip.neutral { border: 1px solid color-mix(in srgb, currentColor 50%, transparent); }
       .lhc-an-zeile { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 8px; padding: 10px 14px; text-align: left;
@@ -687,6 +695,89 @@ export const stilKarte = {
       /* Warum ein auffaelliger Punkt keinen Vorschlag hat. */
       .lhc-an-karte p.lhc-an-ohne { margin-top: 6px; font-size: 12px; color: var(--c-98a6ba); }
       .lhc-an-box li .lhc-an-ohne { display: block; margin-top: 4px; font-size: 12px; color: var(--c-98a6ba); }
+      /* Strom & PV (5.33.0): drei Darstellungen, siehe stromreiter.js. */
+      .lhc-an-mark { display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 2px; vertical-align: -1px; }
+      .lhc-sp-box { margin-top: 12px; }
+      .lhc-an-box p.lhc-sp-hinweis { margin: 2px 0; color: var(--c-98a6ba); }
+      .lhc-sp-a { display: grid; grid-template-columns: 46px minmax(0, 1fr); column-gap: 8px; row-gap: 5px; align-items: center; margin-top: 12px; }
+      .lhc-sp-y { position: relative; height: 190px; }
+      .lhc-sp-y span { position: absolute; right: 0; transform: translateY(-50%); font-size: 11px; color: var(--c-7e8ca0); white-space: nowrap; }
+      .lhc-sp-flaeche { position: relative; height: 190px; min-width: 0; }
+      .lhc-sp-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+      .lhc-sp-gl { stroke: var(--c-26303f); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .lhc-sp-null { stroke: var(--c-46536a); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .lhc-sp-nacht { fill: #000000; opacity: 0.3; }
+      .lhc.thema-hell .lhc-sp-nacht { opacity: 0.09; }
+      .lhc-sp-pvf { fill: #FBBF24; opacity: 0.22; }
+      .lhc-sp-pvl { fill: none; stroke: #FBBF24; stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+      .lhc-sp-pvl.dick { stroke-width: 3; }
+      .lhc-sp-eigen { fill: #22C55E; opacity: 0.92; }
+      .lhc-sp-netz { fill: var(--c-55637a); opacity: 0.95; }
+      .lhc-sp-svg rect.teil { opacity: 0.4; }
+      .lhc-sp-hit { position: absolute; top: 0; bottom: 0; }
+      .lhc-sp-hit:hover { background: rgba(255, 255, 255, 0.06); }
+      .lhc.thema-hell .lhc-sp-hit:hover { background: rgba(0, 0, 0, 0.05); }
+      .lhc-sp-sonne { position: absolute; width: 30px; height: 30px; transform: translate(-50%, -100%); pointer-events: none; }
+      .lhc-sp-sonne svg { display: block; width: 100%; height: 100%; }
+      .lhc-sp-zeit { position: absolute; top: 4px; transform: translateX(-50%); font-size: 11.5px; color: var(--c-c3d0e0); white-space: nowrap; pointer-events: none; }
+      .lhc-sp-zeit.a { transform: none; }
+      .lhc-sp-zeit.e { transform: translateX(-100%); }
+      .lhc-sp-x { position: relative; height: 15px; min-width: 0; }
+      .lhc-sp-x span { position: absolute; top: 0; transform: translateX(-50%); font-size: 11px; color: var(--c-7e8ca0); white-space: nowrap; }
+      .lhc-sp-x span.a { transform: none; }
+      .lhc-sp-x span.e { transform: translateX(-100%); }
+      .lhc-sp-sgname { font-size: 11px; color: var(--c-98a6ba); text-align: right; white-space: nowrap; }
+      .lhc-sp-band, .lhc-sp-marken { position: relative; height: 12px; min-width: 0; }
+      .lhc-sp-band { border-radius: 3px; background: var(--c-26303f); overflow: hidden; }
+      .lhc-sp-band i, .lhc-sp-marken i { position: absolute; top: 0; bottom: 0; }
+      .lhc-sp-marken i { top: 2px; bottom: 1px; border-radius: 5px; }
+      .lhc-sp-leg { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12px; color: var(--c-98a6ba); }
+      .lhc-sp-leg.mitte { justify-content: center; margin-top: 6px; }
+      .lhc-sp-leg span { display: inline-flex; align-items: center; gap: 6px; }
+      .lhc-sp-leg i { display: inline-block; flex: 0 0 auto; width: 12px; height: 12px; border-radius: 3px; box-sizing: border-box; }
+      .lhc-sp-fuss { margin-top: 4px; font-size: 11.5px; color: var(--c-7e8ca0); }
+      /* Sonnenbogen: links der Bogen, rechts SG Ready und die letzten 7 Tage. */
+      .lhc-sp-reihe { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+      .lhc-sp-reihe > .lhc-sp-box, .lhc-sp-spalte > .lhc-sp-box { margin-top: 0; }
+      .lhc-sp-breit { flex: 1.55 1 380px; min-width: 0; }
+      .lhc-sp-spalte { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+      .lhc-sp-bogen { position: relative; max-width: 460px; margin: 4px auto 0; }
+      .lhc-sp-bogen svg { display: block; width: 100%; height: auto; }
+      .lhc-sp-bh { fill: none; stroke: var(--c-1c2533); }
+      .lhc-sp-be { fill: none; stroke: #22C55E; }
+      .lhc-sp-bn { fill: none; stroke: var(--c-55637a); }
+      .lhc-sp-mitte { position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%); text-align: center; white-space: nowrap; }
+      .lhc-sp-mitte b { display: block; font-size: 40px; line-height: 1.05; color: #22C55E; }
+      .lhc-sp-mitte b.grau { font-size: 30px; color: var(--c-e8edf4); }
+      .lhc-sp-mitte span { display: block; font-size: 13px; color: var(--c-c3d0e0); }
+      .lhc-sp-mitte small { display: block; margin-top: 2px; font-size: 12px; color: var(--c-98a6ba); }
+      .lhc-sp-zeiten { display: flex; justify-content: space-between; gap: 10px; max-width: 460px; margin: 2px auto 0; font-size: 12px; color: var(--c-c3d0e0); }
+      .lhc-sp-zwei { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+      .lhc-sp-zwei .lhc-an-kachel { text-align: center; }
+      .lhc-sp-sgbox { text-align: center; }
+      .lhc-sp-sgbox .lhc-an-boxkopf { text-align: left; }
+      .lhc-sp-ring { display: block; width: 120px; height: 120px; margin: 0 auto; }
+      .lhc-sp-sgzeile { margin-top: 4px; font-size: 13px; color: var(--c-c3d0e0); }
+      .lhc-sp-tage { display: flex; gap: 6px; height: 150px; }
+      .lhc-sp-tag { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+      .lhc-sp-platz { position: relative; flex: 1 1 auto; width: 100%; margin-top: 20px; }
+      .lhc-sp-saeule { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 40px; display: flex; flex-direction: column;
+        border-radius: 4px 4px 0 0; overflow: hidden; }
+      .lhc-sp-saeule .n { display: block; background: var(--c-55637a); }
+      .lhc-sp-saeule .g { display: block; background: #22C55E; }
+      .lhc-sp-prozent { position: absolute; left: -4px; right: -4px; text-align: center; font-style: normal; font-size: 12.5px; font-weight: 700;
+        color: var(--c-c3d0e0); white-space: nowrap; }
+      .lhc-sp-prozent.gut { color: #22C55E; }
+      .lhc-sp-tag b { margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--c-98a6ba); white-space: nowrap; }
+      .lhc-sp-tag.heute b { color: var(--c-e8edf4); font-weight: 600; }
+      /* Raster der letzten 7 Tage: je Stunde der Anteil eigener Strom. */
+      .lhc-sp-raster { display: grid; grid-template-columns: max-content repeat(24, minmax(0, 1fr)); gap: 3px; align-items: center; margin-top: 4px; }
+      .lhc-sp-raster b { padding-right: 4px; font-size: 11.5px; font-weight: 400; color: var(--c-98a6ba); white-space: nowrap; }
+      .lhc-sp-raster b.heute { color: var(--c-e8edf4); font-weight: 600; }
+      .lhc-sp-raster i { display: block; height: 16px; border-radius: 3px; }
+      .lhc-sp-raster i.aus { box-sizing: border-box; border: 1px solid var(--c-26303f); }
+      .lhc-sp-raster i.leer { visibility: hidden; }
+      .lhc-sp-rx { grid-column: span 6; font-size: 11px; color: var(--c-7e8ca0); }
       /* Bestaetigung: liegt genau ueber dem Analysefenster. */
       .lhc-an-modal {
         position: fixed; z-index: 100; display: flex; align-items: center; justify-content: center;

@@ -178,6 +178,7 @@ export const DEFAULT_CONFIG = {
   history_width: 450,
   history_style: "takte",
   sg_style: "spuren",
+  power_style: "verlauf",
   curve_x_min: -20,
   curve_x_max: 20,
   curve_y_min: 20,

@@ -121,7 +121,9 @@ export const STUFEN = {
   leicht: { farbe: "#98A6BA", css: "var(--c-98a6ba)", zeichen: "ⓘ", text: "an_leicht", zahl: "an_z_leicht" },
   hinweis: { farbe: "#F59E0B", css: "#F59E0B", zeichen: "!", text: "an_hinweis", zahl: "an_z_hinweis" },
   pruefen: { farbe: "#EF4444", css: "#EF4444", zeichen: "✕", text: "an_pruefen", zahl: "an_z_pruefen" },
-  info: { farbe: "#7E8CA0", css: "var(--c-98a6ba)", zeichen: "◦", text: "an_info", neutral: true },
+  // Nur Messwerte: blau statt grau, damit es nicht wie eine Abweichung
+  // aussieht (5.33.0). Im Reiterkopf steht "Messwerte".
+  info: { farbe: "#60A5FA", css: "var(--c-info)", zeichen: "ⓘ", text: "an_info", reiter: "an_info_reiter" },
   unbekannt: { farbe: "#7E8CA0", css: "var(--c-7e8ca0)", zeichen: "?", text: "an_unbekannt", neutral: true },
 };
 

@@ -102,6 +102,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `history_width` | `450` | Breite des Verbrauchsverlaufs, 250 bis 700 |
 | `history_style` | `takte` | Darstellung des Verbrauchs: `takte` (Ring und Taktband), `balken` (Balken je Stunde), `leuchten` (leuchtende Linie mit Taktmarken), `linie` (bisherige Linie) |
 | `sg_style` | `spuren` | Darstellung von SG Ready: `spuren` (Spuren je Zustand), `stufen` (Stufenlinie), `uhr` (24-Stunden-Uhr), `band` (breites Band mit Anteilsleiste) |
+| `power_style` | `verlauf` | Darstellung von Strom & PV in der Analyse: `verlauf` (Sonnenverlauf), `bogen` (Sonnenbogen mit den letzten 7 Tagen), `balken` (Stundenbalken mit Raster der letzten 7 Tage) |
 | `card_width` | `0` | Breite in Pixeln, 0 ist automatisch |
 | `card_height` | `0` | Höhe in Pixeln, 0 ist automatisch |
 | `pipe_inner_mm` | `0` | Rohrinnendurchmesser in mm, färbt den Durchfluss, 0 ist aus |

@@ -102,6 +102,7 @@ Les identifiants sont les noms par défaut de la carte. Vos entités peuvent por
 | `history_width` | `450` | Largeur du graphique, 250 à 700 |
 | `history_style` | `takte` | Style du graphique de consommation : `takte` (anneau et bande des cycles), `balken` (barres par heure), `leuchten` (ligne lumineuse avec repères de cycles), `linie` (ligne précédente) |
 | `sg_style` | `spuren` | Style du graphique SG Ready : `spuren` (une ligne par état), `stufen` (ligne en escalier), `uhr` (horloge 24 heures), `band` (large bande avec barre des parts) |
+| `power_style` | `verlauf` | Style du graphique Électricité & PV dans l'analyse : `verlauf` (course du soleil), `bogen` (arc du soleil avec les 7 derniers jours), `balken` (barres horaires avec une grille des 7 derniers jours) |
 | `card_width` | `0` | Largeur en pixels, 0 = automatique |
 | `card_height` | `0` | Hauteur en pixels, 0 = automatique |
 | `pipe_inner_mm` | `0` | Diamètre intérieur en mm, colore le débit, 0 = désactivé |
