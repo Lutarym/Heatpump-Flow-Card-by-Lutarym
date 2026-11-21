@@ -335,7 +335,7 @@ export const auswertungKarte = {
     // Puffer und der Startzaehler (TOP12) zum Abgleich der gezaehlten Laeufe.
     const felder = ["compressor", "three_way_valve", "cop_heating", "cop_dhw", "outside_temp", "flow_temp",
       "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts", "pump_flow",
-      "sg_k1", "sg_k2", "dhw_temp", "hk1_room_temp", "hk2_room_temp"];
+      "sg_k1", "sg_k2", "dhw_temp", "hk1_room_temp", "hk2_room_temp", "water_pressure"];
     const ids = felder.map((f) => this._e(f));
     if (!ids[0] || !this._hass || typeof this._hass.callWS !== "function") {
       this._auswertung = null;
@@ -364,7 +364,7 @@ export const auswertungKarte = {
         if (this._zrSchluessel() !== sp.k) return;
         const reihe = (id) => verlaufsReihe(antwort, id);
         const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss, k1, k2,
-          wwTemp, raum1, raum2] = ids.map(reihe);
+          wwTemp, raum1, raum2, druck] = ids.map(reihe);
         const [heizW, heizE, wwW, wwE] = leistung.map((id) => (id ? reihe(id) : null));
         // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
         const erster = vd.length ? vd[0].t : t0;
@@ -373,8 +373,9 @@ export const auswertungKarte = {
           t0: t0e, t1: jetzt, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts,
           durchfluss,
           heizW, heizE, wwW, wwE,
-          // Speichertemperatur (TOP10) und Raumfuehler fuer die Analyse.
-          wwTemp, raum1, raum2,
+          // Speichertemperatur (TOP10), Raumfuehler und Anlagendruck (TOP115)
+          // fuer die Analyse.
+          wwTemp, raum1, raum2, druck,
           // SG Ready nur mit beiden Kontakten erkennbar.
           sg: ids[14] && ids[15] ? sgReihe(k1, k2) : null,
         };
@@ -397,7 +398,7 @@ export const auswertungKarte = {
       const teile = tage.map((a, k) => this._auswertungDemoTag(a, a + 86400000, (k % 5) - 2 - (tage.length - k) * 0.05));
       const out = { t0: tage[0], t1 };
       ["vd", "ventil", "copH", "copW", "aussen", "vorlauf", "ruecklauf", "abtau", "stabIntern", "stabExtern", "kreis1", "kreis2", "durchfluss", "sg",
-        "heizW", "heizE", "wwW", "wwE", "wwTemp", "raum1", "raum2"].forEach((f) => {
+        "heizW", "heizE", "wwW", "wwE", "wwTemp", "raum1", "raum2", "druck"].forEach((f) => {
         out[f] = teile.flatMap((x) => x[f]).sort((x, y) => x.t - y.t);
       });
       out.starts = this._auswertungDemoZaehler(out.vd);
@@ -512,8 +513,11 @@ export const auswertungKarte = {
       raum1.push({ t, s: "", v: 21.6 + 0.3 * welle });
       raum2.push({ t, s: "", v: 19.1 + 0.2 * welle });
     }
+    // Anlagendruck im Demomodus (nachgebildet): steigt mit dem Vorlauf,
+    // 1,9 bar kalt bis etwa 2,3 bar warm.
+    const druck = vorlauf.map((p) => ({ t: p.t, s: "", v: Math.round((1.9 + Math.max(0, p.v - 25) * 0.02) * 100) / 100 }));
     return { t0, t1, vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, durchfluss, sg,
-      heizW, heizE, wwW, wwE, wwTemp, raum1, raum2 };
+      heizW, heizE, wwW, wwE, wwTemp, raum1, raum2, druck };
   },
 
   /**

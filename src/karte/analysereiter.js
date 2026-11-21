@@ -53,12 +53,12 @@ const WARUM_QUELLE = {
   heizkurve: ["ez_heizkurve", "uba_raum", "vorlauf"],
   takten: ["taktung"],
   pumpe: ["spreizung"],
-  warmwasser: ["warmwasser", "legionellen", "wirkungsgrad"],
+  warmwasser: ["warmwasser", "dvgw_ww", "legionellen", "wirkungsgrad"],
   heizstab: ["heizstab", "bivalenz"],
   abtauen: ["abtauung"],
   effizienz: ["wirkungsgrad", "jaz"],
   strom: ["integration", "hm_topics"],
-  anlage: ["druck", "hm_firmware", "hm_topics"],
+  anlage: ["druck", "pana_mag", "reflex_druck", "hm_firmware"],
 };
 
 const WOCHENTAGE = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -332,9 +332,11 @@ export const analyseReiterKarte = {
     } else if (r === "warmwasser") {
       const soll = this._anWert("dhw_setpoint");
       const delta = this._anWert("dhw_heat_delta");
-      if (soll !== null) k(t("an_k_soll"), `${z(soll, 0)} °C`, "TOP9");
-      if (soll !== null && delta !== null) k(t("an_k_nachladen"), `${z(soll - Math.abs(delta), 0)} °C`, tf(t("an_k_nachladen_s"), { d: z(Math.abs(delta), 0) }),
-        soll - Math.abs(delta) < 55);
+      // Hervorgehoben wie die Bewertung: nur ein auffaelliges Soll, nicht
+      // die leichte Abweichung beim Nachladen.
+      const pw = punkte.find((x) => x.id === "warmwasser");
+      if (soll !== null) k(t("an_k_soll"), `${z(soll, 0)} °C`, "TOP9", Boolean(pw && AUFFAELLIG.includes(pw.stufe)));
+      if (soll !== null && delta !== null) k(t("an_k_nachladen"), `${z(soll - Math.abs(delta), 0)} °C`, tf(t("an_k_nachladen_s"), { d: z(Math.abs(delta), 0) }));
       const leg = this._anWert("steril_temp");
       if (leg !== null) k(t("an_k_legionellen"), `${z(leg, 0)} °C`, "TOP70");
       const lad = iv("dhw_charges_24h");
@@ -498,6 +500,11 @@ export const analyseReiterKarte = {
       return { r, ps, stufe: ps.length ? reiterStufe(ps) : "unbekannt", haupt: hauptPunkt(ps) };
     });
     const kurzVon = (x) => (x.haupt ? x.haupt.kurz || x.haupt.text || "" : t("an_tun_leer"));
+    // Auf- und zugeklappt bleibt, wie der Nutzer es gewaehlt hat: Die Analyse
+    // wird bei jedem neuen Messwert neu bewertet und gezeichnet.
+    if (!this._anKlapp) this._anKlapp = {};
+    const klapp = this._anKlapp;
+    const offen = (k, standard) => (k in klapp ? klapp[k] : standard);
 
     /* ---------- Ueberblick ---------- */
     const zahl = { ok: 0, leicht: 0, hinweis: 0, pruefen: 0, info: 0, unbekannt: 0 };
@@ -583,9 +590,11 @@ export const analyseReiterKarte = {
           <div class="lhc-an-kurz" style="border-color:${st.neutral ? "var(--c-3a4557)" : st.css}"><b>${e(t("an_kurz"))}</b><span>${e(kurzVon(x))}</span></div>
           ${kacheln ? `<div class="lhc-an-gruppe">${e(t("an_deine"))}</div><div class="lhc-an-kacheln">${kacheln}</div>` : ""}
           <div class="lhc-an-zwei${grafik ? "" : " eins"}"><div class="lhc-an-box"><b class="lhc-an-boxkopf">${e(t("an_tun"))}</b>${tun}</div>${grafik}</div>
-          <details class="lhc-an-klapp" open><summary>${e(t("an_warum"))}</summary><p>${e(t(`an_rw_${r}`))}</p>
+          <details class="lhc-an-klapp" data-klapp="${r}:warum"${offen(`${r}:warum`, true) ? " open" : ""}><summary>${e(t("an_warum"))}</summary>
+            <p>${e(t(`an_rw_${r}`))}</p>
             ${warumQ ? `<div class="lhc-an-quelle">${e(t("an_quelle"))}: ${warumQ}</div>` : ""}</details>
-          ${x.ps.length ? `<details class="lhc-an-klapp"><summary>${e(t("an_fach"))}</summary><div class="lhc-an-raster">${x.ps.map(karte).join("")}</div></details>` : ""}
+          ${x.ps.length ? `<details class="lhc-an-klapp" data-klapp="${r}:fach"${offen(`${r}:fach`, false) ? " open" : ""}><summary>${e(t("an_fach"))}</summary>
+            <div class="lhc-an-raster">${x.ps.map(karte).join("")}</div></details>` : ""}
         </div>`;
     });
 
@@ -593,10 +602,23 @@ export const analyseReiterKarte = {
       .map(([r, stufe]) => `<button type="button" class="lhc-an-reiter${this._anReiter === r ? " aktiv" : ""}" data-an-reiter="${r}" role="tab"
           aria-selected="${this._anReiter === r}">${stufe ? `<i class="lhc-an-dot ${stufe}"></i>` : ""}${e(t(`an_rt_${r}`))}</button>`)
       .join("");
-    liste.innerHTML = `<div class="lhc-an">${banner}<div class="lhc-an-leiste" role="tablist">${leiste}</div>
+    const html = `<div class="lhc-an">${banner}<div class="lhc-an-leiste" role="tablist">${leiste}</div>
       <div class="lhc-an-panel" data-an-panel="ueberblick"${this._anReiter === "ueberblick" ? "" : " hidden"}>${ueberblick}</div>
       ${panels.join("")}
       <p class="lhc-takt-quelle">${e(t("an_fuss"))}</p></div>`;
+    // Unveraendert: nichts neu zeichnen, damit Klappen, Bildlauf und Auswahl bleiben.
+    if (html === this._anHtml && liste.querySelector(".lhc-an")) return;
+    let scroller = liste;
+    while (scroller && scroller.scrollHeight <= scroller.clientHeight + 1) scroller = scroller.parentElement;
+    const oben = scroller ? scroller.scrollTop : 0;
+    liste.innerHTML = html;
+    this._anHtml = html;
+    if (scroller) scroller.scrollTop = oben;
+    liste.querySelectorAll("details[data-klapp]").forEach((d) => {
+      d.addEventListener("toggle", () => {
+        klapp[d.dataset.klapp] = d.open;
+      });
+    });
     this._anReiterAn(liste);
     liste.querySelectorAll("[data-vorschlag]").forEach((b) => {
       b.addEventListener("click", () => {

@@ -63,15 +63,14 @@
  *  - Abtauung typischerweise 5 bis 15 min, am haeufigsten bei -5 bis +5 °C
  *    (42watt "Abtauen"). Eine Temperaturgrenze fuer "deutliche Plusgrade"
  *    nennt die Quelle nicht, darum dort nur ein Hinweis ohne Bewertung.
- *  - Warmwasser: Das Umweltbundesamt empfiehlt durchgaengig ueber 55 °C,
- *    fuer Ein- und Zweifamilienhaeuser mindestens 55 bis 60 °C
- *    (Trinkwarmwasserkonzepte, 1.11.2023). DVGW: ab 50 °C wird die
- *    Vermehrung von Legionellen wirksam gehemmt (Wissenschaftliche Dienste
- *    des Bundestags, WD 8-3000-021/23). Der Speicher faellt bis Soll plus
- *    TOP22 (negativ), bevor nachgeladen wird.
- *  - Anlagendruck meist 1,2 bis 2,0 bar (Vattenfall, Richtwert; die dort
- *    genannten etwa 0,3 bar sind ein Zuschlag zur Rechnung nach der Hoehe,
- *    1,0 bar je 10 m, gegen Druckverluste, keine Toleranz nach oben).
+ *  - Warmwasser: Fuer private Ein- und Zweifamilienhaeuser gibt es keine
+ *    festen Vorschriften, das Umweltbundesamt empfiehlt 55 bis 60 °C
+ *    (Trinkwarmwasserkonzepte, 1.11.2023). Ohne Zirkulation sehen die
+ *    technischen Regeln dort eine untere Betriebstemperatur von 50 °C vor
+ *    (DVGW, 3/2023). Der Speicher faellt bis Soll plus TOP22 (negativ),
+ *    bevor nachgeladen wird. Einzelheiten beim Punkt Warmwasser.
+ *  - Anlagendruck: bewertet wird der Verlauf im Zeitraum, Grenzen von
+ *    Panasonic und Reflex, Einzelheiten beim Punkt Anlagendruck.
  *    TOP115 gibt es laut HeishaMon nur bei der K- und L-Serie; 0 bar gilt
  *    als kein Messwert (eigene Festlegung).
  *  - JAZ: aus Werten der Waermepumpe seit 1. Januar, nur eingeschraenkt
@@ -97,8 +96,11 @@ export const QUELLEN = {
   en14825: ["Energistyrelsen: SCOP nach EN 14825 (Bin-Verfahren)", "https://ens.dk/media/718/download"],
   abtauung: ["42watt: Abtauen", "https://42watt.de/magazin/warmepumpe-abtauen"],
   warmwasser: ["Umweltbundesamt: Trinkwarmwasserkonzepte (2023)", "https://www.umweltbundesamt.de/sites/default/files/medien/11850/publikationen/factsheet_trinkwarmwasserkonzepte.pdf"],
-  legionellen: ["Bundestag WD 8-3000-021/23 (DVGW)", "https://bundestag.de/resource/blob/947272/cc7cce64da5a0983382949ac996e72ff/WD-8-021-23-pdf-data.pdf"],
-  druck: ["Vattenfall: Wasserdruck der Heizung", "https://www.vattenfall.de/infowelt-energie/nachhaltig-heizen/wasserdruck-der-heizung"],
+  dvgw_ww: ["DVGW: Energieeinsparungen im Warmwasserbereich (2023)", "https://www.dvgw.de/medien/dvgw/leistungen/publikationen/energiesparen-warmwasser-dvgw-langfassung.pdf"],
+  legionellen: ["Bundestag WD 8-3000-021/23 (DVGW)","https://bundestag.de/resource/blob/947272/cc7cce64da5a0983382949ac996e72ff/WD-8-021-23-pdf-data.pdf"],
+  druck: ["Panasonic Aquarea Bedienungsanleitung (2022), S. 17: Wasserdruck 0,05 bis 0,3 MPa", "https://www.panasonicproclub.com/uploads/GB/catalogues/2023/FINAL%20A2W%20END%20USER_MANUAL_2022.pdf"],
+  pana_mag: ["Panasonic Aquarea Hydraulikleitfaden Bi-Bloc H (2018): Ausdehnungsgefäß 1 bar, Sicherheitsventil minus 10 %", "https://www.panasonicproclub.com/uploads/LV/catalogues/A2W%20H-Gen.%20installation%20guide%20EN_18_07_17%20final.pdf"],
+  reflex_druck: ["Reflex: Grundlagen, Drücke im System (RE2237deC, 11/2024)", "https://xom-web.reflex.de/xom-rest/assets/ff58eda9-ebb7-49cd-80e3-e7ea8caee294/content?locale=de"],
   jaz: ["42watt: Jahresarbeitszahl (BEG, Fraunhofer)", "https://42watt.de/magazin/jahresarbeitszahl"],
   ez_heizkurve: ["EnergieSchweiz, Stadt Zürich: Faktenblatt Wärmepumpe, Heizkurve (2023)", "https://www.ewz.ch/content/dam/stzh/energie/Startseite/beratung-froerderung/Faktenblatt_Waermepumpe-Heizkurve.pdf"],
   uba_raum: ["Umweltbundesamt: Heizen, Raumtemperatur", "https://www.umweltbundesamt.de/umwelttipps-fuer-den-alltag/heizen-bauen/heizen-raumtemperatur"],
@@ -804,56 +806,112 @@ export const analyseKarte = {
 
     /* ---------- Warmwasser und Anlage ---------- */
     // Der Speicher faellt bis Soll plus Schaltdifferenz (TOP22, negativ),
-    // erst dann wird nachgeladen. Ab 55 °C in Ordnung (UBA), darunter
-    // ausserhalb der Empfehlung, unter 50 °C pruefen (DVGW).
+    // erst dann wird nachgeladen. Fuer private Ein- und Zweifamilienhaeuser
+    // gibt es keine festen Vorschriften; empfohlen ist, 55 bis 60 °C zu
+    // waehlen (UBA, Trinkwarmwasserkonzepte fuer Gebaeude mit einer
+    // Waermepumpenheizung, 1.11.2023). Ohne Zirkulation sehen die
+    // technischen Regeln dort eine untere Betriebstemperatur von 50 °C vor,
+    // mit Zirkulation gelten die Vorgaben fuer Grossanlagen (DVGW,
+    // Energieeinsparungen im Warmwasserbereich, 3/2023, Abschnitt 3).
+    // Bewertet wird darum (fuer ein Haus ohne Zirkulation; die Grenzen aus
+    // den Quellen, die Stufen eigene Festlegung):
+    //  - Soll unter 55 °C: Hinweis, Vorschlag 55 °C, nicht hoeher.
+    //  - Speicher faellt vor dem Nachladen unter 50 °C: leichte Abweichung,
+    //    Schritt: kleinere Schaltdifferenz (TOP22 erlaubt -12 bis -2 K).
+    //  - Soll ueber 60 °C: leichte Abweichung. Laut UBA beeintraechtigen
+    //    hohe Temperaturen die Effizienz; ueber 60 °C braucht es je nach
+    //    Modell eventuell eine Zusatzheizung. UBA-Beispiel, Typ-EFH: die
+    //    Jahresarbeitszahl der Trinkwassererwaermung sinkt von 3,22 auf
+    //    2,19, wenn von 48 auf 60 °C angehoben und zugleich eine Zirkulation
+    //    betrieben wird.
+    // Die Legionellenschaltung (TOP70) ersetzt das nicht: Das UBA haelt sie
+    // fuer keine sichere Variante, laut DVGW (Abschnitt 5.3) fehlt ein
+    // wissenschaftlicher Nachweis, dass sie Legionellen verringert.
     const wwSoll = this._anWert("dhw_setpoint");
     const wwDelta = this._anWert("dhw_heat_delta");
     const steril = this._anWert("steril_temp");
     if (wwSoll !== null) {
-      const schritt = wwDelta !== null ? Math.abs(wwDelta) : null;
-      const tief = schritt !== null ? wwSoll - schritt : null;
-      const basis = tief !== null ? tief : wwSoll;
+      const diff = wwDelta !== null ? Math.abs(wwDelta) : null;
+      const tief = diff !== null ? wwSoll - diff : null;
       const sollId = this._e("dhw_setpoint");
       const sollSt = sollId && this._quelle.states ? this._quelle.states[sollId] : null;
       const sollMax = sollSt && sollSt.attributes && Number.isFinite(Number(sollSt.attributes.max)) ? Math.min(Number(sollSt.attributes.max), 65) : 65;
+      const lage = wwSoll < 55 ? "unter" : wwSoll > 60 ? "ueber" : "in";
+      const unter50 = tief !== null && tief < 50;
       let stufe = "ok";
-      if (basis < 50) stufe = "pruefen";
-      else if (basis < 55) stufe = "hinweis";
-      const satz = tief !== null
-        ? tf(t("an_ww_satz_tief"), { s: z(wwSoll, 0), d: z(-schritt, 0), m: z(tief, 0) })
-        : tf(t("an_ww_satz_soll"), { m: z(wwSoll, 0) });
-      const urteil = t({ ok: "an_ww_q_ok", hinweis: "an_ww_q_unter", pruefen: "an_ww_q_kritisch" }[stufe]);
+      if (lage === "unter") stufe = "hinweis";
+      else if (unter50 || lage === "ueber") stufe = "leicht";
+      const w = { s: z(wwSoll, 0), d: z(-diff, 0), m: z(tief, 0), x: z(50 - wwSoll, 0) };
+      const satz = tief !== null ? tf(t("an_ww_satz_tief"), w) : tf(t("an_ww_satz_soll"), { m: z(wwSoll, 0) });
+      const urteil = [t("an_ww_q_frei"), t(`an_ww_q_${lage}`)];
+      if (tief !== null) urteil.push(t(unter50 ? "an_ww_q_tief_unter" : "an_ww_q_tief_ok"));
+      if (steril !== null) urteil.push(tf(t("an_ww_steril"), { s: z(steril, 0) }));
       let aktion = null;
-      if (stufe !== "ok") {
-        // Erst das Soll anheben, hoechstens bis zur Grenze des Speichers;
-        // reicht das nicht, die Schaltdifferenz verkleinern (-2 bis -12 K).
-        let neuSoll = Math.min(sollMax, Math.max(wwSoll, 55 + (schritt || 0)));
-        let neuDelta = wwDelta;
-        if (schritt !== null && neuSoll - schritt < 55) neuDelta = -Math.min(12, Math.max(2, neuSoll - 55));
-        if (neuSoll < 55) neuSoll = 55;
-        const tiefNeu = neuDelta !== null ? neuSoll - Math.abs(neuDelta) : neuSoll;
-        aktion = this._anVorschlag(
-          [this._anAenderung("dhw_setpoint", neuSoll, "SetDHWTemp", "°C"),
-            wwDelta !== null && neuDelta !== wwDelta ? this._anAenderung("dhw_heat_delta", neuDelta, "SetDHWHeatDelta", "K") : null],
-          tf(t("an_g_ww"), { m: z(basis, 0), n: z(tiefNeu, 0) })
-        );
+      if (stufe === "hinweis" && sollMax >= 55) {
+        // Nur bis zur unteren Empfehlung von 55 °C, nicht hoeher.
+        aktion = this._anVorschlag([this._anAenderung("dhw_setpoint", 55, "SetDHWTemp", "°C")], tf(t("an_g_ww"), { s: z(wwSoll, 0), n: "55" }));
       }
+      let kurz;
+      if (lage === "unter") kurz = tf(t("an_ku_ww_hinweis"), w);
+      else if (unter50) kurz = tf(t("an_ku_ww_tief"), w);
+      else if (lage === "ueber") kurz = tf(t("an_ku_ww_hoch"), w);
+      else kurz = tf(t(tief !== null ? "an_ku_ww_ok" : "an_ku_ww_ok_soll"), w);
+      // Schritt nur bei leichter Abweichung. Kleinere Schaltdifferenz statt
+      // hoeherem Soll: der Speicher bleibt ueber 50 °C, die Ladungen werden
+      // haeufiger und kuerzer. Ueber 60 °C: auf 60 °C senken; faellt der
+      // Speicher dann unter 50 °C, dazu die Schaltdifferenz auf -10 K.
+      let schritt = "";
+      if (stufe === "leicht" && unter50 && wwSoll - 50 >= 2) schritt = tf(t("an_sr_ww_tief"), w);
+      else if (stufe === "leicht" && !unter50) schritt = t(diff === null || 60 - diff >= 50 ? "an_sr_ww_hoch" : "an_sr_ww_hoch_d");
       const teile = [tief !== null ? tf(t("an_w_ww_tief"), { m: z(tief, 0) }) : t("an_w_ww_soll")];
       if (steril !== null) teile.push(tf(t("an_w_steril"), { s: z(steril, 0) }));
       punkt({
         gruppe: "anlage", id: "warmwasser", stufe, titel: t("an_t_warmwasser"), wert: `${z(wwSoll, 0)} °C`,
-        wertText: teile.join(" · "), richt: t("an_r_warmwasser"), text: `${satz} ${urteil}`,
-        tipp: t(tief !== null ? "an_tip_ww_tief" : "an_tip_ww_niedrig"), quelle: ["warmwasser", "legionellen"], aktion,
+        wertText: teile.join(" · "), richt: t("an_r_warmwasser"), text: `${satz} ${urteil.join(" ")}`,
+        kurz, schritt, tipp: t("an_tip_ww_niedrig"), quelle: ["warmwasser", "dvgw_ww", "legionellen"], aktion,
       });
     }
-    // 0 bar heisst: kein Sensor (TOP115 gibt es nur bei K- und L-Serie).
-    const druck = this._anWert("water_pressure");
-    if (druck !== null && druck > 0.05) {
-      const stufe = druck >= 1.2 && druck <= 2.0 ? "ok" : "hinweis";
+    // Anlagendruck (TOP115): bewertet wird der Verlauf im Zeitraum, nicht der
+    // Momentwert. Beim Aufheizen steigt der Druck, weil sich das Wasser
+    // ausdehnt (Reflex, Grundlagen Druecke im System: Fuelldruck bei
+    // Fuelltemperatur, Enddruck bei der hoechsten Temperatur). Grenzen:
+    //  - Panasonic Bedienungsanleitung: 0,05 bis 0,3 MPa, also 0,5 bis 3,0 bar.
+    //  - Panasonic Hydraulikleitfaden Bi-Bloc H: Ausdehnungsgefaess ab Werk
+    //    mit 1 bar Vordruck; hoechster Druck = Sicherheitsventil minus 10 %,
+    //    meist 2,7 bar.
+    //  - Reflex: Fuelldruck mindestens Vordruck plus 0,3 bar, also 1,3 bar.
+    // 0 bar heisst: kein Sensor (TOP115 gibt es nicht bei jeder Serie).
+    const druckReihe = d && d.druck ? d.druck.filter((p) => Number.isFinite(p.v) && p.v > 0.05) : [];
+    const druckJetzt = this._anWert("water_pressure");
+    if (druckReihe.length || (druckJetzt !== null && druckJetzt > 0.05)) {
+      const MIN = 0.5;
+      const MAX = 3.0;
+      const WARM = 2.7;
+      const KALT = 1.3;
+      const werte = druckReihe.length ? druckReihe : [{ t: Date.now(), v: druckJetzt }];
+      const tief = werte.reduce((a, p) => (p.v < a.v ? p : a));
+      const hoch = werte.reduce((a, p) => (p.v > a.v ? p : a));
+      const vl = (p) => {
+        const i = d && d.vorlauf && druckReihe.length ? indexBis(d.vorlauf, p.t) : -1;
+        return i >= 0 && Number.isFinite(d.vorlauf[i].v) ? d.vorlauf[i].v : null;
+      };
+      const vTief = vl(tief);
+      const vHoch = vl(hoch);
+      let art = "ok";
+      if (tief.v < MIN || hoch.v > MAX) art = "bereich";
+      else if (!druckReihe.length) art = "jetzt";
+      else if (hoch.v > WARM) art = "hoch";
+      else if (tief.v < KALT) art = "niedrig";
+      const stufe = { bereich: "pruefen", jetzt: "info", hoch: "hinweis", niedrig: "hinweis", ok: "ok" }[art];
+      const bei = (v) => (v === null ? "" : tf(t("an_dr_bei"), { v: z(v, 0) }));
+      const w = { min: z(tief.v), max: z(hoch.v), bmin: bei(vTief), bmax: bei(vHoch) };
       punkt({
-        gruppe: "anlage", id: "druck", stufe, titel: t("an_t_druck"), wert: `${z(druck)} bar`, richt: t("an_r_druck"),
-        text: t(stufe === "ok" ? "an_dr_ok" : druck < 1.2 ? "an_dr_niedrig" : "an_dr_hoch"),
-        tipp: t(druck < 1.2 ? "an_tip_dr_niedrig" : "an_tip_dr_hoch"), quelle: "druck", ohne: t("an_ov_druck"),
+        gruppe: "anlage", id: "druck", stufe, titel: t("an_t_druck"),
+        wert: druckReihe.length && hoch.v !== tief.v ? tf(t("an_w_druck_bereich"), w) : `${z(hoch.v)} bar`,
+        wertText: druckReihe.length ? tf(t("an_w_druck"), w) : t("an_w_druck_jetzt"), richt: t("an_r_druck"),
+        text: tf(t(`an_dr_${art}`), w), kurz: tf(t(`an_ku_dr_${art}`), w),
+        tipp: t(art === "niedrig" ? "an_tip_dr_niedrig" : art === "bereich" ? "an_tip_dr_bereich" : "an_tip_dr_hoch"),
+        quelle: ["druck", "pana_mag", "reflex_druck"], ohne: t("an_ov_druck"),
       });
     }
     // JAZ seit 1. Januar: nur Messwert, Vergleichswerte stehen dabei.
