@@ -417,11 +417,11 @@ ${this._defs()}
               text-anchor="middle">--</text>
         <line x1="${MX - 65}" y1="${F + 150}" x2="${MX + 65}" y2="${F + 150}" stroke="#55657F" stroke-width="1"/>
       </g>
-      <g id="pv-group" opacity="0">
-        <text class="sg-label" id="pv-label" x="${MX}" y="${F + 190}" text-anchor="middle">${this._t("netzstrom_heute")}</text>
-        <text class="pv-value" id="pv-v" x="${MX}" y="${F + 228}"
+      <g id="pv-group" opacity="0" data-versatz="-12">
+        <text class="sg-label" id="pv-label" x="${MX}" y="${F + 190}" data-y="${F + 190}" text-anchor="middle">${this._t("netzstrom_heute")}</text>
+        <text class="pv-value" id="pv-v" x="${MX}" y="${F + 228}" data-y="${F + 228}"
               text-anchor="middle">--</text>
-        <text class="pv-anteil" id="pv-anteil" x="${MX}" y="${F + 250}" text-anchor="middle"></text>
+        <text class="pv-anteil" id="pv-anteil" x="${MX}" y="${F + 250}" data-y="${F + 250}" text-anchor="middle"></text>
         <line x1="${MX - 65}" y1="${F + 257}" x2="${MX + 65}" y2="${F + 257}" stroke="#55657F" stroke-width="1"/>
       </g>
       <g id="verbrauch-group" opacity="0">

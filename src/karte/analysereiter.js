@@ -43,7 +43,7 @@ export const REITER_VON = {
   warmwasser: "warmwasser", wwladezeit: "warmwasser",
   auslegung: "heizstab", bivalenz: "heizstab", heizstab: "heizstab",
   abtauung: "abtauen",
-  cop: "effizienz", jaz: "effizienz",
+  cop: "effizienz", copww: "effizienz", jaz: "effizienz",
   pv: "strom", kosten: "strom", sgein: "strom",
   druck: "anlage", stoerung: "anlage", firmware: "anlage", fuehler: "anlage", gruppen: "anlage",
 };
@@ -56,7 +56,7 @@ const WARUM_QUELLE = {
   warmwasser: ["warmwasser", "dvgw_ww", "legionellen", "wirkungsgrad"],
   heizstab: ["heizstab", "bivalenz"],
   abtauen: ["abtauung"],
-  effizienz: ["wirkungsgrad", "jaz"],
+  effizienz: ["wirkungsgrad", "jaz", "pana_m_ww"],
   strom: ["integration", "hm_topics"],
   anlage: ["druck", "pana_m_druck", "hm_modell", "hm_firmware"],
 };
@@ -130,7 +130,7 @@ export const analyseReiterKarte = {
       const { stufe, text } = this._anSpStufe(sp);
       const { aktion, ohne } = this._anSpVorschlag(sp);
       const dtSoll = this._anWert("heat_delta");
-      const tipp = sp < 5 ? (puffer ? "an_tip_sp_klein_p" : "an_tip_sp_klein") : puffer ? "an_tip_sp_gross_p" : "an_tip_sp_gross";
+      const tipp = Math.round(sp) < 5 ? (puffer ? "an_tip_sp_klein_p" : "an_tip_sp_klein") : puffer ? "an_tip_sp_gross_p" : "an_tip_sp_gross";
       ersetze(sp0, {
         gruppe: "heiz", id: "spreizung", stufe, titel: t("an_t_spreizung"), wert: `${z(sp)} K`,
         wertText: `${dtSoll !== null ? tf(t("an_w_sp_soll"), { s: z(dtSoll, 0) }) : t("an_w_sp")} · ${t("an_w_int7")}`,
@@ -406,6 +406,7 @@ export const analyseReiterKarte = {
       }
     } else if (r === "effizienz") {
       ausPunkt("cop", t("an_k_cop"));
+      ausPunkt("copww", t("an_k_copww"));
       ausPunkt("jaz", t("an_k_jaz"));
     } else if (r === "strom") {
       const netz = typeof this._netzHeute === "function" ? this._netzHeute() : null;
@@ -505,9 +506,11 @@ export const analyseReiterKarte = {
       return `<i class="lhc-an-chip${st.neutral ? " neutral" : ""}" style="color:${st.css};${stil}">${st.zeichen} ${e(t(kurz ? STUFEN[stufe].zahl || st.text : st.text))}</i>`;
     };
     // Knopf zur Analyse je Lauf (COP unter 92 %), wie im Reiter COP.
-    const laeufeKnopf = (p, nr) => (p.laeufe && p.laeufe.length && MIT_KNOPF.includes(p.stufe)
-      ? `<button type="button" class="lhc-an-knopf" data-an-laeufe="${nr}">⚙ ${e(p.laeufe.length === 1 ? t("an_cop_laeufe_1") : tf(t("an_cop_laeufe_n"), { n: p.laeufe.length }))}</button>`
-      : "");
+    const laeufeKnopf = (p, nr) => {
+      if (!p.laeufe || !p.laeufe.length || !MIT_KNOPF.includes(p.stufe)) return "";
+      const k = p.id === "copww" ? "an_copww_laeufe" : "an_cop_laeufe";
+      return `<button type="button" class="lhc-an-knopf" data-an-laeufe="${nr}">⚙ ${e(p.laeufe.length === 1 ? t(`${k}_1`) : tf(t(`${k}_n`), { n: p.laeufe.length }))}</button>`;
+    };
     const karte = (p) => {
       const st = STUFEN[p.stufe];
       const q = quellenHtml(p.quelle);
@@ -604,8 +607,11 @@ export const analyseReiterKarte = {
         .forEach((p) => {
           const text = p.schritt || p.tipp || p.ohne;
           if (!text && !p.aktion && !laeufeKnopf(p, punkte.indexOf(p))) return;
+          // Ohne Knopf steht unter dem Tipp, warum es keinen Vorschlag gibt.
+          const warumNicht = !p.aktion && !laeufeKnopf(p, punkte.indexOf(p)) && p.ohne && p.ohne !== text
+            ? `<span class="lhc-an-ohne">${e(p.ohne)}</span>` : "";
           schritte.push(`<li>${e(text || "")}${p.aktion ? `<br><button type="button" class="lhc-an-knopf" data-vorschlag="${punkte.indexOf(p)}">⚙ ${e(t("an_opt_knopf"))}</button>` : ""}${
-            laeufeKnopf(p, punkte.indexOf(p)) ? `<br>${laeufeKnopf(p, punkte.indexOf(p))}` : ""}</li>`);
+            laeufeKnopf(p, punkte.indexOf(p)) ? `<br>${laeufeKnopf(p, punkte.indexOf(p))}` : ""}${warumNicht}</li>`);
         });
       if (r === "warmwasser") {
         const b = this._int("dhw_best_hour");

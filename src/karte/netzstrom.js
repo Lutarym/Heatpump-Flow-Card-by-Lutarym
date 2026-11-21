@@ -134,6 +134,16 @@ export const netzstromKarte = {
       const a = n && Number.isFinite(n.anteil) ? Math.min(100, Math.max(0, n.anteil)) : null;
       anteil.textContent = a === null ? "" : tf(this._t("pv_anteil_kurz"), { p: fmt(a, 0) });
     }
+    // Mittig zwischen den Trennlinien: Mit Untertext ruecken Beschriftung,
+    // Wert und Untertext um den Versatz des Layouts nach oben, ohne stehen
+    // Beschriftung und Wert wie bisher.
+    const mitAnteil = Boolean(anteil && anteil.textContent);
+    const versatz = gruppe ? Number(gruppe.getAttribute("data-versatz")) || 0 : 0;
+    ["pv-label", "pv-v", "pv-anteil"].forEach((id) => {
+      const el = this._animEl(id);
+      const basis = el ? Number(el.getAttribute("data-y")) : NaN;
+      if (Number.isFinite(basis)) el.setAttribute("y", String(basis + (mitAnteil ? versatz : 0)));
+    });
   },
 
   /** Entitaet fuer den Verlauf beim Klick auf den Wert. */

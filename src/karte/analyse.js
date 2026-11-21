@@ -88,6 +88,7 @@ export const QUELLEN = {
   puffer: ["Panasonic Servicehandbuch: Pufferziel", "https://www.manualslib.com/manual/1273892/Panasonic-Wh-Sdc09h3e8.html?page=104"],
   taktung: ["42watt: Taktung (BWP, Fraunhofer)", "https://42watt.de/magazin/taktung-warmepumpe"],
   cop: ["Panasonic: Aquarea T-CAP M, Katalog 2025", "https://cdn.aircon.panasonic.eu/uploads/DE/Catalogues/2025/DE-LFLTAQM2501.pdf"],
+  pana_m_ww: ["Panasonic: Aquarea T-CAP M, Katalog 2026, S. 21: Warmwasser (nur All-in-One 185 l)", "https://cdn.aircon.panasonic.eu/uploads/DE/Catalogues/2026/26_0006_DE-LFLTAQM_26-01_V3.pdf"],
   keymark: ["HP KEYMARK, Annex A: Toleranz COP −8 %", "https://www.dincertco.de/media/dincertco/dokumente_1/certification_schemes/w%C3%A4rmepumpen_heat-pump_keymark_annex-a.pdf"],
   wirkungsgrad: ["42watt: Wirkungsgrad (COP, Carnot)", "https://42watt.de/magazin/wirkungsgrad-warmepumpe"],
   bivalenz: ["42watt: Bivalenzpunkt", "https://42watt.de/magazin/bivalenzpunkt-warmepumpe-einfach-erklart"],
@@ -449,8 +450,14 @@ export const analyseKarte = {
     return { toleranz, spMax: toleranz ? 10 : 7 };
   },
 
-  /** Stufe und Text einer gemessenen Spreizung im Heizbetrieb. */
-  _anSpStufe(sp) {
+  /**
+   * Stufe und Text einer gemessenen Spreizung im Heizbetrieb. Der Richtwert
+   * (BWP: 5 bis 7 K, Heizkoerper bis 10 K) ist in ganzen Kelvin angegeben;
+   * verglichen wird darum auf ganze Kelvin gerundet (ab 5.32.5, eigene
+   * Festlegung). So zaehlen 4,9 K als 5 K.
+   */
+  _anSpStufe(messung) {
+    const sp = Math.round(messung);
     const puffer = this._anMitPuffer();
     const { toleranz } = this._anSpGrenzen();
     if (sp < 5) return { stufe: "hinweis", text: puffer ? "an_sp_klein_p" : "an_sp_klein" };
@@ -467,9 +474,11 @@ export const analyseKarte = {
    * wenn die Pumpe fest auf "max. Leistung" laeuft (Panasonic
    * Servicehandbuch). Ohne Vorschlag steht in "ohne", warum.
    */
-  _anSpVorschlag(sp) {
+  _anSpVorschlag(messung) {
     const t = (k) => this._t(k);
     const z = (v, s = 1) => fmt(v, s);
+    // Vergleich auf ganze Kelvin wie in _anSpStufe, angezeigt wird die Messung.
+    const sp = Math.round(messung);
     const dtSoll = this._anWert("heat_delta");
     const { spMax, toleranz } = this._anSpGrenzen();
     const richt = t(this._anMitPuffer() ? "an_r_sp_p" : toleranz ? "an_r_sp_hk" : "an_r_sp_fbh");
@@ -484,7 +493,7 @@ export const analyseKarte = {
     if (neu !== null) {
       aktion = this._anVorschlag(
         [this._anAenderung("heat_delta", neu, "SetFloorHeatDelta", "K")],
-        tf(t("an_g_sp"), { m: z(sp), r: richt })
+        tf(t("an_g_sp"), { m: z(messung), r: richt })
       );
     } else if (sp < 5) {
       const pm = this._anPumpenModus();
@@ -492,7 +501,7 @@ export const analyseKarte = {
         aktion = this._anVorschlag(
           [this._anAuswahl("pump_flow_mode", pm.optionDt, this._anPumpenText(pm.zustand), this._anPumpenText(pm.optionDt),
             "SetPumpFlowrateMode", "0")],
-          tf(t("an_g_pumpe"), { m: z(sp), s: dtSoll !== null ? z(dtSoll, 0) : "--" })
+          tf(t("an_g_pumpe"), { m: z(messung), s: dtSoll !== null ? z(dtSoll, 0) : "--" })
         );
       }
       // Diese Begruendungen setzen einen bekannten Wert von TOP23 voraus.
@@ -551,7 +560,7 @@ export const analyseKarte = {
       const sp = gewichtet(mitSpreizung, (l) => l.vorlauf - l.ruecklauf);
       const { stufe, text } = this._anSpStufe(sp);
       const { aktion, ohne } = this._anSpVorschlag(sp);
-      const tippSchluessel = sp < 5 ? (puffer ? "an_tip_sp_klein_p" : "an_tip_sp_klein") : puffer ? "an_tip_sp_gross_p" : "an_tip_sp_gross";
+      const tippSchluessel = Math.round(sp) < 5 ? (puffer ? "an_tip_sp_klein_p" : "an_tip_sp_klein") : puffer ? "an_tip_sp_gross_p" : "an_tip_sp_gross";
       punkt({
         gruppe: "heiz", id: "spreizung", stufe, titel: t("an_t_spreizung"), wert: `${z(sp)} K`,
         wertText: dtSoll !== null ? tf(t("an_w_sp_soll"), { s: z(dtSoll, 0) }) : t("an_w_sp"),
@@ -724,6 +733,40 @@ export const analyseKarte = {
       }
     } else {
       punkt({ gruppe: "heiz", id: "cop", stufe: "unbekannt", titel: t("an_t_cop"), wert: "--", text: t("an_cop_ohne"), quelle: "" });
+    }
+
+    // COP der Warmwasserladungen (ab 5.32.5) gegenueber demselben Datenblatt
+    // bei der mittleren Vorlauftemperatur der Ladung, wie im Reiter COP;
+    // ueber 55 °C Vorlauf ist der Vergleichswert geschaetzt (datenblatt.js).
+    // Einen eigenen Warmwasserwert nennt Panasonic nur fuer das All-in-One
+    // mit 185-l-Speicher (SCOP nach EN 16147, Lastprofil L, Katalog 2026,
+    // S. 21); er gilt ueber das Jahr samt Speicher, nicht je Ladung.
+    const wwCop = laeufe.filter((l) => l.ww && l.cop !== null);
+    if (wwCop.length) {
+      const summe = copSumme(wwCop, "ww");
+      const c = summe !== null ? summe : gewichtet(wwCop, (l) => l.cop);
+      const copText = t(summe !== null ? "an_w_cop" : "an_w_cop_zeit");
+      const ref = this._copReferenz();
+      const bewertet = wwCop.filter((l) => copStufe(l));
+      if (ref && bewertet.length) {
+        const q = gewichtet(bewertet, (l) => l.copQuote);
+        const unter = bewertet.filter((l) => copStufe(l) === "unter").sort((a, b) => a.copQuote - b.copQuote);
+        const u = unter.length;
+        const stufe = q < TOLERANZ ? "hinweis" : u ? "leicht" : "ok";
+        const geschaetzt = bewertet.some((l) => l.copGeschaetzt) ? ` ${t("an_copww_geschaetzt")}` : "";
+        punkt({
+          gruppe: "heiz", id: "copww", stufe, titel: t("an_t_copww"), wert: z(c),
+          wertText: `${copText} · ${tf(t("an_w_cop_dbl"), { p: z(q * 100, 0) })}`, richt: t("an_r_cop"),
+          text: tf(t(u ? "an_copww_unter" : "an_copww_ok"), { u, n: bewertet.length }) + geschaetzt,
+          quelle: ["cop", "keymark", "pana_m_ww"], ohne: t("an_ov_cop"),
+          schritt: u ? tf(t(u === 1 ? "an_sr_copww1" : "an_sr_copww"), { u }) : "", laeufe: u ? unter : null,
+        });
+      } else {
+        punkt({
+          gruppe: "heiz", id: "copww", stufe: "info", titel: t("an_t_copww"), wert: z(c), wertText: copText,
+          text: t(ref ? "an_copww_ohne_punkte" : "an_cop_ohne_ref"), quelle: "",
+        });
+      }
     }
 
     /* ---------- Zusatzheizung und Abtauung ---------- */

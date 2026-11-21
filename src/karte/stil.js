@@ -686,6 +686,7 @@ export const stilKarte = {
       .lhc-an-knopf:focus-visible, .lhc-an-btn:focus-visible { outline: 2px solid #E0762E; outline-offset: 2px; }
       /* Warum ein auffaelliger Punkt keinen Vorschlag hat. */
       .lhc-an-karte p.lhc-an-ohne { margin-top: 6px; font-size: 12px; color: var(--c-98a6ba); }
+      .lhc-an-box li .lhc-an-ohne { display: block; margin-top: 4px; font-size: 12px; color: var(--c-98a6ba); }
       /* Bestaetigung: liegt genau ueber dem Analysefenster. */
       .lhc-an-modal {
         position: fixed; z-index: 100; display: flex; align-items: center; justify-content: center;

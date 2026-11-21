@@ -149,10 +149,10 @@ export const grafikHochKarte = {
           </g>
         </g>
         <line x1="384" y1="142" x2="716" y2="142" stroke="#55657F" stroke-width="1"/>
-        <g id="pv-group" opacity="0">
-          <text class="sg-label" x="390" y="176">${this._t("netzstrom_heute")}</text>
-          <text class="pv-value" id="pv-v" x="390" y="204">--</text>
-          <text class="pv-anteil" id="pv-anteil" x="390" y="224"></text>
+        <g id="pv-group" opacity="0" data-versatz="-8">
+          <text class="sg-label" id="pv-label" x="390" y="176" data-y="176">${this._t("netzstrom_heute")}</text>
+          <text class="pv-value" id="pv-v" x="390" y="204" data-y="204">--</text>
+          <text class="pv-anteil" id="pv-anteil" x="390" y="224" data-y="224"></text>
         </g>
         <line x1="384" y1="232" x2="716" y2="232" stroke="#55657F" stroke-width="1"/>
         <g id="verbrauch-group" opacity="0">
