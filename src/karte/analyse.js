@@ -99,8 +99,8 @@ export const QUELLEN = {
   dvgw_ww: ["DVGW: Energieeinsparungen im Warmwasserbereich (2023)", "https://www.dvgw.de/medien/dvgw/leistungen/publikationen/energiesparen-warmwasser-dvgw-langfassung.pdf"],
   legionellen: ["Bundestag WD 8-3000-021/23 (DVGW)","https://bundestag.de/resource/blob/947272/cc7cce64da5a0983382949ac996e72ff/WD-8-021-23-pdf-data.pdf"],
   druck: ["Panasonic Aquarea Bedienungsanleitung (2022), S. 17: Wasserdruck 0,05 bis 0,3 MPa", "https://www.panasonicproclub.com/uploads/GB/catalogues/2023/FINAL%20A2W%20END%20USER_MANUAL_2022.pdf"],
-  pana_mag: ["Panasonic Aquarea Hydraulikleitfaden Bi-Bloc H (2018): Ausdehnungsgefäß 1 bar, Sicherheitsventil minus 10 %", "https://www.panasonicproclub.com/uploads/LV/catalogues/A2W%20H-Gen.%20installation%20guide%20EN_18_07_17%20final.pdf"],
-  reflex_druck: ["Reflex: Grundlagen, Drücke im System (RE2237deC, 11/2024)", "https://xom-web.reflex.de/xom-rest/assets/ff58eda9-ebb7-49cd-80e3-e7ea8caee294/content?locale=de"],
+  pana_m_druck: ["Panasonic Servicehandbuch M-Serie (WH-WXG..ME8, 07/2024), S. 99: Normalbetrieb 0,5 bis 4 bar", "https://klimavex.eu/disk/atsubory/85/locked82227/SER-P-A2W-ADC0316_WXG0916_M_E8-0724-EN.pdf"],
+  hm_modell: ["HeishaMon: HeatPumpType (TOP92, Modell)", "https://github.com/heishamon/HeishaMon/blob/main/HeatPumpType.md"],
   jaz: ["42watt: Jahresarbeitszahl (BEG, Fraunhofer)", "https://42watt.de/magazin/jahresarbeitszahl"],
   ez_heizkurve: ["EnergieSchweiz, Stadt Zürich: Faktenblatt Wärmepumpe, Heizkurve (2023)", "https://www.ewz.ch/content/dam/stzh/energie/Startseite/beratung-froerderung/Faktenblatt_Waermepumpe-Heizkurve.pdf"],
   uba_raum: ["Umweltbundesamt: Heizen, Raumtemperatur", "https://www.umweltbundesamt.de/umwelttipps-fuer-den-alltag/heizen-bauen/heizen-raumtemperatur"],
@@ -127,8 +127,15 @@ export const STUFEN = {
 /** Stufen mit Bewertung, in der Reihenfolge von gut nach schlecht. */
 export const BEWERTET = ["ok", "leicht", "hinweis", "pruefen"];
 
-/** Nur bei diesen Stufen gibt es Knopf, Tipp und "Kein Vorschlag". */
+/** Nur bei diesen Stufen gibt es Tipp und "Kein Vorschlag". */
 export const AUFFAELLIG = ["hinweis", "pruefen"];
+
+/**
+ * Knopf "Optimieren" bei jeder Abweichung, also auch bei Grau, sofern es
+ * eine belegte Einstellung gibt (ab 5.32.3). Grau nennt seinen Schritt im
+ * Feld schritt, Gelb und Rot zusaetzlich Tipp oder "Kein Vorschlag".
+ */
+export const MIT_KNOPF = ["leicht", "hinweis", "pruefen"];
 
 /**
  * Richtwerte des Vorlaufs je Heizflaeche bei Normaussentemperatur: bis
@@ -397,6 +404,42 @@ export const analyseKarte = {
   },
 
   /**
+   * Baureihe fuer den Normalbereich des Wasserdrucks. "M" fuer die Aquarea
+   * M-Serie: Datenblatt im Editor oder TOP92 (HeishaMon, zehn Bytes) mit
+   * den Bytes 12 D7, wie bei allen M-Modellen in HeishaMon HeatPumpType.md
+   * (Stand 4.4.1; die Erkennung daran ist eigene Festlegung). "andere" fuer
+   * eine andere Panasonic-Baureihe laut TOP92, "unbekannt" fuer Panasonic
+   * ohne diese Angaben, null fuer andere Hersteller.
+   */
+  _anPanaSerie() {
+    if (this._copReferenz() === "panasonic_tcap_m_12") return "M";
+    const panasonic = Boolean(this._config.demo)
+      || ["heishamon_lutarym", "heishamon", "aquarea_heishamon", "aquarea_cloud"].includes(this._aktivesProfil());
+    if (!panasonic) return null;
+    const m = this._int("top92");
+    const roh = m && m.roh ? m.roh.trim().toUpperCase() : "";
+    if (/^([0-9A-F]{2} ){9}[0-9A-F]{2}$/.test(roh)) return roh.startsWith("12 D7") ? "M" : "andere";
+    return "unbekannt";
+  },
+
+  /**
+   * Heizkurve eines Heizkreises parallel um 2 K anheben, wenn die Raeume zu
+   * kalt sind (EnergieSchweiz: 2 bis 3 °C je Schritt, hoechstens einmal pro
+   * Woche). Nie ueber die Obergrenze der Heizflaeche (GRENZE, toleranz) und
+   * das warme Ende nie ueber das kalte. Leer, wenn nichts mehr geht.
+   */
+  _anKurvenAnheben(zone, obergrenze) {
+    const pre = zone === 2 ? "curve2_" : "curve_";
+    const hoch = this._anWert(`${pre}t_high`);
+    const tief = this._anWert(`${pre}t_low`);
+    if (hoch === null || hoch >= obergrenze) return [];
+    const neuHoch = Math.min(hoch + 2, obergrenze);
+    const out = [this._anAenderung(`${pre}t_high`, neuHoch, "SetCurves", "°C", { kurve: zone })];
+    if (tief !== null) out.push(this._anAenderung(`${pre}t_low`, Math.min(tief + 2, neuHoch), "SetCurves", "°C", { kurve: zone }));
+    return out;
+  },
+
+  /**
    * Grenzen der Spreizung im Heizbetrieb. Die Toleranz bis 10 K nennt der
    * BWP nur fuer Heizkoerper, nicht fuer Fussbodenheizung und nicht fuer den
    * Kreis zum Puffer.
@@ -433,6 +476,9 @@ export const analyseKarte = {
     let neu = null;
     if (dtSoll !== null && sp < 5 && dtSoll < 5) neu = 5;
     if (dtSoll !== null && sp > spMax && dtSoll > spMax) neu = spMax;
+    // Grau bei Heizkoerpern (7 bis 10 K, BWP-Toleranz): auf den oberen
+    // Richtwert von 7 K, wenn die Einstellung darueber liegt.
+    if (dtSoll !== null && toleranz && sp > 7 && sp <= spMax && dtSoll > 7) neu = 7;
     let aktion = null;
     let ohne = "";
     if (neu !== null) {
@@ -473,12 +519,16 @@ export const analyseKarte = {
     const punkte = [];
     const t = (k) => this._t(k);
     const z = (v, s = 1) => fmt(v, s);
-    // Knopf, Tipp und "Kein Vorschlag" nur bei Gelb und Rot. Hat ein
-    // solcher Punkt keinen Vorschlag, steht dort warum.
+    // Knopf bei Grau, Gelb und Rot, wenn es eine belegte Einstellung gibt.
+    // Tipp und "Kein Vorschlag" nur bei Gelb und Rot; hat ein solcher Punkt
+    // keinen Vorschlag, steht dort warum.
     const punkt = (p) => {
       const q = { text: "", tipp: "", wertText: "", richt: "", aktion: null, ohne: "", ...p };
-      if (!AUFFAELLIG.includes(q.stufe)) {
+      if (!MIT_KNOPF.includes(q.stufe)) {
         q.aktion = null;
+        q.laeufe = null;
+      }
+      if (!AUFFAELLIG.includes(q.stufe)) {
         q.ohne = "";
         q.tipp = "";
       } else if (q.aktion) q.ohne = "";
@@ -506,7 +556,7 @@ export const analyseKarte = {
         gruppe: "heiz", id: "spreizung", stufe, titel: t("an_t_spreizung"), wert: `${z(sp)} K`,
         wertText: dtSoll !== null ? tf(t("an_w_sp_soll"), { s: z(dtSoll, 0) }) : t("an_w_sp"),
         richt: richtSp, text: t(text), tipp: t(tippSchluessel), quelle: ["spreizung", "pumpe"],
-        aktion, ohne,
+        aktion, ohne, schritt: stufe === "leicht" && aktion ? tf(t("an_sr_sp_hk"), { s: z(dtSoll, 0) }) : "",
       });
     } else {
       punkt({ gruppe: "heiz", id: "spreizung", stufe: "unbekannt", titel: t("an_t_spreizung"), wert: "--", richt: richtSp,
@@ -532,14 +582,16 @@ export const analyseKarte = {
     if (vlKreise.length) {
       const schlimm = vlKreise.reduce((a, b) =>
         RANG[b.stufe] > RANG[a.stufe] || (RANG[b.stufe] === RANG[a.stufe] && b.v - b.gr.gut > a.v - a.gr.gut) ? b : a);
-      const zuHoch = vlKreise.filter((k) => AUFFAELLIG.includes(k.stufe));
+      // Gelb, Rot und Grau (Fussbodenheizung 35 bis 40 °C): Heizkurve um
+      // 2 K senken und beobachten.
+      const zuHoch = vlKreise.filter((k) => MIT_KNOPF.includes(k.stufe));
       punkt({
         gruppe: "heiz", id: "vorlauf", stufe: schlimm.stufe, titel: t(schlimm.art === "fbh" ? "an_t_vl_fbh" : "an_t_vl_hk"),
         wert: `${z(schlimm.v, 0)} °C`,
         wertText: schlimm.aussen !== null ? tf(t("an_w_vl_kreis"), { n: schlimm.n, a: z(schlimm.aussen) }) : `HK${schlimm.n}`,
         richt: t(schlimm.art === "fbh" ? "an_r_vl_fbh" : "an_r_vl_hk"),
         text: `${t(vlText(schlimm.stufe, schlimm.art))} ${t("an_vl_puffer")}`,
-        tipp: t("an_tip_vl"), quelle: "vorlauf",
+        tipp: t("an_tip_vl"), quelle: "vorlauf", schritt: schlimm.stufe === "leicht" ? t("an_sr_vl_alt") : "",
         aktion: zuHoch.length
           ? this._anVorschlag(
             zuHoch.flatMap((k) => this._anKurvenSchritt(k.n, "parallel")),
@@ -561,8 +613,8 @@ export const analyseKarte = {
           richt: richtVl,
           text: t(vlText(stufe, flaechen === "fbh" ? "fbh" : "hk"))
             + (flaechen === "gemischt" ? ` ${t("an_vl_gemischt")}` : ""),
-          tipp: t("an_tip_vl"), quelle: "vorlauf",
-          aktion: AUFFAELLIG.includes(stufe)
+          tipp: t("an_tip_vl"), quelle: "vorlauf", schritt: stufe === "leicht" ? t("an_sr_vl_alt") : "",
+          aktion: MIT_KNOPF.includes(stufe)
             ? this._anVorschlag(zonen.flatMap((n) => this._anKurvenSchritt(n, "parallel")), tf(t("an_g_vl"), { v: z(vl, 0), r: richtVl }))
             : null,
         });
@@ -587,8 +639,8 @@ export const analyseKarte = {
         wert: `${z(kurveVl, 0)} °C`,
         wertText: kurveAussen !== null ? tf(t("an_w_kurve"), { a: z(kurveAussen, 0) }) : "",
         richt, text: t(stufe === "ok" ? "an_kurve_ok" : stufe === "leicht" ? "an_kurve_alt" : "an_kurve_hoch"),
-        tipp: t("an_tip_kurve"), quelle: "vorlauf",
-        aktion: AUFFAELLIG.includes(stufe)
+        tipp: t("an_tip_kurve"), quelle: "vorlauf", schritt: stufe === "leicht" ? t("an_sr_kurve_alt") : "",
+        aktion: MIT_KNOPF.includes(stufe)
           ? this._anVorschlag(this._anKurvenSchritt(n, "kalt", gr.gut), tf(t("an_g_kurve"), { v: z(kurveVl, 0), r: richt }))
           : null,
       });
@@ -652,13 +704,17 @@ export const analyseKarte = {
       const bewertet = heizCop.filter((l) => copStufe(l));
       if (ref && bewertet.length) {
         const q = gewichtet(bewertet, (l) => l.copQuote);
-        const u = bewertet.filter((l) => copStufe(l) === "unter").length;
+        // Laeufe unter 92 %, schlechtester zuerst: Die Analyse je Lauf nennt
+        // Ursachen und, wo belegt, einen Vorschlag (wie im Reiter COP).
+        const unter = bewertet.filter((l) => copStufe(l) === "unter").sort((a, b) => a.copQuote - b.copQuote);
+        const u = unter.length;
         const stufe = q < TOLERANZ ? "hinweis" : u ? "leicht" : "ok";
         punkt({
           gruppe: "heiz", id: "cop", stufe, titel: t("an_t_cop"), wert: z(c),
           wertText: `${copText} · ${tf(t("an_w_cop_dbl"), { p: z(q * 100, 0) })}`, richt: t("an_r_cop"),
           text: tf(t(u ? "an_cop_unter" : "an_cop_ok"), { u, n: bewertet.length }),
           quelle: ["cop", "keymark"], ohne: t("an_ov_cop"),
+          schritt: u ? tf(t(u === 1 ? "an_sr_cop1" : "an_sr_cop"), { u }) : "", laeufe: u ? unter : null,
         });
       } else {
         punkt({
@@ -860,9 +916,22 @@ export const analyseKarte = {
       // hoeherem Soll: der Speicher bleibt ueber 50 °C, die Ladungen werden
       // haeufiger und kuerzer. Ueber 60 °C: auf 60 °C senken; faellt der
       // Speicher dann unter 50 °C, dazu die Schaltdifferenz auf -10 K.
+      // Bei Grau mit Knopf (ab 5.32.3): die Schaltdifferenz ueber
+      // SetDHWHeatDelta (HeishaMon SET20, -12 bis -2 K), das Soll ueber
+      // SetDHWTemp.
       let schritt = "";
-      if (stufe === "leicht" && unter50 && wwSoll - 50 >= 2) schritt = tf(t("an_sr_ww_tief"), w);
-      else if (stufe === "leicht" && !unter50) schritt = t(diff === null || 60 - diff >= 50 ? "an_sr_ww_hoch" : "an_sr_ww_hoch_d");
+      if (stufe === "leicht" && unter50 && wwSoll - 50 >= 2) {
+        schritt = tf(t("an_sr_ww_tief"), w);
+        aktion = this._anVorschlag([this._anAenderung("dhw_heat_delta", 50 - wwSoll, "SetDHWHeatDelta", "K")],
+          tf(t("an_g_ww_delta"), w));
+      } else if (stufe === "leicht" && !unter50) {
+        const mitDiff = diff !== null && 60 - diff < 50;
+        schritt = t(mitDiff ? "an_sr_ww_hoch_d" : "an_sr_ww_hoch");
+        aktion = this._anVorschlag([
+          this._anAenderung("dhw_setpoint", 60, "SetDHWTemp", "°C"),
+          mitDiff ? this._anAenderung("dhw_heat_delta", -10, "SetDHWHeatDelta", "K") : null,
+        ], tf(t(mitDiff ? "an_g_ww_hoch_d" : "an_g_ww_hoch"), w));
+      }
       const teile = [tief !== null ? tf(t("an_w_ww_tief"), { m: z(tief, 0) }) : t("an_w_ww_soll")];
       if (steril !== null) teile.push(tf(t("an_w_steril"), { s: z(steril, 0) }));
       punkt({
@@ -871,23 +940,25 @@ export const analyseKarte = {
         kurz, schritt, tipp: t("an_tip_ww_niedrig"), quelle: ["warmwasser", "dvgw_ww", "legionellen"], aktion,
       });
     }
-    // Anlagendruck (TOP115): bewertet wird der Verlauf im Zeitraum, nicht der
-    // Momentwert. Beim Aufheizen steigt der Druck, weil sich das Wasser
-    // ausdehnt (Reflex, Grundlagen Druecke im System: Fuelldruck bei
-    // Fuelltemperatur, Enddruck bei der hoechsten Temperatur). Grenzen:
-    //  - Panasonic Bedienungsanleitung: 0,05 bis 0,3 MPa, also 0,5 bis 3,0 bar.
-    //  - Panasonic Hydraulikleitfaden Bi-Bloc H: Ausdehnungsgefaess ab Werk
-    //    mit 1 bar Vordruck; hoechster Druck = Sicherheitsventil minus 10 %,
-    //    meist 2,7 bar.
-    //  - Reflex: Fuelldruck mindestens Vordruck plus 0,3 bar, also 1,3 bar.
+    // Anlagendruck (TOP115): bewertet wird der Verlauf im Zeitraum gegen den
+    // Bereich, den Panasonic fuer den Normalbetrieb nennt. Ab 5.32.4 ohne
+    // Gelb: Werte zur Auslegung des Ausdehnungsgefaesses sind keine
+    // Betriebsgrenzen. Bereiche:
+    //  - M-Serie (Aussengeraet WH-WXG..ME8): 0,5 bis 4 bar
+    //    (Servicehandbuch 07/2024, S. 99, 12.1.8 Test Run; das
+    //    Sicherheitsventil des Wasserkreises oeffnet bei 400 kPa, S. 13).
+    //  - andere Panasonic-Baureihen: 0,05 bis 0,3 MPa, also 0,5 bis 3 bar
+    //    (Bedienungsanleitung 2022, S. 17).
+    //  - Baureihe unbekannt: bis 3 bar in Ordnung; 3 bis 4 bar nur
+    //    Messwert, denn das ist nur bei der M-Serie Normalbetrieb.
+    //  - andere Hersteller: nur Messwert, kein Bereich hinterlegt.
     // 0 bar heisst: kein Sensor (TOP115 gibt es nicht bei jeder Serie).
     const druckReihe = d && d.druck ? d.druck.filter((p) => Number.isFinite(p.v) && p.v > 0.05) : [];
     const druckJetzt = this._anWert("water_pressure");
     if (druckReihe.length || (druckJetzt !== null && druckJetzt > 0.05)) {
+      const serie = this._anPanaSerie();
       const MIN = 0.5;
-      const MAX = 3.0;
-      const WARM = 2.7;
-      const KALT = 1.3;
+      const MAX = serie === "M" || serie === "unbekannt" ? 4.0 : 3.0;
       const werte = druckReihe.length ? druckReihe : [{ t: Date.now(), v: druckJetzt }];
       const tief = werte.reduce((a, p) => (p.v < a.v ? p : a));
       const hoch = werte.reduce((a, p) => (p.v > a.v ? p : a));
@@ -895,23 +966,23 @@ export const analyseKarte = {
         const i = d && d.vorlauf && druckReihe.length ? indexBis(d.vorlauf, p.t) : -1;
         return i >= 0 && Number.isFinite(d.vorlauf[i].v) ? d.vorlauf[i].v : null;
       };
-      const vTief = vl(tief);
-      const vHoch = vl(hoch);
       let art = "ok";
-      if (tief.v < MIN || hoch.v > MAX) art = "bereich";
+      if (serie === null) art = "fremd";
       else if (!druckReihe.length) art = "jetzt";
-      else if (hoch.v > WARM) art = "hoch";
-      else if (tief.v < KALT) art = "niedrig";
-      const stufe = { bereich: "pruefen", jetzt: "info", hoch: "hinweis", niedrig: "hinweis", ok: "ok" }[art];
+      else if (tief.v < MIN || hoch.v > MAX) art = "bereich";
+      else if (serie === "unbekannt" && hoch.v > 3.0) art = "unklar";
+      const stufe = { bereich: "pruefen", jetzt: "info", fremd: "info", unklar: "info", ok: "ok" }[art];
       const bei = (v) => (v === null ? "" : tf(t("an_dr_bei"), { v: z(v, 0) }));
-      const w = { min: z(tief.v), max: z(hoch.v), bmin: bei(vTief), bmax: bei(vHoch) };
+      const wert = druckReihe.length && hoch.v !== tief.v ? tf(t("an_w_druck_bereich"), { min: z(tief.v), max: z(hoch.v) }) : `${z(hoch.v)} bar`;
+      const b = serie === null ? "" : t(serie === "M" ? "an_dr_b_m" : serie === "andere" ? "an_dr_b_p" : "an_dr_b_u");
+      const w = { min: z(tief.v), max: z(hoch.v), bmin: bei(vl(tief)), bmax: bei(vl(hoch)), b, w: wert };
       punkt({
-        gruppe: "anlage", id: "druck", stufe, titel: t("an_t_druck"),
-        wert: druckReihe.length && hoch.v !== tief.v ? tf(t("an_w_druck_bereich"), w) : `${z(hoch.v)} bar`,
-        wertText: druckReihe.length ? tf(t("an_w_druck"), w) : t("an_w_druck_jetzt"), richt: t("an_r_druck"),
+        gruppe: "anlage", id: "druck", stufe, titel: t("an_t_druck"), wert,
+        wertText: druckReihe.length ? t("an_w_druck") : t("an_w_druck_jetzt"),
+        richt: serie === null ? "" : tf(t("an_r_druck"), w),
         text: tf(t(`an_dr_${art}`), w), kurz: tf(t(`an_ku_dr_${art}`), w),
-        tipp: t(art === "niedrig" ? "an_tip_dr_niedrig" : art === "bereich" ? "an_tip_dr_bereich" : "an_tip_dr_hoch"),
-        quelle: ["druck", "pana_mag", "reflex_druck"], ohne: t("an_ov_druck"),
+        tipp: t("an_tip_dr_bereich"), ohne: t("an_ov_druck"),
+        quelle: serie === null ? "" : serie === "M" ? ["pana_m_druck"] : serie === "andere" ? ["druck"] : ["druck", "pana_m_druck", "hm_modell"],
       });
     }
     // JAZ seit 1. Januar: nur Messwert, Vergleichswerte stehen dabei.

@@ -28,7 +28,7 @@
  */
 import { escapeHtml, fmt } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
-import { AUFFAELLIG, BEWERTET, QUELLEN, RANG, STUFEN } from "./analyse.js";
+import { AUFFAELLIG, BEWERTET, GRENZE, MIT_KNOPF, QUELLEN, RANG, STUFEN } from "./analyse.js";
 import { mittel } from "./auswertung.js";
 import { wwLadungen } from "./warmwasser.js";
 
@@ -58,7 +58,7 @@ const WARUM_QUELLE = {
   abtauen: ["abtauung"],
   effizienz: ["wirkungsgrad", "jaz"],
   strom: ["integration", "hm_topics"],
-  anlage: ["druck", "pana_mag", "reflex_druck", "hm_firmware"],
+  anlage: ["druck", "pana_m_druck", "hm_modell", "hm_firmware"],
 };
 
 const WOCHENTAGE = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -155,6 +155,9 @@ export const analyseReiterKarte = {
     }
 
     /* ---- Heizkurve: Raumtemperatur je Heizkreis ---- */
+    // Knopf (ab 5.32.3): Heizkurve parallel um 2 K senken oder anheben,
+    // EnergieSchweiz nennt 2 bis 3 °C je Schritt, hoechstens einmal pro Woche.
+    const raumKalt = [];
     [1, 2].forEach((n) => {
       const reihe = d && d[`raum${n}`];
       const ziel = this._config.demo ? (n === 1 ? 21 : 19) : parseFloat(this._config[`hk${n}_room_target`]);
@@ -170,12 +173,36 @@ export const analyseReiterKarte = {
       const stufe = Math.abs(diff) <= 0.5 ? "ok" : "leicht";
       const werte = { m: z(m), z: z(ziel), d: z(Math.abs(diff)), n };
       const art = stufe === "ok" ? "ok" : diff > 0 ? "warm" : "kalt";
+      let aktion = null;
+      let schritt = art === "ok" ? "" : tf(t(`an_sr_raum_${art}`), werte);
+      if (art === "warm") {
+        aktion = this._anVorschlag(this._anKurvenSchritt(n, "parallel"), tf(t("an_g_raum_warm"), werte));
+      } else if (art === "kalt") {
+        raumKalt.push(n);
+        const grenze = GRENZE[this._anFlaecheVon(n)].toleranz;
+        aktion = this._anVorschlag(this._anKurvenAnheben(n, grenze), tf(t("an_g_raum_kalt"), werte));
+        const kurve = this._anWert(n === 2 ? "curve2_t_high" : "curve_t_high");
+        if (!aktion && kurve !== null && kurve >= grenze) schritt = tf(t("an_sr_raum_max"), { ...werte, g: z(grenze, 0) });
+      }
       punkt({
         gruppe: "heiz", id: `raum${n}`, stufe, titel, wert: `${z(m)} °C`, wertText: tf(t("an_w_raum"), werte),
         richt: tf(t("an_r_raum"), werte), text: tf(t(`an_raum_${art}`), werte), kurz: tf(t(`an_ku_raum_${art}`), werte),
-        schritt: art === "ok" ? "" : tf(t(`an_sr_raum_${art}`), werte), quelle: ["ez_heizkurve", "uba_raum"],
+        schritt, quelle: ["ez_heizkurve", "uba_raum"], aktion,
       });
     });
+    // Sind die Raeume eines Heizkreises zu kalt, schlaegt die Analyse dort
+    // kein Senken der Heizkurve vor (Vorlauf, Heizkurve).
+    if (raumKalt.length) {
+      punkte.filter((p) => p.aktion && (p.id === "vorlauf" || /^kurve\d$/.test(p.id))).forEach((p) => {
+        const rest = p.aktion.aenderungen.filter((w) => !(w.kurve && raumKalt.includes(w.kurve)));
+        if (rest.length === p.aktion.aenderungen.length) return;
+        p.aktion = rest.length ? { ...p.aktion, aenderungen: rest } : null;
+        if (p.aktion) return;
+        const grund = tf(t("an_ov_raum_kalt"), { n: raumKalt.join(", ") });
+        if (AUFFAELLIG.includes(p.stufe)) p.ohne = grund;
+        else p.schritt = grund;
+      });
+    }
 
     /* ---- Warmwasser: Ladezeit gegen TOP159 ---- */
     const max = this._intZahl("top159");
@@ -477,6 +504,10 @@ export const analyseReiterKarte = {
       const stil = st.neutral ? "" : `background:color-mix(in srgb, ${st.css} 14%, transparent)`;
       return `<i class="lhc-an-chip${st.neutral ? " neutral" : ""}" style="color:${st.css};${stil}">${st.zeichen} ${e(t(kurz ? STUFEN[stufe].zahl || st.text : st.text))}</i>`;
     };
+    // Knopf zur Analyse je Lauf (COP unter 92 %), wie im Reiter COP.
+    const laeufeKnopf = (p, nr) => (p.laeufe && p.laeufe.length && MIT_KNOPF.includes(p.stufe)
+      ? `<button type="button" class="lhc-an-knopf" data-an-laeufe="${nr}">⚙ ${e(p.laeufe.length === 1 ? t("an_cop_laeufe_1") : tf(t("an_cop_laeufe_n"), { n: p.laeufe.length }))}</button>`
+      : "");
     const karte = (p) => {
       const st = STUFEN[p.stufe];
       const q = quellenHtml(p.quelle);
@@ -489,7 +520,8 @@ export const analyseReiterKarte = {
           ${p.text ? `<p>${e(p.text)}</p>` : ""}
           ${p.tipp ? `<p class="lhc-an-tipp">${e(p.tipp)}</p>` : ""}
           ${p.aktion ? `<button type="button" class="lhc-an-knopf" data-vorschlag="${nr}">⚙ ${e(t("an_opt_knopf"))}</button>` : ""}
-          ${!p.aktion && p.ohne ? `<p class="lhc-an-ohne">${e(p.ohne)}</p>` : ""}
+          ${laeufeKnopf(p, nr)}
+          ${!p.aktion && !laeufeKnopf(p, nr) && p.ohne ? `<p class="lhc-an-ohne">${e(p.ohne)}</p>` : ""}
           ${q ? `<div class="lhc-an-quelle">${e(t("an_quelle"))}: ${q}</div>` : ""}
         </div>`;
     };
@@ -564,15 +596,16 @@ export const analyseReiterKarte = {
         .map((k) => `<div class="lhc-an-kachel${k.warn ? " warn" : ""}"><span>${e(k.n)}</span><b>${e(k.w)}</b>${k.s ? `<small>${e(k.s)}</small>` : ""}</div>`)
         .join("");
       // Was du tun kannst: auffaellige Punkte mit Schritt, Tipp oder Grund,
-      // dazu Schritte leichter Abweichungen, wo es einen belegten gibt.
+      // dazu Schritte und Knoepfe leichter Abweichungen, wo es belegte gibt.
       const schritte = [];
       x.ps
-        .filter((p) => AUFFAELLIG.includes(p.stufe) || ((p.stufe === "leicht" || p.stufe === "unbekannt") && p.schritt))
+        .filter((p) => AUFFAELLIG.includes(p.stufe) || ((p.stufe === "leicht" || p.stufe === "unbekannt") && (p.schritt || p.aktion || p.laeufe)))
         .sort((a, b) => (RANG[b.stufe] || 0) - (RANG[a.stufe] || 0))
         .forEach((p) => {
           const text = p.schritt || p.tipp || p.ohne;
-          if (!text && !p.aktion) return;
-          schritte.push(`<li>${e(text || "")}${p.aktion ? `<br><button type="button" class="lhc-an-knopf" data-vorschlag="${punkte.indexOf(p)}">⚙ ${e(t("an_opt_knopf"))}</button>` : ""}</li>`);
+          if (!text && !p.aktion && !laeufeKnopf(p, punkte.indexOf(p))) return;
+          schritte.push(`<li>${e(text || "")}${p.aktion ? `<br><button type="button" class="lhc-an-knopf" data-vorschlag="${punkte.indexOf(p)}">⚙ ${e(t("an_opt_knopf"))}</button>` : ""}${
+            laeufeKnopf(p, punkte.indexOf(p)) ? `<br>${laeufeKnopf(p, punkte.indexOf(p))}` : ""}</li>`);
         });
       if (r === "warmwasser") {
         const b = this._int("dhw_best_hour");
@@ -624,6 +657,15 @@ export const analyseReiterKarte = {
       b.addEventListener("click", () => {
         const p = this._anPunkte && this._anPunkte[Number(b.dataset.vorschlag)];
         if (p && p.aktion) this._zeigeVorschlag(p);
+      });
+    });
+    // Analyse je Lauf: blaettern zwischen den Laeufen unter 92 %.
+    liste.querySelectorAll("[data-an-laeufe]").forEach((b) => {
+      b.addEventListener("click", () => {
+        const p = this._anPunkte && this._anPunkte[Number(b.dataset.anLaeufe)];
+        if (!p || !p.laeufe || !p.laeufe.length) return;
+        this._copReihe = p.laeufe;
+        this._zeigeLaufAnalyse(p.laeufe[0]);
       });
     });
   },
