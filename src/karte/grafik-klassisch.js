@@ -192,10 +192,11 @@ ${this._defs()}
 
       <!-- PV Leistung -->
       <g id="pv-group" opacity="0">
-        <text class="sg-label" id="pv-label" x="${L.X_COL}" y="${F + 190}" text-anchor="middle">${this._t("pv_ueberschuss")}</text>
+        <text class="sg-label" id="pv-label" x="${L.X_COL}" y="${F + 190}" text-anchor="middle">${this._t("netzstrom_heute")}</text>
         <text class="pv-value" id="pv-v" x="${L.X_COL}" y="${F + 228}"
               text-anchor="middle">--</text>
-        <line x1="380" y1="${F + 245}" x2="510" y2="${F + 245}" stroke="#55657F" stroke-width="1"/>
+        <text class="pv-anteil" id="pv-anteil" x="${L.X_COL}" y="${F + 250}" text-anchor="middle"></text>
+        <line x1="380" y1="${F + 257}" x2="510" y2="${F + 257}" stroke="#55657F" stroke-width="1"/>
       </g>
       <g id="verbrauch-group" opacity="0">
         <text class="sg-label" x="${L.X_COL}" y="${F + 285}" text-anchor="middle">${this._t("leistung")}</text>

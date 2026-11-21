@@ -100,19 +100,19 @@ export const integrationKarte = {
   },
 
   /**
-   * TOP95, TOP99 und TOP100 fehlen, obwohl die Integration da ist und
-   * im Editor nichts eingetragen wurde: in HeishaMon 4.4.0 und neuer ist
-   * dann vermutlich die Gruppe "Installer settings" aus. Liefert die
-   * fehlenden Topics.
+   * TOP95, TOP99 und TOP100 haben keinen gueltigen Wert, obwohl die
+   * Integration Daten liefert. Die Integration legt diese Entitaeten immer
+   * an; ist die Gruppe "Installer settings" in HeishaMon 4.4.0 und neuer
+   * aus, sind sie nicht verfuegbar. Ist HeishaMon ganz weg (auch TOP0 ohne
+   * Wert), gibt es keinen Hinweis. Liefert die fehlenden Topics.
    */
   _intInstallerFehlt() {
     if ((this._config && this._config.demo) || !this._intDa()) return [];
     const st = (this._hass && this._hass.states) || {};
+    const gueltig = (id) => Boolean(id && st[id] && !UNGUELTIG.includes(String(st[id].state).toLowerCase()));
+    if (!gueltig(this._e("heatpump_state")) && !gueltig(this._intId("top0"))) return [];
     return Object.entries(INSTALLER_TOPS)
-      .filter(([top, feld]) => {
-        const id = this._e(feld);
-        return !(id && st[id]) && !this._intId(top);
-      })
+      .filter(([top, feld]) => !gueltig(this._e(feld)) && !gueltig(this._intId(top)))
       .map(([top]) => top.toUpperCase());
   },
 };

@@ -24,6 +24,7 @@ import { auswertungKarte } from "./auswertung.js";
 import { analyseKarte } from "./analyse.js";
 import { analyseReiterKarte } from "./analysereiter.js";
 import { integrationKarte } from "./integration.js";
+import { netzstromKarte } from "./netzstrom.js";
 import { laufanalyseKarte } from "./laufanalyse.js";
 import { warmwasserKarte } from "./warmwasser.js";
 import { stilKarte } from "./stil.js";
@@ -731,6 +732,7 @@ Object.assign(
   analyseKarte,
   analyseReiterKarte,
   integrationKarte,
+  netzstromKarte,
   laufanalyseKarte,
   warmwasserKarte,
   zeitraumKarte,

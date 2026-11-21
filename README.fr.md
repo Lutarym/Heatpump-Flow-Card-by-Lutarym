@@ -143,6 +143,7 @@ Tous les champs sont facultatifs. Un champ sans entité est masqué sur la carte
 | `energy_today` | Compteur d'énergie | Shelly PM, kWh |
 | **SG Ready** | | |
 | `pv_power` | Puissance PV actuelle | entité propre, watts |
+| `grid_power` | Soutirage réseau | entité propre, watts, positif = soutirage. Avec `power_now`, la carte en calcule « Réseau aujourd'hui » si HeishaMon by Lutarym (option « Capteur de soutirage réseau ») ne le fournit pas |
 | `sg_k1` | Contact K1, blocage | Shelly, relais ou entrée |
 | `sg_k2` | Contact K2, démarrage | Shelly, relais ou entrée |
 | **Circuit primaire** | | |

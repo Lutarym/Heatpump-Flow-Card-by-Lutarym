@@ -143,6 +143,7 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | `energy_today` | Energy meter | Shelly PM, kWh |
 | **SG Ready** | | |
 | `pv_power` | Current PV power | own entity, watts |
+| `grid_power` | Grid import | own entity, watts, positive = import. Together with `power_now` the card calculates "From grid today" if HeishaMon by Lutarym (option "Grid import sensor") does not provide it |
 | `sg_k1` | Contact K1, block | Shelly, relay or input |
 | `sg_k2` | Contact K2, start | Shelly, relay or input |
 | **Primary circuit** | | |

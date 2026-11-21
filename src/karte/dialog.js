@@ -188,7 +188,6 @@ export const dialogKarte = {
         "flow-v": "pump_flow",
         "press-v": "water_pressure",
         "valve-v": "three_way_valve",
-        "pv-v": "pv_power",
         "buf-v": "buffer_temp",
         "dhw-v": "dhw_temp",
         "zirk-v": "circulation_pump",
@@ -216,6 +215,16 @@ export const dialogKarte = {
           this._mehrInfo(this._e(feld));
         });
       });
+      // Netzstrom heute: Verlauf des Werts der Integration, sonst des Netzbezugs.
+      const netzEl = sr.getElementById("pv-v");
+      if (netzEl) {
+        netzEl.classList.add("klickbar");
+        netzEl.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          const id = this._netzKlickId();
+          if (id) this._mehrInfo(id);
+        });
+      }
     }
 
     // Zirkulations-Pumpe: Direkter Schalter ohne Dialog

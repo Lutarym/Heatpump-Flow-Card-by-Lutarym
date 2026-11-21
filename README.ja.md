@@ -143,6 +143,7 @@ entities:
 | `energy_today` | 電力量計 | Shelly PM, kWh |
 | **SG Ready** | | |
 | `pv_power` | 現在の太陽光出力 | 独自エンティティ、ワット |
+| `grid_power` | 系統受電 | 独自エンティティ、ワット、正 = 受電。HeishaMon by Lutarym（オプション「系統受電センサー」）が値を出さない場合、`power_now` と合わせてカードが「今日の系統電力」を計算 |
 | `sg_k1` | 接点K1 停止 | Shelly、リレーまたは入力 |
 | `sg_k2` | 接点K2 起動 | Shelly、リレーまたは入力 |
 | **一次回路** | | |

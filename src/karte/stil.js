@@ -313,8 +313,11 @@ export const stilKarte = {
       .badge { opacity: 0; transition: opacity 300ms ease; }
       .badge.is-on { opacity: 1; }
 
+      /* Netzstrom heute: Wert neutral wie der Verbrauch, darunter klein
+         und gruen der Anteil aus PV. */
+      .pv-anteil { fill: #7BD88F; font-size: 13px; letter-spacing: 0.02em; }
       .pv-value {
-        fill: #7BD88F; font-size: 26px; font-weight: 700;
+        fill: var(--c-e8edf4); font-size: 26px; font-weight: 700;
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-variant-numeric: tabular-nums;
       }

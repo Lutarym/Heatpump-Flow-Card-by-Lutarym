@@ -143,6 +143,7 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | `energy_today` | Energiezähler | Shelly PM, kWh |
 | **SG Ready** | | |
 | `pv_power` | PV Leistung aktuell | eigene Entität, Watt |
+| `grid_power` | Netzbezug | eigene Entität, Watt, positiv = Bezug. Mit `power_now` rechnet die Karte daraus „Netzstrom heute“, wenn HeishaMon by Lutarym (Option „Netzbezug-Sensor“) den Wert nicht liefert |
 | `sg_k1` | Kontakt K1 Sperre | Shelly, Relais oder Eingang |
 | `sg_k2` | Kontakt K2 Anlauf | Shelly, Relais oder Eingang |
 | **Primärkreis** | | |

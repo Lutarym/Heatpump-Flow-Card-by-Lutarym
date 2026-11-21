@@ -222,7 +222,13 @@ export const analyseReiterKarte = {
       });
     }
     const pv = this._int("pv_share_today");
-    if (pv) {
+    // Ohne Wert der Integration rechnet die Karte selbst (netzstrom.js).
+    const eigen = typeof this._netzHeute === "function" ? this._netzHeute() : null;
+    if ((!pv || pv.zahl === null) && eigen && eigen.quelle === "karte" && Number.isFinite(eigen.anteil)) {
+      const werte = { h: z(Math.min(100, Math.max(0, eigen.anteil)), 0), n: z(eigen.netz, 1), g: z(eigen.gesamt, 1) };
+      punkt({ gruppe: "anlage", id: "pv", stufe: "info", titel: t("an_t_pv"), wert: `${werte.h} %`, wertText: t("an_w_pv_karte"),
+        text: tf(t("an_pv_text_karte"), werte), kurz: tf(t("an_pv_text_karte"), werte) });
+    } else if (pv) {
       const sieben = parseFloat(pv.attr.pv_anteil_7_tage);
       if (pv.zahl !== null) {
         const werte = { h: z(pv.zahl, 0), w: Number.isFinite(sieben) ? z(sieben, 0) : "--" };
@@ -373,6 +379,9 @@ export const analyseReiterKarte = {
       ausPunkt("cop", t("an_k_cop"));
       ausPunkt("jaz", t("an_k_jaz"));
     } else if (r === "strom") {
+      const netz = typeof this._netzHeute === "function" ? this._netzHeute() : null;
+      if (netz) k(t("netzstrom_heute"), `${z(netz.netz, 1)} kWh`, netz.quelle === "integration" ? intS : t("an_q_karte"));
+      if (netz && netz.quelle === "karte" && Number.isFinite(netz.anteil)) k(t("an_k_pv_heute"), `${z(Math.min(100, Math.max(0, netz.anteil)), 0)} %`, t("an_q_karte"));
       const pv = iv("pv_share_today");
       if (pv && pv.zahl !== null) {
         k(t("an_k_pv_heute"), `${z(pv.zahl, 0)} %`, intS);

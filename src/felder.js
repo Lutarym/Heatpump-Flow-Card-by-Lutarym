@@ -49,6 +49,7 @@ export const ENTITY_FIELDS = [
   { key: "energy_today", label: "Energiezähler", group: "Außengerät", hint: "Shelly PM, kWh" },
 
   { key: "pv_power", label: "PV Leistung aktuell", group: "SG Ready", hint: "eigene Entität, Watt" },
+  { key: "grid_power", label: "Netzbezug", group: "SG Ready", hint: "eigene Entität, Watt, positiv = Bezug" },
   { key: "sg_k1", label: "Kontakt K1 Sperre", group: "SG Ready", hint: "Shelly, Relais oder Eingang" },
   { key: "sg_k2", label: "Kontakt K2 Anlauf", group: "SG Ready", hint: "Shelly, Relais oder Eingang" },
 

@@ -299,11 +299,8 @@ export const aktualisierenKarte = {
       }
     }
 
-    /* Leistung der Photovoltaik */
-    const pv = numState(hass, this._e("pv_power"));
-    zeige("pv-group", pv !== null);
-    // Immer in Kilowatt, damit die Einheit nicht springt.
-    set("pv-v", pv === null ? "--" : `${fmt(pv / 1000, 2)} kW`);
+    /* Netzstrom der Waermepumpe heute (statt PV-Leistung), netzstrom.js */
+    this._zeigeNetz();
 
     /* Temperaturen und Leitungsfarben */
     const flow = numState(hass, this._e("flow_temp"));

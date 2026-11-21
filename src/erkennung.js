@@ -148,6 +148,7 @@ export const FIELD_DOMAIN = {
   dhw_warmest: ["switch", "input_boolean"],
   dhw_planned: ["sensor"],
   dhw_last_charge: ["sensor"],
+  grid_power: ["sensor", "input_number"],
   hk1_room_temp: ["sensor", "input_number"],
   hk2_room_temp: ["sensor", "input_number"],
   weather: ["weather"],

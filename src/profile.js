@@ -307,7 +307,7 @@ const BEREICHE = [
   ["b_puffer", /^buffer_/],
   ["b_warmwasser", /^(dhw_|sterilization|force_sterilization|steril_)/],
   ["b_zusatz", /^(solar_|kamin_|heater_|room_heater)/],
-  ["b_energie", /^(power_now|energy_today|pv_power|cop_|jaz)/],
+  ["b_energie", /^(power_now|energy_today|pv_power|grid_power|cop_|jaz)/],
   ["b_zaehler", /(_hours|_starts)$/],
   ["b_status", /^(error|defrost|water_pressure|heatpump_state|operating_mode|power_state|mode_select)$/],
   ["b_kurve", /^curve/],
