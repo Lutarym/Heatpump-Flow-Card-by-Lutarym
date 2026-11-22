@@ -68,7 +68,8 @@ export const aktualisierenKarte = {
   },
 
   /* -------------------- Aktualisierung -------------------- */
-  _update() {
+  /** Werte, Farben und Animationszustaende der Grafik (_update in karte.js). */
+  _updateGrafik() {
     const hass = this._quelle;
     if (!hass) return;
     const min = Number(this._config.scale_min);

@@ -198,10 +198,16 @@ export const stilKarte = {
       .lhc-svg { width: 100%; height: auto; display: block; }
       /* Eigene Ebenen fuer bewegte Teile (ebenen.js), genau ueber der Grafik. */
       .lhc-scene { position: relative; }
-      .lhc-svg.lhc-ebene {
+      /* Bewegte Teile in eigenen Kacheln ueber der Grafik (kacheln.js). */
+      .lhc-vorlage {
         position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-        pointer-events: none; will-change: transform;
+        visibility: hidden; pointer-events: none;
       }
+      .lhc-ebene-kacheln { position: absolute; left: 0; top: 0; pointer-events: none; }
+      .lhc-ebene-kacheln svg, .lhc-ebene-kacheln div { position: absolute; display: block; }
+      .lhc-band, .lhc-fenster, .lhc-blasen { overflow: hidden; }
+      /* Fenster der Laufstriche: die Striche sind dort schon einzeln gezeichnet. */
+      svg.lhc-raster .flowdots { stroke-dasharray: none; }
 
       .pipe-shell {
         fill: none; stroke: var(--c-0b1017); stroke-width: 18;

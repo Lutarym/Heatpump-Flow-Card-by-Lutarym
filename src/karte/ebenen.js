@@ -7,13 +7,15 @@
  * alle Browser auf iPhone und iPad) fasst die Bereiche dabei grob
  * zusammen. Gemessen in WebKitGTK 2.52: fast die ganze Karte bei jedem Bild.
  *
- * Darum liegen die bewegten Teile in einer eigenen Ebene. Die Reihenfolge
- * beim Zeichnen bleibt dieselbe wie in einer einzigen Grafik:
+ * Darum liegen die bewegten Teile ueber der Grafik, jedes in einer eigenen
+ * kleinen Kachel (kacheln.js), deren Bewegung der Browser selbst abspielt
+ * (takt.js). Die Reihenfolge beim Zeichnen bleibt dieselbe wie in einer
+ * einzigen Grafik:
  *  - Grund: die urspruengliche Grafik mit allem Unbewegten. Sie bleibt das
  *    Original mit allen Kennungen, Klicks und Hinweisen.
- *  - Bewegt: die bewegten Teile.
- *  - Vorn: Unbewegtes, das in der Grafik ueber einem bewegten Teil liegt,
- *    etwa das Glas vor den Blasen im Speicher.
+ *  - Kacheln, in Zeichenreihenfolge: die bewegten Teile und Unbewegtes, das
+ *    in der Grafik ueber einem bewegten Teil liegt, etwa das Glas vor den
+ *    Blasen im Speicher.
  * Liegt eine deckende Form (Gehaeuse, Speicher, Pumpe) ueber einem
  * bewegten Teil, wird das bewegte Teil dort ausgeschnitten. Dort war es
  * ohnehin verdeckt, und die Form bleibt im Grund.
@@ -87,11 +89,11 @@ function verlaufDeckt(wurzel, id, tiefe = 0) {
   });
 }
 
-const ueberlappt = (p, q) => !p || !q || (p[0] < q[2] && q[0] < p[2] && p[1] < q[3] && q[1] < p[3]);
+export const ueberlappt = (p, q) => !p || !q || (p[0] < q[2] && q[0] < p[2] && p[1] < q[3] && q[1] < p[3]);
 const schnitt = (p, q) => [Math.max(p[0], q[0]), Math.max(p[1], q[1]), Math.min(p[2], q[2]), Math.min(p[3], q[3])];
 
 /** Liegt der Punkt in der Form? */
-function punktIn(f, x, y, tol = 1e-6) {
+export function punktIn(f, x, y, tol = 1e-6) {
   if (f.art === "ell") {
     const dx = (x - f.cx) / (f.rx + tol);
     const dy = (y - f.cy) / (f.ry + tol);
@@ -158,12 +160,29 @@ function drehRadius(el, m0) {
   return rad;
 }
 
-const formBox = (f) => (f.art === "ell" ? [f.cx - f.rx, f.cy - f.ry, f.cx + f.rx, f.cy + f.ry] : [f.x0, f.y0, f.x1, f.y1]);
+/**
+ * Lage eines Elements in Einheiten seiner aeussersten Grafik. Grund,
+ * Vorlage und Kacheln rechnen alle in Einheiten der Grundgrafik. Eine
+ * Drehung oder Verschiebung der Kachel selbst faellt dabei heraus.
+ */
+export function relCtm(el) {
+  if (!el || typeof el.getScreenCTM !== "function") return null;
+  let r = el.ownerSVGElement;
+  // Das aeussere SVG selbst: keine Verschiebung.
+  if (!r) return typeof el.createSVGMatrix === "function" ? el.createSVGMatrix() : null;
+  while (r.ownerSVGElement) r = r.ownerSVGElement;
+  const a = r.getScreenCTM();
+  const b = el.getScreenCTM();
+  if (!a || !b) return null;
+  return a.inverse().multiply(b);
+}
+
+export const formBox = (f) => (f.art === "ell" ? [f.cx - f.rx, f.cy - f.ry, f.cx + f.rx, f.cy + f.ry] : [f.x0, f.y0, f.x1, f.y1]);
 
 const zahl = (v) => Math.round(v * 100) / 100;
 
 /** Umriss einer Form als Pfad. */
-function formPfad(f) {
+export function formPfad(f) {
   if (f.art === "ell") {
     return `M${zahl(f.cx - f.rx)} ${zahl(f.cy)}A${zahl(f.rx)} ${zahl(f.ry)} 0 1 0 ${zahl(f.cx + f.rx)} ${zahl(f.cy)}` +
       `A${zahl(f.rx)} ${zahl(f.ry)} 0 1 0 ${zahl(f.cx - f.rx)} ${zahl(f.cy)}Z`;
@@ -206,16 +225,26 @@ function strecken(d) {
 export const ebenenKarte = {
   /** Ebenen anlegen. Nur mit laufender Animation sinnvoll. */
   _ebenenPlanen() {
+    if (this._ebenenAus) return false;
     const sr = this.shadowRoot;
     const svg = sr && sr.querySelector(".lhc-scene svg.lhc-svg");
     if (!svg || !svg.isConnected) return false;
     const ctm = svg.getScreenCTM && svg.getScreenCTM();
-    const r = svg.getBoundingClientRect();
-    if (!ctm || r.width < 2 || r.height < 2) return false;
+    const mass = ctm ? this._ebenenMass(svg) : null;
+    if (!mass) return false;
     const atome = this._ebenenAtome(svg);
     this._ebenenVermessen(svg, atome);
     this._ebenenVerteilen(atome);
-    this._ebenenBauen(svg, atome);
+    try {
+      this._ebenenBauen(svg, atome, mass);
+    } catch (fehler) {
+      // Dann eben ohne eigene Ebenen, die Schleife zeichnet alles wie frueher.
+      console.warn("Heatpump Flow Card: Ebenen nicht moeglich", fehler);
+      this._ebenenAufloesen();
+      this._ebenenAus = true;
+      return false;
+    }
+    this._ebenenTakt();
     return true;
   },
 
@@ -225,6 +254,13 @@ export const ebenenKarte = {
     this._ebenen = null;
     if (!e) return;
     if (e.beobachter) e.beobachter.disconnect();
+    if (e.groesse) e.groesse.disconnect();
+    if (e.aufloesung && e.aufloesungRuf) e.aufloesung.removeEventListener("change", e.aufloesungRuf);
+    clearTimeout(e.pruefTimer);
+    clearTimeout(e.schwebTimer);
+    clearTimeout(e.neuTimer);
+    // Erreichte Winkel uebernimmt die Animationsschleife, nichts springt.
+    this._taktAus(e);
     if (nurZustand) return;
     e.lauscher.forEach(([el, art, fn, erfassen]) => el.removeEventListener(art, fn, Boolean(erfassen)));
     e.atome.forEach((a) => {
@@ -233,7 +269,7 @@ export const ebenenKarte = {
       if (a.el.classList) a.el.classList.remove("lhc-schwebt");
       if (a.el.querySelectorAll) a.el.querySelectorAll(".lhc-schwebt").forEach((x) => x.classList.remove("lhc-schwebt"));
     });
-    [e.bewegt, e.vorn].forEach((s) => s && s.remove());
+    [e.bewegt, e.vorlage].forEach((s) => s && s.remove());
     // Spaetere Zeichenbefehle sollen wieder das Original treffen.
     if (this._bubbleCache) this._bubbleCache.clear();
   },
@@ -273,7 +309,6 @@ export const ebenenKarte = {
    * Teile neu vermessen.
    */
   _ebenenVermessen(svg, atome, nur) {
-    const zu = svg.getScreenCTM().inverse();
     const ecken = (m, x0, y0, x1, y1) => {
       const p = [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(([x, y]) => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]);
       const xs = p.map((q) => q[0]);
@@ -289,7 +324,8 @@ export const ebenenKarte = {
       a.deck = null;
       let bb = null;
       try { bb = el.getBBox(); } catch { bb = null; }
-      const m0 = el.getScreenCTM && el.getScreenCTM();
+      // Lage in Einheiten der Grundgrafik, auch fuer Teile in Kacheln.
+      const m0 = relCtm(el);
       if (!bb || !m0) return;
       const blatt = !el.children.length;
       let rand = 0;
@@ -299,14 +335,14 @@ export const ebenenKarte = {
         if (cs.stroke && cs.stroke !== "none") rand = Math.max(rand, (parseFloat(cs.strokeWidth) || 0) / 2);
         if (cs.filter && cs.filter !== "none") filter = true;
       });
-      let m = zu.multiply(m0);
+      let m = m0;
       let x0 = bb.x - rand, y0 = bb.y - rand, x1 = bb.x + bb.width + rand, y1 = bb.y + bb.height + rand;
       if (el.classList.contains("rotor") || DREHT_ID.test(el.id)) {
         // Drehung um den eigenen Ursprung: Kreis mit dem groessten Abstand.
         // Die Form aendert sich nie, darum nur einmal rechnen.
-        if (a.dreh === undefined) a.dreh = drehRadius(el, m0) + rand + 1;
-        const pm = el.parentNode.getScreenCTM();
-        m = zu.multiply(pm);
+        if (a.dreh === undefined) a.dreh = drehRadius(el, el.getScreenCTM()) + rand + 1;
+        const pm = relCtm(el.parentNode);
+        m = pm;
         const mm = pm.inverse().multiply(m0);
         x0 = mm.e - a.dreh; y0 = mm.f - a.dreh; x1 = mm.e + a.dreh; y1 = mm.f + a.dreh;
       } else if (el.hasAttribute("clip-path") && el.querySelector("[id$='-bubbles']")) {
@@ -333,7 +369,7 @@ export const ebenenKarte = {
         const d = q ? q.dataset : {};
         const x = Number(d.x), u = Number(d.u), o = Number(d.o), sx = Number(d.sx), sy = Number(d.sy);
         if ([x, u, o, sx, sy].every(Number.isFinite)) {
-          m = zu.multiply(q.parentNode.getScreenCTM());
+          m = relCtm(q.parentNode);
           x0 = Math.min(x, sx - 30) - 10; x1 = x + 140; y0 = Math.min(o - 30, sy - 30); y1 = u + 15;
         }
       } else if (el.id === "kamin-feuer") {
@@ -503,115 +539,43 @@ export const ebenenKarte = {
     });
   },
 
-  /** Ebenen in den Baum setzen. */
-  _ebenenBauen(svg, atome) {
+  /** Vorlage und Kacheln in den Baum setzen. */
+  _ebenenBauen(svg, atome, mass) {
     const szene = svg.parentNode;
-    const vb = svg.viewBox && svg.viewBox.baseVal;
-    const neu = (klasse) => {
-      const s = document.createElementNS(NS, "svg");
-      ["viewBox", "preserveAspectRatio", "class"].forEach((n) => {
-        if (svg.hasAttribute(n)) s.setAttribute(n, svg.getAttribute(n));
-      });
-      s.classList.add("lhc-ebene", klasse);
-      s.setAttribute("aria-hidden", "true");
-      s.setAttribute("focusable", "false");
-      s.appendChild(document.createElementNS(NS, "defs"));
-      return s;
-    };
-    const ebenen = { 1: neu("lhc-ebene-bewegt"), 2: neu("lhc-ebene-vorn") };
-    const schalen = new Map();
-    const schnittIds = new Map();
-    let nr = 0;
-    const gross = vb && vb.width
-      ? `M${zahl(vb.x - 1000)} ${zahl(vb.y - 1000)}H${zahl(vb.x + vb.width + 1000)}V${zahl(vb.y + vb.height + 1000)}H${zahl(vb.x - 1000)}Z`
-      : "M-10000 -10000H10000V10000H-10000Z";
-    // Ausschnitte: Formen ohne gegenseitige Beruehrung in einen Pfad,
-    // sonst geschachtelt (gerade-ungerade-Regel).
-    const schnittStufen = (formen, ziel) => {
-      const stufen = [];
-      formen.forEach((f) => {
-        const st = stufen.find((s) => s.every((g) => !ueberlappt(formBox(f), formBox(g))));
-        if (st) st.push(f); else stufen.push([f]);
-      });
-      return stufen.map((st) => {
-        const d = gross + st.map(formPfad).join("");
-        const schluessel = `${ziel.getAttribute("class")}|${d}`;
-        if (!schnittIds.has(schluessel)) {
-          const id = `lhc-ebene-schnitt-${++nr}`;
-          const cp = document.createElementNS(NS, "clipPath");
-          cp.setAttribute("id", id);
-          cp.setAttribute("clipPathUnits", "userSpaceOnUse");
-          const p = document.createElementNS(NS, "path");
-          p.setAttribute("d", d);
-          p.setAttribute("clip-rule", "evenodd");
-          cp.appendChild(p);
-          ziel.firstChild.appendChild(cp);
-          schnittIds.set(schluessel, id);
-        }
-        return schnittIds.get(schluessel);
-      });
-    };
-    const ketten = { 1: null, 2: null };
-    const platzhalter = (el, index) => {
-      const p = el.cloneNode(true);
-      p.removeAttribute("id");
-      p.querySelectorAll("[id]").forEach((x) => x.removeAttribute("id"));
-      p.setAttribute("data-lhc-platz", String(index));
-      p.style.setProperty("visibility", "hidden");
-      p.style.setProperty("pointer-events", "painted");
-      return p;
-    };
-    atome.forEach((a, index) => {
-      if (a.ebene === 0) return;
-      const ziel = ebenen[a.ebene];
-      const ids = schnittStufen(a.schnitt, ziel);
-      const schluessel = ids.join(" ");
-      let kette = ketten[a.ebene];
-      if (!kette || kette.schluessel !== schluessel) {
-        let oben = ziel;
-        ids.forEach((id) => {
-          const g = document.createElementNS(NS, "g");
-          g.setAttribute("clip-path", `url(#${id})`);
-          oben.appendChild(g);
-          oben = g;
-        });
-        kette = { schluessel, karte: new Map([[svg, oben]]) };
-        ketten[a.ebene] = kette;
-      }
-      const schale = (orig) => {
-        if (kette.karte.has(orig)) return kette.karte.get(orig);
-        const eltern = schale(orig.parentNode);
-        const s = orig.cloneNode(false);
-        // Schalen sind nur Huelle fuer Lage und Stil, nicht bedienbar.
-        ["tabindex", "role", "aria-label", "focusable"].forEach((n) => s.removeAttribute(n));
-        s.setAttribute("data-lhc-schale", "");
-        eltern.appendChild(s);
-        kette.karte.set(orig, s);
-        if (!schalen.has(orig)) schalen.set(orig, []);
-        schalen.get(orig).push(s);
-        return s;
-      };
-      const eltern = schale(a.el.parentNode);
-      a.platz = platzhalter(a.el, index);
-      a.el.replaceWith(a.platz);
-      eltern.appendChild(a.el);
-      a.schale = eltern;
+    const vb = svg.viewBox.baseVal;
+    // Unsichtbare Vorlage: Originale, die nur als Kopie gezeigt werden
+    // (Laufstriche, Blasen). Gleiche Einheiten wie die Grundgrafik.
+    const vorlage = document.createElementNS(NS, "svg");
+    ["viewBox", "preserveAspectRatio"].forEach((n) => {
+      if (svg.hasAttribute(n)) vorlage.setAttribute(n, svg.getAttribute(n));
     });
-    // Die Ebenen liegen direkt hinter dem Original, so findet
-    // getElementById fuer Gruppen weiter das Original.
-    szene.insertBefore(ebenen[2], svg.nextSibling);
-    szene.insertBefore(ebenen[1], ebenen[2]);
-    atome.forEach((a) => { a.anker = a.platz || a.el; });
-    const zustand = {
-      svg, atome, bewegt: ebenen[1], vorn: ebenen[2], schalen, lauscher: [],
+    vorlage.setAttribute("class", "lhc-vorlage");
+    vorlage.setAttribute("aria-hidden", "true");
+    vorlage.setAttribute("focusable", "false");
+    const bewegt = document.createElement("div");
+    bewegt.className = "lhc-ebene-kacheln";
+    bewegt.setAttribute("aria-hidden", "true");
+    const z = {
+      svg, atome, vb, vbBox: [vb.x, vb.y, vb.x + vb.width, vb.y + vb.height], mass, aPx: [0, 0, mass.bw, mass.bh],
+      bewegt, vorlage, vorlageKarte: new Map([[svg, vorlage]]),
+      schalen: new Map(), kopien: new Map(), kacheln: [], komp: new Set(), nr: 0, lauscher: [],
       karte: svg.closest("ha-card"), atomVon: new Map(atome.map((a) => [a.el, a])), ziele: new Set(),
       geaendert: false, neu: false, alles: false, zuletzt: performance.now(),
       signatur: this._ebenenSignatur(atome),
     };
-    // Mauszeiger: Gruppen mit :hover-Regel geben den Zustand an Schalen
+    // Schon jetzt vermerken: Scheitert der Bau, stellt Aufloesen alles zurueck.
+    this._ebenen = z;
+    // Beide liegen direkt hinter dem Original, so findet getElementById
+    // fuer Gruppen weiter das Original.
+    szene.insertBefore(bewegt, svg.nextSibling);
+    szene.insertBefore(vorlage, bewegt);
+    this._kachelnBauen(z);
+    this._kachelnLegen();
+    atome.forEach((a) => { a.anker = a.platz || a.el; });
+    // Mauszeiger: Gruppen mit :hover-Regel geben den Zustand an Huellen
     // und verschobene Teile weiter.
     const spiegel = new Map();
-    schalen.forEach((liste, orig) => { if (orig.matches(SCHWEBT)) spiegel.set(orig, liste.slice()); });
+    z.schalen.forEach((liste, orig) => { if (orig.matches(SCHWEBT)) spiegel.set(orig, liste.slice()); });
     atome.forEach((a) => {
       if (!a.platz) return;
       if (a.platz.matches(SCHWEBT)) spiegel.set(a.platz, [a.el]);
@@ -625,14 +589,14 @@ export const ebenenKarte = {
     });
     // Das Element unter dem Zeiger bestimmt, welche Originale abgeblendet
     // sind: beim Hineinbewegen das Ziel, beim Hinausbewegen das neue Ziel.
-    zustand.spiegel = Array.from(spiegel, ([orig, liste]) => ({ orig, liste, an: false }));
+    z.spiegel = Array.from(spiegel, ([orig, liste]) => ({ orig, liste, an: false }));
     const abgleich = (ev) => {
       const unter = ev.type === "pointerover" ? ev.target : ev.type === "pointerout" ? ev.relatedTarget : null;
       this._ebenenSchweben(unter && svg.contains(unter) ? unter : null);
     };
     ["pointerover", "pointerout", "pointerleave", "pointercancel"].forEach((art) => {
       svg.addEventListener(art, abgleich);
-      zustand.lauscher.push([svg, art, abgleich]);
+      z.lauscher.push([svg, art, abgleich]);
     });
     // Klicks auf Platzhalter von Teilen, die selbst klickbar sind (Werte
     // mit eigenem Verlauf), gehen an das echte Teil. Sonst oeffnete sich
@@ -654,15 +618,29 @@ export const ebenenKarte = {
         clientX: ev.clientX, clientY: ev.clientY, button: ev.button }));
     };
     svg.addEventListener("click", weiter, true);
-    zustand.lauscher.push([svg, "click", weiter, true]);
-    // Aenderungen am Original an die Schalen weitergeben.
-    zustand.beobachter = new MutationObserver((liste) => this._ebenenAenderung(liste));
-    zustand.beobachter.observe(svg, { attributes: true, childList: true, subtree: true, characterData: true });
-    zustand.beobachter.observe(ebenen[2], { attributes: true, childList: true, subtree: true, characterData: true,
-      attributeFilter: ["class", "style", "x", "y", "width", "height", "d"] });
+    z.lauscher.push([svg, "click", weiter, true]);
+    // Aenderungen am Original an Huellen und Kopien weitergeben.
+    z.beobachter = new MutationObserver((liste) => this._ebenenAenderung(liste));
+    const alles = { attributes: true, childList: true, subtree: true, characterData: true };
+    z.beobachter.observe(svg, alles);
+    z.beobachter.observe(vorlage, alles);
+    z.beobachter.observe(bewegt, { ...alles, attributeFilter: ["class", "style", "x", "y", "width", "height", "d"] });
     // Wechsel des Farbschemas aendert Farben und damit, was deckt.
-    if (zustand.karte) zustand.beobachter.observe(zustand.karte, { attributes: true, attributeFilter: ["class"] });
-    this._ebenen = zustand;
+    if (z.karte) z.beobachter.observe(z.karte, { attributes: true, attributeFilter: ["class"] });
+    // Groesse und Bildschirm: die Kacheln folgen, Fenster werden neu gebaut.
+    if (typeof ResizeObserver !== "undefined") {
+      z.groesse = new ResizeObserver(() => this._kachelnLegen());
+      z.groesse.observe(svg);
+    }
+    if (window.matchMedia) {
+      try {
+        z.aufloesung = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+        z.aufloesungRuf = () => this._kachelnLegen();
+        z.aufloesung.addEventListener("change", z.aufloesungRuf);
+      } catch {
+        z.aufloesung = null;
+      }
+    }
   },
 
   /**
@@ -680,6 +658,13 @@ export const ebenenKarte = {
       s.an = an;
       s.liste.forEach((x) => x.classList.toggle("lhc-schwebt", an));
     });
+    // Solange etwas abgeblendet ist, regelmaessig nachsehen.
+    if (!e.schwebTimer && e.spiegel.some((s) => s.an)) {
+      e.schwebTimer = setTimeout(() => {
+        e.schwebTimer = null;
+        if (this._ebenen === e) this._ebenenSchweben();
+      }, 500);
+    }
   },
 
   /** Kurzfassung der Verteilung, um Aenderungen zu erkennen. */
@@ -687,34 +672,67 @@ export const ebenenKarte = {
     return atome.map((a) => `${a.ebene}:${a.schnitt.map(formPfad).join("")}`).join("|");
   },
 
-  /** Beobachtete Aenderungen: Schalen nachziehen, Pruefung vormerken. */
+  /** Beobachtete Aenderungen: Huellen und Kopien nachziehen, Pruefung vormerken. */
   _ebenenAenderung(liste) {
     const e = this._ebenen;
     if (!e) return;
+    let relevant = false;
     liste.forEach((m) => {
+      const ziel = m.type === "characterData" ? m.target.parentElement : m.target;
+      if (!ziel) return;
+      if (m.type === "attributes" && m.target === e.karte) {
+        e.alles = true;
+        relevant = true;
+        return;
+      }
+      // Eigene Bausteine und Kachelrahmen veraendert nur der Takt.
+      if (ziel.closest && (ziel.closest("[data-lhc-intern]") || (ziel.hasAttribute && ziel.hasAttribute("data-lhc-kachel")))) return;
       if (m.type === "attributes") {
-        if (m.target === e.karte) { e.alles = true; return; }
+        const name = m.attributeName;
+        const wert = m.target.getAttribute(name);
         const schalen = e.schalen.get(m.target);
         if (schalen) {
-          const wert = m.target.getAttribute(m.attributeName);
           schalen.forEach((s) => {
-            if (m.attributeName === "class") {
+            const ohne = (s.getAttribute("data-lhc-ohne") || "").split(" ");
+            if (ohne.includes(name)) return;
+            if (name === "class") {
               const schwebt = s.classList.contains("lhc-schwebt");
               if (wert === null) s.removeAttribute("class"); else s.setAttribute("class", wert);
               if (schwebt) s.classList.add("lhc-schwebt");
-            } else if (["tabindex", "role", "aria-label", "focusable"].includes(m.attributeName)) {
+            } else if (["tabindex", "role", "aria-label", "focusable"].includes(name)) {
               // bleibt am Original
-            } else if (wert === null) s.removeAttribute(m.attributeName);
-            else s.setAttribute(m.attributeName, wert);
+            } else if (wert === null) s.removeAttribute(name);
+            else s.setAttribute(name, wert);
           });
+        }
+        // Laufstriche: Farbe und Zustand an alle Kopien. Den Versatz setzt der Takt.
+        const kopien = e.kopien.get(m.target);
+        if (kopien) {
+          if (name === "d") e.neu = true;
+          else if (!["id", "stroke-dashoffset", "transform"].includes(name)) {
+            kopien.forEach((k) => {
+              if (wert === null) k.removeAttribute(name);
+              else k.setAttribute(name, wert);
+            });
+          }
         }
       } else if (m.type === "childList" && (e.schalen.has(m.target) || m.target === e.svg)) {
         // Aufbau einer zerlegten Gruppe geaendert: neu planen.
         e.neu = true;
       }
-      e.ziele.add(m.type === "characterData" ? m.target.parentElement : m.target);
+      e.ziele.add(ziel);
+      relevant = true;
     });
+    if (!relevant) return;
     e.geaendert = true;
+    // Hoechstens einmal je Sekunde pruefen, ob die Aufteilung noch stimmt.
+    if (!e.pruefTimer) {
+      const warte = Math.max(50, 1000 - (performance.now() - e.zuletzt));
+      e.pruefTimer = setTimeout(() => {
+        e.pruefTimer = null;
+        if (this._ebenen === e) this._ebenenPruefen();
+      }, warte);
+    }
   },
 
   /**
@@ -735,7 +753,7 @@ export const ebenenKarte = {
         betroffen = new Set();
         ziele.forEach((x) => {
           if (!x || x.hasAttribute?.("data-lhc-platz")) return;
-          for (let y = x; y && y !== e.svg && y !== e.vorn; y = y.parentNode) {
+          for (let y = x; y && y !== e.svg && y !== e.bewegt && y !== e.vorlage; y = y.parentNode) {
             const a = e.atomVon.get(y);
             if (a) { betroffen.add(a); return; }
           }
@@ -750,16 +768,24 @@ export const ebenenKarte = {
       this._ebenenVermessen(e.svg, kopie, neuGemessen);
       this._ebenenVerteilen(kopie);
       if (this._ebenenSignatur(kopie) === e.signatur) {
+        // Gleiche Aufteilung. Passt jede Kachel noch um ihren Inhalt?
+        let passt = true;
         kopie.forEach((k, i) => {
           if (neuGemessen && !neuGemessen.has(k)) return;
           const a = e.atome[i];
           a.box = k.box; a.kern = k.kern; a.form = k.form; a.deck = k.deck;
+          if (a.kachel && !this._kachelPasst(a.kachel, k.box)) passt = false;
         });
-        return;
+        if (passt) return;
       }
     }
+    this._ebenenNeu();
+  },
+
+  /** Neu planen. Klappt das gerade nicht, zeichnet die Schleife wie frueher. */
+  _ebenenNeu() {
     this._ebenenAufloesen();
-    this._ebenenPlanen();
+    if (!this._ebenenPlanen()) this._ebenenTakt();
   },
 
   /**
@@ -772,7 +798,13 @@ export const ebenenKarte = {
     if (!e) return kopie;
     kopie.querySelectorAll("[data-lhc-platz]").forEach((p) => {
       const a = e.atome[Number(p.getAttribute("data-lhc-platz"))];
-      if (a) p.replaceWith(a.el.cloneNode(true));
+      if (!a) return;
+      const echt = a.el.cloneNode(true);
+      // Drehen und Pulsieren spielt die Kachel, nicht das Original.
+      const k = a.kachel;
+      if (k && k.art === "dreh") echt.setAttribute("transform", `rotate(${this._taktWinkel(k).toFixed(2)} 0 0)`);
+      if (k && k.art === "puls" && k.anim) echt.setAttribute("opacity", this._taktDeckkraft(k).toFixed(2));
+      p.replaceWith(echt);
     });
     return kopie;
   },

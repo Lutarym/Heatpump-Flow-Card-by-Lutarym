@@ -31,6 +31,8 @@ import { warmwasserKarte } from "./warmwasser.js";
 import { stilKarte } from "./stil.js";
 import { tuerKarte } from "./tuer.js";
 import { ebenenKarte } from "./ebenen.js";
+import { kachelnKarte } from "./kacheln.js";
+import { taktKarte } from "./takt.js";
 import { verlaufKarte } from "./verlauf.js";
 import { HOLD_MS } from "../konstanten.js";
 import { PROFILE, profilFeldnamen } from "../profile.js";
@@ -91,6 +93,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
       this._sichtBeobachter = new IntersectionObserver((eintraege) => {
         const e = eintraege[eintraege.length - 1];
         this._unsichtbar = !e.isIntersecting;
+        // Unsichtbar ruhen auch die Animationen der Kacheln (takt.js).
+        if (this._built) this._ebenenTakt();
         if (!this._unsichtbar && this._built && !this._animLoop) this._startAnimationLoop();
       });
       this._sichtBeobachter.observe(this);
@@ -456,7 +460,11 @@ export class LutarymHeatpumpCard extends HTMLElement {
   /* -------------------- Aufbau -------------------- */
   _build() {
     if (this._animLoop) cancelAnimationFrame(this._animLoop);
+    this._animLoop = null;
     this._animTime = 0;
+    // Gemeinsamer Nullpunkt fuer Schleife und Kacheln (takt.js).
+    this._animUrsprung = document.timeline && typeof document.timeline.currentTime === "number"
+      ? document.timeline.currentTime : performance.now();
     this._animState.clear();
     // Der alte Baum wird ersetzt, seine Ebenen mit ihm.
     this._ebenenAufloesen(true);
@@ -536,6 +544,12 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._startAnimationLoop();
   }
 
+  /** Werte zeigen, danach die Animationen der Kacheln abgleichen (takt.js). */
+  _update() {
+    this._updateGrafik();
+    this._ebenenTakt();
+  }
+
   /**
    * Nachschlagen eines Elements mit Zwischenspeicher.
    * Die Animationsschleife sucht sonst bei jedem Bild erneut im DOM.
@@ -572,10 +586,17 @@ export class LutarymHeatpumpCard extends HTMLElement {
       this._ebenenAufloesen();
       return;
     }
+    if (this._animLoop) return;
     let lastTime = performance.now();
 
+    // Die Schleife zeichnet nur noch, was keine Kachel hat (takt.js):
+    // Solareffekte und Sonderfaelle. Vorher legt sie die Kacheln an,
+    // sobald die Karte sichtbar ist. Hat sie nichts mehr zu tun, endet sie.
     const tick = (time) => {
-      if (!this.isConnected) return;
+      if (!this.isConnected) {
+        this._animLoop = null;
+        return;
+      }
       if (this._unsichtbar) {
         // Pausiert, der Beobachter startet die Schleife wieder.
         this._animLoop = null;
@@ -594,123 +615,132 @@ export class LutarymHeatpumpCard extends HTMLElement {
         return;
       }
 
-      // Bewegte Teile auf eigene Ebenen legen (ebenen.js), sobald die
-      // Karte sichtbar ist. Nach Aenderungen hoechstens einmal je Sekunde
-      // pruefen, ob die Aufteilung noch stimmt.
       if (!this._ebenen) this._ebenenPlanen();
-      else if (this._ebenen.geaendert && time - this._ebenen.zuletzt > 1000) this._ebenenPruefen();
-      else if (time - (this._ebenen.schwebtGeprueft || 0) > 500) {
-        this._ebenen.schwebtGeprueft = time;
-        this._ebenenSchweben();
+      this._animBild(deltaTime);
+
+      // Nichts mehr Bild fuer Bild zu zeichnen: Schleife ruht, bis der
+      // Takt sie wieder braucht.
+      if (!this._jsBraucht()) {
+        this._animLoop = null;
+        return;
       }
-
-      // Flowdots animieren (stroke-dashoffset)
-      this._animState.forEach((state, id) => {
-        if (!state || state.type !== "flow") return;
-        const el = this._animEl(id);
-        if (!el) return;
-        const cycle = this._animTime % 1.2;
-        const progress = cycle / 1.2;
-        const offset = state.reverse ? 44 * progress : -44 * progress;
-        el.setAttribute("stroke-dashoffset", offset.toFixed(1));
-      });
-
-      // Bubbles animieren - neu vereinfacht
-      const bubbleGroups = ["buf-bubbles", "dhw-bubbles"];
-      bubbleGroups.forEach(groupId => {
-        const group = this._animEl(groupId);
-        if (!group) return;
-        // Die Kreise einer Gruppe wechseln nicht, darum einmal merken.
-        if (!this._bubbleCache) this._bubbleCache = new Map();
-        let bubbles = this._bubbleCache.get(groupId);
-        if (!bubbles || !bubbles.length || !bubbles[0].isConnected) {
-          bubbles = Array.from(group.querySelectorAll("circle"));
-          this._bubbleCache.set(groupId, bubbles);
-        }
-        bubbles.forEach((bubble, idx) => {
-          // Ausgeblendete Blasen (Fuellstand, Stillstand oder Animation
-          // aus) bleiben unsichtbar. Vorher setzte die Schleife bei allen
-          // die Deckkraft, sodass immer alle Blasen zu sehen waren.
-          if (bubble.style.animationName === "none") {
-            if (bubble.getAttribute("opacity") !== "0") bubble.setAttribute("opacity", "0");
-            return;
-          }
-          // Dauer und Versatz haengen nur vom Index ab und aendern sich nie.
-          // Darum einmal berechnen und merken, statt bei jedem Bild erneut.
-          const dur = bubbleDauer(idx);
-          const delay = idx * 0.3;
-
-          // Animation: Zeit seit Start
-          const time = (this._animTime + delay) % dur;
-          const prog = time / dur;
-
-          // translateY: oben nach unten (-330px)
-          const moveY = -330 * prog;
-
-          // opacity: Kurve (sichtbar von 15% bis 85%)
-          let op = 0;
-          if (prog < 0.15) op = (prog / 0.15) * 0.4;
-          else if (prog < 0.85) op = 0.4;
-          else op = 0.4 * (1 - (prog - 0.85) / 0.15);
-
-          bubble.setAttribute("transform", `translate(0,${moveY.toFixed(1)})`);
-          bubble.setAttribute("opacity", op.toFixed(3));
-        });
-      });
-
-      // Pulse/Glow animieren (opacity)
-      this._animState.forEach((state, id) => {
-        if (!state || state.type !== "pulse") return;
-        const el = this._animEl(id);
-        if (!el) return;
-        const cycle = (this._animTime % state.duration) / state.duration;
-        const hoch = typeof state.max === "number" ? state.max : 1;
-        const tief = typeof state.min === "number" ? state.min : 0.4;
-        const spanne = hoch - tief;
-        const opacity =
-          cycle < 0.5
-            ? hoch - (cycle / 0.5) * spanne
-            : tief + ((cycle - 0.5) / 0.5) * spanne;
-        // Sicherheitshalber begrenzen. Deckkraft ausserhalb 0 bis 1
-        // waere ungueltig, falls die Zeitstempel je springen.
-        el.setAttribute("opacity", clamp(opacity, 0, 1).toFixed(2));
-      });
-
-      // Spin animieren (rotate)
-      // Der Winkel laeuft fortlaufend weiter und wird nicht aus der
-      // absoluten Zeit berechnet. Sonst springt der Rotor bei jeder
-      // Drehzahlaenderung, weil derselbe Zeitpunkt mit neuer Dauer
-      // einen ganz anderen Winkel ergibt.
-      this._animState.forEach((state, id) => {
-        if (!state || state.type !== "spin") return;
-        const el = this._animEl(id);
-        if (!el) return;
-        if (typeof state.winkel !== "number") state.winkel = 0;
-        state.winkel = (state.winkel + (deltaTime / state.duration) * 360 + 360) % 360;
-        el.setAttribute("transform", `rotate(${state.winkel.toFixed(2)} 0 0)`);
-      });
-
-      // Feuer flackern: Flammen strecken und stauchen sich unregelmaessig.
-      // Solarthermie: Effekte der gewaehlten Darstellung.
-      this._animState.forEach((state, id) => {
-        if (!state) return;
-        if (state.type === "solar") {
-          this._solarBildFrame(this._animTime);
-          return;
-        }
-        if (state.type !== "flacker") return;
-        const el = this._animEl(id);
-        if (!el) return;
-        const t = this._animTime;
-        const sy = 1 + 0.09 * Math.sin(t * 9.1) + 0.05 * Math.sin(t * 14.3 + 1.3);
-        const sx = 1 - 0.05 * Math.sin(t * 11.7 + 0.7);
-        const kipp = 3 * Math.sin(t * 6.3);
-        el.setAttribute("transform", `skewX(${kipp.toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
-      });
-
       this._animLoop = requestAnimationFrame(tick);
     };
     this._animLoop = requestAnimationFrame(tick);
+  }
+  /**
+   * Ein Bild der Animationen, die keine Kachel haben. Mit deltaTime 0
+   * zeichnet es den Stand zu this._animTime (auch fuer Tests).
+   */
+  _animBild(deltaTime) {
+    // Was eine Kachel hat, spielt der Browser selbst ab.
+    const komp = this._ebenen ? this._ebenen.komp : null;
+    const selbst = (id) => !komp || !komp.has(id);
+
+    // Flowdots animieren (stroke-dashoffset)
+    this._animState.forEach((state, id) => {
+      if (!state || state.type !== "flow" || !selbst(id)) return;
+      const el = this._animEl(id);
+      if (!el) return;
+      const cycle = this._animTime % 1.2;
+      const progress = cycle / 1.2;
+      const offset = state.reverse ? 44 * progress : -44 * progress;
+      el.setAttribute("stroke-dashoffset", offset.toFixed(1));
+    });
+
+    // Bubbles animieren - neu vereinfacht
+    const bubbleGroups = ["buf-bubbles", "dhw-bubbles"];
+    bubbleGroups.forEach(groupId => {
+      if (!selbst(groupId)) return;
+      const group = this._animEl(groupId);
+      if (!group) return;
+      // Die Kreise einer Gruppe wechseln nicht, darum einmal merken.
+      if (!this._bubbleCache) this._bubbleCache = new Map();
+      let bubbles = this._bubbleCache.get(groupId);
+      if (!bubbles || !bubbles.length || !bubbles[0].isConnected) {
+        bubbles = Array.from(group.querySelectorAll("circle"));
+        this._bubbleCache.set(groupId, bubbles);
+      }
+      bubbles.forEach((bubble, idx) => {
+        // Ausgeblendete Blasen (Fuellstand, Stillstand oder Animation
+        // aus) bleiben unsichtbar. Vorher setzte die Schleife bei allen
+        // die Deckkraft, sodass immer alle Blasen zu sehen waren.
+        if (bubble.style.animationName === "none") {
+          if (bubble.getAttribute("opacity") !== "0") bubble.setAttribute("opacity", "0");
+          return;
+        }
+        // Dauer und Versatz haengen nur vom Index ab und aendern sich nie.
+        // Darum einmal berechnen und merken, statt bei jedem Bild erneut.
+        const dur = bubbleDauer(idx);
+        const delay = idx * 0.3;
+
+        // Animation: Zeit seit Start
+        const time = (this._animTime + delay) % dur;
+        const prog = time / dur;
+
+        // translateY: oben nach unten (-330px)
+        const moveY = -330 * prog;
+
+        // opacity: Kurve (sichtbar von 15% bis 85%)
+        let op = 0;
+        if (prog < 0.15) op = (prog / 0.15) * 0.4;
+        else if (prog < 0.85) op = 0.4;
+        else op = 0.4 * (1 - (prog - 0.85) / 0.15);
+
+        bubble.setAttribute("transform", `translate(0,${moveY.toFixed(1)})`);
+        bubble.setAttribute("opacity", op.toFixed(3));
+      });
+    });
+
+    // Pulse/Glow animieren (opacity)
+    this._animState.forEach((state, id) => {
+      if (!state || state.type !== "pulse" || !selbst(id)) return;
+      const el = this._animEl(id);
+      if (!el) return;
+      const cycle = (this._animTime % state.duration) / state.duration;
+      const hoch = typeof state.max === "number" ? state.max : 1;
+      const tief = typeof state.min === "number" ? state.min : 0.4;
+      const spanne = hoch - tief;
+      const opacity =
+        cycle < 0.5
+          ? hoch - (cycle / 0.5) * spanne
+          : tief + ((cycle - 0.5) / 0.5) * spanne;
+      // Sicherheitshalber begrenzen. Deckkraft ausserhalb 0 bis 1
+      // waere ungueltig, falls die Zeitstempel je springen.
+      el.setAttribute("opacity", clamp(opacity, 0, 1).toFixed(2));
+    });
+
+    // Spin animieren (rotate)
+    // Der Winkel laeuft fortlaufend weiter und wird nicht aus der
+    // absoluten Zeit berechnet. Sonst springt der Rotor bei jeder
+    // Drehzahlaenderung, weil derselbe Zeitpunkt mit neuer Dauer
+    // einen ganz anderen Winkel ergibt.
+    this._animState.forEach((state, id) => {
+      if (!state || state.type !== "spin" || !selbst(id)) return;
+      const el = this._animEl(id);
+      if (!el) return;
+      if (typeof state.winkel !== "number") state.winkel = 0;
+      state.winkel = (state.winkel + (deltaTime / state.duration) * 360 + 360) % 360;
+      el.setAttribute("transform", `rotate(${state.winkel.toFixed(2)} 0 0)`);
+    });
+
+    // Feuer flackern: Flammen strecken und stauchen sich unregelmaessig.
+    // Solarthermie: Effekte der gewaehlten Darstellung.
+    this._animState.forEach((state, id) => {
+      if (!state || !selbst(id)) return;
+      if (state.type === "solar") {
+        this._solarBildFrame(this._animTime);
+        return;
+      }
+      if (state.type !== "flacker") return;
+      const el = this._animEl(id);
+      if (!el) return;
+      const t = this._animTime;
+      const sy = 1 + 0.09 * Math.sin(t * 9.1) + 0.05 * Math.sin(t * 14.3 + 1.3);
+      const sx = 1 - 0.05 * Math.sin(t * 11.7 + 0.7);
+      const kipp = 3 * Math.sin(t * 6.3);
+      el.setAttribute("transform", `skewX(${kipp.toFixed(2)}) scale(${sx.toFixed(3)} ${sy.toFixed(3)})`);
+    });
   }
 }
 
@@ -725,6 +755,8 @@ Object.assign(
   hilfeKarte,
   tuerKarte,
   ebenenKarte,
+  kachelnKarte,
+  taktKarte,
   grafikQuerKarte,
   grafikKlassischKarte,
   solarKarte,
