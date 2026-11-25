@@ -52,6 +52,8 @@ export const PROFILE = [
     integration: p.integration,
     version: p.version || "",
     aktualisiert: p.aktualisiert || "",
+    stand: p.stand || "",
+    firmware: Boolean(p.firmware),
     core: Boolean(p.core),
     fertig: true,
     getestet: false,

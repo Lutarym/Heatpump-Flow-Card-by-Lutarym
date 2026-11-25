@@ -14,7 +14,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Heizkurve für Heizkreis 1 und 2 in einem eigenen Fenster, mit Skala, Betriebspunkt und einstellbaren Eckwerten
 - Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, COP von heute für Heizen und Warmwasser (Wärme durch Strom seit Mitternacht), Jahresarbeitszahl (JAZ) für Heizen, Warmwasser und gesamt seit 1. Januar, mit Wärme und Strom in kWh, aus den HeishaMon-Werten, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
 - Hilfefenster („?“ unten rechts): verständliche Erklärung aller Werte und Befehle, die HeishaMon lesen und schreiben kann, mit Suche und Gruppen; zu jedem TOP-Wert die vollständige Entität, per Klick kopierbar
-- Herstellerprofile für 34 Integrationen von 24 Herstellern (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant und weitere), automatisch erkannt; werden mehrere gefunden, fragt der Editor, welche gelten soll. Außer HeishaMon by Lutarym sind sie ungetestet. Geräteprofile lassen sich außerdem exportieren, anpassen und importieren; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md)
+- Herstellerprofile für 35 Integrationen von 24 Herstellern (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant und weitere), automatisch erkannt; werden mehrere gefunden, fragt der Editor, welche gelten soll. Außer HeishaMon by Lutarym sind sie ungetestet. Geräteprofile lassen sich außerdem exportieren, anpassen und importieren; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md)
 - Sprachpakete: eine Sprache als Datei exportieren, selbst übersetzen oder anpassen und wieder importieren; siehe [Anleitung Sprachpakete](docs/SPRACHPAKET.de.md)
 - Verbrauchsverlauf der letzten 24 Stunden, gefärbt nach Heizung, Warmwasser und Standby, darunter der SG-Ready-Verlauf
 - Anlagen ohne Heizungspuffer, automatisch erkannt über TOP99 oder fest einstellbar
@@ -114,6 +114,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `label_hk1` bis `label_hk4`, `label_buffer, label_dhw, label_energy` | | Eigene Namen, leer nimmt die Kartensprache |
 | `energy_daily` | `true` | Tagesverbrauch aus dem Zählerstand rechnen |
 | `animate` | `true` | Animation: `true` ein, `false` aus, `auto` das Gerät entscheidet (Einstellung „Bewegung reduzieren“) |
+| `debug` | `false` | Zeigt oben links ein kleines Feld, was die Animation gerade tut (Kacheln, laufende Animationen, Umbauten, Bilder je Sekunde), dazu einen Knopf, der die Animationen neu startet. Zur Fehlersuche bei der Animation |
 | `hk1_style` bis `hk4_style` | `platte` | Bild des Heizkreises: `platte` Plattenheizkörper, `glieder` Gliederheizkörper, `fbh` Fußbodenheizung (Zimmerecke mit Rohrschlange im Boden) |
 | `extra_heat` | `aus` | Zusatzwärme am Puffer: `aus`, `kamin`, `solar`, `beide`. Nur mit Heizungspuffer |
 | `kamin_fire_temp` | `30` | Ab dieser Kamintemperatur in °C lodert das Feuer im Kamin |

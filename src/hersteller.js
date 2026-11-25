@@ -8,7 +8,10 @@
  * ist bisher keines dieser Profile, daher "getestet: false".
  *
  * "version" stammt aus der manifest.json, "aktualisiert" ist der letzte
- * Commit im Repository, beides abgelesen am Stand PROFIL_STAND.
+ * Commit im Repository, beides abgelesen am Stand PROFIL_STAND. Ein
+ * Profil mit "stand" wurde an diesem Tag abgelesen. "firmware" heisst:
+ * keine Integration, die Firmware legt die Entitaeten ueber MQTT an,
+ * "version" ist dann die Version der Firmware.
  *
  * Regeln je Feld, die erste passende gewinnt:
  *  - "schluessel": translation_key oder Ende der Entity-ID,
@@ -643,6 +646,57 @@ export const HERSTELLER_PROFILE = [
       compressor: ["compressor_status"],
       water_pressure: ["system_pressure"],
       error: ["active_faults"],
+    },
+  },
+  {
+    // EMS-ESP 3.9.1: Home Assistant Discovery ueber MQTT, Entity-ID
+    // <Domain>.<Geraet>_<Kurzname> (src/core/mqtt.cpp, Format "Single
+    // instance, short name" ist Standard laut default_settings.h). Das
+    // Muster mit Stern passt auch zu mehreren Instanzen (ems_esp_boiler_...).
+    // Warmwasser hiess bis 3.6 "ww..." statt "dhw_...", daher je zwei Regeln.
+    // Werte aus dump_entities.csv, Bedeutung aus src/devices/boiler.cpp.
+    id: "ems_esp",
+    version: "3.9.1",
+    aktualisiert: "2026-11-16",
+    stand: "2026-11-25",
+    firmware: true,
+    hersteller: "Bosch, Buderus",
+    name: "EMS-ESP (MQTT)",
+    entwickler: "emsesp",
+    quelle: "https://github.com/emsesp/EMS-ESP32",
+    integration: "",
+    felder: {
+      outside_temp: ["sensor.*boiler_outdoortemp"],
+      // TC1 und TC0: Vor- und Ruecklauf des Primaerkreises an der
+      // Waermepumpe. curflowtemp ist bei Bosch der Vorlauf nach dem
+      // Puffer (T0), nur wenn es TC1 nicht gibt.
+      flow_temp: ["sensor.*boiler_hptc1", "sensor.*boiler_curflowtemp"],
+      return_temp: ["sensor.*boiler_hptc0", "sensor.*boiler_rettemp"],
+      dhw_temp: ["sensor.*boiler_dhw_curtemp", "sensor.*boiler_wwcurtemp", "sensor.*boiler_hptw1"],
+      compressor: ["sensor.*boiler_hpcompspd", "sensor.*heatpump_hpcompspd"],
+      three_way_valve: [
+        "binary_sensor.*boiler_dhw_3wayvalve",
+        "binary_sensor.*boiler_ww3wayvalve",
+        "binary_sensor.*boiler_tapwateractive",
+      ],
+      pump_flow: ["sensor.*boiler_pc0lpm"],
+      water_pressure: ["sensor.*boiler_syspress"],
+      power_now: ["sensor.*boiler_hpcurrpower", "sensor.*heatpump_hpcurrpower"],
+      compressor_starts: ["sensor.*boiler_totalcompstarts"],
+      dhw_force: ["switch.*boiler_dhw_onetime", "switch.*boiler_wwonetime"],
+      dhw_force_state: ["*boiler_dhw_onetime", "*boiler_wwonetime"],
+      sterilization_state: ["*boiler_dhw_disinfecting", "*boiler_wwdisinfecting"],
+      circulation_pump: ["*boiler_dhw_circ", "*boiler_wwcirc"],
+      hk1_water: ["sensor.*mixer_hc1_flowtemphc"],
+      hk1_water_target: ["sensor.*thermostat_hc1_targetflowtemp"],
+      hk1_pump: ["*mixer_hc1_pumpstatus"],
+      hk1_room_temp: ["sensor.*thermostat_hc1_currtemp"],
+      hk2_water: ["sensor.*mixer_hc2_flowtemphc"],
+      hk2_water_target: ["sensor.*thermostat_hc2_targetflowtemp"],
+      hk2_pump: ["*mixer_hc2_pumpstatus"],
+      hk2_room_temp: ["sensor.*thermostat_hc2_currtemp"],
+      solar_temp: ["sensor.*solar_collectortemp"],
+      solar_pump: ["binary_sensor.*solar_solarpump"],
     },
   },
 

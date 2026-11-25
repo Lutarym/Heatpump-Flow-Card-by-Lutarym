@@ -14,7 +14,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
 - Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, today's COP for heating and hot water (heat divided by electricity since midnight), seasonal performance factor (JAZ) for heating, hot water and total since 1 January with heat and electricity in kWh, from HeishaMon values, operating hours and starts); changes are sent with “Apply” and the door closes
 - Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups; for every TOP value the full entity ID, copyable with one click
-- Manufacturer profiles for 34 integrations of 24 manufacturers (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant and more), detected automatically; if several are found, the editor asks which one to use. Apart from HeishaMon by Lutarym they are untested. Device profiles can also be exported, adapted and imported; see the [device profile guide](docs/GERAETEPROFIL.md)
+- Manufacturer profiles for 35 integrations of 24 manufacturers (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant and more), detected automatically; if several are found, the editor asks which one to use. Apart from HeishaMon by Lutarym they are untested. Device profiles can also be exported, adapted and imported; see the [device profile guide](docs/GERAETEPROFIL.md)
 - Language packs: export a language as a file, translate it yourself or adjust it and import it again; see the [language pack guide](docs/SPRACHPAKET.md)
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
@@ -114,6 +114,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `label_hk1` to `label_hk4`, `label_buffer, label_dhw, label_energy` | | Own names, empty uses the card language |
 | `energy_daily` | `true` | Calculate daily energy from the meter reading |
 | `animate` | `true` | Animation: `true` on, `false` off, `auto` the device decides (setting "reduce motion") |
+| `debug` | `false` | Shows a small box in the top left with what the animation is doing (tiles, running animations, rebuilds, frames per second) and a button that restarts the animations. For analysing animation problems |
 | `hk1_style` to `hk4_style` | `platte` | Picture of the heating circuit: `platte` panel radiator, `glieder` column radiator, `fbh` underfloor heating (room corner with pipe coil in the floor) |
 | `extra_heat` | `aus` | Additional heat at the buffer: `aus` (off), `kamin` (stove), `solar`, `beide` (both). Only with a heating buffer |
 | `kamin_fire_temp` | `30` | From this stove temperature in °C the fire burns in the stove |

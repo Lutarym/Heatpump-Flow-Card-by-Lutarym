@@ -51,14 +51,35 @@ const jetzt = () => (document.timeline && typeof document.timeline.currentTime =
  */
 const MIT_EFFEKT = typeof Animation === "function" && typeof KeyframeEffect === "function";
 function starte(ziel, kf, zeit, start) {
-  if (!MIT_EFFEKT) {
-    const a = ziel.animate(kf, zeit);
-    a.startTime = start;
-    return a;
-  }
-  const a = new Animation(new KeyframeEffect(ziel, kf, zeit), document.timeline);
+  // Solange die Animation laeuft, bleibt das Ziel eine eigene Ebene
+  // (will-change). So haengt die Ebene nicht davon ab, wie der Browser
+  // rundherum gerade Ebenen bildet, etwa wenn ein Fenster darueber aufgeht.
+  const eigenschaften = [];
+  kf.forEach((f) => Object.keys(f).forEach((p) => {
+    if (p !== "offset" && p !== "easing" && p !== "composite" && !eigenschaften.includes(p)) eigenschaften.push(p);
+  }));
+  if (ziel.style) ziel.style.willChange = eigenschaften.join(", ");
+  const a = MIT_EFFEKT ? new Animation(new KeyframeEffect(ziel, kf, zeit), document.timeline) : ziel.animate(kf, zeit);
   a.startTime = start;
+  // Merkt sich, womit sie angelegt wurde, fuer erneuere().
+  a.lhc = { ziel, kf, zeit, start };
   return a;
+}
+
+/** Legt eine Animation mit denselben Angaben neu an, sie laeuft nahtlos weiter. */
+function erneuere(a) {
+  if (!a || !a.lhc) return a;
+  const { ziel, kf, zeit, start } = a.lhc;
+  stoppe(a);
+  return starte(ziel, kf, zeit, start);
+}
+
+/** Beendet eine Animation, ihr Ziel gibt die eigene Ebene wieder frei. */
+function stoppe(a) {
+  if (!a) return;
+  const ziel = a.effect && a.effect.target;
+  a.cancel();
+  if (ziel && ziel.style) ziel.style.willChange = "";
 }
 
 /**
@@ -112,7 +133,7 @@ export const taktKarte = {
     if (soll === (k.stand || "")) return;
     k.stand = soll;
     if (k.anim) {
-      k.anim.cancel();
+      stoppe(k.anim);
       k.anim = null;
     }
     if (!an) return;
@@ -157,7 +178,7 @@ export const taktKarte = {
     const w = this._taktWinkel(k, t);
     const lief = Boolean(k.anim);
     if (k.anim) {
-      k.anim.cancel();
+      stoppe(k.anim);
       k.anim = null;
     }
     k.basis = ((w % 360) + 360) % 360;
@@ -177,7 +198,7 @@ export const taktKarte = {
       const soll = !aus && b.orig.style.animationName !== "none";
       if (soll === Boolean(b.anim)) return;
       if (b.anim) {
-        b.anim.cancel();
+        stoppe(b.anim);
         b.anim = null;
       }
       b.kopie.setAttribute("opacity", soll ? "1" : "0");
@@ -197,7 +218,7 @@ export const taktKarte = {
     const soll = Boolean(s && s.type === "flacker");
     if (soll === Boolean(k.anims)) return;
     if (k.anims) {
-      k.anims.forEach((x) => x.cancel());
+      k.anims.forEach(stoppe);
       k.anims = null;
     }
     if (!soll) return;
@@ -212,7 +233,7 @@ export const taktKarte = {
     k.stand = soll;
     k.teile.forEach((t) => {
       if (t.anim) {
-        t.anim.cancel();
+        stoppe(t.anim);
         t.anim = null;
       }
     });
@@ -233,6 +254,43 @@ export const taktKarte = {
   },
 
   /**
+   * Legt alle laufenden Animationen der Kacheln neu an, mit derselben
+   * Zeitbasis, ohne Sprung. Laut Rueckmeldung standen in Safari auf dem
+   * Mac nach dem Oeffnen eines Fensters (etwa Temperaturverlauf) die
+   * Bewegungen still oder stockten, obwohl die Animationen laut Skript
+   * weiterliefen. Neu angelegte Animationen gibt der Browser wieder an
+   * seine Ebenen. Nachstellen liess sich das in Chromium und WebKitGTK nicht.
+   */
+  _taktErneuern() {
+    const e = this._ebenen;
+    if (!e) return;
+    this._erneuert = (this._erneuert || 0) + 1;
+    e.kacheln.forEach((k) => {
+      if (k.anim) k.anim = erneuere(k.anim);
+      if (k.anims) k.anims = k.anims.map(erneuere);
+      if (k.teile) k.teile.forEach((t) => { if (t.anim) t.anim = erneuere(t.anim); });
+      if (k.blasen) k.blasen.forEach((b) => { if (b.anim) b.anim = erneuere(b.anim); });
+    });
+  },
+
+  /**
+   * Erneuert die Animationen kurz nach einem Wechsel (Fenster auf oder zu,
+   * Seite wieder sichtbar): nach 0,3 und 1,5 Sekunden, mit lang zusaetzlich
+   * nach 4 Sekunden, wenn Home Assistant ein eigenes Fenster laedt
+   * (Zeiten eigene Festlegung).
+   */
+  _taktSpaeter(lang) {
+    (this._taktUhren || []).forEach((u) => clearTimeout(u));
+    this._taktUhren = (lang ? [300, 1500, 4000] : [300, 1500]).map((ms) => setTimeout(() => this._taktErneuern(), ms));
+  },
+
+  /** Ausstehende Erneuerungen verwerfen (Karte entfernt). */
+  _taktUhrenAus() {
+    (this._taktUhren || []).forEach((u) => clearTimeout(u));
+    this._taktUhren = [];
+  },
+
+  /**
    * Alle Animationen der Kacheln beenden. Erreichte Winkel gehen an die
    * Animationsschleife und an die Rotoren selbst, damit nichts springt.
    */
@@ -245,12 +303,12 @@ export const taktKarte = {
         if (s && s.type === "spin") s.winkel = w;
         if (k.atom && k.atom.el) k.atom.el.setAttribute("transform", `rotate(${w.toFixed(2)} 0 0)`);
       }
-      if (k.anim) k.anim.cancel();
+      stoppe(k.anim);
       k.anim = null;
-      if (k.anims) k.anims.forEach((x) => x.cancel());
+      if (k.anims) k.anims.forEach(stoppe);
       k.anims = null;
-      if (k.teile) k.teile.forEach((t) => { if (t.anim) t.anim.cancel(); t.anim = null; });
-      if (k.blasen) k.blasen.forEach((b) => { if (b.anim) b.anim.cancel(); b.anim = null; });
+      if (k.teile) k.teile.forEach((t) => { stoppe(t.anim); t.anim = null; });
+      if (k.blasen) k.blasen.forEach((b) => { stoppe(b.anim); b.anim = null; });
       k.stand = "";
     });
   },

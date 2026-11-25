@@ -784,6 +784,8 @@ export const ebenenKarte = {
 
   /** Neu planen. Klappt das gerade nicht, zeichnet die Schleife wie frueher. */
   _ebenenNeu() {
+    // Zaehler fuer die Diagnose (diagnose.js).
+    this._umbauten = (this._umbauten || 0) + 1;
     this._ebenenAufloesen();
     if (!this._ebenenPlanen()) this._ebenenTakt();
   },

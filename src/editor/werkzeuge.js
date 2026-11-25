@@ -310,9 +310,11 @@ export const werkzeugeEditor = {
     } else if (pr && pr.mqtt) {
       zeile("pi_version", e(this._t("pi_mqtt")));
     } else if (pr) {
-      if (pr.version) zeile("pi_version", `${e(pr.version)} <span class="grau">(manifest.json)</span>`);
+      // Bei Firmware ueber MQTT ist es die Version der Firmware, sonst die der manifest.json.
+      const herkunft = pr.firmware ? this._t("pi_firmware") : "manifest.json";
+      if (pr.version) zeile("pi_version", `${e(pr.version)} <span class="grau">(${e(herkunft)})</span>`);
       if (pr.aktualisiert) {
-        zeile("pi_aenderung", `${e(this._datum(pr.aktualisiert))} <span class="grau">· ${e(tf(this._t("pi_stand"), { d: this._datum(PROFIL_STAND) }))}</span>`);
+        zeile("pi_aenderung", `${e(this._datum(pr.aktualisiert))} <span class="grau">· ${e(tf(this._t("pi_stand"), { d: this._datum(pr.stand || PROFIL_STAND) }))}</span>`);
       }
     }
     // Beschriebene Bereiche statt aller Feldnamen

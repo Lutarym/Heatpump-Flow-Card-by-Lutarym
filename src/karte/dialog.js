@@ -315,6 +315,9 @@ export const dialogKarte = {
     const ev = new Event("hass-more-info", { bubbles: true, composed: true });
     ev.detail = { entityId };
     this.dispatchEvent(ev);
+    // Das Fenster von Home Assistant liegt ausserhalb der Karte und kann
+    // etwas laden; die Animationen werden danach neu angelegt (takt.js).
+    this._taktSpaeter(true);
   },
 
   /**

@@ -7,6 +7,7 @@ import { DEFAULT_CONFIG } from "../felder.js";
 import { animationAn, bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, numState, setzeDezimal } from "../hilfsfunktionen.js";
 import { aktualisierenKarte } from "./aktualisieren.js";
 import { demoKarte } from "./demo.js";
+import { diagnoseKarte } from "./diagnose.js";
 import { diagrammeKarte } from "./diagramme.js";
 import { dialogKarte } from "./dialog.js";
 import { grafikHochKarte } from "./grafik-hoch.js";
@@ -78,6 +79,18 @@ export class LutarymHeatpumpCard extends HTMLElement {
       window.removeEventListener("resize", this._diaGroesseRuf);
       this._diaGroesseRuf = null;
     }
+    if (this._fensterWache) {
+      this._fensterWache.disconnect();
+      this._fensterWache = null;
+    }
+    if (this._sichtRuf) {
+      document.removeEventListener("visibilitychange", this._sichtRuf);
+      window.removeEventListener("focus", this._sichtRuf);
+      window.removeEventListener("pageshow", this._sichtRuf);
+      this._sichtRuf = null;
+    }
+    this._taktUhrenAus();
+    this._diagnoseStop();
   }
 
   /**
@@ -120,6 +133,26 @@ export class LutarymHeatpumpCard extends HTMLElement {
         this._bewegungMq = null;
       }
     }
+    // Geht ein Fenster der Karte auf oder zu, werden die Animationen der
+    // Kacheln kurz danach neu angelegt (takt.js, _taktSpaeter). Die
+    // Fenster sind direkte Kinder von ha-card und werden ueber hidden
+    // geschaltet.
+    if (!this._fensterWache && typeof MutationObserver !== "undefined" && this.shadowRoot) {
+      this._fensterWache = new MutationObserver((liste) => {
+        if (liste.some((m) => m.target.parentElement && m.target.parentElement.localName === "ha-card")) this._taktSpaeter();
+      });
+      this._fensterWache.observe(this.shadowRoot, { subtree: true, attributes: true, attributeFilter: ["hidden"] });
+    }
+    // Ebenso, wenn die Seite wieder sichtbar wird oder den Fokus bekommt.
+    if (!this._sichtRuf) {
+      this._sichtRuf = () => {
+        if (document.visibilityState === "visible") this._taktSpaeter();
+      };
+      document.addEventListener("visibilitychange", this._sichtRuf);
+      window.addEventListener("focus", this._sichtRuf);
+      window.addEventListener("pageshow", this._sichtRuf);
+    }
+    if (this._built && this._config && this._config.debug) this._diagnoseStart();
     if (this._built && !this._animLoop) this._startAnimationLoop();
   }
 
@@ -541,6 +574,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._buildKlicks();
     this._buildTuer();
     this._buildHilfe();
+    if (this._config.debug) this._diagnoseStart();
+    else this._diagnoseStop();
     this._startAnimationLoop();
   }
 
@@ -757,6 +792,7 @@ Object.assign(
   ebenenKarte,
   kachelnKarte,
   taktKarte,
+  diagnoseKarte,
   grafikQuerKarte,
   grafikKlassischKarte,
   solarKarte,
