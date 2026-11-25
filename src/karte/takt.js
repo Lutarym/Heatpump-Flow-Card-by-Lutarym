@@ -40,6 +40,35 @@ function flacker() {
 /** Zeitpunkt der Animationen jetzt. */
 const jetzt = () => (document.timeline && typeof document.timeline.currentTime === "number" ? document.timeline.currentTime : performance.now());
 
+/**
+ * Startet eine Animation mit festem Startzeitpunkt. Sie wird ueber
+ * new Animation(new KeyframeEffect(...)) angelegt und allein durch
+ * startTime gestartet. element.animate() spielt sofort ab, ein danach
+ * gesetztes startTime bricht dieses Abspielen wieder ab. Die Entwickler
+ * von Motion fanden in WebKit auf dem Mac: Mit dieser Folge springt eine
+ * beschleunigte Animation beim Tempowechsel, mit new Animation und
+ * startTime nicht (github.com/motiondivision/motion, Pull Request 4021).
+ */
+const MIT_EFFEKT = typeof Animation === "function" && typeof KeyframeEffect === "function";
+function starte(ziel, kf, zeit, start) {
+  if (!MIT_EFFEKT) {
+    const a = ziel.animate(kf, zeit);
+    a.startTime = start;
+    return a;
+  }
+  const a = new Animation(new KeyframeEffect(ziel, kf, zeit), document.timeline);
+  a.startTime = start;
+  return a;
+}
+
+/**
+ * Lueftertempo: Kleine Aenderungen der Drehzahl lassen die laufende
+ * Drehung unveraendert. Neu angelegt wird sie erst, wenn sich die Dauer
+ * einer Umdrehung um mehr als diesen Anteil aendert (eigene Festlegung).
+ * So wird die Drehung nicht bei jeder neuen Drehzahl ersetzt.
+ */
+const DREH_SPIEL = 0.15;
+
 export const taktKarte = {
   /** Abgleich nach jeder Aktualisierung, nach dem Bau und bei Sichtwechsel. */
   _ebenenTakt() {
@@ -93,9 +122,8 @@ export const taktKarte = {
     // Das Element selbst bleibt voll sichtbar, abgeblendet wird die Kachel.
     el.setAttribute("opacity", "1");
     k.puls = { hoch, tief, dauer: s.duration * 1000 };
-    k.anim = k.ziel.animate([{ opacity: hoch }, { opacity: tief, offset: 0.5 }, { opacity: hoch }],
-      { duration: k.puls.dauer, iterations: Infinity });
-    k.anim.startTime = this._animUrsprung;
+    k.anim = starte(k.ziel, [{ opacity: hoch }, { opacity: tief, offset: 0.5 }, { opacity: hoch }],
+      { duration: k.puls.dauer, iterations: Infinity }, this._animUrsprung);
   },
 
   /** Aktuelle Deckkraft einer pulsierenden Kachel (fuer die Tuer). */
@@ -114,8 +142,8 @@ export const taktKarte = {
   },
 
   /**
-   * Drehen. Aendert sich die Drehzahl, geht es vom erreichten Winkel mit
-   * der neuen Dauer weiter. Die Geschwindigkeit steckt in der Dauer, nicht
+   * Drehen. Aendert sich die Drehzahl deutlich (DREH_SPIEL), geht es vom
+   * erreichten Winkel mit der neuen Dauer weiter. Die Geschwindigkeit steckt in der Dauer, nicht
    * in playbackRate: WebKit spielt Animationen mit anderer Rate als 1
    * nicht selbst ab.
    */
@@ -123,20 +151,24 @@ export const taktKarte = {
     const s = aus ? null : this._animState.get(k.id);
     const dauer = s && s.type === "spin" && s.duration > 0 ? s.duration : 0;
     if (dauer === k.dauer && Boolean(k.anim) === dauer > 0) return;
+    // Dreht schon und das Tempo aendert sich nur wenig: weiterdrehen.
+    if (k.anim && dauer > 0 && k.dauer > 0 && Math.abs(dauer / k.dauer - 1) <= DREH_SPIEL) return;
     const t = jetzt();
     const w = this._taktWinkel(k, t);
+    const lief = Boolean(k.anim);
     if (k.anim) {
       k.anim.cancel();
       k.anim = null;
     }
     k.basis = ((w % 360) + 360) % 360;
     k.dauer = dauer;
-    k.ziel.style.transform = `rotate(${k.basis.toFixed(3)}deg)`;
     if (s && s.type === "spin") s.winkel = k.basis;
+    // Der feste Winkel gilt, solange nichts dreht. Wird nur das Tempo
+    // gewechselt, bleibt der Stil unberuehrt, es dreht ohne Pause weiter.
+    if (!(dauer > 0) || !lief) k.ziel.style.transform = `rotate(${k.basis.toFixed(3)}deg)`;
     if (!(dauer > 0)) return;
-    k.anim = k.ziel.animate([{ transform: `rotate(${k.basis.toFixed(3)}deg)` }, { transform: `rotate(${(k.basis + 360).toFixed(3)}deg)` }],
-      { duration: dauer * 1000, iterations: Infinity });
-    k.anim.startTime = t;
+    k.anim = starte(k.ziel, [{ transform: `rotate(${k.basis.toFixed(3)}deg)` }, { transform: `rotate(${(k.basis + 360).toFixed(3)}deg)` }],
+      { duration: dauer * 1000, iterations: Infinity }, t);
   },
 
   /** Blasen: jede steigt mit eigener Dauer und Versatz auf (karte.js). */
@@ -151,13 +183,12 @@ export const taktKarte = {
       b.kopie.setAttribute("opacity", soll ? "1" : "0");
       if (!soll) return;
       const h = b.hoch;
-      b.anim = b.ziel.animate([
+      b.anim = starte(b.ziel, [
         { transform: "translateY(0%)", opacity: 0 },
         { transform: `translateY(${(-h * 0.15).toFixed(4)}%)`, opacity: 0.4, offset: 0.15 },
         { transform: `translateY(${(-h * 0.85).toFixed(4)}%)`, opacity: 0.4, offset: 0.85 },
         { transform: `translateY(${(-h).toFixed(4)}%)`, opacity: 0 },
-      ], { duration: bubbleDauer(b.idx) * 1000, iterations: Infinity });
-      b.anim.startTime = this._animUrsprung - b.idx * 300;
+      ], { duration: bubbleDauer(b.idx) * 1000, iterations: Infinity }, this._animUrsprung - b.idx * 300);
     });
   },
 
@@ -170,11 +201,7 @@ export const taktKarte = {
       k.anims = null;
     }
     if (!soll) return;
-    k.anims = flacker().map((f, i) => {
-      const x = k.ziele[i].animate(f.kf, { duration: f.dauer, iterations: Infinity });
-      x.startTime = this._animUrsprung;
-      return x;
-    });
+    k.anims = flacker().map((f, i) => starte(k.ziele[i], f.kf, { duration: f.dauer, iterations: Infinity }, this._animUrsprung));
   },
 
   /** Laufstriche: Baender ruecken weiter, Fenster schalten ihre Bilder durch. */
@@ -201,8 +228,7 @@ export const taktKarte = {
       } else {
         kf = fensterSchritte(t.schritte, rueck);
       }
-      t.anim = t.ziel.animate(kf, { duration: UMLAUF_MS, iterations: Infinity });
-      t.anim.startTime = this._animUrsprung;
+      t.anim = starte(t.ziel, kf, { duration: UMLAUF_MS, iterations: Infinity }, this._animUrsprung);
     });
   },
 

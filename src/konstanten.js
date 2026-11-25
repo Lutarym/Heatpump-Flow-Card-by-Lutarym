@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-export const CARD_VERSION = "5.33.2";
+export const CARD_VERSION = "5.33.4";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -71,15 +71,19 @@ export const L = {
  *  Quelle der Originaltexte: HeishaMon decode.h.
  * ------------------------------------------------------------------ */
 export const MODE_LABELS = {
-  // Auswahlwerte der Integration
+  // Auswahlwerte der Integration (SET9: 2 = Auto, 6 = Auto+DHW). In der
+  // Automatik schaltet die Waermepumpe selbst zwischen Heizen und Kuehlen
+  // um, je nach Aussentemperatur (Panasonic Bedienungsanleitung,
+  // Installateur-Setup, Betriebseinstellung, Auto).
   mode_0: "Nur Heizen",
   mode_1: "Nur Kühlen",
-  mode_2: "Automatik Heizen",
+  mode_2: "Automatik Heizen/Kühlen",
   mode_3: "Nur Warmwasser",
   mode_4: "Heizen und Warmwasser",
   mode_5: "Kühlen und Warmwasser",
-  mode_6: "Automatik Heizen und Warmwasser",
-  // Originaltexte der Firmware
+  mode_6: "Automatik Heizen/Kühlen und Warmwasser",
+  // Originaltexte der Firmware (TOP4). Auto(heat) und Auto(cool) sagen,
+  // ob die Automatik gerade heizt oder kuehlt.
   Heat: "Nur Heizen",
   Cool: "Nur Kühlen",
   "Auto(heat)": "Automatik Heizen",
