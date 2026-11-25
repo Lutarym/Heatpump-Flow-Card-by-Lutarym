@@ -191,21 +191,21 @@ ${this._defs()}
       </g>
 
       <!-- PV Leistung -->
-      <g id="pv-group" opacity="0" data-versatz="-12">
+      <g id="pv-group" opacity="0" data-versatz="-11">
         <text class="sg-label" id="pv-label" x="${L.X_COL}" y="${F + 190}" data-y="${F + 190}" text-anchor="middle">${this._t("netzstrom_heute")}</text>
         <text class="pv-value" id="pv-v" x="${L.X_COL}" y="${F + 228}" data-y="${F + 228}"
               text-anchor="middle">--</text>
         <text class="pv-anteil" id="pv-anteil" x="${L.X_COL}" y="${F + 250}" data-y="${F + 250}" text-anchor="middle"></text>
-        <line x1="380" y1="${F + 257}" x2="510" y2="${F + 257}" stroke="#55657F" stroke-width="1"/>
+        <line x1="380" y1="${F + 259}" x2="510" y2="${F + 259}" stroke="#55657F" stroke-width="1"/>
       </g>
       <g id="verbrauch-group" opacity="0">
-        <text class="sg-label" x="${L.X_COL}" y="${F + 285}" text-anchor="middle">${this._t("leistung")}</text>
-        <text class="verbrauch-v" id="power-now-v" x="${L.X_COL}" y="${F + 323}"
+        <text class="sg-label" x="${L.X_COL}" y="${F + 288}" text-anchor="middle">${this._t("leistung")}</text>
+        <text class="verbrauch-v" id="power-now-v" x="${L.X_COL}" y="${F + 326}"
               text-anchor="middle">--</text>
-        <line x1="380" y1="${F + 340}" x2="510" y2="${F + 340}" stroke="#55657F" stroke-width="1"/>
-        <text class="sg-label" id="energy-label" x="${L.X_COL}" y="${F + 380}"
+        <line x1="380" y1="${F + 346}" x2="510" y2="${F + 346}" stroke="#55657F" stroke-width="1"/>
+        <text class="sg-label" id="energy-label" x="${L.X_COL}" y="${F + 375}"
               text-anchor="middle">--</text>
-        <text class="unit-value" id="energy-today-v" x="${L.X_COL}" y="${F + 420}"
+        <text class="unit-value" id="energy-today-v" x="${L.X_COL}" y="${F + 413}"
               text-anchor="middle">--</text>
       </g>
       </g>
