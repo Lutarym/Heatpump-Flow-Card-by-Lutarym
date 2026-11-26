@@ -10,12 +10,13 @@ From version 6.0.0 the card no longer contains a profile itself. All profiles ar
 
 Edit the card. In the section **Integration**:
 
-- **Manufacturer**: “Detect automatically”, a manufacturer from the Profile folder, “Own profiles” (if any) or “No profile, enter entities myself”
+- **Manufacturer**: “Detect automatically”, a manufacturer from the Profile folder or from GitHub, “Own profiles” (if any) or “No profile, enter entities myself”
 - **Integration / device**: appears when a manufacturer has several variants, with the developer name
 - **Several integrations detected**: appears with “Detect automatically” when several variants match
 - **Would you like to load a specific profile?**: appears with “Detect automatically” when no variant matches. Choose manufacturer and integration there and press **Load profile**. With **No, enter entities myself** the card switches to “No profile, enter entities myself” and the editor shows the fields for the entities.
 - **Take over from integration**: enters the found entities into the fields permanently
 - **Search again**: switches to “Detect automatically” and searches all profiles again. If the profiles could not be loaded before, the card loads them again.
+- **Update profiles**: loads new and newer profiles from GitHub, see [Loading profiles from GitHub](#loading-profiles-from-github)
 - **Fill in default names** (editor set to **Advanced**): enters entity IDs that the profile states exactly or with the pattern `*.name` (for example `sensor.heishamon_top14`)
 - **About this profile**: integration, developer with a link to the source, version, last change of the integration and day of the check, the areas covered, what was found in Home Assistant, whether the card can control, whether help exists and whether the profile is tested. Version and dates are stored in the profile file and do not change by themselves. Below it **Feedback on GitHub** and **Copy report**: the report contains assigned, missing and hand-changed values and the unused entities of the integration. This helps to improve a profile. It contains entity IDs and current values; on GitHub you see and edit it before submitting.
 
@@ -23,7 +24,6 @@ In the section **Import, export and customisation** (editor set to **Advanced**)
 
 - **Export profile**: saves the selected or detected variant as a file in your downloads folder
 - **Import profile**: reads a profile file and selects the (first) variant
-- **Search profiles on GitHub**: see [Loading profiles from GitHub](#loading-profiles-from-github)
 - **Remove own profile**: only appears for an own, customised or GitHub-loaded profile
 
 ## How the card loads and searches
@@ -219,11 +219,14 @@ No profile, with reason:
 
 ## Loading profiles from GitHub
 
-1. Button **Search profiles on GitHub** in the section **Import, export and customisation**. The card only asks GitHub when you press the button, not every time the dashboard opens.
-2. The card reads `liste.json` from the folder `dist/Profile` in the branch main of the card's repository and shows variants that are new or newer than the installed ones. Newer means: later check date (`abgelesen`), later change of the integration (`aktualisiert`) or higher version.
-3. **Load** fetches the file and checks it as when loading from its own folder. If `karte_ab` is newer than the card, the card rejects it with a hint.
-4. The card stores the variant like an imported profile in the card configuration and selects it. After that it also works without internet. In the selection it is shown with “(from GitHub)”.
-5. The card only loads data, no program code.
+1. Button **Update profiles** in the section **Integration** next to **Search again**, with the editor on **Simple** and **Advanced**. The card only asks GitHub when you press the button, not every time the dashboard opens.
+2. The card reads `liste.json` from the folder `dist/Profile` in the branch main of the card's repository and compares it with what it has: the Profile folder and profiles already loaded from GitHub. Newer means: later check date (`abgelesen`), later change of the integration (`aktualisiert`) or higher version.
+3. The card loads all variants that are new or newer at once and checks them as when loading from its own folder. Not loaded are variants that need a newer card (`karte_ab`) and faulty ones. If GitHub cannot be reached during this, the card stores nothing.
+4. The card stores the variants like imported profiles in the card configuration. The selection stays, then the card searches again. After that the profiles also work without internet. In the selection they are shown with “(from GitHub)”, a new manufacturer under its own name (my own decision).
+5. Below the buttons the card shows what was loaded, for example “Profiles from GitHub: 1 updated (Wolf, Wolf ISM8), 1 new (…). Stored in this card.” If there is nothing new, it shows “All profiles are up to date.”
+6. An own profile with the same identifier (imported, “(customised)”) is not replaced; the card names it in the message (my own decision). For the version from GitHub to apply: first **Remove own profile**, then **Update profiles**.
+7. If an update via HACS brings the same or a newer version of a variant loaded from GitHub into the Profile folder, the one from the folder applies. The stored copy no longer applies, and the next **Update profiles** also removes it from the configuration (my own decision).
+8. The card only loads data, no program code.
 
 ## Customising a built-in profile
 

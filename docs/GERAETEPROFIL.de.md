@@ -10,12 +10,13 @@ Ab Version 6.0.0 enthält die Karte selbst kein Profil mehr. Alle Profile liegen
 
 Karte bearbeiten. Im Abschnitt **Integration**:
 
-- **Hersteller**: „Automatisch erkennen“, ein Hersteller aus dem Ordner Profile, „Eigene Profile“ (wenn vorhanden) oder „Kein Profil, Entitäten selbst eintragen“
+- **Hersteller**: „Automatisch erkennen“, ein Hersteller aus dem Ordner Profile oder von GitHub, „Eigene Profile“ (wenn vorhanden) oder „Kein Profil, Entitäten selbst eintragen“
 - **Integration / Gerät**: erscheint, wenn ein Hersteller mehrere Varianten hat, mit dem Namen des Entwicklers
 - **Mehrere Integrationen erkannt**: erscheint bei „Automatisch erkennen“, wenn mehrere Varianten passen
 - **Möchtest du ein bestimmtes Profil laden?**: erscheint bei „Automatisch erkennen“, wenn keine Variante passt. Dort wählst du Hersteller und Integration und drückst **Profil laden**. Mit **Nein, Entitäten selbst eintragen** stellt die Karte auf „Kein Profil, Entitäten selbst eintragen“ und der Editor zeigt die Felder für die Entitäten.
 - **Aus Integration übernehmen**: trägt die gefundenen Entitäten fest in die Felder ein
 - **Erneut suchen**: stellt auf „Automatisch erkennen“ und sucht alle Profile neu ab. Konnten die Profile vorher nicht geladen werden, lädt die Karte sie erneut.
+- **Profile aktualisieren**: lädt neue und neuere Profile von GitHub, siehe [Profile von GitHub laden](#profile-von-github-laden)
 - **Standardnamen eintragen** (Editor auf **Erweitert**): trägt Entity-IDs ein, die das Profil genau angibt oder nach dem Muster `*.name` (zum Beispiel `sensor.heishamon_top14`)
 - **Über dieses Profil**: Integration, Entwickler mit Link zur Quelle, Version, letzte Änderung der Integration und Tag der Prüfung, die beschriebenen Bereiche, was in Home Assistant gefunden wurde, ob die Karte steuern kann, ob es die Hilfe gibt und ob das Profil getestet ist. Version und Daten stehen in der Profildatei und ändern sich nicht von selbst. Darunter **Rückmeldung auf GitHub** und **Bericht kopieren**: Der Bericht enthält zugeordnete, fehlende und von Hand geänderte Werte sowie die ungenutzten Entitäten der Integration. Damit lässt sich ein Profil verbessern. Er enthält Entity-IDs und aktuelle Werte; auf GitHub siehst und änderst du ihn vor dem Absenden.
 
@@ -23,7 +24,6 @@ Im Abschnitt **Import, Export und Anpassungen** (Editor auf **Erweitert**):
 
 - **Profil exportieren**: speichert die gewählte oder erkannte Variante als Datei im Download-Ordner
 - **Profil importieren**: liest eine Profildatei ein und wählt die (erste) Variante aus
-- **Profile auf GitHub suchen**: siehe [Profile von GitHub laden](#profile-von-github-laden)
 - **Eigenes Profil entfernen**: erscheint nur bei einem eigenen, angepassten oder von GitHub geladenen Profil
 
 ## Wie die Karte lädt und sucht
@@ -219,11 +219,14 @@ Ohne Profil, mit Grund:
 
 ## Profile von GitHub laden
 
-1. Knopf **Profile auf GitHub suchen** im Abschnitt **Import, Export und Anpassungen**. Erst auf Knopfdruck fragt die Karte bei GitHub an, nicht bei jedem Öffnen des Dashboards.
-2. Die Karte liest `liste.json` aus dem Ordner `dist/Profile` im Zweig main des Repositorys der Karte und zeigt Varianten, die neu oder neuer als die installierten sind. Neuer heißt: späteres Prüfdatum (`abgelesen`), spätere Änderung der Integration (`aktualisiert`) oder höhere Version.
-3. **Laden** holt die Datei und prüft sie wie beim Laden aus dem eigenen Ordner. Ist `karte_ab` neuer als die Karte, lehnt die Karte sie mit Hinweis ab.
-4. Die Variante speichert die Karte wie ein importiertes Profil in der Kartenkonfiguration und wählt sie aus. Danach läuft sie auch ohne Internet. In der Auswahl steht sie mit dem Zusatz „(von GitHub)“.
-5. Die Karte lädt nur Daten, keinen Programmcode.
+1. Knopf **Profile aktualisieren** im Abschnitt **Integration** neben **Erneut suchen**, im Editor auf **Einfach** und **Erweitert**. Erst auf Knopfdruck fragt die Karte bei GitHub an, nicht bei jedem Öffnen des Dashboards.
+2. Die Karte liest `liste.json` aus dem Ordner `dist/Profile` im Zweig main des Repositorys der Karte und vergleicht mit dem, was sie hat: dem Ordner Profile und schon von GitHub geladenen Profilen. Neuer heißt: späteres Prüfdatum (`abgelesen`), spätere Änderung der Integration (`aktualisiert`) oder höhere Version.
+3. Alle Varianten, die neu oder neuer sind, lädt die Karte auf einmal und prüft sie wie beim Laden aus dem eigenen Ordner. Nicht geladen werden Varianten, die eine neuere Karte brauchen (`karte_ab`), und fehlerhafte. Ist GitHub dabei nicht erreichbar, speichert die Karte nichts.
+4. Die Karte speichert die Varianten wie importierte Profile in der Kartenkonfiguration. Die Auswahl bleibt, danach sucht die Karte neu. Die Profile laufen danach auch ohne Internet. In der Auswahl stehen sie mit dem Zusatz „(von GitHub)“, ein neuer Hersteller unter seinem Namen (eigene Festlegung).
+5. Unter den Knöpfen steht, was geladen wurde, zum Beispiel „Profile von GitHub: 1 aktualisiert (Wolf, Wolf ISM8), 1 neu (…). Gespeichert in dieser Karte.“ Gibt es nichts Neues, steht dort „Alle Profile sind aktuell.“
+6. Ein eigenes Profil mit derselben Kennung (importiert, „(angepasst)“) bleibt: Die Karte ersetzt es nicht und nennt es in der Meldung (eigene Festlegung). Soll die Fassung von GitHub gelten: erst **Eigenes Profil entfernen**, dann **Profile aktualisieren**.
+7. Bringt ein Update über HACS dieselbe oder eine neuere Fassung einer von GitHub geladenen Variante in den Ordner Profile, gilt die aus dem Ordner. Die gespeicherte Kopie gilt dann nicht mehr, beim nächsten **Profile aktualisieren** entfernt die Karte sie auch aus der Konfiguration (eigene Festlegung).
+8. Die Karte lädt nur Daten, keinen Programmcode.
 
 ## Ein eingebautes Profil anpassen
 

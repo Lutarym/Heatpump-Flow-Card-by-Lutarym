@@ -88,6 +88,15 @@ export function ladeDatei(datei) {
 }
 
 /**
+ * Ob die Kennung zu einem eigenen Profil gehoert, das ohne den Ordner
+ * Profile auskommt. Eine Kopie von GitHub braucht ihn: Steht die Variante
+ * dort gleich oder neuer, gilt die aus dem Ordner (gueltigeEigene).
+ */
+function nurEigen(config, id) {
+  return eigeneVarianten(config).some((v) => v.id === id && v.herkunft !== "github");
+}
+
+/**
  * Laedt, was eine Konfiguration braucht: bei "auto" alle Profile, sonst
  * nur die Datei der gewaehlten Variante. Eigene Profile stehen in der
  * Konfiguration, dafuer wird nichts geladen. Eine fehlerhafte Datei
@@ -95,7 +104,7 @@ export function ladeDatei(datei) {
  */
 export async function ladeFuer(config) {
   const id = profilKennung(config);
-  if (id === KEIN_PROFIL || eigeneVarianten(config).some((v) => v.id === id)) return;
+  if (id === KEIN_PROFIL || nurEigen(config, id)) return;
   const liste = await ladeListe();
   if (id === AUTO_PROFIL) {
     await Promise.all(liste.map((d) => ladeDatei(d.datei).catch(() => null)));
@@ -111,7 +120,7 @@ export async function ladeFuer(config) {
  */
 export function bereitFuer(config) {
   const id = profilKennung(config);
-  if (id === KEIN_PROFIL || eigeneVarianten(config).some((v) => v.id === id)) return true;
+  if (id === KEIN_PROFIL || nurEigen(config, id)) return true;
   if (speicher.fehler) return true;
   if (!speicher.liste) return false;
   if (id === AUTO_PROFIL) return speicher.liste.every((d) => speicher.fertig[d.datei]);
@@ -151,8 +160,8 @@ export function profileNeuVersuchen() {
 
 /**
  * Liest liste.json und eine Profildatei aus dem Ordner Profile auf GitHub
- * (Zweig main). Nur auf Knopfdruck im Editor. Geprueft wird wie beim
- * Laden aus dem eigenen Ordner.
+ * (Zweig main). Nur auf Knopfdruck im Editor ("Profile aktualisieren").
+ * Geprueft wird wie beim Laden aus dem eigenen Ordner.
  */
 export async function githubListe() {
   const liste = pruefeListe(await holeJson(`${GITHUB_PROFILE}liste.json`, { cache: "no-store" }));
@@ -203,16 +212,53 @@ export function eigeneVarianten(config) {
     const roh = p.felder && !p.werte ? vonFormat1(p) : p;
     const erg = pruefeVariante(roh);
     if (erg.variante) {
-      out.push({ ...erg.variante, eigen: true, datei: "", dateiName: text(p.dateiName, 80), herkunft: text(p.herkunft, 20) });
+      out.push({
+        ...erg.variante,
+        eigen: true,
+        datei: "",
+        dateiName: text(p.dateiName, 80),
+        // Kennung der Datei auf GitHub, nur bei Kopien von dort.
+        dateiId: KENNUNG.test(String(p.dateiId || "")) ? p.dateiId : "",
+        herkunft: text(p.herkunft, 20),
+      });
     }
   });
   EIGENE_GEPRUEFT.set(liste, out);
   return out;
 }
 
+/**
+ * Ob Stand a neuer ist als Stand b: spaeteres Pruefdatum (abgelesen),
+ * spaetere Aenderung der Integration (aktualisiert) oder hoehere Version.
+ */
+export function istNeuer(a, b) {
+  const x = a || {};
+  const y = b || {};
+  return (x.abgelesen || "") > (y.abgelesen || "") || (x.aktualisiert || "") > (y.aktualisiert || "")
+    || versionVergleich(x.version, y.version) > 0;
+}
+
+/**
+ * Eigene Profile, die gelten. Eine Kopie von GitHub ist ueberholt, sobald
+ * dieselbe Variante gleich oder neuer im Ordner Profile steht, etwa nach
+ * einem Update ueber HACS. Dann gilt die aus dem Ordner (eigene
+ * Festlegung). Verglichen wird mit der geladenen Variante, fehlt die,
+ * gilt die Kopie.
+ */
+export function gueltigeEigene(config) {
+  const eigene = eigeneVarianten(config);
+  if (!eigene.some((v) => v.herkunft === "github")) return eigene;
+  const eingebaut = eingebauteVarianten();
+  return eigene.filter((v) => {
+    if (v.herkunft !== "github") return true;
+    const b = eingebaut.find((x) => x.id === v.id);
+    return !b || istNeuer(v.quelle, b.quelle);
+  });
+}
+
 /** Eigene und geladene Varianten, eigene ersetzen geladene mit derselben Kennung. */
 export function alleVarianten(config) {
-  const eigene = eigeneVarianten(config);
+  const eigene = gueltigeEigene(config);
   const ids = new Set(eigene.map((v) => v.id));
   return eingebauteVarianten().filter((v) => !ids.has(v.id)).concat(eigene);
 }
@@ -220,7 +266,7 @@ export function alleVarianten(config) {
 /** Variante zu einer Kennung, eigene zuerst, sonst null. */
 export function varianteZu(config, id) {
   if (!id || id === AUTO_PROFIL || id === KEIN_PROFIL) return null;
-  return eigeneVarianten(config).find((v) => v.id === id) || eingebauteVarianten().find((v) => v.id === id) || null;
+  return gueltigeEigene(config).find((v) => v.id === id) || eingebauteVarianten().find((v) => v.id === id) || null;
 }
 
 /** Datei (Eintrag aus liste.json) zu einer Variante, sonst null. */

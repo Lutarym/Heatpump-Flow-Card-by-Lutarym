@@ -1,6 +1,6 @@
 /**
  * Geraeteprofile im Editor (Auswahl, Frage, Profilinfo, Import, Export,
- * GitHub) und Sprachpakete.
+ * Aktualisieren von GitHub) und Sprachpakete.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
 import { detectIntegration, erkenneAlle, erkenneMitProfil, profilFuer, standardNamen } from "../erkennung.js";
@@ -9,14 +9,17 @@ import { escapeHtml, kopiereText, rawState, attr } from "../hilfsfunktionen.js";
 import { CARD_VERSION } from "../konstanten.js";
 import { ARTEN, UEBERNEHMEN_OHNE_FELD } from "../namen.js";
 import {
-  AUTO_PROFIL, KEIN_PROFIL, alsDatei, bereitFuer, eigeneVarianten, githubDatei, githubListe, ladeFuer, ladeListe,
-  profilBereiche, profileFehler, profileNeuVersuchen, profilKennung, profilListe, pruefeProfil, varianteZu, versionVergleich,
+  AUTO_PROFIL, KEIN_PROFIL, alsDatei, bereitFuer, eigeneVarianten, githubDatei, githubListe, gueltigeEigene, istNeuer,
+  ladeFuer, ladeListe, profilBereiche, profileFehler, profileNeuVersuchen, profilKennung, profilListe, pruefeProfil,
+  varianteZu, versionVergleich,
 } from "../profile.js";
 import { SPRACH_NAMEN, pruefeSprache, registriereSprachen, sprachpaketFuer } from "../sprachen.js";
 import { SPRACHEN, t, tf } from "../texte.js";
 
 /** Gruppe fuer eigene Profile ohne Datei im Ordner Profile. */
 const EIGENE = "__eigen";
+/** Vorsilbe fuer Hersteller, deren Profile es nur auf GitHub gibt. */
+const GITHUB_GRUPPE = "__gh:";
 /** Kennung, die weder im Ordner Profile noch unter den eigenen steht. */
 const UNBEKANNT = "__unbekannt";
 
@@ -161,9 +164,33 @@ export const werkzeugeEditor = {
     return profilListe().find((d) => d.varianten.some((v) => v.id === id)) || null;
   },
 
-  /** Eigene Varianten ohne Gegenstueck im Ordner Profile. */
-  _eigeneOhneDatei() {
-    return eigeneVarianten(this._config).filter((v) => !this._dateiVon(v.id));
+  /**
+   * Gruppe einer eigenen Variante in der Auswahl. Kopien von GitHub stehen
+   * beim Hersteller ihrer Datei, auch wenn es den Hersteller nur auf
+   * GitHub gibt (eigene Festlegung). Alles andere steht unter "Eigene
+   * Profile".
+   */
+  _gruppeVon(v) {
+    if (v.herkunft !== "github" || !v.dateiId) return EIGENE;
+    return profilListe().some((d) => d.id === v.dateiId) ? v.dateiId : GITHUB_GRUPPE + v.dateiId;
+  },
+
+  /** Gueltige eigene Varianten ohne Gegenstueck im Ordner Profile in einer Gruppe. */
+  _eigeneIn(gruppe) {
+    return gueltigeEigene(this._config).filter((v) => !this._dateiVon(v.id) && this._gruppeVon(v) === gruppe);
+  },
+
+  /** Hersteller, deren Profile es nur auf GitHub gibt: Gruppe, Name, Varianten. */
+  _githubHersteller() {
+    const out = [];
+    gueltigeEigene(this._config).forEach((v) => {
+      const g = this._gruppeVon(v);
+      if (!g.startsWith(GITHUB_GRUPPE) || this._dateiVon(v.id)) return;
+      let h = out.find((x) => x.id === g);
+      if (!h) out.push((h = { id: g, name: v.dateiName || v.dateiId, varianten: [] }));
+      h.varianten.push(v);
+    });
+    return out;
   },
 
   /**
@@ -175,23 +202,26 @@ export const werkzeugeEditor = {
     if (id === KEIN_PROFIL) return KEIN_PROFIL;
     const d = this._dateiVon(id);
     if (d) return d.id;
-    return eigeneVarianten(this._config).some((v) => v.id === id) ? EIGENE : UNBEKANNT;
+    const v = gueltigeEigene(this._config).find((x) => x.id === id);
+    return v ? this._gruppeVon(v) : UNBEKANNT;
   },
 
-  /** Varianten eines Herstellers fuer die Auswahl, mit eigenen Anpassungen. */
+  /**
+   * Varianten eines Herstellers fuer die Auswahl, mit eigenen Anpassungen
+   * und den Varianten, die von GitHub dazugekommen sind.
+   */
   _variantenVon(h) {
-    const eigene = eigeneVarianten(this._config);
-    if (h === EIGENE) {
-      return this._eigeneOhneDatei().map((v) => ({
-        id: v.id, name: v.name, entwickler: v.quelle.entwickler, getestet: v.getestet, eigen: true, herkunft: v.herkunft,
-      }));
-    }
+    const alsEigen = (v) => ({
+      id: v.id, name: v.name, entwickler: v.quelle.entwickler, getestet: v.getestet, eigen: true, herkunft: v.herkunft,
+    });
+    if (h === EIGENE || String(h).startsWith(GITHUB_GRUPPE)) return this._eigeneIn(h).map(alsEigen);
     const d = profilListe().find((x) => x.id === h);
     if (!d) return [];
+    const eigene = gueltigeEigene(this._config);
     return d.varianten.map((v) => {
       const e = eigene.find((x) => x.id === v.id);
       return { id: v.id, name: v.name, entwickler: v.entwickler, getestet: v.getestet, ersetzt: Boolean(e), herkunft: e ? e.herkunft : "" };
-    });
+    }).concat(this._eigeneIn(h).map(alsEigen));
   },
 
   /** Text einer Variante in der Auswahl: Integration und Entwickler. */
@@ -206,8 +236,9 @@ export const werkzeugeEditor = {
   },
 
   /**
-   * Erstes Feld: automatisch, die Hersteller aus dem Ordner Profile, eigene
-   * Profile und kein Profil. In der Frage nur die Hersteller.
+   * Erstes Feld: automatisch, die Hersteller aus dem Ordner Profile und
+   * von GitHub, eigene Profile und kein Profil. In der Frage nur die
+   * Hersteller.
    */
   _herstellerOptionen(frage, id) {
     const e = escapeHtml;
@@ -215,14 +246,15 @@ export const werkzeugeEditor = {
       ? `<option value="">${e(this._t("o_p_bitte"))}</option>`
       : `<option value="${AUTO_PROFIL}">${e(this._t("o_p_auto"))}</option>`];
     profilListe()
-      .slice()
+      .map((d) => ({ id: d.id, name: d.name, varianten: d.varianten }))
+      .concat(this._githubHersteller())
       .sort((a, b) => a.name.localeCompare(b.name))
       .forEach((d) => {
         const ungetestet = d.varianten.every((v) => !v.getestet);
         html.push(`<option value="${e(d.id)}">${e(d.name + (ungetestet ? ` ${this._t("o_p_ungetestet")}` : ""))}</option>`);
       });
     if (frage) return html.join("");
-    if (this._eigeneOhneDatei().length) html.push(`<option value="${EIGENE}">${e(this._t("o_p_eigene_gruppe"))}</option>`);
+    if (this._eigeneIn(EIGENE).length) html.push(`<option value="${EIGENE}">${e(this._t("o_p_eigene_gruppe"))}</option>`);
     html.push(`<option value="${KEIN_PROFIL}">${e(this._t("o_p_keins"))}</option>`);
     if (this._herstellerVon(id) === UNBEKANNT) html.push(`<option value="${UNBEKANNT}">${e(id)}</option>`);
     return html.join("");
@@ -341,7 +373,7 @@ export const werkzeugeEditor = {
     if (!hSel) return;
     const vorher = hSel.value;
     hSel.innerHTML = this._herstellerOptionen(true);
-    hSel.value = profilListe().some((d) => d.id === vorher) ? vorher : "";
+    hSel.value = [...hSel.options].some((o) => o.value === vorher) ? vorher : "";
     this._frageVarianten();
   },
 
@@ -627,7 +659,7 @@ export const werkzeugeEditor = {
     this._zeigeProfilAuswahl();
   },
 
-  /** Bedienung von Frage, Erneut suchen, Export, Import, GitHub und Entfernen. */
+  /** Bedienung von Frage, Erneut suchen, Profile aktualisieren, Export, Import und Entfernen. */
   _bindeProfile() {
     const sr = this.shadowRoot;
     const sagen = (text) => {
@@ -654,6 +686,8 @@ export const werkzeugeEditor = {
     }
     const suchen = sr.getElementById("btn-suchen");
     if (suchen) suchen.addEventListener("click", () => this._erneutSuchen());
+    const aktualisieren = sr.getElementById("btn-aktualisieren");
+    if (aktualisieren) aktualisieren.addEventListener("click", () => this._aktualisiereProfile());
 
     const aus = sr.getElementById("btn-profil-aus");
     if (aus) {
@@ -723,9 +757,6 @@ export const werkzeugeEditor = {
       });
     }
 
-    const github = sr.getElementById("btn-profil-github");
-    if (github) github.addEventListener("click", () => this._sucheAufGithub(sagen));
-
     const weg = sr.getElementById("btn-profil-weg");
     if (weg) {
       weg.addEventListener("click", () => {
@@ -743,85 +774,145 @@ export const werkzeugeEditor = {
   },
 
   /**
-   * Sucht im Ordner Profile auf GitHub nach Varianten, die neu oder neuer
-   * als die installierten sind. Neuer heisst: spaeteres Pruefdatum
-   * (abgelesen), spaetere Aenderung der Integration (aktualisiert) oder
-   * hoehere Version.
+   * "Profile aktualisieren": laedt auf einmal alle Varianten aus dem Ordner
+   * Profile auf GitHub (Zweig main), die neu oder neuer als die vorhandenen
+   * sind, prueft sie und speichert sie in dieser Karte. Die Auswahl bleibt,
+   * danach sucht der Editor neu. Die Meldung steht unter den Knoepfen.
    */
-  async _sucheAufGithub(sagen) {
-    const box = this.shadowRoot.getElementById("ed-github");
-    if (box) {
-      box.hidden = true;
-      box.innerHTML = "";
-    }
+  async _aktualisiereProfile() {
+    const sagen = (text) => {
+      const el = this.shadowRoot.getElementById("ed-aktualisieren-meldung");
+      if (el) el.textContent = text;
+    };
+    const knopf = (aus) => {
+      const el = this.shadowRoot.getElementById("btn-aktualisieren");
+      if (el) el.disabled = aus;
+    };
+    knopf(true);
     sagen(this._t("m_gh_sucht"));
-    let fern;
+    let text;
     try {
-      fern = await githubListe();
+      text = await this._holeVonGithub();
     } catch {
-      sagen(this._t("m_gh_fehler"));
-      return;
+      text = this._t("m_gh_fehler");
     }
-    const lokal = {};
-    profilListe().forEach((d) => d.varianten.forEach((v) => { lokal[v.id] = v; }));
-    eigeneVarianten(this._config).forEach((v) => {
-      if (v.herkunft === "github") lokal[v.id] = { version: v.quelle.version, aktualisiert: v.quelle.aktualisiert, abgelesen: v.quelle.abgelesen };
+    knopf(false);
+    sagen(text);
+  },
+
+  /**
+   * Vergleicht die Liste auf GitHub mit dem, was die Karte hat (Ordner
+   * Profile und gespeicherte Kopien von GitHub). Neuer heisst: spaeteres
+   * Pruefdatum, spaetere Aenderung der Integration oder hoehere Version.
+   * Nicht geladen werden Varianten, die eine neuere Karte brauchen oder
+   * fehlerhaft sind. Eigene Anpassungen (Import) werden nicht ersetzt.
+   * Kopien, die der Ordner Profile inzwischen gleich oder neuer hat,
+   * fallen weg (eigene Festlegung). Liefert die Meldung.
+   */
+  async _holeVonGithub() {
+    const fern = await githubListe();
+    // Erst die eigene Liste: Ohne sie waere alles "neu".
+    profileNeuVersuchen();
+    await ladeListe().catch(() => null);
+    const ja = this._sp() === "ja";
+    const name = (d, v) => (d.name && d.name !== v.name ? `${d.name}, ${v.name}` : v.name);
+    const kurz = (liste) => liste.slice(0, 5).join(" · ") + (liste.length > 5 ? " …" : "");
+
+    const eingebaut = {};
+    profilListe().forEach((d) => d.varianten.forEach((v) => { eingebaut[v.id] = v; }));
+    const eigene = eigeneVarianten(this._config);
+    const kopien = eigene.filter((v) => v.herkunft === "github");
+    const lokal = { ...eingebaut };
+    kopien.forEach((v) => {
+      if (!lokal[v.id] || istNeuer(v.quelle, lokal[v.id])) lokal[v.id] = v.quelle;
     });
-    const neuer = (a, b) => (a.abgelesen || "") > (b.abgelesen || "") || (a.aktualisiert || "") > (b.aktualisiert || "")
-      || versionVergleich(a.version, b.version) > 0;
-    const treffer = [];
+
+    const kandidaten = [];
+    const zuNeu = {};
+    const angepasst = [];
     fern.forEach((d) => d.varianten.forEach((v) => {
       const da = lokal[v.id];
-      if (!da || neuer(v, da)) treffer.push({ d, v, art: da ? "o_gh_neuer" : "o_gh_neu" });
+      if (da && !istNeuer(v, da)) return;
+      if (eigene.some((x) => x.id === v.id && x.herkunft !== "github")) {
+        angepasst.push(name(d, v));
+        return;
+      }
+      if (versionVergleich(d.karte_ab, CARD_VERSION) > 0) {
+        (zuNeu[d.karte_ab] = zuNeu[d.karte_ab] || []).push(name(d, v));
+        return;
+      }
+      kandidaten.push({ d, v, neu: !da });
     }));
-    if (!treffer.length) {
-      sagen(this._t("m_gh_nichts"));
-      return;
-    }
-    sagen(tf(this._t("m_gh_gefunden"), { z: treffer.length }));
-    if (!box) return;
-    const e = escapeHtml;
-    box.innerHTML = treffer.map((x, i) => {
-      const info = [this._t(x.art), x.v.version, x.v.abgelesen ? tf(this._t("o_gh_stand"), { d: this._datum(x.v.abgelesen) }) : ""]
-        .filter(Boolean).join(" · ");
-      return `<div class="ed-gh-zeile"><span>${e(`${x.d.name}, ${this._variantenText(x.v)}`)}<em>${e(info)}</em></span>
-        <button type="button" data-gh="${i}">${e(this._t("e_gh_laden"))}</button></div>`;
-    }).join("");
-    box.hidden = false;
-    box.querySelectorAll("button[data-gh]").forEach((b) => {
-      b.addEventListener("click", async () => {
-        const x = treffer[Number(b.dataset.gh)];
-        b.disabled = true;
-        let erg;
-        try {
-          erg = await githubDatei(x.d.datei);
-        } catch {
-          b.disabled = false;
-          sagen(this._t("m_gh_fehler"));
-          return;
-        }
-        if (erg.fehler) {
-          b.disabled = false;
-          sagen(this._t(erg.fehler));
-          return;
-        }
-        if (versionVergleich(erg.datei.karte_ab, CARD_VERSION) > 0) {
-          b.disabled = false;
-          sagen(tf(this._t("m_p_zu_neu"), { v: erg.datei.karte_ab }));
-          return;
-        }
-        const v = erg.datei.varianten.find((y) => y.id === x.v.id);
-        if (!v) {
-          b.disabled = false;
-          sagen(this._t("m_p_felder"));
-          return;
-        }
-        this._speichereVarianten([v], erg.datei.name, "github");
-        box.hidden = true;
-        box.innerHTML = "";
-        sagen(tf(this._t("m_gh_geladen"), { n: `${erg.datei.name}, ${v.name}` }));
-      });
+
+    // Jede Datei nur einmal holen. Ist GitHub dabei nicht erreichbar, wird
+    // nichts gespeichert.
+    const dateien = {};
+    let erreichbar = true;
+    await Promise.all([...new Set(kandidaten.map((k) => k.d.datei))].map((datei) =>
+      githubDatei(datei)
+        .then((erg) => { dateien[datei] = erg; })
+        .catch((e) => {
+          if (e instanceof SyntaxError) dateien[datei] = { fehler: "m_json" };
+          else erreichbar = false;
+        })));
+    if (!erreichbar) return this._t("m_gh_fehler");
+
+    const geladen = [];
+    const aktualisiert = [];
+    const neu = [];
+    const fehlerhaft = [];
+    kandidaten.forEach(({ d, v, neu: istNeu }) => {
+      const erg = dateien[d.datei];
+      const fv = erg && !erg.fehler ? erg.datei.varianten.find((x) => x.id === v.id) : null;
+      if (!fv) {
+        fehlerhaft.push(name(d, v));
+        return;
+      }
+      if (versionVergleich(erg.datei.karte_ab, CARD_VERSION) > 0) {
+        (zuNeu[erg.datei.karte_ab] = zuNeu[erg.datei.karte_ab] || []).push(name(erg.datei, fv));
+        return;
+      }
+      geladen.push({ ...alsDatei(fv).varianten[0], dateiName: erg.datei.name, dateiId: erg.datei.id, herkunft: "github" });
+      (istNeu ? neu : aktualisiert).push(name(erg.datei, fv));
     });
+
+    // Speichern: neue Kopien ersetzen alte, ueberholte Kopien fallen weg.
+    // Kopien aus 6.0.0 bekommen die Kennung ihrer Datei.
+    const roh = Array.isArray(this._config.profile_custom) ? this._config.profile_custom : [];
+    const ids = new Set(geladen.map((v) => v.id));
+    const liste = roh
+      .filter((p) => {
+        if (!p || typeof p !== "object") return true;
+        if (ids.has(p.id)) return false;
+        if (p.herkunft !== "github") return true;
+        const k = kopien.find((x) => x.id === p.id);
+        return !(k && eingebaut[p.id] && !istNeuer(k.quelle, eingebaut[p.id]));
+      })
+      .map((p) => {
+        if (!p || p.herkunft !== "github" || p.dateiId) return p;
+        const d = fern.find((x) => x.varianten.some((v) => v.id === p.id));
+        return d ? { ...p, dateiId: d.id } : p;
+      })
+      .concat(geladen);
+    if (JSON.stringify(liste) !== JSON.stringify(roh)) {
+      this._config = { ...this._config, profile_custom: liste };
+      this._emit();
+    }
+    // Neu suchen, die Auswahl bleibt.
+    this._profileFuer = null;
+    this._zeigeProfilAuswahl();
+
+    const teile = [];
+    if (aktualisiert.length) teile.push(tf(this._t("m_gh_aktualisiert"), { z: aktualisiert.length, liste: kurz(aktualisiert) }));
+    if (neu.length) teile.push(tf(this._t("m_gh_neu"), { z: neu.length, liste: kurz(neu) }));
+    const saetze = [];
+    if (teile.length) saetze.push(tf(this._t("m_gh_profile"), { teile: teile.join(ja ? "、" : ", ") }));
+    Object.keys(zuNeu)
+      .sort(versionVergleich)
+      .forEach((v) => saetze.push(tf(this._t("m_gh_zu_neu"), { v, liste: kurz(zuNeu[v]) })));
+    if (fehlerhaft.length) saetze.push(tf(this._t("m_gh_fehlerhaft"), { liste: kurz(fehlerhaft) }));
+    if (angepasst.length) saetze.push(tf(this._t("m_gh_eigen"), { liste: kurz(angepasst) }));
+    return saetze.length ? saetze.join(ja ? "" : " ") : this._t("m_gh_aktuell");
   },
 
   /**
@@ -832,7 +923,7 @@ export const werkzeugeEditor = {
     const sr = this.shadowRoot;
     const weg = sr.getElementById("btn-profil-weg");
     const id = profilKennung(this._config);
-    if (weg) weg.hidden = !eigeneVarianten(this._config).some((v) => v.id === id);
+    if (weg) weg.hidden = !gueltigeEigene(this._config).some((v) => v.id === id);
     if (!this._hass) return;
     const s = this._status(kandidaten || []);
     const gruppe = sr.querySelector(".ed-detect");

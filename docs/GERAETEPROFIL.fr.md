@@ -10,12 +10,13 @@ Un profil d'appareil indique à la carte quelle entité de Home Assistant appart
 
 Modifier la carte. Dans la section **Intégration** :
 
-- **Fabricant** : « Détection automatique », un fabricant du dossier Profile, « Profils personnels » (s'il y en a) ou « Aucun profil, saisir les entités moi-même »
+- **Fabricant** : « Détection automatique », un fabricant du dossier Profile ou de GitHub, « Profils personnels » (s'il y en a) ou « Aucun profil, saisir les entités moi-même »
 - **Intégration / appareil** : apparaît quand un fabricant a plusieurs variantes, avec le nom du développeur
 - **Plusieurs intégrations détectées** : apparaît avec « Détection automatique » quand plusieurs variantes correspondent
 - **Voulez-vous charger un profil précis ?** : apparaît avec « Détection automatique » quand aucune variante ne correspond. Choisissez-y le fabricant et l'intégration puis appuyez sur **Charger le profil**. Avec **Non, saisir les entités moi-même**, la carte passe à « Aucun profil, saisir les entités moi-même » et l'éditeur affiche les champs des entités.
 - **Reprendre de l'intégration** : inscrit durablement les entités trouvées dans les champs
 - **Rechercher à nouveau** : passe à « Détection automatique » et recherche à nouveau dans tous les profils. Si les profils n'ont pas pu être chargés auparavant, la carte les recharge.
+- **Mettre à jour les profils** : charge les profils nouveaux et plus récents depuis GitHub, voir [Charger des profils depuis GitHub](#charger-des-profils-depuis-github)
 - **Saisir les noms par défaut** (éditeur en **Avancé**) : inscrit les ID d'entité que le profil indique exactement ou avec le modèle `*.nom` (par exemple `sensor.heishamon_top14`)
 - **À propos de ce profil** : intégration, développeur avec lien vers la source, version, dernière modification de l'intégration et jour de la vérification, domaines couverts, ce qui a été trouvé dans Home Assistant, si la carte peut commander, si l'aide existe et si le profil est testé. Version et dates se trouvent dans le fichier de profil et ne changent pas toutes seules. En dessous **Retour sur GitHub** et **Copier le rapport** : le rapport contient les valeurs attribuées, manquantes et modifiées à la main ainsi que les entités inutilisées de l'intégration. Cela aide à améliorer un profil. Il contient des ID d'entités et des valeurs actuelles ; sur GitHub, vous le voyez et le modifiez avant l'envoi.
 
@@ -23,7 +24,6 @@ Dans la section **Import, export et personnalisation** (éditeur en **Avancé**)
 
 - **Exporter le profil** : enregistre la variante choisie ou détectée comme fichier dans le dossier des téléchargements
 - **Importer un profil** : lit un fichier de profil et sélectionne la (première) variante
-- **Rechercher des profils sur GitHub** : voir [Charger des profils depuis GitHub](#charger-des-profils-depuis-github)
 - **Supprimer le profil personnel** : n'apparaît que pour un profil personnel, modifié ou chargé depuis GitHub
 
 ## Comment la carte charge et cherche
@@ -219,11 +219,14 @@ Sans profil, avec la raison :
 
 ## Charger des profils depuis GitHub
 
-1. Bouton **Rechercher des profils sur GitHub** dans la section **Import, export et personnalisation**. La carte n'interroge GitHub que lorsque vous appuyez sur le bouton, pas à chaque ouverture du tableau de bord.
-2. La carte lit `liste.json` dans le dossier `dist/Profile` de la branche main du dépôt de la carte et affiche les variantes nouvelles ou plus récentes que celles installées. Plus récent signifie : date de vérification plus tardive (`abgelesen`), modification plus tardive de l'intégration (`aktualisiert`) ou version plus élevée.
-3. **Charger** récupère le fichier et le vérifie comme lors du chargement depuis son propre dossier. Si `karte_ab` est plus récent que la carte, la carte le refuse avec une indication.
-4. La carte enregistre la variante comme un profil importé dans la configuration de la carte et la sélectionne. Ensuite, elle fonctionne aussi sans internet. Dans la liste, elle apparaît avec « (depuis GitHub) ».
-5. La carte ne charge que des données, aucun code de programme.
+1. Bouton **Mettre à jour les profils** dans la section **Intégration** à côté de **Rechercher à nouveau**, avec l'éditeur sur **Simple** et **Avancé**. La carte n'interroge GitHub que lorsque vous appuyez sur le bouton, pas à chaque ouverture du tableau de bord.
+2. La carte lit `liste.json` dans le dossier `dist/Profile` de la branche main du dépôt de la carte et compare avec ce qu'elle a : le dossier Profile et les profils déjà chargés depuis GitHub. Plus récent signifie : date de vérification plus tardive (`abgelesen`), modification plus tardive de l'intégration (`aktualisiert`) ou version plus élevée.
+3. La carte charge en une fois toutes les variantes nouvelles ou plus récentes et les vérifie comme lors du chargement depuis son propre dossier. Ne sont pas chargées les variantes qui nécessitent une carte plus récente (`karte_ab`) et celles qui sont erronées. Si GitHub n'est pas joignable pendant ce temps, la carte n'enregistre rien.
+4. La carte enregistre les variantes comme des profils importés dans la configuration de la carte. La sélection reste, ensuite la carte recherche à nouveau. Ensuite, les profils fonctionnent aussi sans internet. Dans la liste, ils apparaissent avec « (depuis GitHub) », un nouveau fabricant sous son propre nom (choix personnel).
+5. Sous les boutons, la carte indique ce qui a été chargé, par exemple « Profils depuis GitHub : 1 mis à jour (Wolf, Wolf ISM8), 1 ajouté(s) (…). Enregistrés dans cette carte. » S'il n'y a rien de nouveau, elle indique « Tous les profils sont à jour. »
+6. Un profil personnel avec le même identifiant (importé, « (modifié) ») n'est pas remplacé ; la carte le mentionne dans le message (choix personnel). Pour que la version de GitHub s'applique : d'abord **Supprimer le profil personnel**, puis **Mettre à jour les profils**.
+7. Si une mise à jour via HACS apporte dans le dossier Profile la même version ou une version plus récente d'une variante chargée depuis GitHub, celle du dossier s'applique. La copie enregistrée ne s'applique plus, et le prochain **Mettre à jour les profils** la retire aussi de la configuration (choix personnel).
+8. La carte ne charge que des données, aucun code de programme.
 
 ## Adapter un profil intégré
 

@@ -139,9 +139,11 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           <div class="ed-actions">
             <button type="button" id="btn-adopt" disabled>${this._t("e_uebernehmen")}</button>
             <button type="button" id="btn-suchen">${this._t("e_suchen")}</button>
+            <button type="button" id="btn-aktualisieren">${this._t("e_aktualisieren")}</button>
             <button type="button" id="btn-default" class="nur-erweitert" disabled>${this._t("e_standardnamen")}</button>
             <button type="button" id="btn-clear" class="is-quiet nur-erweitert">${this._t("e_alle_leeren")}</button>
           </div>
+          <p class="ed-meldung ed-aktualisieren" id="ed-aktualisieren-meldung"></p>
           <div class="ed-row ed-breit">
             <span>${this._t("e_modus")}<em>${this._t("e_modus_h")}</em></span>
             <div class="ed-seg" id="ed-modus">
@@ -489,12 +491,10 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           <div class="ed-buttons">
             <button type="button" id="btn-profil-aus">${this._t("e_p_export")}</button>
             <button type="button" id="btn-profil-ein">${this._t("e_p_import")}</button>
-            <button type="button" id="btn-profil-github">${this._t("e_p_github")}</button>
             <button type="button" id="btn-profil-weg">${this._t("e_p_entfernen")}</button>
           </div>
           <input type="file" id="ed-profil-datei" accept=".json,application/json" hidden>
           <p class="ed-meldung" id="ed-profil-hinweis"></p>
-          <div class="ed-github" id="ed-github" hidden></div>
           <h4>${this._t("e_w_sprache")}</h4>
           <div class="ed-buttons">
             <button type="button" id="btn-sprache-aus">${this._t("e_s_export")}</button>
