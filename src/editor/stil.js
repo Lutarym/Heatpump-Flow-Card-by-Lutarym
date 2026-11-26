@@ -97,6 +97,24 @@ export const stilEditor = {
       .ed-profilinfo .ed-meldung { margin: 6px 0 0; font-size: 12px; color: var(--secondary-text-color, #9AA6B8); }
       .ed-profilinfo a { color: var(--primary-color, #7CC4FF); }
       .ed-profilwahl { border: 1px solid var(--warning-color, #F59E0B); border-radius: 8px; padding: 6px 8px; }
+      .ed-profilinfo.ed-profilfrage { border: 2px solid #E0A030; margin: 0 0 10px; }
+      .ed-profilfrage h5 { color: #F0C060; }
+      .ed-profilfrage p { margin: 0 0 8px; }
+      .ed-profilfrage .ed-actions { margin-top: 10px; }
+      .ed-github { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+      .ed-github[hidden] { display: none; }
+      .ed-gh-zeile {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        border: 1px solid var(--divider-color, #3A4757); border-radius: 8px; padding: 6px 10px; font-size: 13px;
+        color: var(--primary-text-color, #E8EDF4);
+      }
+      .ed-gh-zeile > span { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+      .ed-gh-zeile em { font-style: normal; font-size: 11px; color: var(--secondary-text-color, #8A94A6); }
+      .ed-gh-zeile button {
+        flex: 0 0 auto; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;
+        border: 1px solid var(--divider-color, #3A4757); background: var(--primary-color, #03A9F4); color: #FFFFFF;
+      }
+      .ed-gh-zeile button:disabled { opacity: 0.4; cursor: not-allowed; }
       .ed-zahl { font-size: 12px; color: #B07B2E; white-space: nowrap; }
       .ed-zahl.voll { color: #3E8E5A; }
       .ed-block { display: flex; flex-direction: column; gap: 10px; }

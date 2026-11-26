@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-export const CARD_VERSION = "5.33.7";
+export const CARD_VERSION = "6.0.0";
 
 /* ------------------------------------------------------------------ *
  *  Zeichenraster
@@ -177,6 +177,11 @@ export const LOAD_STOPS = [
 // nur zeigen, dass sie foerdern, nicht wie schnell.
 export const PUMP_SECONDS = 3;
 
+// Luefter mit Drehzahl in Prozent (EMS-ESP fanspd): 100 % dreht so schnell
+// wie 900 U/min, eine Umdrehung je Sekunde. Eigene Festlegung, nur fuer
+// die Bewegung, angezeigt wird der gemeldete Wert in %.
+export const LUEFTER_UPM_JE_PROZENT = 9;
+
 // Wie lange ein selbst gesetzter Wert stehen bleibt, bis die Anlage nachzieht.
 export const HOLD_MS = 12000;
 
@@ -190,18 +195,18 @@ export const BUBBLE_DAUER = [];
 // Im Demomodus gehoeren Schaltbefehl und Rueckmeldetopic zusammen.
 // Wird das eine gesetzt, folgt das andere.
 export const DEMO_PAARE = {
-  power_state: "heatpump_state",
-  heatpump_state: "power_state",
-  dhw_force: "dhw_force_state",
-  dhw_force_state: "dhw_force",
-  force_defrost: "defrost",
-  defrost: "force_defrost",
-  force_sterilization: "sterilization_state",
-  sterilization_state: "force_sterilization",
-  dhw_heater_switch: "dhw_heater",
-  dhw_heater: "dhw_heater_switch",
-  room_heater_switch: "room_heater",
-  room_heater: "room_heater_switch",
-  buffer_switch: "buffer_installed",
-  buffer_installed: "buffer_switch",
+  SET1: "TOP0",
+  TOP0: "SET1",
+  SET10: "TOP2",
+  TOP2: "SET10",
+  SET12: "TOP26",
+  TOP26: "SET12",
+  SET13: "TOP69",
+  TOP69: "SET13",
+  SET44: "TOP58",
+  TOP58: "SET44",
+  SET45: "TOP59",
+  TOP59: "SET45",
+  SET28: "TOP99",
+  TOP99: "SET28",
 };

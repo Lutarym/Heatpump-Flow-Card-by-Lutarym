@@ -2,11 +2,12 @@
  * Modus, Gruppen, Zustand der Felder, Auswahlfeld von Home Assistant.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { FIELD_DOMAIN } from "../erkennung.js";
+import { feldArten } from "../erkennung.js";
 import { ENTITY_FIELDS } from "../felder.js";
 import { hilfeDaten } from "../hilfe-laden.js";
 import { hilfeText } from "../sprachen.js";
 import { tf } from "../texte.js";
+import { SET_BEFEHL } from "../namen.js";
 
 export const bedienungEditor = {
   /* -------------------- Editor-Bedienung -------------------- */
@@ -29,9 +30,10 @@ export const bedienungEditor = {
 
   /** Erklaerung aus der Hilfe zu einem Feld, ueber TOP-Wert oder Befehl. */
   _feldHilfe(f) {
-    const hint = String(f.hint || "");
-    const tops = (hint.match(/\b(X?TOP\d+)\b/g) || []).map((x) => x.toUpperCase());
-    const befehle = (hint.match(/\bSet\w+\b/g) || []).map((x) => x.toLowerCase());
+    // Die Hilfe kennt TOP und OPT ueber ihre Kennung, SET ueber den Befehl.
+    const name = String(f.key || "");
+    const tops = /^(X?TOP|OPT)\d+$/.test(name) ? [name] : [];
+    const befehle = /^SET\d+$/.test(name) && SET_BEFEHL[name] ? [SET_BEFEHL[name].toLowerCase()] : [];
     if (!tops.length && !befehle.length) return "";
     const sp = this._sp();
     for (const g of hilfeDaten() || []) {
@@ -176,7 +178,7 @@ export const bedienungEditor = {
         picker = document.createElement(name);
         picker.hass = this._hass;
         picker.value = (this._config.entities || {})[key] || "";
-        const bereiche = feld && FIELD_DOMAIN[key];
+        const bereiche = feld && feldArten(key);
         picker.includeDomains = bereiche || [
           "sensor", "number", "input_number", "binary_sensor", "switch",
           "input_boolean", "select", "input_select", "button", "input_button",

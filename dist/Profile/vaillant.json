@@ -1,0 +1,42 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "vaillant",
+  "name": "Vaillant",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "mypyllant",
+      "name": "myPyllant",
+      "geraete": [
+        {
+          "hersteller": ["Vaillant"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "signalkraft",
+        "adresse": "https://github.com/signalkraft/mypyllant-component",
+        "version": "v0.9.19",
+        "aktualisiert": "2026-07-22",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "mypyllant",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP6": ["system_flow_temperature"],
+        "TOP10": ["sensor.*_domestic_hot_water_0_tank_temperature"],
+        "TOP14": ["outdoor_temperature"],
+        "TOP36": ["sensor.*_circuit_0_current_flow_temperature"],
+        "TOP37": ["sensor.*_circuit_1_current_flow_temperature"],
+        "TOP115": ["system_water_pressure"],
+        "EXT204": ["sensor.*_circuit_2_current_flow_temperature"]
+      }
+    }
+  ]
+}

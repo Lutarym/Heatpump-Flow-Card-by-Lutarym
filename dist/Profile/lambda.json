@@ -1,0 +1,50 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "lambda",
+  "name": "Lambda",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "lambda_heat_pumps",
+      "name": "Lambda Heat Pumps",
+      "geraete": [
+        {
+          "hersteller": ["Lambda"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "GuidoJeuken-6512",
+        "adresse": "https://github.com/GuidoJeuken-6512/lambda_heat_pumps",
+        "version": "3.7.3",
+        "aktualisiert": "2026-11-25",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "lambda_heat_pumps",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["sensor.*_hp1_volume_flow_heat_sink"],
+        "TOP5": ["sensor.*_hp1_return_line_temperature"],
+        "TOP6": ["sensor.*_hp1_flow_line_temperature"],
+        "TOP8": ["sensor.*_hp1_compressor_unit_rating"],
+        "TOP10": ["sensor.*_boil1_actual_high_temperature"],
+        "TOP14": ["sensor.*ambient_temperature"],
+        "TOP20": ["sensor.*_hp1_request_type"],
+        "TOP36": ["sensor.*_hc1_flow_line_temperature"],
+        "TOP37": ["sensor.*_hc2_flow_line_temperature"],
+        "TOP44": ["sensor.*_hp1_error_number"],
+        "TOP46": ["sensor.*_buff1_actual_high_temperature"],
+        "TOP47": ["sensor.*_sol1_collector_temperature"],
+        "EXT1": ["sensor.*_hp1_inverter_power_consumption"],
+        "EXT204": ["sensor.*_hc3_flow_line_temperature"],
+        "EXT207": ["sensor.*_hc4_flow_line_temperature"]
+      }
+    }
+  ]
+}

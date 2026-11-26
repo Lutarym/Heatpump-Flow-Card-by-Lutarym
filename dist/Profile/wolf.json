@@ -1,0 +1,43 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "wolf",
+  "name": "Wolf",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "wolf_ism8",
+      "name": "Wolf ISM8",
+      "geraete": [
+        {
+          "hersteller": ["Wolf"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "marcschmiedchen",
+        "adresse": "https://github.com/marcschmiedchen/home-assistant-wolf_ism8",
+        "version": "4.8",
+        "aktualisiert": "2026-11-15",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "wolf",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["sensor.*waermepumpe*_ruecklauftemperatur"],
+        "TOP10": ["sensor.*waermepumpe*_warmwassertemperatur"],
+        "TOP14": ["sensor.*waermepumpe*_aussentemperatur"],
+        "TOP20": ["*waermepumpe*_3w_umschaltventil_hz_ww"],
+        "TOP44": ["*waermepumpe*_stoerung"],
+        "TOP115": ["sensor.*waermepumpe*_anlagendruck"],
+        "TOP124": ["*waermepumpe*_status_heizkreispumpe"],
+        "EXT1": ["sensor.*waermepumpe*_leistungsaufnahme"]
+      }
+    }
+  ]
+}

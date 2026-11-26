@@ -80,27 +80,27 @@ export const netzstromKarte = {
    * Verlauf beim Klick.
    */
   _netzHeute() {
-    const w = typeof this._int === "function" ? this._int("pv_share_today") : null;
+    const w = typeof this._int === "function" ? this._int("EXT5") : null;
     const netz = w ? parseFloat(w.attr.netz_kwh_heute) : NaN;
     if (w && Number.isFinite(netz)) {
       const gesamt = parseFloat(w.attr.strom_kwh_heute);
       const anteil = w.zahl !== null ? w.zahl : Number.isFinite(gesamt) && gesamt > 0 ? 100 * (1 - netz / gesamt) : null;
       return { netz, gesamt: Number.isFinite(gesamt) ? gesamt : null, anteil, quelle: "integration", id: w.id };
     }
-    if (this._config.demo || !this._e("grid_power") || !this._e("power_now")) return null;
+    if (this._config.demo || !this._e("EXT4") || !this._e("EXT1")) return null;
     this._ladeNetzHeute();
     const c = this._netzCache;
     if (!c || c.tag !== mitternacht(Date.now()) || !c.wert) return null;
     const { gesamt, netz: n } = c.wert;
-    return { netz: n, gesamt, anteil: gesamt > 0 ? 100 * (1 - n / gesamt) : null, quelle: "karte", id: this._e("grid_power") };
+    return { netz: n, gesamt, anteil: gesamt > 0 ? 100 * (1 - n / gesamt) : null, quelle: "karte", id: this._e("EXT4") };
   },
 
   /** Holt den Verlauf seit Mitternacht, hoechstens alle fuenf Minuten. */
   _ladeNetzHeute() {
     const jetzt = Date.now();
     const tag = mitternacht(jetzt);
-    const wpId = this._e("power_now");
-    const netzId = this._e("grid_power");
+    const wpId = this._e("EXT1");
+    const netzId = this._e("EXT4");
     const k = `${wpId}|${netzId}`;
     const c = this._netzCache;
     if (c && c.k === k && c.tag === tag && (c.laedt || jetzt - c.zeit < FUENF_MINUTEN)) return;
@@ -118,8 +118,7 @@ export const netzstromKarte = {
         no_attributes: true,
       })
       .then((antwort) => {
-        const st = (this._hass && this._hass.states) || {};
-        const einheit = (id) => (st[id] && st[id].attributes ? st[id].attributes.unit_of_measurement : "");
+        const einheit = (id) => this._einheit(id === wpId ? "EXT1" : "EXT4", "", this._hass, id);
         const reihe = (id) => verlaufsReihe(antwort, id).map((p) => ({ t: p.t, v: inWatt(p.v, einheit(id)) }));
         const wert = netzAnteil(reihe(wpId), reihe(netzId), tag, jetzt);
         this._netzCache = { k, tag, zeit: Date.now(), laedt: false, wert };

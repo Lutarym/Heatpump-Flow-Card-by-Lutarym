@@ -1,0 +1,56 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "viessmann",
+  "name": "Viessmann",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "vicare",
+      "name": "ViCare",
+      "geraete": [
+        {
+          "hersteller": ["Viessmann"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "Home Assistant Core",
+        "adresse": "https://www.home-assistant.io/integrations/vicare/",
+        "version": "",
+        "aktualisiert": "",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "core",
+        "integration": "vicare",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["volumetric_flow"],
+        "TOP5": ["secondary_circuit_return_temperature", "return_temperature"],
+        "TOP6": ["secondary_circuit_supply_temperature", "supply_temperature"],
+        "TOP8": ["compressor_modulation"],
+        "TOP9": ["number:dhw_temperature"],
+        "TOP10": ["dhw_storage_temperature", "dhw_storage_top_temperature"],
+        "TOP11": ["compressor_hours"],
+        "TOP12": ["compressor_starts"],
+        "TOP14": ["outside_temperature"],
+        "TOP20": ["domestic_hot_water_charging"],
+        "TOP46": ["buffer_main_temperature", "buffer_top_temperature"],
+        "TOP47": ["collector_temperature"],
+        "TOP65": ["primary_circuit_pump_rotation"],
+        "TOP115": ["supply_pressure"],
+        "TOP124": ["circulation_pump"],
+        "OPT5": ["solar_pump"],
+        "EXT1": ["inverter_power", "compressor_power"],
+        "EXT2": ["power_consumption_today"],
+        "EXT400": ["domestic_hot_water_circulation_pump"],
+        "EXT600": ["cop_heating"],
+        "EXT601": ["cop_dhw"]
+      }
+    }
+  ]
+}

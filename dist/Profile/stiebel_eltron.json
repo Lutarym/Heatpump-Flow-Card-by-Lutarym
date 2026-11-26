@@ -1,0 +1,86 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "stiebel_eltron",
+  "name": "Stiebel Eltron",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "stiebel_eltron_isg",
+      "name": "Stiebel Eltron ISG",
+      "geraete": [
+        {
+          "hersteller": ["Stiebel Eltron"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "pail23",
+        "adresse": "https://github.com/pail23/stiebel_eltron_isg_component",
+        "version": "2025.10.0",
+        "aktualisiert": "2026-11-21",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "stiebel_eltron_isg",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["return_temperature"],
+        "TOP6": ["flow_temperature_wp", "flow_temperature"],
+        "TOP8": ["compressor_speed", "compressor_on"],
+        "TOP9": ["number:comfort_water_temperature_target"],
+        "TOP10": ["actual_temperature_water"],
+        "TOP12": ["compressor_starts"],
+        "TOP14": ["outdoor_temperature"],
+        "TOP20": ["is_heating_water"],
+        "TOP26": ["evaporator_defrost"],
+        "TOP44": ["error_status"],
+        "TOP46": ["actual_temperature_buffer"],
+        "TOP47": ["solar_collector_temperature"],
+        "TOP115": ["heater_pressure"],
+        "TOP123": ["heating_circuit_2_pump", "pump_on_hk2"],
+        "TOP124": ["heating_circuit_1_pump", "pump_on_hk1"],
+        "EXT1": ["current_power_consumption"],
+        "EXT205": ["heating_circuit_3_pump"],
+        "EXT208": ["heating_circuit_4_pump"],
+        "EXT400": ["circulation_pump"]
+      }
+    },
+    {
+      "id": "stiebel_eltron_http",
+      "name": "Stiebel Eltron ISG (HTTP)",
+      "geraete": [
+        {
+          "hersteller": ["Stiebel Eltron"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "pmq",
+        "adresse": "https://github.com/pmq/stiebel-eltron-http",
+        "version": "0.1.0",
+        "aktualisiert": "2026-11-09",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "stiebel_eltron_http",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP6": ["flow_temperature"],
+        "TOP8": ["compressor_status"],
+        "TOP10": ["dhw_temperature"],
+        "TOP12": ["compressor_starts"],
+        "TOP14": ["outside_temperature"],
+        "TOP26": ["defrost_status"]
+      }
+    }
+  ]
+}

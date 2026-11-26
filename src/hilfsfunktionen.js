@@ -83,7 +83,7 @@ export function numState(hass, entityId) {
   if (!hass || !entityId) return null;
   const st = hass.states[entityId];
   if (!st) return null;
-  const v = parseFloat(st.state);
+  const v = parseFloat(zustandVon(entityId, st.state));
   // Unendlich ist kein Messwert ("Infinity", "1e400").
   return Number.isFinite(v) ? v : null;
 }
@@ -91,7 +91,7 @@ export function numState(hass, entityId) {
 export function rawState(hass, entityId) {
   if (!hass || !entityId) return null;
   const st = hass.states[entityId];
-  return st ? st.state : null;
+  return st ? zustandVon(entityId, st.state) : null;
 }
 
 export function attr(hass, entityId, key, fallback) {
@@ -116,6 +116,27 @@ export function zustandAn(s) {
   if (AUS_TEXTE.includes(t)) return false;
   const n = parseFloat(t);
   return Number.isNaN(n) ? null : n > 0;
+}
+
+/*
+ * Texte einzelner Entitaeten laut Geraeteprofil (zustaende). Die Karte
+ * traegt nur die Entitaeten ein, die ihr Profil selbst findet. Zahlen
+ * und Woerter wie an und aus bleiben, wie sie sind.
+ */
+const PROFIL_ZUSTAENDE = new Map();
+
+export function merkeZustaende(entityId, zustaende) {
+  if (entityId && zustaende && typeof zustaende === "object") PROFIL_ZUSTAENDE.set(entityId, zustaende);
+}
+
+/** Zustandstext einer Entitaet, mit den Texten aus dem Profil umgesetzt. */
+export function zustandVon(entityId, s) {
+  const z = entityId ? PROFIL_ZUSTAENDE.get(entityId) : undefined;
+  if (!z || s === null || s === undefined || zustandAn(s) !== null) return s;
+  const t = String(s).trim().toLowerCase();
+  if (Object.prototype.hasOwnProperty.call(z, t)) return String(z[t]);
+  if (Object.prototype.hasOwnProperty.call(z, "*")) return String(z["*"]);
+  return s;
 }
 
 export function isOn(hass, entityId) {
@@ -145,17 +166,79 @@ export function warmwasserZustand(s) {
  * Wert des Verdichters fuer Anzeige und Logik. Liefert die Zahl mit
  * Einheit, oder bei Integrationen, die nur an und aus melden, 1 oder 0.
  */
-export function verdichterWert(hass, entityId) {
+export function verdichterWert(hass, entityId, einheit) {
   const s = rawState(hass, entityId);
   if (s === null) return { wert: null, einheit: "", nurAnAus: false };
   const n = parseFloat(s);
   if (!Number.isNaN(n)) {
-    const einheit = attr(hass, entityId, "unit_of_measurement", "Hz") || "";
-    return { wert: n, einheit, nurAnAus: false };
+    const e = einheit !== undefined ? einheit : attr(hass, entityId, "unit_of_measurement", "Hz");
+    return { wert: n, einheit: e || "", nurAnAus: false };
   }
   const an = zustandAn(s);
   if (an === null) return { wert: null, einheit: "", nurAnAus: false };
   return { wert: an ? 1 : 0, einheit: "", nurAnAus: true };
+}
+
+/**
+ * Drehzahl eines Luefters oder einer Pumpe. HeishaMon meldet U/min,
+ * andere Integrationen Prozent (EMS-ESP fanspd, hpcircspd). Ob Prozent,
+ * sagt die Einheit: die der Entitaet, sonst die aus dem Profil.
+ */
+export function drehzahlWert(hass, entityId, einheit) {
+  const e = String((einheit !== undefined ? einheit : attr(hass, entityId, "unit_of_measurement", "")) || "").trim();
+  return { wert: numState(hass, entityId), prozent: e === "%" };
+}
+
+/**
+ * Zeitdauer in Stunden, umgerechnet nach der Einheit der Entitaet.
+ * EMS-ESP meldet Betriebszeiten in Minuten ("min"), andere in Sekunden
+ * oder Tagen. Ohne oder mit unbekannter Einheit bleibt der Wert.
+ */
+const JE_STUNDE = { ms: 3600000, s: 3600, min: 60, h: 1, d: 1 / 24 };
+export function inStunden(wert, einheit) {
+  if (wert === null || wert === undefined) return null;
+  const f = JE_STUNDE[String(einheit || "").trim().toLowerCase()];
+  return f ? wert / f : wert;
+}
+
+/**
+ * Durchfluss in l/min, umgerechnet nach der Einheit der Entitaet.
+ * HeishaMon meldet l/min, EMS-ESP je nach Wert l/min (pc0lpm) oder l/h
+ * (pc0flow). Unbekannte Einheit: der Wert bleibt.
+ */
+const LITER_JE_MINUTE = { "l/min": 1, "l/h": 1 / 60, "l/s": 60, "ml/s": 0.06, "m3/h": 1000 / 60, "gal/min": 3.785411784, "ft3/min": 28.316846592 };
+export function inLiterJeMinute(wert, einheit) {
+  if (wert === null || wert === undefined) return null;
+  const e = String(einheit || "").trim().toLowerCase().replace("³", "3").replace(/\s+/g, "");
+  const f = LITER_JE_MINUTE[e];
+  return f ? wert * f : wert;
+}
+
+/**
+ * Ob ein Zustand der Abtauung "taut ab" heisst. Zahlen und Woerter wie
+ * bei zustandAn. Eigene Texte einer Integration setzt das Profil um
+ * (zustaende), etwa die Woerter von EMS-ESP. Sonst heisst ein Text mit
+ * "defrost" oder "abtau" darin: taut ab, jeder andere: taut nicht ab.
+ */
+export function abtauZustand(s) {
+  if (s === null || s === undefined) return null;
+  const z = zustandAn(s);
+  if (z !== null) return z;
+  const t = String(s).trim().toLowerCase();
+  return t.includes("defrost") || t.includes("abtau");
+}
+
+/**
+ * Verlauf der Abtauung fuer die Auswertung: Texte einer Betriebsart
+ * werden zu 1 und 0. Zahlen, an, aus und unbekannt bleiben, wie sie sind.
+ */
+export function abtauReihe(reihe) {
+  if (!Array.isArray(reihe)) return reihe;
+  return reihe.map((p) => {
+    if (p.s === null || p.s === undefined || zustandAn(p.s) !== null) return p;
+    const an = abtauZustand(p.s);
+    return { ...p, s: an ? "1" : "0", v: an ? 1 : 0 };
+  });
 }
 
 /**

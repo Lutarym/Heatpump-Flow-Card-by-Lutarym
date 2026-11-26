@@ -1,0 +1,768 @@
+{
+  "format": "lutarym-profilliste",
+  "version": 1,
+  "profile": [
+    {
+      "id": "alpha_innotec_novelan",
+      "datei": "alpha_innotec_novelan.json",
+      "name": "Alpha Innotec, Novelan (Luxtronik)",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Alpha Innotec",
+        "Novelan"
+      ],
+      "varianten": [
+        {
+          "id": "luxtronik2",
+          "name": "Luxtronik",
+          "art": "integration",
+          "integration": "luxtronik2",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "BenPru",
+          "version": "2026.11.22",
+          "aktualisiert": "2026-11-22",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 22
+        },
+        {
+          "id": "luxtronik",
+          "name": "Luxtronik",
+          "art": "integration",
+          "integration": "luxtronik",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "Bouni",
+          "version": "2022.12.01",
+          "aktualisiert": "2023-09-11",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 13
+        },
+        {
+          "id": "luxtronik2_hass",
+          "name": "Luxtronik 2",
+          "art": "integration",
+          "integration": "luxtronik2_hass",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "notDIRK",
+          "version": "1.2.7",
+          "aktualisiert": "2026-10-08",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 11
+        }
+      ]
+    },
+    {
+      "id": "batavia_heat",
+      "datei": "batavia_heat.json",
+      "name": "Batavia Heat",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Batavia Heat"
+      ],
+      "varianten": [
+        {
+          "id": "batavia_heat",
+          "name": "Batavia Heat",
+          "art": "integration",
+          "integration": "batavia_heat",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "RSloot2000",
+          "version": "0.6.0",
+          "aktualisiert": "2026-11-25",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 8
+        }
+      ]
+    },
+    {
+      "id": "bosch_buderus",
+      "datei": "bosch_buderus.json",
+      "name": "Bosch, Buderus",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Bosch",
+        "Buderus",
+        "Nefit",
+        "Junkers",
+        "Worcester",
+        "Sieger",
+        "elm.leblanc",
+        "iVT"
+      ],
+      "varianten": [
+        {
+          "id": "bosch_buderus_heating",
+          "name": "Bosch Buderus Heating",
+          "art": "integration",
+          "integration": "bosch_buderus_heating",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "SoftwareSchmied",
+          "version": "0.9.2",
+          "aktualisiert": "2026-11-19",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 7
+        },
+        {
+          "id": "ems_esp",
+          "name": "EMS-ESP (MQTT)",
+          "art": "firmware",
+          "integration": "",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "emsesp",
+          "version": "3.9.1",
+          "aktualisiert": "2026-11-16",
+          "abgelesen": "2026-11-26",
+          "modelle": 9,
+          "werte": 41
+        }
+      ]
+    },
+    {
+      "id": "daikin",
+      "datei": "daikin.json",
+      "name": "Daikin",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Daikin"
+      ],
+      "varianten": [
+        {
+          "id": "daikin_onecta",
+          "name": "Daikin Onecta",
+          "art": "integration",
+          "integration": "daikin_onecta",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "jwillemsen",
+          "version": "5.0.4",
+          "aktualisiert": "2026-11-24",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 4
+        },
+        {
+          "id": "ha_daikin_altherma4_modbus",
+          "name": "Altherma 4 Modbus",
+          "art": "integration",
+          "integration": "ha_daikin_altherma4_modbus",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "joklee",
+          "version": "0.7.4",
+          "aktualisiert": "2026-11-12",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 10
+        },
+        {
+          "id": "daikin_ha_ekrhh_modbus",
+          "name": "Altherma EKRHH Modbus",
+          "art": "integration",
+          "integration": "daikin_ha_ekrhh_modbus",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "gerione",
+          "version": "1.1.0",
+          "aktualisiert": "2026-11-17",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 9
+        },
+        {
+          "id": "daikin_altherma",
+          "name": "Daikin Altherma",
+          "art": "integration",
+          "integration": "daikin_altherma",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "tadasdanielius",
+          "version": "1.6.0-alpha.1",
+          "aktualisiert": "2026-11-23",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 2
+        }
+      ]
+    },
+    {
+      "id": "dewarmte",
+      "datei": "dewarmte.json",
+      "name": "DeWarmte",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "DeWarmte"
+      ],
+      "varianten": [
+        {
+          "id": "dewarmte",
+          "name": "DeWarmte",
+          "art": "integration",
+          "integration": "dewarmte",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "ronald-willems",
+          "version": "2.4.5",
+          "aktualisiert": "2026-11-14",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 4
+        }
+      ]
+    },
+    {
+      "id": "heliotherm",
+      "datei": "heliotherm.json",
+      "name": "Heliotherm",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Heliotherm"
+      ],
+      "varianten": [
+        {
+          "id": "ha_heliotherm",
+          "name": "Heliotherm",
+          "art": "integration",
+          "integration": "ha_heliotherm",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "mbuchber",
+          "version": "v1.0.43",
+          "aktualisiert": "2025-09-07",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 10
+        }
+      ]
+    },
+    {
+      "id": "hitachi",
+      "datei": "hitachi.json",
+      "name": "Hitachi",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Hitachi"
+      ],
+      "varianten": [
+        {
+          "id": "hitachi_yutaki",
+          "name": "Hitachi Yutaki",
+          "art": "integration",
+          "integration": "hitachi_yutaki",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "alepee",
+          "version": "2.5.0-beta.2",
+          "aktualisiert": "2026-11-26",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 13
+        }
+      ]
+    },
+    {
+      "id": "idm",
+      "datei": "idm.json",
+      "name": "iDM",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "iDM"
+      ],
+      "varianten": [
+        {
+          "id": "idm_heatpump",
+          "name": "IDM Heatpump",
+          "art": "integration",
+          "integration": "idm_heatpump",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "Xerolux",
+          "version": "0.28.7",
+          "aktualisiert": "2026-11-24",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 9
+        }
+      ]
+    },
+    {
+      "id": "keba",
+      "datei": "keba.json",
+      "name": "KEBA",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "KEBA"
+      ],
+      "varianten": [
+        {
+          "id": "keba_heat_pump_modbus",
+          "name": "KEBA Heat Pump Modbus",
+          "art": "integration",
+          "integration": "keba_heat_pump_modbus",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "johannesWen",
+          "version": "1.5.0",
+          "aktualisiert": "2026-10-09",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 5
+        }
+      ]
+    },
+    {
+      "id": "kronoterm",
+      "datei": "kronoterm.json",
+      "name": "Kronoterm",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Kronoterm"
+      ],
+      "varianten": [
+        {
+          "id": "kronoterm",
+          "name": "Kronoterm",
+          "art": "integration",
+          "integration": "kronoterm",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "Favio25",
+          "version": "1.7.4",
+          "aktualisiert": "2026-11-25",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 15
+        }
+      ]
+    },
+    {
+      "id": "lambda",
+      "datei": "lambda.json",
+      "name": "Lambda",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Lambda"
+      ],
+      "varianten": [
+        {
+          "id": "lambda_heat_pumps",
+          "name": "Lambda Heat Pumps",
+          "art": "integration",
+          "integration": "lambda_heat_pumps",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "GuidoJeuken-6512",
+          "version": "3.7.3",
+          "aktualisiert": "2026-11-25",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 15
+        }
+      ]
+    },
+    {
+      "id": "mitsubishi_electric",
+      "datei": "mitsubishi_electric.json",
+      "name": "Mitsubishi Electric",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Mitsubishi Electric"
+      ],
+      "varianten": [
+        {
+          "id": "melcloud",
+          "name": "MELCloud",
+          "art": "core",
+          "integration": "melcloud",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "Home Assistant Core",
+          "version": "",
+          "aktualisiert": "",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 4
+        },
+        {
+          "id": "melcloudhome",
+          "name": "MELCloud Home",
+          "art": "integration",
+          "integration": "melcloudhome",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "andrew-blake",
+          "version": "2.6.4",
+          "aktualisiert": "2026-11-22",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 7
+        }
+      ]
+    },
+    {
+      "id": "nibe",
+      "datei": "nibe.json",
+      "name": "NIBE",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "NIBE"
+      ],
+      "varianten": [
+        {
+          "id": "nibe_heatpump",
+          "name": "Nibe Heat Pump",
+          "art": "core",
+          "integration": "nibe_heatpump",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "Home Assistant Core",
+          "version": "",
+          "aktualisiert": "",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 13
+        }
+      ]
+    },
+    {
+      "id": "panasonic_aquarea",
+      "datei": "panasonic_aquarea.json",
+      "name": "Panasonic Aquarea",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Panasonic"
+      ],
+      "varianten": [
+        {
+          "id": "heishamon_lutarym",
+          "name": "HeishaMon by Lutarym",
+          "art": "integration",
+          "integration": "heishamon_lutarym",
+          "heishamon": true,
+          "getestet": true,
+          "entwickler": "Lutarym",
+          "version": "1.7.0",
+          "aktualisiert": "2026-11-20",
+          "abgelesen": "2026-11-26",
+          "modelle": 69,
+          "werte": 127
+        },
+        {
+          "id": "heishamon",
+          "name": "HeishaMon (MQTT)",
+          "art": "firmware",
+          "integration": "",
+          "heishamon": true,
+          "getestet": true,
+          "entwickler": "",
+          "version": "4.4.1",
+          "aktualisiert": "2026-11-16",
+          "abgelesen": "2026-11-26",
+          "modelle": 69,
+          "werte": 105
+        },
+        {
+          "id": "aquarea_heishamon",
+          "name": "HeishaMon",
+          "art": "integration",
+          "integration": "aquarea",
+          "heishamon": true,
+          "getestet": false,
+          "entwickler": "kamaradclimber",
+          "version": "2.15.0",
+          "aktualisiert": "2026-11-21",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 30
+        },
+        {
+          "id": "aquarea_cloud",
+          "name": "Aquarea Smart Cloud",
+          "art": "integration",
+          "integration": "aquarea",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "wpatrik14",
+          "version": "2.0.1",
+          "aktualisiert": "2026-11-25",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 5
+        }
+      ]
+    },
+    {
+      "id": "qube",
+      "datei": "qube.json",
+      "name": "Qube",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Qube"
+      ],
+      "varianten": [
+        {
+          "id": "qube_heatpump",
+          "name": "Qube Heat Pump",
+          "art": "integration",
+          "integration": "qube_heatpump",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "MattieGit",
+          "version": "2026.11.6",
+          "aktualisiert": "2026-11-23",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 9
+        }
+      ]
+    },
+    {
+      "id": "remeha",
+      "datei": "remeha.json",
+      "name": "Remeha",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Remeha"
+      ],
+      "varianten": [
+        {
+          "id": "remeha_modbus",
+          "name": "Remeha Modbus",
+          "art": "integration",
+          "integration": "remeha_modbus",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "houthacker",
+          "version": "2.7.1",
+          "aktualisiert": "2026-11-21",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 10
+        }
+      ]
+    },
+    {
+      "id": "solarfocus",
+      "datei": "solarfocus.json",
+      "name": "Solarfocus",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Solarfocus"
+      ],
+      "varianten": [
+        {
+          "id": "solarfocus",
+          "name": "Solarfocus",
+          "art": "integration",
+          "integration": "solarfocus",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "LavermanJJ",
+          "version": "7.0.1",
+          "aktualisiert": "2026-11-10",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 13
+        }
+      ]
+    },
+    {
+      "id": "stiebel_eltron",
+      "datei": "stiebel_eltron.json",
+      "name": "Stiebel Eltron",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Stiebel Eltron"
+      ],
+      "varianten": [
+        {
+          "id": "stiebel_eltron_isg",
+          "name": "Stiebel Eltron ISG",
+          "art": "integration",
+          "integration": "stiebel_eltron_isg",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "pail23",
+          "version": "2025.10.0",
+          "aktualisiert": "2026-11-21",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 19
+        },
+        {
+          "id": "stiebel_eltron_http",
+          "name": "Stiebel Eltron ISG (HTTP)",
+          "art": "integration",
+          "integration": "stiebel_eltron_http",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "pmq",
+          "version": "0.1.0",
+          "aktualisiert": "2026-11-09",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 6
+        }
+      ]
+    },
+    {
+      "id": "thermia",
+      "datei": "thermia.json",
+      "name": "Thermia",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Thermia"
+      ],
+      "varianten": [
+        {
+          "id": "thermia",
+          "name": "Thermia Heat Pump",
+          "art": "integration",
+          "integration": "thermia",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "klejejs",
+          "version": "1.0",
+          "aktualisiert": "2025-12-04",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 6
+        }
+      ]
+    },
+    {
+      "id": "vaillant",
+      "datei": "vaillant.json",
+      "name": "Vaillant",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Vaillant"
+      ],
+      "varianten": [
+        {
+          "id": "mypyllant",
+          "name": "myPyllant",
+          "art": "integration",
+          "integration": "mypyllant",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "signalkraft",
+          "version": "v0.9.19",
+          "aktualisiert": "2026-07-22",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 7
+        }
+      ]
+    },
+    {
+      "id": "viessmann",
+      "datei": "viessmann.json",
+      "name": "Viessmann",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Viessmann"
+      ],
+      "varianten": [
+        {
+          "id": "vicare",
+          "name": "ViCare",
+          "art": "core",
+          "integration": "vicare",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "Home Assistant Core",
+          "version": "",
+          "aktualisiert": "",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 21
+        }
+      ]
+    },
+    {
+      "id": "waterkotte",
+      "datei": "waterkotte.json",
+      "name": "Waterkotte",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Waterkotte"
+      ],
+      "varianten": [
+        {
+          "id": "waterkotte_heatpump",
+          "name": "Waterkotte Heatpump",
+          "art": "integration",
+          "integration": "waterkotte_heatpump",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "marq24",
+          "version": "2026.11.3",
+          "aktualisiert": "2026-11-26",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 15
+        }
+      ]
+    },
+    {
+      "id": "weishaupt",
+      "datei": "weishaupt.json",
+      "name": "Weishaupt",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Weishaupt"
+      ],
+      "varianten": [
+        {
+          "id": "weishaupt_modbus",
+          "name": "Weishaupt Modbus",
+          "art": "integration",
+          "integration": "weishaupt_modbus",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "OStrama",
+          "version": "1.0.20",
+          "aktualisiert": "2026-10-08",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 12
+        }
+      ]
+    },
+    {
+      "id": "wolf",
+      "datei": "wolf.json",
+      "name": "Wolf",
+      "karte_ab": "6.0.0",
+      "hersteller": [
+        "Wolf"
+      ],
+      "varianten": [
+        {
+          "id": "wolf_ism8",
+          "name": "Wolf ISM8",
+          "art": "integration",
+          "integration": "wolf",
+          "heishamon": false,
+          "getestet": false,
+          "entwickler": "marcschmiedchen",
+          "version": "4.8",
+          "aktualisiert": "2026-11-15",
+          "abgelesen": "2026-11-26",
+          "modelle": 0,
+          "werte": 8
+        }
+      ]
+    }
+  ]
+}

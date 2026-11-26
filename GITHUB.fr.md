@@ -63,6 +63,8 @@ Ensuite, sur GitHub sous **Releases**, **Draft a new release**, choisir le tag `
 First public release. See CHANGELOG.md for all changes.
 ```
 
+N'attachez aucun fichier à la version publiée. Sinon HACS ne télécharge que ces fichiers et pas tout le dossier `dist` avec le sous-dossier `Profile` (vérifié dans le code source de HACS).
+
 ## 6. Ajouter à HACS
 
 1. Ouvrir HACS, menu à trois points, Dépôts personnalisés
@@ -93,7 +95,10 @@ Facultatif, pour que d'autres trouvent la carte sans dépôt personnalisé. HACS
 Heatpump-Flow-Card-by-Lutarym/
 ├── dist/
 │   ├── heatpump-flow-card-by-lutarym.js
-│   └── heatpump-flow-card-by-lutarym-hilfe.js
+│   ├── heatpump-flow-card-by-lutarym-hilfe.js
+│   └── Profile/
+│       ├── liste.json
+│       └── <hersteller>.json (24 fichiers)
 ├── docs/
 │   └── screenshot-en.png, screenshot-de.png, screenshot-fr.png, screenshot-ja.png
 ├── hacs.json

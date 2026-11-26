@@ -6,6 +6,7 @@ import { ENTITY_FIELDS } from "../felder.js";
 import { DEZIMAL, clamp, escapeHtml, fmt, isOn, numState, rawState, stellbar } from "../hilfsfunktionen.js";
 import { MODE_LABELS, POWERFUL_LABELS, QUIET_LABELS } from "../konstanten.js";
 import { feldText, tf, wertText } from "../texte.js";
+import { HK } from "../namen.js";
 
 export const dialogKarte = {
   _buildDialog() {
@@ -85,62 +86,62 @@ export const dialogKarte = {
         titel: "f_waermepumpe",
         werte: [],
         aktionen: [
-          { feld: "power_state", status: "heatpump_state", typ: "schalter", an: "f_laeuft_aus", aus: "f_einschalten" },
-          { feld: "force_defrost", status: "defrost", typ: "schalter", an: "f_abtauen_ende", aus: "f_abtauen_start" },
-          { feld: "powerful_mode", typ: "auswahl", titel: "f_turbomodus", texte: POWERFUL_LABELS },
-          { feld: "quiet_mode", typ: "auswahl", titel: "f_leisemodus", texte: QUIET_LABELS },
-          { feld: "mode_select", typ: "auswahl", titel: "f_betriebsart", texte: MODE_LABELS },
+          { feld: "SET1", status: "TOP0", typ: "schalter", an: "f_laeuft_aus", aus: "f_einschalten" },
+          { feld: "SET12", status: "TOP26", typ: "schalter", an: "f_abtauen_ende", aus: "f_abtauen_start" },
+          { feld: "SET4", typ: "auswahl", titel: "f_turbomodus", texte: POWERFUL_LABELS },
+          { feld: "SET3", typ: "auswahl", titel: "f_leisemodus", texte: QUIET_LABELS },
+          { feld: "SET9", typ: "auswahl", titel: "f_betriebsart", texte: MODE_LABELS },
           // HeishaMon by Lutarym ab 1.4.0: Warmwasser zur waermsten Tageszeit,
           // Schalter sowie geplante und letzte Warmwasserladung.
-          { feld: "dhw_planned", typ: "trenner" },
-          { feld: "dhw_warmest", typ: "schalter", an: "f_waermste_aus", aus: "f_waermste_an" },
-          { feld: "dhw_planned", typ: "wwplan" },
-          { feld: "dhw_temp", typ: "wwknopf", titel: "ww_knopf" },
+          { feld: "EXT403", typ: "trenner" },
+          { feld: "EXT402", typ: "schalter", an: "f_waermste_aus", aus: "f_waermste_an" },
+          { feld: "EXT403", typ: "wwplan" },
+          { feld: "TOP10", typ: "wwknopf", titel: "ww_knopf" },
         ],
       },
       {
         gruppe: "buffer-group",
         beschriftung: "label_buffer",
-        werte: ["buffer_temp", "room_heater"],
+        werte: ["TOP46", "TOP59"],
         aktionen: [
-          { feld: "buffer_switch", status: "buffer_installed", typ: "schalter", an: "f_puffer_aus", aus: "f_puffer_an" },
-          { feld: "room_heater_switch", status: "room_heater", typ: "schalter", an: "f_hz_heizstab_ende", aus: "f_hz_heizstab_start" },
-          { feld: "buffer_delta", typ: "zahl", befehl: "SetBufferDelta", titel: "f_puffer_ueberhoehung", einheit: "K", info: "puffer", min: 0, max: 10, schritt: 1 },
+          { feld: "SET28", status: "TOP99", typ: "schalter", an: "f_puffer_aus", aus: "f_puffer_an" },
+          { feld: "SET45", status: "TOP59", typ: "schalter", an: "f_hz_heizstab_ende", aus: "f_hz_heizstab_start" },
+          { feld: "TOP113", typ: "zahl", befehl: "SetBufferDelta", titel: "f_puffer_ueberhoehung", einheit: "K", info: "puffer", min: 0, max: 10, schritt: 1 },
         ],
       },
       {
         gruppe: "dhw-group",
-        feld: "dhw_setpoint",
+        feld: "TOP9",
         beschriftung: "label_dhw",
-        werte: ["dhw_temp", "dhw_heater"],
+        werte: ["TOP10", "TOP58"],
         aktionen: [
-          { feld: "dhw_force", status: "dhw_force_state", typ: "schalter", schmal: true, an: "f_aufheizen_ende", aus: "f_aufheizen_start" },
-          { feld: "force_sterilization", status: "sterilization_state", typ: "schalter", schmal: true, an: "f_legionellen_ende", aus: "f_legionellen_start" },
-          { feld: "dhw_heater_switch", status: "dhw_heater", typ: "schalter", schmal: true, an: "f_heizstab_aus", aus: "f_heizstab_an" },
-          { feld: "dhw_heat_delta", typ: "zahl", befehl: "SetDHWHeatDelta", titel: "f_laedt_ab", bezug: "dhw_setpoint", vorzeichen: 1, info: "ww", min: -12, max: -2, schritt: 1 },
+          { feld: "SET10", status: "TOP2", typ: "schalter", schmal: true, an: "f_aufheizen_ende", aus: "f_aufheizen_start" },
+          { feld: "SET13", status: "TOP69", typ: "schalter", schmal: true, an: "f_legionellen_ende", aus: "f_legionellen_start" },
+          { feld: "SET44", status: "TOP58", typ: "schalter", schmal: true, an: "f_heizstab_aus", aus: "f_heizstab_an" },
+          { feld: "TOP22", typ: "zahl", befehl: "SetDHWHeatDelta", titel: "f_laedt_ab", bezug: "TOP9", vorzeichen: 1, info: "ww", min: -12, max: -2, schritt: 1 },
         ],
       },
       {
         gruppe: "hk1-group",
-        feld: "hk1_setpoint",
+        feld: "TOP27",
         beschriftung: "label_hk1",
-        werte: ["hk1_water"],
-        anzeige: "hk1_water_target",
+        werte: ["TOP36"],
+        anzeige: "TOP42",
         aktionen: [
-          { feld: "zones_select", typ: "zone", nummer: 1, schmal: true },
-          { feld: "hk1_switch", typ: "schalter", schmal: true, an: "f_kreis_aus", aus: "f_kreis_an" },
+          { feld: "SET17", typ: "zone", nummer: 1, schmal: true },
+          { feld: "EXT200", typ: "schalter", schmal: true, an: "f_kreis_aus", aus: "f_kreis_an" },
           { typ: "kurveknopf", zone: 1, schmal: true, titel: "f_heizkurve_zeigen" },
         ],
       },
       {
         gruppe: "hk2-group",
-        feld: "hk2_setpoint",
+        feld: "TOP34",
         beschriftung: "label_hk2",
-        werte: ["hk2_water"],
-        anzeige: "hk2_water_target",
+        werte: ["TOP37"],
+        anzeige: "TOP43",
         aktionen: [
-          { feld: "zones_select", typ: "zone", nummer: 2, schmal: true },
-          { feld: "hk2_switch", typ: "schalter", schmal: true, an: "f_kreis_aus", aus: "f_kreis_an" },
+          { feld: "SET17", typ: "zone", nummer: 2, schmal: true },
+          { feld: "EXT202", typ: "schalter", schmal: true, an: "f_kreis_aus", aus: "f_kreis_an" },
           { typ: "kurveknopf", zone: 2, schmal: true, titel: "f_heizkurve_zeigen" },
         ],
       },
@@ -148,9 +149,9 @@ export const dialogKarte = {
       ...[3, 4].map((n) => ({
         gruppe: `hk${n}-group`,
         beschriftung: `label_hk${n}`,
-        werte: [`hk${n}_water`, `hk${n}_pump`],
+        werte: [HK[n].wasser, HK[n].pumpe],
         aktionen: [
-          { feld: `hk${n}_switch`, typ: "schalter", schmal: true, an: "f_kreis_aus", aus: "f_kreis_an" },
+          { feld: HK[n].schalter, typ: "schalter", schmal: true, an: "f_kreis_aus", aus: "f_kreis_an" },
         ],
       })),
     ];
@@ -176,34 +177,34 @@ export const dialogKarte = {
     // Assistant. Im Demomodus entfaellt das, dort gibt es keinen Verlauf.
     if (!this._config.demo) {
       const anzeigen = {
-        "outside-v": "outside_temp",
-        "comp-v": "compressor",
-        "fan1-rpm": "fan1_rpm",
-        "fan2-rpm": "fan2_rpm",
-        "power-now-v": "power_now",
-        "energy-today-v": "energy_today",
-        "unit-flow-v": "flow_temp",
-        "unit-ret-v": "return_temp",
-        "pump-v": "pump_speed",
-        "flow-v": "pump_flow",
-        "press-v": "water_pressure",
-        "valve-v": "three_way_valve",
-        "buf-v": "buffer_temp",
-        "dhw-v": "dhw_temp",
-        "zirk-v": "circulation_pump",
-        "zirk-name": "circulation_pump",
-        "hk1-water-v": "hk1_water",
-        "hk1-pump-v": "hk1_pump",
-        "hk2-water-v": "hk2_water",
-        "hk2-pump-v": "hk2_pump",
-        "hk3-water-v": "hk3_water",
-        "hk3-pump-v": "hk3_pump",
-        "hk4-water-v": "hk4_water",
-        "hk4-pump-v": "hk4_pump",
-        "kamin-v": "kamin_temp",
-        "kamin-pump-v": "kamin_pump",
-        "solar-v": "solar_temp",
-        "solar-pump-v": "solar_pump",
+        "outside-v": "TOP14",
+        "comp-v": "TOP8",
+        "fan1-rpm": "TOP62",
+        "fan2-rpm": "TOP63",
+        "power-now-v": "EXT1",
+        "energy-today-v": "EXT2",
+        "unit-flow-v": "TOP6",
+        "unit-ret-v": "TOP5",
+        "pump-v": "TOP65",
+        "flow-v": "TOP1",
+        "press-v": "TOP115",
+        "valve-v": "TOP20",
+        "buf-v": "TOP46",
+        "dhw-v": "TOP10",
+        "zirk-v": "EXT400",
+        "zirk-name": "EXT400",
+        "hk1-water-v": "TOP36",
+        "hk1-pump-v": "TOP124",
+        "hk2-water-v": "TOP37",
+        "hk2-pump-v": "TOP123",
+        "hk3-water-v": "EXT204",
+        "hk3-pump-v": "EXT205",
+        "hk4-water-v": "EXT207",
+        "hk4-pump-v": "EXT208",
+        "kamin-v": "EXT300",
+        "kamin-pump-v": "EXT301",
+        "solar-v": "TOP47",
+        "solar-pump-v": "OPT5",
       };
       Object.entries(anzeigen).forEach(([id, feld]) => {
         const el = sr.getElementById(id);
@@ -229,7 +230,7 @@ export const dialogKarte = {
 
     // Zirkulations-Pumpe: Direkter Schalter ohne Dialog
     const zirkEl = sr.getElementById("zirkulation-group");
-    if (zirkEl && this._e("circ_switch")) {
+    if (zirkEl && this._e("EXT401")) {
       zirkEl.classList.add("klickbar");
       zirkEl.addEventListener("click", (ev) => {
         ev.stopPropagation();
@@ -239,7 +240,7 @@ export const dialogKarte = {
   },
 
   _schaltCircSwitch() {
-    const switchId = this._e("circ_switch");
+    const switchId = this._e("EXT401");
     if (!switchId) return;
 
     const state = this._hass.states[switchId];
@@ -393,9 +394,9 @@ export const dialogKarte = {
           ? `<div class="lhc-trenner" id="dlg-a${i}"></div>`
           : a.typ === "wwplan"
           ? `<div class="lhc-plan" id="dlg-a${i}" hidden>
-               <div class="lhc-num-kompakt"><span>${escapeHtml(this._t("fld_dhw_planned"))}</span><output data-plan="wert"></output></div>
+               <div class="lhc-num-kompakt"><span>${escapeHtml(this._t("fld_EXT403"))}</span><output data-plan="wert"></output></div>
                <div class="lhc-plan-info" data-plan="info" hidden></div>
-               <div class="lhc-num-kompakt" data-plan="zeile-letzte"><span>${escapeHtml(this._t("fld_dhw_last_charge"))}</span><output data-plan="letzte"></output></div>
+               <div class="lhc-num-kompakt" data-plan="zeile-letzte"><span>${escapeHtml(this._t("fld_EXT404"))}</span><output data-plan="letzte"></output></div>
              </div>`
           : a.typ === "zahl"
           ? `<div class="lhc-num-kompakt">
@@ -442,7 +443,7 @@ export const dialogKarte = {
           const id = this._e(feld);
           if (!id) return;
           const kannEntitaet = stellbar(id);
-          if (!kannEntitaet && !a.befehl) return;
+          if (!kannEntitaet && !(a.befehl && this._heishaBefehle())) return;
           // Ausgangspunkt ist der zuletzt gesendete Wert, sonst zaehlt
           // mehrfaches Druecken nicht weiter, solange die Anlage den
           // alten Wert meldet.
@@ -502,10 +503,10 @@ export const dialogKarte = {
    * TOP94). Daraus bildet Panasonic das Pufferziel.
    */
   _kreisSoll(q) {
-    const zonen = numState(q, this._e("zones_state"));
+    const zonen = numState(q, this._e("TOP94"));
     const werte = [];
-    if (zonen === null || zonen === 0 || zonen === 2) werte.push(numState(q, this._e("hk1_water_target")));
-    if (zonen === null || zonen === 1 || zonen === 2) werte.push(numState(q, this._e("hk2_water_target")));
+    if (zonen === null || zonen === 0 || zonen === 2) werte.push(numState(q, this._e("TOP42")));
+    if (zonen === null || zonen === 1 || zonen === 2) werte.push(numState(q, this._e("TOP43")));
     const da = werte.filter((v) => v !== null);
     return da.length ? Math.max(...da) : null;
   },
@@ -534,7 +535,7 @@ export const dialogKarte = {
         teil("info").textContent = p.info.join(" · ");
         teil("info").hidden = !p.info.length;
         teil("letzte").textContent = p.letzte || "--";
-        teil("zeile-letzte").hidden = !this._e("dhw_last_charge");
+        teil("zeile-letzte").hidden = !this._e("EXT404");
         return;
       }
       if (a.typ === "zahl") {
@@ -542,7 +543,7 @@ export const dialogKarte = {
         // bleiben sichtbar, aber ausgegraut, und die Beschriftung sagt
         // warum. Sonst wirkt es wie ein Fehler der Karte.
         const feldName = a.feld;
-        const kann = stellbar(this._e(feldName)) || Boolean(a.befehl);
+        const kann = stellbar(this._e(feldName)) || Boolean(a.befehl && this._heishaBefehle());
         [`dlg-a${i}-minus`, `dlg-a${i}-plus`].forEach((kid) => {
           const k = this.shadowRoot.getElementById(kid);
           if (k) k.disabled = !kann;

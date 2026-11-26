@@ -1,0 +1,45 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "remeha",
+  "name": "Remeha",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "remeha_modbus",
+      "name": "Remeha Modbus",
+      "geraete": [
+        {
+          "hersteller": ["Remeha"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "houthacker",
+        "adresse": "https://github.com/houthacker/remeha-modbus",
+        "version": "2.7.1",
+        "aktualisiert": "2026-11-21",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "remeha_modbus",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["flow_rate"],
+        "TOP5": ["heat_pump_return_temperature", "return_temperature"],
+        "TOP6": ["heat_pump_flow_temperature", "flow_temperature"],
+        "TOP10": ["dhw_tank_temperature_top"],
+        "TOP11": ["generator_hours_total"],
+        "TOP12": ["generator_starts_total"],
+        "TOP14": ["outside_temperature"],
+        "TOP44": ["current_error"],
+        "TOP65": ["pump_speed"],
+        "TOP115": ["actual_water_pressure"]
+      }
+    }
+  ]
+}

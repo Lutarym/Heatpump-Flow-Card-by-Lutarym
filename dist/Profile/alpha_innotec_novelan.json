@@ -1,0 +1,136 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "alpha_innotec_novelan",
+  "name": "Alpha Innotec, Novelan (Luxtronik)",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "luxtronik2",
+      "name": "Luxtronik",
+      "geraete": [
+        {
+          "hersteller": ["Alpha Innotec", "Novelan"],
+          "reihe": "Luxtronik",
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "BenPru",
+        "adresse": "https://github.com/BenPru/luxtronik",
+        "version": "2026.11.22",
+        "aktualisiert": "2026-11-22",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "luxtronik2",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["heat_amount_flow_rate"],
+        "TOP5": ["flow_out_temperature"],
+        "TOP6": ["flow_in_temperature"],
+        "TOP8": ["binary_sensor:compressor"],
+        "TOP9": ["number:dhw_target_temperature"],
+        "TOP10": ["dhw_temperature"],
+        "TOP11": ["operation_hours"],
+        "TOP12": ["compressor1_impulses"],
+        "TOP14": ["outdoor_temperature"],
+        "TOP20": ["dhw_charging_pump"],
+        "TOP26": ["defrost_valve"],
+        "TOP36": ["flow_in_circuit1_temperature"],
+        "TOP37": ["flow_in_circuit2_temperature"],
+        "TOP44": ["error_reason"],
+        "TOP47": ["solar_collector_temperature"],
+        "TOP124": ["circulation_pump_heating"],
+        "OPT5": ["solar_pump"],
+        "EXT1": ["current_power_consumption"],
+        "EXT204": ["flow_in_circuit3_temperature"],
+        "EXT400": ["dhw_circulation_pump"],
+        "EXT600": ["cop_heating"],
+        "EXT601": ["cop_dhw"]
+      }
+    },
+    {
+      "id": "luxtronik",
+      "name": "Luxtronik",
+      "geraete": [
+        {
+          "hersteller": ["Alpha Innotec", "Novelan"],
+          "reihe": "Luxtronik",
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "Bouni",
+        "adresse": "https://github.com/Bouni/luxtronik",
+        "version": "2022.12.01",
+        "aktualisiert": "2023-09-11",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "luxtronik",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["id_web_wmz_durchfluss"],
+        "TOP5": ["id_web_temperatur_trl"],
+        "TOP6": ["id_web_temperatur_tvl"],
+        "TOP8": ["id_web_freq_vd", "id_web_vd1out"],
+        "TOP10": ["id_web_temperatur_tbw"],
+        "TOP11": ["id_web_zaehler_betrzeitvd1"],
+        "TOP12": ["id_web_zaehler_betrzeitimpvd1"],
+        "TOP14": ["id_web_temperatur_ta"],
+        "TOP20": ["id_web_bupout"],
+        "TOP36": ["id_web_temperatur_tfb1"],
+        "TOP47": ["id_web_temperatur_tsk"],
+        "TOP124": ["id_web_hupout"],
+        "EXT400": ["id_web_zipout"]
+      }
+    },
+    {
+      "id": "luxtronik2_hass",
+      "name": "Luxtronik 2",
+      "geraete": [
+        {
+          "hersteller": ["Alpha Innotec", "Novelan"],
+          "reihe": "Luxtronik",
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "notDIRK",
+        "adresse": "https://github.com/notDIRK/luxtronik2-hass",
+        "version": "1.2.7",
+        "aktualisiert": "2026-10-08",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "luxtronik2_hass",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["luxtronik_return_temperature"],
+        "TOP6": ["luxtronik_flow_temperature"],
+        "TOP8": ["luxtronik_compressor"],
+        "TOP9": ["number:luxtronik_hot_water_setpoint"],
+        "TOP10": ["luxtronik_hot_water_temperature"],
+        "TOP11": ["luxtronik_compressor_operating_hours", "luxtronik_heat_pump_operating_hours"],
+        "TOP14": ["luxtronik_outside_temperature"],
+        "TOP20": ["luxtronik_hot_water_pump"],
+        "TOP124": ["luxtronik_circulation_pump"],
+        "EXT1": ["luxtronik_heat_pump_power"],
+        "EXT400": ["luxtronik_circulation_pump_zip"]
+      }
+    }
+  ]
+}

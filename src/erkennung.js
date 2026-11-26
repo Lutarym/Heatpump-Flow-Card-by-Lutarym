@@ -1,224 +1,130 @@
 /**
- * Erkennung der Integration HeishaMon by Lutarym und Zuordnung der Entitaeten.
+ * Erkennung: welche Entitaet gehoert zu welchem Namen der Namensliste.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
+ *
+ * Gesucht wird nur ueber Profile (profile.js, Ordner Profile). Ohne
+ * Profil nimmt die Karte keinen Hersteller an.
  */
+import { ARTEN } from "./namen.js";
 import { stellbar } from "./hilfsfunktionen.js";
-import { AUTO_PROFIL, eigenesProfil, eingebautesProfil, erkenneMitProfil } from "./profile.js";
-import { HERSTELLER_PROFILE } from "./hersteller.js";
+import { AUTO_PROFIL, KEIN_PROFIL, alleVarianten, feldArten, profilKennung, regelnVon, varianteZu } from "./profile.js";
 
-/* ------------------------------------------------------------------ *
- *  Erkennung der Integration "Heishamon by Lutarym"
- * ------------------------------------------------------------------ */
-export const INTEGRATION_DOMAIN = "heishamon_lutarym";
+export { feldArten };
 
-export const TOPIC_TO_FIELD = {
-  top0: "heatpump_state",
-  top82: "curve2_t_high",
-  top83: "curve2_t_low",
-  top84: "curve2_o_high",
-  top85: "curve2_o_low",
-  top29: "curve_t_high",
-  top30: "curve_t_low",
-  top31: "curve_o_high",
-  top32: "curve_o_low",
-  top22: "dhw_heat_delta",
-  top2: "dhw_force_state",
-  top69: "sterilization_state",
-  top14: "outside_temp",
-  top4: "operating_mode",
-  top8: "compressor",
-  top1: "pump_flow",
-  top44: "error",
-  top115: "water_pressure",
-  top113: "buffer_delta",
-  top62: "fan1_rpm",
-  top63: "fan2_rpm",
-  top26: "defrost",
-  top6: "flow_temp",
-  top5: "return_temp",
-  top65: "pump_speed",
-  top20: "three_way_valve",
-  top59: "room_heater",
-  top60: "heater_internal",
-  top77: "heating_off_temp",
-  top78: "heater_on_temp",
-  top23: "heat_delta",
-  top70: "steril_temp",
-  top71: "steril_time",
-  top95: "pump_max_duty",
-  top11: "operating_hours",
-  top12: "compressor_starts",
-  top90: "room_heater_hours",
-  top91: "dhw_heater_hours",
-  top61: "heater_external",
-  top46: "buffer_temp",
-  top94: "zones_state",
-  top99: "buffer_installed",
-  top100: "dhw_installed",
-  top7: "buffer_target",
-  top36: "hk1_water",
-  top42: "hk1_water_target",
-  top124: "hk1_pump",
-  top27: "hk1_setpoint",
-  top37: "hk2_water",
-  top43: "hk2_water_target",
-  top123: "hk2_pump",
-  top34: "hk2_setpoint",
-  top10: "dhw_temp",
-  top9: "dhw_setpoint",
-  top58: "dhw_heater",
-  top47: "solar_temp",
-  opt5: "solar_pump",
-};
+/** Wie viele Namen mindestens passen muessen, damit eine Variante als erkannt gilt. */
+const MIN_TREFFER = 2;
 
-export const COMMAND_TO_FIELD = {
-  setheatpump: "power_state",
-  setoperationmode: "mode_select",
-  setforcedhw: "dhw_force",
-  setforcesterilization: "force_sterilization",
-  setforcedefrost: "force_defrost",
-  setdhwheaterstate: "dhw_heater_switch",
-  setroomheaterstate: "room_heater_switch",
-  setpowerfulmode: "powerful_mode",
-  setquietmode: "quiet_mode",
-  setzones: "zones_select",
-  setbuffer: "buffer_switch",
-  setheatingcontrol: "heating_control",
-  setpumpflowratemode: "pump_flow_mode",
-  setquietmodepriority: "quiet_priority",
-  setholidaymode: "holiday_mode",
-  setmainschedule: "main_schedule",
-  setsmartdhw: "smart_dhw",
-};
+function leer() {
+  return { found: false, source: "keine", entities: {}, count: 0, devices: 0 };
+}
 
 /**
- * Leistungszahlen aus HeishaMon by Lutarym. Die Integration liefert je
- * Betriebsart einen Wert; ob der Strom dafuer von der Waermepumpe oder von
- * einem externen Strommesser kommt, waehlt sie ueber "COP Quelle". Ein
- * externer Messer kann weitere Verbraucher wie Pumpen mit erfassen.
+ * Erkennung nach einer Variante. Je Name eine Liste von Suchregeln:
+ *  - mit Punkt ("sensor.vorlauf") genau diese Entitaet,
+ *  - mit Stern ("sensor.*_vorlauf") ein Muster ueber die Entity ID,
+ *  - "domain:schluessel" wie ein Schluessel, nur in dieser Domain,
+ *  - sonst ein Schluessel: translation_key der Integration oder das Ende
+ *    der Entity ID nach einem Unterstrich ("top4" passt auf
+ *    "sensor.heishamon_top4").
+ * Stellbar gewinnt vor nur lesbar, dann die fruehere Regel, dann der
+ * genauere Treffer. Mit geraet zaehlen im Register nur Entitaeten dieses
+ * Geraets (die Karte nimmt das Geraet ihrer eingetragenen Entitaeten).
  */
-export const COP_TO_FIELD = {
-  cop_heating: "cop_heating",
-  cop_dhw: "cop_dhw",
-};
-
-const COP_MUSTER = /_(cop_(?:heating|dhw))$/;
-
-/**
- * Warmwasser zur waermsten Tageszeit, HeishaMon by Lutarym ab 1.4.0:
- * Schalter, geplanter Start und Start der letzten erzwungenen Ladung.
- */
-export const PLAN_TO_FIELD = {
-  dhw_warmest_time: "dhw_warmest",
-  dhw_planned: "dhw_planned",
-  dhw_last_charge: "dhw_last_charge",
-};
-
-const PLAN_MUSTER = /_(dhw_(?:warmest_time|planned|last_charge))$/;
-
-export const FIELD_DOMAIN = {
-  hk1_setpoint: ["number", "input_number"],
-  hk2_setpoint: ["number", "input_number"],
-  dhw_setpoint: ["number", "input_number"],
-  power_state: ["switch", "input_boolean", "binary_sensor", "sensor"],
-  mode_select: ["select", "input_select"],
-  dhw_force: ["switch", "input_boolean"],
-  hk1_switch: ["switch", "input_boolean"],
-  hk2_switch: ["switch", "input_boolean"],
-  hk3_switch: ["switch", "input_boolean"],
-  hk4_switch: ["switch", "input_boolean"],
-  force_sterilization: ["switch", "input_boolean"],
-  force_defrost: ["switch", "input_boolean"],
-  dhw_heater_switch: ["switch", "input_boolean"],
-  room_heater_switch: ["switch", "input_boolean"],
-  powerful_mode: ["select", "input_select"],
-  quiet_mode: ["select", "input_select"],
-  zones_select: ["select", "input_select"],
-  buffer_switch: ["switch", "input_boolean"],
-  heating_control: ["select", "input_select"],
-  pump_flow_mode: ["select", "input_select"],
-  quiet_priority: ["select", "input_select"],
-  holiday_mode: ["switch", "input_boolean"],
-  main_schedule: ["switch", "input_boolean"],
-  smart_dhw: ["select", "input_select"],
-  circulation_pump: ["switch", "input_boolean", "binary_sensor", "sensor"],
-  circ_switch: ["switch", "input_boolean"],
-  sg_k1: ["switch", "input_boolean", "binary_sensor", "sensor"],
-  sg_k2: ["switch", "input_boolean", "binary_sensor", "sensor"],
-  dhw_warmest: ["switch", "input_boolean"],
-  dhw_planned: ["sensor"],
-  dhw_last_charge: ["sensor"],
-  grid_power: ["sensor", "input_number"],
-  hk1_room_temp: ["sensor", "input_number"],
-  hk2_room_temp: ["sensor", "input_number"],
-  weather: ["weather"],
-};
-
-export function detectIntegration(hass, profil) {
-  // Eigenes oder angepasstes Geraeteprofil: allgemeine Erkennung.
-  if (profil && typeof profil === "object") return erkenneMitProfil(hass, profil);
-  const result = { found: false, source: "keine", entities: {}, count: 0, devices: 0 };
-  if (!hass) return result;
-
-  const assign = (key, entityId) => {
-    const field = TOPIC_TO_FIELD[key] || COMMAND_TO_FIELD[key] || COP_TO_FIELD[key] || PLAN_TO_FIELD[key];
-    if (!field || !entityId) return;
-    const allowed = FIELD_DOMAIN[field];
-    if (allowed && !allowed.includes(entityId.split(".")[0])) return;
-    // Liefert die Integration zum selben Wert einen Sensor und eine
-    // stellbare Entitaet, gewinnt die stellbare. Sonst waere der Wert
-    // nur lesbar, obwohl er sich einstellen liesse.
-    const bisher = result.entities[field];
-    if (bisher && stellbar(bisher) && !stellbar(entityId)) return;
-    result.entities[field] = entityId;
+export function erkenneMitProfil(hass, v, geraet) {
+  const result = leer();
+  if (!hass || !v || !v.werte) return result;
+  const regeln = [];
+  Object.keys(v.werte).forEach((name) => {
+    regelnVon(v.werte[name]).forEach((w, i) => {
+      if (typeof w !== "string" || !w.trim()) return;
+      let wort = w.trim();
+      let domain = "";
+      const m = wort.match(/^([a-z_]+):(.+)$/);
+      if (m) {
+        domain = m[1];
+        wort = m[2];
+      }
+      const r = { name, w: wort, klein: wort.toLowerCase(), domain, rang: i + 1 };
+      if (r.w.includes("*")) {
+        r.re = new RegExp(
+          "^" + r.w.split("*").map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$",
+          "i"
+        );
+      }
+      regeln.push(r);
+    });
+  });
+  // 0 bei keinem Treffer, 2 bei genauem Treffer (Schluessel der
+  // Integration, ganze Entity ID), 1 ueber das Ende der Entity ID oder ein Muster.
+  const passt = (r, id, eintrag) => {
+    if (r.domain && id.split(".")[0] !== r.domain) return 0;
+    if (r.re) return r.re.test(id) ? 1 : 0;
+    if (r.w.includes(".")) return id === r.w ? 2 : 0;
+    const klein = id.toLowerCase();
+    if (eintrag && eintrag.translation_key === r.w) return 2;
+    if (klein.split(".")[1] === r.klein) return 2;
+    return klein.endsWith(`_${r.klein}`) ? 1 : 0;
+  };
+  const guete = {};
+  const assign = (name, entityId, rang, art) => {
+    const erlaubt = ARTEN[name];
+    if (erlaubt && !erlaubt.includes(entityId.split(".")[0])) return;
+    const bisher = result.entities[name];
+    if (bisher) {
+      const sb = stellbar(bisher);
+      const sn = stellbar(entityId);
+      if (sb && !sn) return;
+      if (sb === sn) {
+        const g = guete[name];
+        if (rang > g.rang) return;
+        if (rang === g.rang && art <= g.art) return;
+      }
+    }
+    result.entities[name] = entityId;
+    guete[name] = { rang, art };
+  };
+  const pruefe = (id, eintrag) => {
+    let treffer = false;
+    regeln.forEach((r) => {
+      const art = passt(r, id, eintrag);
+      if (art) {
+        assign(r.name, id, r.rang, art);
+        treffer = true;
+      }
+    });
+    return treffer;
   };
 
-  // Das Profil entscheidet, welcher Weg zuerst versucht wird. Findet er
-  // nichts, wird der andere trotzdem probiert.
-  const nurNamen = profil === "heishamon";
-  const registry = nurNamen ? null : hass.entities;
-  if (registry && typeof registry === "object") {
-    const deviceIds = new Set();
+  const suche = v.suche || {};
+  const reg = hass.entities;
+  if (suche.integration && reg && typeof reg === "object") {
+    const geraete = new Set();
     let hits = 0;
-    Object.keys(registry).forEach((entityId) => {
-      const entry = registry[entityId];
-      if (!entry || entry.platform !== INTEGRATION_DOMAIN) return;
+    Object.keys(reg).forEach((id) => {
+      const e = reg[id];
+      if (!e || e.platform !== suche.integration) return;
+      if (geraet && e.device_id !== geraet) return;
       hits++;
-      if (entry.device_id) deviceIds.add(entry.device_id);
-      const key =
-        (entityId.match(COP_MUSTER) || [])[1] ||
-        entry.translation_key ||
-        (entityId.match(PLAN_MUSTER) || [])[1] ||
-        (entityId.match(/_(top\d+)$/) || [])[1] ||
-        (entityId.match(/heishamon_(set\w+)$/) || [])[1] ||
-        null;
-      if (key) assign(key, entityId);
+      if (e.device_id) geraete.add(e.device_id);
+      pruefe(id, e);
     });
     if (hits > 0) {
       result.found = true;
       result.source = "register";
       result.count = hits;
-      result.devices = deviceIds.size;
+      result.devices = geraete.size;
       return result;
     }
   }
-
+  const teil = String(suche.namensteil || "").toLowerCase();
+  // Mit Integration, aber ohne Namensteil, wird nur im Register gesucht.
+  // Sonst passten allgemeine Schluessel wie "outdoor_temperature" auf
+  // fremde Entitaeten.
+  if (suche.integration && !teil) return result;
   let hits = 0;
-  Object.keys(hass.states || {}).forEach((entityId) => {
-    if (/^sensor\.heishamon_/.test(entityId)) {
-      const c = entityId.match(COP_MUSTER);
-      if (c) assign(c[1], entityId);
-    }
-    if (/^(?:sensor|switch)\.heishamon_/.test(entityId)) {
-      const w = entityId.match(PLAN_MUSTER);
-      if (w) assign(w[1], entityId);
-    }
-    const m = entityId.match(
-      /^(?:sensor|number|switch|select)\.heishamon_((?:top\d+)|(?:set\w+))$/
-    );
-    if (!m) return;
-    hits++;
-    assign(m[1], entityId);
+  Object.keys(hass.states || {}).forEach((id) => {
+    if (teil && !id.toLowerCase().includes(teil)) return;
+    if (pruefe(id, reg && reg[id])) hits++;
   });
   if (hits > 0) {
     result.found = true;
@@ -229,80 +135,106 @@ export function detectIntegration(hass, profil) {
   return result;
 }
 
-/**
- * Profil fuer die Erkennung: eigenes Objekt, Objekt eines Herstellers
- * oder Kennung eines HeishaMon-Profils. Bei "auto" entscheidet die
- * Suche ueber alle Profile, bei mehreren Treffern der mit den meisten
- * passenden Feldern, bis im Editor eines gewaehlt ist.
- */
-export function profilFuer(config, hass) {
-  const eigen = eigenesProfil(config);
-  if (eigen) return eigen;
-  const id = (config && config.profil) || AUTO_PROFIL;
-  if (id === AUTO_PROFIL) {
-    const liste = erkenneAlle(hass);
-    return liste.length ? profilFuer({ ...config, profil: liste[0].id }) : "heishamon_lutarym";
-  }
-  if (HERSTELLER_PROFILE.some((p) => p.id === id)) return eingebautesProfil(id);
-  return id;
+/** Erkennung nach einer Variante, ohne Variante leer. */
+export function detectIntegration(hass, v, geraet) {
+  return v ? erkenneMitProfil(hass, v, geraet) : leer();
 }
 
-/** Wie viele Felder mindestens passen muessen, damit ein Profil als erkannt gilt. */
-const MIN_FELDER = 2;
+/**
+ * Geraet der Karte im Register: das haeufigste Geraet der eingetragenen
+ * Entitaeten, die zur Integration der Variante gehoeren, sonst null. Gibt
+ * es mehrere Geraete (etwa zwei Waermepumpen), sucht die Karte die
+ * uebrigen Werte bei diesem.
+ */
+export function geraetDerKarte(hass, v, entities) {
+  const reg = hass && hass.entities && typeof hass.entities === "object" ? hass.entities : null;
+  const integration = v && v.suche && v.suche.integration;
+  if (!reg || !integration) return null;
+  const zaehl = {};
+  Object.values(entities || {}).forEach((id) => {
+    const e = typeof id === "string" ? reg[id] : null;
+    if (e && e.platform === integration && e.device_id) zaehl[e.device_id] = (zaehl[e.device_id] || 0) + 1;
+  });
+  return Object.keys(zaehl).sort((a, b) => zaehl[b] - zaehl[a])[0] || null;
+}
 
 /**
- * Sucht alle eingebauten Profile ab. Liefert die erkannten, sortiert
- * nach der Zahl passender Felder. HeishaMon by Lutarym und HeishaMon
- * ueber MQTT schliessen sich aus, je nachdem, wie gefunden wurde.
+ * Sucht alle geladenen und eigenen Varianten ab. Liefert die erkannten,
+ * sortiert nach der Zahl passender Namen. Sucht eine Variante ueber die
+ * Entity ID (ohne Register), zaehlen dabei keine Entitaeten, die laut
+ * Register zu der Integration einer anderen Variante gehoeren. Sonst
+ * gaelte etwa HeishaMon ueber MQTT neben HeishaMon by Lutarym als
+ * erkannt, nur weil einzelne Entity IDs gleich enden.
  */
-export function erkenneAlle(hass) {
+export function erkenneAlle(hass, config) {
   if (!hass) return [];
+  const varianten = alleVarianten(config);
+  const integrationen = new Set(varianten.map((v) => v.suche && v.suche.integration).filter(Boolean));
+  const reg = hass.entities && typeof hass.entities === "object" ? hass.entities : {};
+  const fremd = (id) => Boolean(reg[id] && integrationen.has(reg[id].platform));
   const treffer = [];
-  const hm = detectIntegration(hass, "heishamon_lutarym");
-  if (hm && hm.found && Object.keys(hm.entities).length >= MIN_FELDER) {
-    const id = hm.source === "register" ? "heishamon_lutarym" : "heishamon";
-    treffer.push({ id, felder: Object.keys(hm.entities).length, count: hm.count });
-  }
-  HERSTELLER_PROFILE.forEach((p) => {
-    const r = erkenneMitProfil(hass, eingebautesProfil(p.id));
-    const n = Object.keys(r.entities).length;
-    if (r.found && n >= MIN_FELDER) treffer.push({ id: p.id, felder: n, count: r.count });
+  varianten.forEach((v) => {
+    const r = erkenneMitProfil(hass, v);
+    const namen = Object.keys(r.entities).filter((n) => r.source !== "namensschema" || !fremd(r.entities[n]));
+    if (r.found && namen.length >= MIN_TREFFER) treffer.push({ id: v.id, felder: namen.length, count: r.count });
   });
   return treffer.sort((a, b) => b.felder - a.felder);
 }
 
 /**
+ * Variante fuer die Erkennung. Bei "auto" die mit den meisten passenden
+ * Namen. Ohne Treffer oder bei "keins" null: dann nimmt die Karte keinen
+ * Hersteller an.
+ */
+export function profilFuer(config, hass) {
+  const id = profilKennung(config);
+  if (id === KEIN_PROFIL) return null;
+  if (id === AUTO_PROFIL) {
+    const liste = erkenneAlle(hass, config);
+    return liste.length ? varianteZu(config, liste[0].id) : null;
+  }
+  return varianteZu(config, id);
+}
+
+/**
  * Die Aquarea kennt nur einen Solareingang (TOP47 Temperatur, OPT5 Pumpe).
  * Ist nur ein Kamin gewaehlt, haengt er an diesem Eingang. Dann gehoeren
- * die erkannten Solar-Entitaeten zum Kamin. Bei Solarthermie allein oder
- * beidem bleiben sie bei der Solarthermie. Selbst eingetragene
- * Kamin-Entitaeten haben Vorrang.
- * Das gilt nur fuer Panasonic. Bei Profilen anderer Hersteller ist ein
- * Solarkollektor kein Kamin.
+ * die erkannten Solar-Entitaeten zum Kamin (EXT300, EXT301). Selbst
+ * eingetragene Kamin-Entitaeten haben Vorrang. Das gilt nur fuer
+ * Varianten mit dem Merkmal heishamon.
  */
-export function quellenZuordnung(entities, extraHeat, profil) {
-  if (extraHeat !== "kamin") return entities;
-  if (profil && typeof profil === "object" && HERSTELLER_PROFILE.some((p) => p.id === profil.id)) {
-    return entities;
-  }
+export function quellenZuordnung(entities, extraHeat, v) {
+  if (extraHeat !== "kamin" || !v || !v.heishamon) return entities;
   const out = { ...entities };
-  if (out.solar_temp && !out.kamin_temp) out.kamin_temp = out.solar_temp;
-  if (out.solar_pump && !out.kamin_pump) out.kamin_pump = out.solar_pump;
-  delete out.solar_temp;
-  delete out.solar_pump;
+  if (out.TOP47 && !out.EXT300) out.EXT300 = out.TOP47;
+  if (out.OPT5 && !out.EXT301) out.EXT301 = out.OPT5;
+  delete out.TOP47;
+  delete out.OPT5;
   return out;
 }
 
-export function defaultEntityMap() {
+/**
+ * Standardnamen einer Variante: genaue Entitaeten und Muster der Form
+ * "*.name" (dann mit der ersten erlaubten Art). Schluessel ohne Entity ID
+ * lassen sich nicht vorschlagen.
+ */
+export function standardNamen(v) {
   const map = {};
-  Object.keys(TOPIC_TO_FIELD).forEach((topic) => {
-    const field = TOPIC_TO_FIELD[topic];
-    const allowed = FIELD_DOMAIN[field];
-    map[field] = `${allowed ? allowed[0] : "sensor"}.heishamon_${topic}`;
-  });
-  Object.keys(COMMAND_TO_FIELD).forEach((cmd) => {
-    const field = COMMAND_TO_FIELD[cmd];
-    map[field] = `${FIELD_DOMAIN[field][0]}.heishamon_${cmd}`;
+  if (!v || !v.werte) return map;
+  Object.keys(v.werte).forEach((name) => {
+    for (const r of regelnVon(v.werte[name])) {
+      const w = String(r || "").trim();
+      if (w.includes(".") && !w.includes("*") && !/^[a-z_]+:/.test(w)) {
+        map[name] = w;
+        break;
+      }
+      const m = /^\*\.([a-z0-9_]+)$/i.exec(w);
+      if (m) {
+        const arten = ARTEN[name];
+        map[name] = `${arten ? arten[0] : "sensor"}.${m[1]}`;
+        break;
+      }
+    }
   });
   return map;
 }

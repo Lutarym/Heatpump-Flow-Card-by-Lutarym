@@ -31,7 +31,7 @@
  *    Anlaufverluste nur bei Geraeten ohne Leistungsregelung einen
  *    erheblichen Einfluss auf die Jahresarbeitszahl.
  */
-import { escapeHtml, fmt, groesster, indexBis, jePixel, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
+import { abtauReihe, escapeHtml, fmt, groesster, indexBis, inLiterJeMinute, jePixel, kleinster, warmwasserZustand, zustandAn, zustandVon } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 import { DATENBLAETTER, TOLERANZ, datenblattSchaetzung } from "./datenblatt.js";
 import { sgReihe, sgVerstaerkt } from "./sgstufen.js";
@@ -118,7 +118,7 @@ export function energie(reihe, von, bis) {
 /** Zahlenreihe [{ t, s, v }] einer Entitaet aus einer Antwort des Verlaufs. */
 export function verlaufsReihe(antwort, id) {
   return ((antwort && id && antwort[id]) || [])
-    .map((p) => ({ t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed), s: p.s !== undefined ? p.s : p.state }))
+    .map((p) => ({ t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed), s: zustandVon(id, p.s !== undefined ? p.s : p.state) }))
     .filter((p) => !Number.isNaN(p.t))
     .map((p) => {
       const v = parseFloat(p.s);
@@ -336,9 +336,9 @@ export const auswertungKarte = {
     }
     // Dazu die Vorlaeufe der Heizkreise (TOP36, TOP37) fuer Anlagen mit
     // Puffer und der Startzaehler (TOP12) zum Abgleich der gezaehlten Laeufe.
-    const felder = ["compressor", "three_way_valve", "cop_heating", "cop_dhw", "outside_temp", "flow_temp",
-      "return_temp", "defrost", "heater_internal", "heater_external", "hk1_water", "hk2_water", "compressor_starts", "pump_flow",
-      "sg_k1", "sg_k2", "dhw_temp", "hk1_room_temp", "hk2_room_temp", "water_pressure"];
+    const felder = ["TOP8", "TOP20", "EXT600", "EXT601", "TOP14", "TOP6",
+      "TOP5", "TOP26", "TOP60", "TOP61", "TOP36", "TOP37", "TOP12", "TOP1",
+      "EXT100", "EXT101", "TOP10", "EXT201", "EXT203", "TOP115"];
     const ids = felder.map((f) => this._e(f));
     if (!ids[0] || !this._hass || typeof this._hass.callWS !== "function") {
       this._auswertung = null;
@@ -366,8 +366,13 @@ export const auswertungKarte = {
         // Inzwischen anderer Zeitraum gewaehlt: Antwort verwerfen.
         if (this._zrSchluessel() !== sp.k) return;
         const reihe = (id) => verlaufsReihe(antwort, id);
-        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtau, stabIntern, stabExtern, kreis1, kreis2, starts, durchfluss, k1, k2,
+        const [vd, ventil, copH, copW, aussen, vorlauf, ruecklauf, abtauRoh, stabIntern, stabExtern, kreis1, kreis2, starts, durchflussRoh, k1, k2,
           wwTemp, raum1, raum2, druck] = ids.map(reihe);
+        // Abtauung als Text wird zu 1 und 0 (eigene Texte setzt das Profil
+        // um), der Durchfluss zu l/min nach der Einheit der Entitaet.
+        const abtau = abtauReihe(abtauRoh);
+        const flussEinheit = this._einheit("TOP1", "", this._hass);
+        const durchfluss = durchflussRoh.map((p) => (Number.isFinite(p.v) ? { ...p, v: inLiterJeMinute(p.v, flussEinheit) } : p));
         const [heizW, heizE, wwW, wwE] = leistung.map((id) => (id ? reihe(id) : null));
         // Beginnt der Verlauf spaeter, beginnt auch die Auswertung dort.
         const erster = vd.length ? vd[0].t : t0;
@@ -974,7 +979,7 @@ export const auswertungKarte = {
     this._auswertungHinweis(d);
     this._diaLeer(false);
     const t = (k) => this._t(k);
-    if (!this._config.demo && !this._e("defrost")) {
+    if (!this._config.demo && !this._e("TOP26")) {
       g.innerHTML = this._auswertungUrteil(GRAU, "info", t("a_ab_t_fehlt"), t("a_ab_d_fehlt"));
       if (liste) liste.textContent = "";
       return;

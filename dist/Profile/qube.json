@@ -1,0 +1,44 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "qube",
+  "name": "Qube",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "qube_heatpump",
+      "name": "Qube Heat Pump",
+      "geraete": [
+        {
+          "hersteller": ["Qube"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "MattieGit",
+        "adresse": "https://github.com/MattieGit/qube_heatpump",
+        "version": "2026.11.6",
+        "aktualisiert": "2026-11-23",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "qube_heatpump",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["flow_rate"],
+        "TOP5": ["temp_return"],
+        "TOP6": ["temp_supply"],
+        "TOP8": ["compressor_speed"],
+        "TOP10": ["temp_dhw"],
+        "TOP14": ["temp_outside"],
+        "TOP20": ["threeway_valve_status", "dout_threewayvlv_val"],
+        "TOP124": ["dout_usrpmp_val"],
+        "EXT1": ["power_electric"]
+      }
+    }
+  ]
+}

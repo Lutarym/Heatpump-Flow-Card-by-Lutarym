@@ -11,6 +11,7 @@
 import { ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, fmt, numState, stellbar } from "../hilfsfunktionen.js";
 import { feldText, tf } from "../texte.js";
+import { KURVE } from "../namen.js";
 
 export const optimierenKarte = {
   /** Fenster mit dem Vorschlag eines Pruefpunkts oeffnen. */
@@ -116,10 +117,10 @@ export const optimierenKarte = {
     // Heizkurve ohne stellbare Entitaeten: ein Dokument mit allen vier
     // Eckwerten je Heizkreis, sonst wuerden die anderen ueberschrieben.
     Object.keys(kurven).forEach((zone) => {
-      const pre = zone === "2" ? "curve2_" : "curve_";
+      const kurve = KURVE[zone === "2" ? 2 : 1];
       const wert = (b) => {
         if (kurven[zone][b] !== undefined) return kurven[zone][b];
-        const id = this._e(`${pre}${b}`);
+        const id = this._e(kurve[b]);
         const ist = numState(q, id);
         const geh = this._gehaltenerWert(id, ist);
         return geh !== null ? geh : ist;

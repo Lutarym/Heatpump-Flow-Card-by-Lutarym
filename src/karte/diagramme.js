@@ -3,7 +3,7 @@
  * Verbrauch, SG Ready und Temperaturen.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { escapeHtml, fmt, groesster, jePixel, kleinster, runderSchritt } from "../hilfsfunktionen.js";
+import { escapeHtml, fmt, groesster, jePixel, kleinster, runderSchritt, zustandVon } from "../hilfsfunktionen.js";
 
 /** Abmessungen der Zeichenflaeche im Fenster. */
 export const DW = 640;
@@ -299,7 +299,7 @@ export const diagrammeKarte = {
     const sp = this._zrSpanne();
     if (this._tempZeit && jetzt - this._tempZeit < 300000 && this._tempVerlauf && this._tempVerlauf.k === sp.k) return;
     this._tempZeit = jetzt;
-    const felder = ["flow_temp", "return_temp", "outside_temp"];
+    const felder = ["TOP6", "TOP5", "TOP14"];
     if (this._config.demo) {
       const reihen = { k: sp.k, t0: sp.t0, t1: sp.t1, statistik: sp.statistik, periode: sp.periode };
       const schritt = sp.statistik ? (sp.periode === "hour" ? 3600000 : 86400000) : 900000;
@@ -341,7 +341,7 @@ export const diagrammeKarte = {
             reihen[f] = ((antwort && id && antwort[id]) || [])
               .map((p) => ({
                 t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-                v: parseFloat(p.s !== undefined ? p.s : p.state),
+                v: parseFloat(zustandVon(id, p.s !== undefined ? p.s : p.state)),
               }))
               .filter((p) => !Number.isNaN(p.v) && !Number.isNaN(p.t));
           });
@@ -389,9 +389,9 @@ export const diagrammeKarte = {
     if (!g || this._diaArt !== "temp") return;
     const reihen = this._tempVerlauf || {};
     const arten = [
-      ["flow_temp", "#FF5F52", this._t("vorlauf")],
-      ["return_temp", "#4D9BFF", this._t("ruecklauf")],
-      ["outside_temp", "#9FB3C8", this._t("aussentemperatur")],
+      ["TOP6", "#FF5F52", this._t("vorlauf")],
+      ["TOP5", "#4D9BFF", this._t("ruecklauf")],
+      ["TOP14", "#9FB3C8", this._t("aussentemperatur")],
     ].filter(([f]) => (reihen[f] || []).length >= 2);
     if (!arten.length) {
       g.innerHTML = "";

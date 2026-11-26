@@ -2,9 +2,9 @@
  * Die Karte: Lebenszyklus, Konfiguration, Aufbau und Animation.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { detectIntegration, profilFuer, quellenZuordnung } from "../erkennung.js";
+import { detectIntegration, geraetDerKarte, profilFuer, quellenZuordnung } from "../erkennung.js";
 import { DEFAULT_CONFIG } from "../felder.js";
-import { animationAn, bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, numState, setzeDezimal } from "../hilfsfunktionen.js";
+import { animationAn, bewegungReduziert, bubbleDauer, clamp, dezimalFuer, escapeHtml, merkeZustaende, numState, setzeDezimal } from "../hilfsfunktionen.js";
 import { aktualisierenKarte } from "./aktualisieren.js";
 import { demoKarte } from "./demo.js";
 import { diagnoseKarte } from "./diagnose.js";
@@ -36,7 +36,8 @@ import { kachelnKarte } from "./kacheln.js";
 import { taktKarte } from "./takt.js";
 import { verlaufKarte } from "./verlauf.js";
 import { HOLD_MS } from "../konstanten.js";
-import { PROFILE, profilFeldnamen } from "../profile.js";
+import { angabenVon, bereitFuer, ladeFuer } from "../profile.js";
+import { migriereEntitaeten } from "../namen.js";
 import { EIGENE_SPRACHEN, SPRACH_STAND, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { gruppenText, t } from "../texte.js";
 
@@ -52,7 +53,6 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._config = null;
     this._hass = null;
     this._auto = null;
-    this._profilId = null;
     this._dragging = null;
 
     // Animation Engine (GData-kompatibel)
@@ -160,9 +160,10 @@ export class LutarymHeatpumpCard extends HTMLElement {
     return document.createElement("heatpump-flow-card-by-lutarym-editor");
   }
 
-  static getStubConfig(hass) {
-    const found = detectIntegration(hass, profilFuer(DEFAULT_CONFIG, hass));
-    return { ...DEFAULT_CONFIG, entities: found.found ? found.entities : {} };
+  static getStubConfig() {
+    // Die Profile kommen erst nach dem Laden. Bei "auto" sucht die Karte
+    // danach selbst, deshalb startet sie ohne eingetragene Entitaeten.
+    return { ...DEFAULT_CONFIG, entities: {} };
   }
 
   setConfig(config) {
@@ -171,7 +172,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._config = {
       ...DEFAULT_CONFIG,
       ...config,
-      entities: { ...(config.entities || {}) },
+      // Fruehere Feldnamen (bis 5.33.8) gelten weiter, die Karte rechnet
+      // sie in die Namen der Namensliste um.
+      entities: migriereEntitaeten(config.entities),
     };
     this._config.fan_count = this._config.fan_count === 1 ? 1 : 2;
     // 1 bis 4 Heizkreise. HK3 und HK4 kommen aus eigenen Entitaeten,
@@ -179,7 +182,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
     this._config.hk_count = Math.min(4, Math.max(1, parseInt(this._config.hk_count, 10) || 2));
     this._built = false;
     this._auto = null;
-    this._profilId = null;
+    this._varianteCache = undefined;
+    this._ladeProfile();
     if (this._config.demo) this._demoAufbauen();
     else this._demo = null;
     this._tagStart = undefined;
@@ -197,7 +201,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
     // automatische Zuordnung neu bestimmt.
     if (hass && alt && hass.entities !== alt.entities) {
       this._auto = null;
-      this._profilId = null;
+      this._varianteCache = undefined;
       this._beobachtet = null;
     }
     // Home Assistant ruft das bei jeder Zustandsaenderung im ganzen System
@@ -235,13 +239,11 @@ export class LutarymHeatpumpCard extends HTMLElement {
     if (!alt.states || !neu.states) return true;
     if (this._beobachtetFuer !== this._config || !this._beobachtet) {
       const ids = new Set();
-      profilFeldnamen().forEach((k) => {
-        const id = this._e(k);
-        if (id) ids.add(id);
+      // Alle eingetragenen und alle ueber das Profil gefundenen Entitaeten.
+      this._e("TOP14");
+      Object.values(this._config.entities || {}).concat(Object.values(this._auto || {})).forEach((id) => {
+        if (typeof id === "string" && id) ids.add(id);
       });
-      // Netzstrom heute aus der Integration steht in der Grafik (netzstrom.js).
-      const netz = typeof this._intId === "function" ? this._intId("pv_share_today") : null;
-      if (netz) ids.add(netz);
       this._beobachtet = ids;
       this._beobachtetFuer = this._config;
     }
@@ -261,46 +263,110 @@ export class LutarymHeatpumpCard extends HTMLElement {
   }
 
   _e(key) {
-    // Im Demomodus zeigen alle Felder auf die Nachbildung.
+    // Im Demomodus zeigen alle Namen auf die Nachbildung.
     if (this._config && this._config.demo) return `demo.${key}`;
-    const eintraege = this._config.entities || {};
-    // Frueherer Feldname bleibt gueltig, damit bestehende Karten weiterlaufen.
-    const alias = { power_state: "power_switch", buffer_temp: "buffer_top" };
-    const configured = eintraege[key] || eintraege[alias[key]];
+    const configured = (this._config.entities || {})[key];
     if (configured) return configured;
-    // Ohne Datenquelle wird nichts gemerkt, sonst bliebe die Zuordnung leer.
-    if (!this._quelle) return "";
-    if (!this._auto) {
-      const profil = profilFuer(this._config, this._quelle);
-      this._auto = quellenZuordnung(
-        detectIntegration(this._quelle, profil).entities,
-        this._config.extra_heat,
-        profil
-      );
-    }
-    return this._auto[key] || "";
+    return this._zuordnung()[key] || "";
   }
 
   /**
-   * Kennung des gerade gueltigen Profils. Bei "auto" wird einmal gesucht
-   * und gemerkt, bis sich Konfiguration oder Register aendern.
+   * Was das Profil findet: Name zu Entitaet. Ohne Datenquelle oder
+   * solange die Profile laden, wird nichts gemerkt. Eigene Texte der
+   * gefundenen Entitaeten (zustaende) meldet die Karte den Helfern.
    */
+  _zuordnung() {
+    if (this._auto) return this._auto;
+    if (!this._config || this._config.demo || !this._quelle || !bereitFuer(this._config)) return {};
+    const v = this._variante();
+    const geraet = v ? geraetDerKarte(this._quelle, v, this._config.entities) : null;
+    this._auto = v ? quellenZuordnung(detectIntegration(this._quelle, v, geraet).entities, this._config.extra_heat, v) : {};
+    if (v) {
+      Object.entries(this._auto).forEach(([name, id]) => {
+        const angaben = angabenVon(v, name);
+        if (angaben && angaben.zustaende) merkeZustaende(id, angaben.zustaende);
+      });
+    }
+    return this._auto;
+  }
+
+  /**
+   * Einheit eines Wertes. Meldet die Entitaet selbst eine, gilt diese.
+   * Sonst die aus dem Profil, nur fuer die Entitaet, die das Profil
+   * selbst findet, und nur, wenn es genau eine Einheit nennt (eigene
+   * Festlegung). Sonst ersatz.
+   */
+  _einheit(name, ersatz = "", quelle = this._quelle, entityId = this._e(name)) {
+    const st = quelle && quelle.states && entityId ? quelle.states[entityId] : null;
+    const eigene = st && st.attributes ? st.attributes.unit_of_measurement : undefined;
+    if (eigene !== undefined && eigene !== null && String(eigene).trim() !== "") return eigene;
+    const v = this._variante();
+    const angaben = v && entityId && this._zuordnung()[name] === entityId ? angabenVon(v, name) : null;
+    if (angaben && angaben.einheit.length === 1) return angaben.einheit[0];
+    return eigene === undefined ? ersatz : eigene;
+  }
+
+  /**
+   * Gerade gueltige Variante eines Profils, sonst null. Bei "auto" wird
+   * einmal gesucht und gemerkt, bis sich Konfiguration, Register oder die
+   * geladenen Profile aendern.
+   */
+  _variante() {
+    if (!this._config || this._config.demo) return null;
+    if (this._varianteCache !== undefined) return this._varianteCache;
+    if (!this._quelle || !bereitFuer(this._config)) return null;
+    this._varianteCache = profilFuer(this._config, this._quelle);
+    return this._varianteCache;
+  }
+
+  /** Kennung der gerade gueltigen Variante, sonst "". */
   _aktivesProfil() {
-    if (this._profilId) return this._profilId;
-    if (!this._hass) return "";
-    const p = profilFuer(this._config, this._hass);
-    this._profilId = typeof p === "object" && p ? p.id : String(p || "");
-    return this._profilId;
+    const v = this._variante();
+    return v ? v.id : "";
+  }
+
+  /**
+   * Laedt die Profile, die die Konfiguration braucht (profile.js). Danach
+   * wird die Zuordnung neu bestimmt und die Karte neu gezeichnet.
+   */
+  _ladeProfile() {
+    if (!this._config || this._config.demo || bereitFuer(this._config)) return;
+    const fuer = this._config;
+    if (this._profileFuer === fuer) return;
+    this._profileFuer = fuer;
+    ladeFuer(fuer)
+      .catch(() => null)
+      .then(() => {
+        if (this._config !== fuer) return;
+        this._auto = null;
+        this._varianteCache = undefined;
+        this._beobachtet = null;
+        // Neu aufbauen: Welche Baugruppen anklickbar sind und welche Werte
+        // die Grafik zeigt, steht erst mit dem Profil fest.
+        this._built = false;
+        if (this._quelle) this._render();
+      });
   }
 
   /**
    * Die Hilfe beschreibt die Werte und Befehle von HeishaMon. Sie passt
-   * nur zu Profilen, die auf HeishaMon beruhen, und zum Demomodus.
+   * nur zu Varianten mit dem Merkmal heishamon und zum Demomodus.
    */
   _hilfePasst() {
     if (this._config.demo) return true;
-    const pr = PROFILE.find((x) => x.id === this._aktivesProfil());
-    return Boolean(pr && pr.hilfe);
+    const v = this._variante();
+    return Boolean(v && v.heishamon);
+  }
+
+  /**
+   * Befehle an HeishaMon ueber MQTT, der Rueckfall fuer nur lesbare Werte,
+   * nur bei Varianten mit dem Merkmal heishamon. Ohne Profil nimmt die
+   * Karte keinen HeishaMon an.
+   */
+  _heishaBefehle() {
+    if (this._config.demo) return true;
+    const v = this._variante();
+    return Boolean(v && v.heishamon);
   }
 
   /**
@@ -331,9 +397,9 @@ export class LutarymHeatpumpCard extends HTMLElement {
    * ein solcher Versuch wird deshalb nicht ausgefuehrt.
    */
   _zoneSchalten(nummer) {
-    const id = this._e("zones_select");
+    const id = this._e("SET17");
     if (!id) return;
-    const jetzt = numState(this._quelle, this._e("zones_state"));
+    const jetzt = numState(this._quelle, this._e("TOP94"));
     const zone1 = jetzt === null ? true : jetzt === 0 || jetzt === 2;
     const zone2 = jetzt === null ? true : jetzt === 1 || jetzt === 2;
     const neu1 = nummer === 1 ? !zone1 : zone1;
@@ -348,8 +414,8 @@ export class LutarymHeatpumpCard extends HTMLElement {
 
   /** Ist der genannte Heizkreis aktiv? Rueckgabe null bei Unkenntnis. */
   _zoneAktiv(nummer) {
-    if (!this._e("zones_state")) return null;
-    const jetzt = numState(this._quelle, this._e("zones_state"));
+    if (!this._e("TOP94")) return null;
+    const jetzt = numState(this._quelle, this._e("TOP94"));
     if (jetzt === null) return null;
     return nummer === 1 ? jetzt === 0 || jetzt === 2 : jetzt === 1 || jetzt === 2;
   }
@@ -396,7 +462,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
   _hatPuffer() {
     const e = this._config && this._config.buffer_present;
     if (e === true || e === false) return e;
-    const id = this._e("buffer_installed");
+    const id = this._e("TOP99");
     const roh = id && this._hass && this._hass.states && this._hass.states[id];
     if (!roh) return true;
     const s = String(roh.state).toLowerCase();
@@ -412,7 +478,7 @@ export class LutarymHeatpumpCard extends HTMLElement {
   _zeigtZirkulation(hass) {
     const e = this._config && this._config.circulation_present;
     if (e === true || e === false) return e;
-    const id = this._e("circulation_pump") || this._e("circ_switch");
+    const id = this._e("EXT400") || this._e("EXT401");
     return Boolean(id) && Boolean(hass && hass.states && hass.states[id]);
   }
 

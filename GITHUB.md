@@ -63,6 +63,8 @@ Then on GitHub under **Releases**, **Draft a new release**, choose the tag `v3.0
 First public release. See CHANGELOG.md for all changes.
 ```
 
+Do not attach any files of your own to the release. Otherwise HACS only downloads those files and not the whole `dist` folder with the subfolder `Profile` (checked in the HACS source code).
+
 ## 6. Add to HACS
 
 1. Open HACS, menu with the three dots, Custom repositories
@@ -93,7 +95,10 @@ Optional, so that others find the card without adding a custom repository. HACS 
 Heatpump-Flow-Card-by-Lutarym/
 ├── dist/
 │   ├── heatpump-flow-card-by-lutarym.js
-│   └── heatpump-flow-card-by-lutarym-hilfe.js
+│   ├── heatpump-flow-card-by-lutarym-hilfe.js
+│   └── Profile/
+│       ├── liste.json
+│       └── <hersteller>.json (24 files)
 ├── docs/
 │   └── screenshot-en.png, screenshot-de.png, screenshot-fr.png, screenshot-ja.png
 ├── hacs.json

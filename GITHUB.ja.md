@@ -63,6 +63,8 @@ git push origin v3.0.0
 First public release. See CHANGELOG.md for all changes.
 ```
 
+リリースに独自のファイルを添付しないでください。添付すると HACS はそのファイルだけをダウンロードし、サブフォルダー `Profile` を含む `dist` フォルダー全体をダウンロードしません（HACS のソースコードで確認）。
+
 ## 6. HACS に追加
 
 1. HACS を開き、三点メニューからカスタムリポジトリを選択
@@ -93,7 +95,10 @@ git push origin vX.Y.Z
 Heatpump-Flow-Card-by-Lutarym/
 ├── dist/
 │   ├── heatpump-flow-card-by-lutarym.js
-│   └── heatpump-flow-card-by-lutarym-hilfe.js
+│   ├── heatpump-flow-card-by-lutarym-hilfe.js
+│   └── Profile/
+│       ├── liste.json
+│       └── <hersteller>.json （24 ファイル）
 ├── docs/
 │   └── screenshot-en.png, screenshot-de.png, screenshot-fr.png, screenshot-ja.png
 ├── hacs.json

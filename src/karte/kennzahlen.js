@@ -36,9 +36,9 @@ export const kennzahlenKarte = {
     const q = this._quelle;
     if (!q || typeof q.callWS !== "function" || this._copLaeuft) return;
     const quellen = this._jazQuellen();
-    const paare = quellen && !quellen.demo ? { cop_heating: quellen.heizen, cop_dhw: quellen.ww } : {};
-    const sensoren = { cop_heating: this._e("cop_heating"), cop_dhw: this._e("cop_dhw") };
-    const ids = [...new Set(["cop_heating", "cop_dhw"]
+    const paare = quellen && !quellen.demo ? { EXT600: quellen.heizen, EXT601: quellen.ww } : {};
+    const sensoren = { EXT600: this._e("EXT600"), EXT601: this._e("EXT601") };
+    const ids = [...new Set(["EXT600", "EXT601"]
       .flatMap((k) => (paare[k] ? [paare[k].w, paare[k].e] : [sensoren[k]]))
       .filter(Boolean))];
     if (!ids.length) return;
@@ -66,7 +66,7 @@ export const kennzahlenKarte = {
         no_attributes: true,
       });
       const ergebnis = {};
-      ["cop_heating", "cop_dhw"].forEach((k) => {
+      ["EXT600", "EXT601"].forEach((k) => {
         const p = paare[k];
         if (p) {
           const w = energie(verlaufsReihe(antwort, p.w), mitternacht, jetzt);
@@ -105,19 +105,25 @@ export const kennzahlenKarte = {
     // Mit Registrierung reicht deren Kennung, sonst zaehlt die Anzahl.
     const anzahl = q.entities ? -1 : Object.keys(q.states).length;
     const c = this._jazCache;
-    if (c && c.reg === q.entities && c.cfg === this._config && c.anzahl === anzahl) return c.wert;
+    const pr = typeof this._aktivesProfil === "function" ? this._aktivesProfil() : "";
+    if (c && c.reg === q.entities && c.cfg === this._config && c.anzahl === anzahl && c.pr === pr) return c.wert;
     const wert = this._jazQuellenSuchen();
-    this._jazCache = { reg: q.entities, cfg: this._config, anzahl, wert };
+    this._jazCache = { reg: q.entities, cfg: this._config, anzahl, wert, pr };
     return wert;
   },
 
   _jazQuellenSuchen() {
-    const index = this._hilfeEntitaeten();
-    const sensor = (k) => (index[k] || []).find((id) => id.startsWith("sensor."));
-    const xtop = Boolean(sensor("xtop3") && sensor("xtop0"));
+    // Waerme und Strom je Betriebsart aus dem Profil. Meldet die
+    // Waermepumpe den Zusatzblock, sind TOP15, TOP16, TOP40 und TOP41
+    // laut HeishaMon ungueltig, dann gelten XTOP3, XTOP0, XTOP5, XTOP2.
+    const sensor = (n) => {
+      const id = this._e(n);
+      return id && id.startsWith("sensor.") ? id : null;
+    };
+    const xtop = Boolean(sensor("XTOP3") && sensor("XTOP0"));
     const paar = (w, e) => (sensor(w) && sensor(e) ? { w: sensor(w), e: sensor(e) } : null);
-    const heizen = xtop ? paar("xtop3", "xtop0") : paar("top15", "top16");
-    const ww = xtop ? paar("xtop5", "xtop2") : paar("top40", "top41");
+    const heizen = xtop ? paar("XTOP3", "XTOP0") : paar("TOP15", "TOP16");
+    const ww = xtop ? paar("XTOP5", "XTOP2") : paar("TOP40", "TOP41");
     if (!heizen && !ww) return null;
     return { heizen, ww };
   },

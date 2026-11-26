@@ -1,0 +1,47 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "weishaupt",
+  "name": "Weishaupt",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "weishaupt_modbus",
+      "name": "Weishaupt Modbus",
+      "geraete": [
+        {
+          "hersteller": ["Weishaupt"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "OStrama",
+        "adresse": "https://github.com/OStrama/weishaupt_modbus",
+        "version": "1.0.20",
+        "aktualisiert": "2026-10-08",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "weishaupt_modbus",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["rl_temp"],
+        "TOP6": ["vl_temp"],
+        "TOP9": ["number:ww_normal"],
+        "TOP10": ["ww_temp"],
+        "TOP14": ["aussentemp"],
+        "TOP20": ["wp_betrieb"],
+        "TOP36": ["hz_vl_temp"],
+        "TOP37": ["hz_vl_temp2"],
+        "TOP44": ["wp_stoermeldung"],
+        "TOP46": ["puffer_temp"],
+        "EXT204": ["hz_vl_temp3"],
+        "EXT207": ["hz_vl_temp4"]
+      }
+    }
+  ]
+}

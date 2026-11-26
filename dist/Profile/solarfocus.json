@@ -1,0 +1,48 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "solarfocus",
+  "name": "Solarfocus",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "solarfocus",
+      "name": "Solarfocus",
+      "geraete": [
+        {
+          "hersteller": ["Solarfocus"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "LavermanJJ",
+        "adresse": "https://github.com/LavermanJJ/home-assistant-solarfocus",
+        "version": "7.0.1",
+        "aktualisiert": "2026-11-10",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "solarfocus",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["hp_flow_rate"],
+        "TOP5": ["hp_return_temperature"],
+        "TOP6": ["hp_supply_temperature"],
+        "TOP8": ["hp_compressor_speed"],
+        "TOP14": ["hp_outdoor_temperature", "bb_outdoor_temperature"],
+        "TOP20": ["hp_boiler_charge"],
+        "TOP26": ["hp_defrost_active"],
+        "TOP36": ["hc_supply_temperature"],
+        "TOP47": ["so_collector_temperature_1"],
+        "TOP124": ["hc_circulator_pump"],
+        "EXT1": ["hp_electrical_power"],
+        "EXT400": ["ci_pump"],
+        "EXT600": ["hp_cop_heating"]
+      }
+    }
+  ]
+}

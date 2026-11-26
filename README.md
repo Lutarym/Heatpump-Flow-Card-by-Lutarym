@@ -14,7 +14,7 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 - Heat curve for circuit 1 and 2 in its own window, with scale, operating point and adjustable corner points
 - Door in the heat pump: the button at the bottom right opens the front like a door to the left, behind it are advanced settings (holiday mode, weekly schedule, Smart DHW, heating limits, spread, legionella protection, pump, quiet mode, today's COP for heating and hot water (heat divided by electricity since midnight), seasonal performance factor (JAZ) for heating, hot water and total since 1 January with heat and electricity in kWh, from HeishaMon values, operating hours and starts); changes are sent with “Apply” and the door closes
 - Help window (“?” at the bottom right): plain-language explanation of every value and command HeishaMon can read and write, with search and groups; for every TOP value the full entity ID, copyable with one click
-- Manufacturer profiles for 35 integrations of 24 manufacturers (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant and more), detected automatically; if several are found, the editor asks which one to use. Apart from HeishaMon by Lutarym they are untested. Device profiles can also be exported, adapted and imported; see the [device profile guide](docs/GERAETEPROFIL.md)
+- Device profiles for 35 integrations of 24 manufacturers (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant and more) as files in the folder `dist/Profile`, one file per manufacturer with one variant per integration. The card detects the matching variant itself; if several are found, the editor asks which one to use, if none fits, it asks for a specific profile. Apart from HeishaMon by Lutarym and HeishaMon (MQTT) they are untested. Profiles can be exported, adapted, imported and searched on GitHub; see the [device profile guide](docs/GERAETEPROFIL.md) and the [name list](docs/NAMENSLISTE.md)
 - Language packs: export a language as a file, translate it yourself or adjust it and import it again; see the [language pack guide](docs/SPRACHPAKET.md)
 - Energy chart for the past 24 hours, coloured by heating, hot water and standby, with the SG Ready history below
 - Systems without a heating buffer, detected automatically from TOP99 or set manually
@@ -41,14 +41,14 @@ Animated Lovelace card for Home Assistant that shows a Panasonic Aquarea heat pu
 
 ### Manual
 
-1. Download `heatpump-flow-card-by-lutarym.js` and `heatpump-flow-card-by-lutarym-hilfe.js` from the `dist` folder of the latest release
-2. Copy both to `<config>/www/community/heatpump-flow-card-by-lutarym/`. The second file contains the help and is only loaded when needed; only the first one is added as a resource.
+1. Download `heatpump-flow-card-by-lutarym.js`, `heatpump-flow-card-by-lutarym-hilfe.js` and the folder `Profile` from the `dist` folder of the latest release
+2. Copy everything to `<config>/www/community/heatpump-flow-card-by-lutarym/`, the folder `Profile` as a subfolder. The second file contains the help and is only loaded when needed, the folder `Profile` contains the device profiles; only the first file is added as a resource.
 3. Settings, Dashboards, menu with the three dots, Resources, add resource
 4. URL `/local/community/heatpump-flow-card-by-lutarym/heatpump-flow-card-by-lutarym.js`, type **JavaScript module**
 
 ## Configuration
 
-The easiest way is the visual editor: add the card, then press **Take over from integration**. The card detects the entities of HeishaMon by Lutarym on its own. Entities that are not found can be assigned by hand.
+The easiest way is the visual editor: add the card, then press **Take over from integration**. The card detects the entities on its own through the device profiles, for example with HeishaMon by Lutarym. If no profile fits, the editor asks for a specific profile. Entities that are not found can be assigned by hand.
 
 ### Example in YAML
 
@@ -58,18 +58,20 @@ layout: quer
 hk_count: 2
 language: auto
 entities:
-  outside_temp: sensor.heishamon_top14
-  flow_temp: sensor.heishamon_top6
-  return_temp: sensor.heishamon_top5
-  compressor: sensor.heishamon_top8
-  three_way_valve: sensor.heishamon_top20
-  buffer_temp: sensor.heishamon_top46
-  dhw_temp: sensor.heishamon_top10
-  hk1_water: sensor.heishamon_top36
-  hk1_water_target: sensor.heishamon_top42
+  TOP14: sensor.heishamon_top14
+  TOP6: sensor.heishamon_top6
+  TOP5: sensor.heishamon_top5
+  TOP8: sensor.heishamon_top8
+  TOP20: sensor.heishamon_top20
+  TOP46: sensor.heishamon_top46
+  TOP10: sensor.heishamon_top10
+  TOP36: sensor.heishamon_top36
+  TOP42: sensor.heishamon_top42
 ```
 
 The entity IDs are the default names of the card. Your entities may be named differently, the editor assigns them automatically.
+
+From 6.0.0 the keys are the names of the [name list](docs/NAMENSLISTE.md). Former field names such as `outside_temp` keep working, the card converts them itself.
 
 ### Options
 
@@ -79,7 +81,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `hk_count` | `2` | Number of heating circuits, 1 to 4. Circuits 3 and 4 need own entities, the Aquarea controls only two zones |
 | `fan_count` | `2` | Number of fans, 1 or 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` or `ja` |
-| `profil` | `auto` | `auto` detects the integration automatically, or the ID of a profile such as `heishamon_lutarym`, `heishamon` (MQTT naming), `vicare`, `luxtronik2`; list in the [guide](docs/GERAETEPROFIL.md) |
+| `profil` | `auto` | `auto` detects the matching variant automatically, `keins` no profile (only entered entities), or the ID of a variant such as `heishamon_lutarym`, `heishamon` (HeishaMon via MQTT), `vicare`, `luxtronik2`; list in the [guide](docs/GERAETEPROFIL.md) |
 | `buffer_present` | `auto` | Heating buffer: `auto` from TOP99, `true` or `false` |
 | `cop_reference` | empty | Datasheet for the COP comparison: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Only then does the COP tab colour each run: green from 92 % of the datasheet (tolerance −8 %, HP KEYMARK), yellow below, outside the rating points only estimated, marked as an estimate and drawn pale. Empty: COP not rated |
 | `dhw_usable_temp` | empty | Tank temperature in °C below which hot water counts as no longer usable. Used for the holding time in the window "Monitor hot water" (button in the heat pump window). Empty: column without a value |
@@ -88,8 +90,8 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `hp_capacity_kw` | empty | Heating capacity of the heat pump in kW from the datasheet, at the design outdoor temperature and your flow temperature; if missing, the value at −7 °C. Counts as constant |
 | `hp_capacity_ref` | empty | Where `hp_capacity_kw` applies: empty = design outdoor temperature, `a7` = −7 °C (manufacturer value). The analysis point "Heating capacity, sizing" uses the capacity share (capacity / design heating load) of the BWP guideline: below 50 % (with the −7 °C value: below 70 %) a hint "too small" with the missing kW; above that "fine" without a hint |
 | `heater_share_max` | empty | Your target: at most this share of the annual space heat in % from the backup heater. The analysis point "Heating capacity, sizing" then shows a hint with the missing kW. Empty: share without rating |
-| `hk1_room_target` | empty | Desired room temperature of circuit 1 in °C. The analysis (tab Heating curve) compares it with the room sensor `hk1_room_temp`: within ±0.5 K fine (own decision: step size of the input), otherwise a slight deviation with the procedure of EnergieSchweiz |
-| `hk2_room_target` | empty | Like `hk1_room_target`, for circuit 2 and `hk2_room_temp` |
+| `hk1_room_target` | empty | Desired room temperature of circuit 1 in °C. The analysis (tab Heating curve) compares it with the room sensor `EXT201`: within ±0.5 K fine (own decision: step size of the input), otherwise a slight deviation with the procedure of EnergieSchweiz |
+| `hk2_room_target` | empty | Like `hk1_room_target`, for circuit 2 and `EXT203` |
 | `circulation_present` | `auto` | Circulation: `auto` once an entity is assigned, `true` or `false` |
 | `show_history` | `knopf` | Charts: `knopf` six buttons at the top right open energy, SG Ready, temperatures, COP, cycling and analysis in a window (with an extra tab for defrosts), period selectable from 24 hours to 1 year, `true` energy always in the card, `false` off |
 | `show_target` | `true` | Show the “Target …” line in buffer and hot water |
@@ -97,7 +99,7 @@ The entity IDs are the default names of the card. Your entities may be named dif
 | `show_help` | `true` | Show the “?” help button at the bottom right of the card; the help describes HeishaMon and only appears with HeishaMon profiles and in demo mode |
 | `show_door` | `true` | Show the advanced settings button at the bottom right of the heat pump |
 | `theme` | `auto` | Colour scheme: `auto` (follows light/dark mode of Home Assistant), `dunkel` (dark), `hell` (light), `kontrast` (high contrast), `nacht` (night, dimmed), `ha` (colours of the Home Assistant theme) |
-| `profile_custom` | `[]` | Imported device profiles (set by the editor, see [guide](docs/GERAETEPROFIL.md)) |
+| `profile_custom` | `[]` | Imported and GitHub-loaded device profiles (set by the editor, see [guide](docs/GERAETEPROFIL.md)) |
 | `language_custom` | `[]` | Imported language packs (set by the editor, see [guide](docs/SPRACHPAKET.md)) |
 | `history_width` | `450` | Width of the energy chart, 250 to 700 |
 | `history_style` | `takte` | Energy chart style: `takte` (ring and cycle band), `balken` (bars per hour), `leuchten` (glowing line with cycle marks), `linie` (previous line) |
@@ -129,113 +131,113 @@ All fields are optional. A field without an entity is hidden on the card. Where 
 | Key | Meaning | Note |
 |---|---|---|
 | **Outdoor sensor** | | |
-| `outside_temp` | Outdoor temperature | TOP14 |
+| `TOP14` | Outdoor temperature | |
 | **Outdoor unit** | | |
-| `power_state` | Heat pump status, green LED | SetHeatpump or TOP0 |
-| `compressor` | Compressor frequency | TOP8 |
-| `fan1_rpm` | Fan 1 speed | TOP62 |
-| `fan2_rpm` | Fan 2 speed | TOP63 |
-| `defrost` | Defrost running | TOP26 |
-| `error` | Error code | TOP44 |
-| `heatpump_state` | Operating state | TOP0 |
-| `force_defrost` | Force defrost | SetForceDefrost, switch |
-| `powerful_mode` | Powerful mode | SetPowerfulMode, select |
-| `quiet_mode` | Quiet mode | SetQuietMode, select |
-| `power_now` | Current power draw | Shelly PM, Watt |
-| `energy_today` | Energy meter | Shelly PM, kWh |
+| `SET1` | Heat pump status, green LED | SetHeatpump or TOP0 |
+| `TOP8` | Compressor frequency | |
+| `TOP62` | Fan 1 speed | |
+| `TOP63` | Fan 2 speed | |
+| `TOP26` | Defrost running | |
+| `TOP44` | Error code | |
+| `TOP0` | Operating state | |
+| `SET12` | Force defrost | SetForceDefrost, switch |
+| `SET4` | Powerful mode | SetPowerfulMode, select |
+| `SET3` | Quiet mode | SetQuietMode, select |
+| `EXT1` | Current power draw | Shelly PM, Watt |
+| `EXT2` | Energy meter | Shelly PM, kWh |
 | **SG Ready** | | |
-| `pv_power` | Current PV power | own entity, watts |
-| `grid_power` | Grid import | own entity, watts, positive = import. Together with `power_now` the card calculates "From grid today" if HeishaMon by Lutarym (option "Grid import sensor") does not provide it |
-| `sg_k1` | Contact K1, block | Shelly, relay or input |
-| `sg_k2` | Contact K2, start | Shelly, relay or input |
+| `EXT3` | Current PV power | own entity, watts |
+| `EXT4` | Grid import | own entity, watts, positive = import. Together with `EXT1` the card calculates "From grid today" if HeishaMon by Lutarym (option "Grid import sensor") does not provide it |
+| `EXT100` | Contact K1, block | Shelly, relay or input |
+| `EXT101` | Contact K2, start | Shelly, relay or input |
 | **Primary circuit** | | |
-| `flow_temp` | Flow temperature | TOP6 |
-| `return_temp` | Return temperature | TOP5 |
-| `pump_speed` | Primary pump speed | TOP65 |
-| `pump_flow` | Flow rate | TOP1 |
-| `three_way_valve` | Three-way diverter valve | TOP20 |
-| `water_pressure` | Water pressure | TOP115 |
-| `heater_internal` | Internal heater running | TOP60 |
-| `heater_external` | External heater running | TOP61 |
+| `TOP6` | Flow temperature | |
+| `TOP5` | Return temperature | |
+| `TOP65` | Primary pump speed | |
+| `TOP1` | Flow rate | |
+| `TOP20` | Three-way diverter valve | |
+| `TOP115` | Water pressure | |
+| `TOP60` | Internal heater running | |
+| `TOP61` | External heater running | |
 | **Heating buffer** | | |
-| `buffer_temp` | Buffer temperature | TOP46 |
-| `buffer_installed` | Buffer installed | TOP99 |
-| `buffer_switch` | Buffer mode on and off | SetBuffer, switch |
+| `TOP46` | Buffer temperature | |
+| `TOP99` | Buffer installed | |
+| `SET28` | Buffer mode on and off | SetBuffer, switch |
 | **Heat curve** | | |
-| `curve_t_high` | Circuit 1 heat curve, flow high | TOP29 |
-| `curve_t_low` | Circuit 1 heat curve, flow low | TOP30 |
-| `curve_o_high` | Circuit 1 heat curve, outdoor high | TOP31 |
-| `curve_o_low` | Circuit 1 heat curve, outdoor low | TOP32 |
-| `curve2_t_high` | Circuit 2 heat curve, flow high | TOP82 |
-| `curve2_t_low` | Circuit 2 heat curve, flow low | TOP83 |
-| `curve2_o_high` | Circuit 2 heat curve, outdoor high | TOP84 |
-| `curve2_o_low` | Circuit 2 heat curve, outdoor low | TOP85 |
+| `TOP29` | Circuit 1 heat curve, flow high | |
+| `TOP30` | Circuit 1 heat curve, flow low | |
+| `TOP31` | Circuit 1 heat curve, outdoor high | |
+| `TOP32` | Circuit 1 heat curve, outdoor low | |
+| `TOP82` | Circuit 2 heat curve, flow high | |
+| `TOP83` | Circuit 2 heat curve, flow low | |
+| `TOP84` | Circuit 2 heat curve, outdoor high | |
+| `TOP85` | Circuit 2 heat curve, outdoor low | |
 | **Heating buffer** | | |
-| `buffer_delta` | Buffer offset (ΔT) | TOP113, buffer target = circuit target + ΔT |
-| `buffer_target` | Heat pump flow target | TOP7 |
-| `cop_heating` | COP heating | HeishaMon by Lutarym, only used without the heat pump's power values (otherwise heat divided by electricity from TOP15/TOP16); source selectable in the integration under COP source |
-| `room_heater` | Heating element, heating: allowed | TOP59 |
-| `room_heater_switch` | Allow heating element, heating | SetRoomHeaterState, switch |
+| `TOP113` | Buffer offset (ΔT) | buffer target = circuit target + ΔT |
+| `TOP7` | Heat pump flow target | |
+| `EXT600` | COP heating | HeishaMon by Lutarym, only used without the heat pump's power values (otherwise heat divided by electricity from TOP15/TOP16); source selectable in the integration under COP source |
+| `TOP59` | Heating element, heating: allowed | |
+| `SET45` | Allow heating element, heating | SetRoomHeaterState, switch |
 | **Circuit 1** | | |
-| `zones_state` | Active zones | TOP94, applies to both |
-| `zones_select` | Switch zones | SetZones, applies to both |
-| `hk1_water` | Circuit 1 water temperature | TOP36 |
-| `hk1_water_target` | Circuit 1 water target | TOP42 |
-| `hk1_pump` | Circuit 1 pump running | TOP124 |
-| `hk1_setpoint` | Circuit 1 adjustable target | TOP27, number |
-| `hk1_switch` | Circuit 1 on and off | own switch, optional |
-| `hk1_room_temp` | Circuit 1 room temperature | room sensor, optional |
+| `TOP94` | Active zones | applies to both |
+| `SET17` | Switch zones | SetZones, applies to both |
+| `TOP36` | Circuit 1 water temperature | |
+| `TOP42` | Circuit 1 water target | |
+| `TOP124` | Circuit 1 pump running | |
+| `TOP27` | Circuit 1 adjustable target | number |
+| `EXT200` | Circuit 1 on and off | own switch, optional |
+| `EXT201` | Circuit 1 room temperature | room sensor, optional |
 | **Circuit 2** | | |
-| `hk2_water` | Circuit 2 water temperature | TOP37 |
-| `hk2_water_target` | Circuit 2 water target | TOP43 |
-| `hk2_pump` | Circuit 2 pump running | TOP123 |
-| `hk2_setpoint` | Circuit 2 adjustable target | TOP34, number |
-| `hk2_switch` | Circuit 2 on and off | own switch, optional |
-| `hk2_room_temp` | Circuit 2 room temperature | room sensor, optional |
-| `hk3_water, hk4_water` | Water temperature circuit 3, 4 | own entity, °C |
-| `hk3_pump, hk4_pump` | Pump circuit 3, 4 running | own switch or sensor |
-| `hk3_switch, hk4_switch` | Circuit 3, 4 on and off | own switch, optional |
-| `kamin_temp` | Stove temperature | own entity, °C; stove only: TOP47 |
-| `kamin_pump` | Stove pump running | own switch or sensor; stove only: OPT5 |
-| `solar_temp` | Solar thermal temperature | TOP47 |
-| `solar_pump` | Solar thermal pump running | OPT5 |
+| `TOP37` | Circuit 2 water temperature | |
+| `TOP43` | Circuit 2 water target | |
+| `TOP123` | Circuit 2 pump running | |
+| `TOP34` | Circuit 2 adjustable target | number |
+| `EXT202` | Circuit 2 on and off | own switch, optional |
+| `EXT203` | Circuit 2 room temperature | room sensor, optional |
+| `EXT204, EXT207` | Water temperature circuit 3, 4 | own entity, °C |
+| `EXT205, EXT208` | Pump circuit 3, 4 running | own switch or sensor |
+| `EXT206, EXT209` | Circuit 3, 4 on and off | own switch, optional |
+| `EXT300` | Stove temperature | own entity, °C; stove only: TOP47 |
+| `EXT301` | Stove pump running | own switch or sensor; stove only: OPT5 |
+| `TOP47` | Solar thermal temperature | |
+| `OPT5` | Solar thermal pump running | |
 | **Hot water** | | |
-| `dhw_installed` | Hot water installed | TOP100 |
-| `dhw_temp` | Hot water temperature | TOP10 |
-| `dhw_heat_delta` | Hot water hysteresis | TOP22 |
-| `dhw_setpoint` | Hot water target | TOP9, number |
-| `cop_dhw` | COP hot water | HeishaMon by Lutarym, only used without the heat pump's power values (otherwise heat divided by electricity from TOP40/TOP41); source selectable in the integration under COP source |
-| `dhw_heater` | Heating element, hot water: allowed | TOP58 |
-| `dhw_force` | Boost once | SetForceDHW, switch |
-| `dhw_force_state` | Boost running | TOP2 |
-| `force_sterilization` | Start legionella cycle | SetForceSterilization, switch |
-| `sterilization_state` | Legionella cycle running | TOP69 |
-| `dhw_heater_switch` | Allow heating element, hot water | SetDHWHeaterState, switch |
-| `circulation_pump` | Circulation pump running | Shelly or own switch |
-| `circ_switch` | Circulation switch (clickable) | switch to turn circulation on and off |
-| `weather` | Weather forecast | weather, hourly forecast; empty: as in HeishaMon by Lutarym, otherwise automatic. For the best charging time in the window "Monitor hot water" |
-| `dhw_warmest` | Hot water at the warmest time of day | HeishaMon by Lutarym 1.4.0 or newer, switch. Button in the heat pump window; separates days with and without the plan for the tab "Optimisation" in the window "Monitor hot water" |
-| `dhw_planned` | Planned hot water charge | HeishaMon by Lutarym 1.4.0 or newer, sensor. In the heat pump window and as "Planned charge" in the tab "Day or night" |
-| `dhw_last_charge` | Last hot water charge | HeishaMon by Lutarym 1.4.0 or newer, sensor. In the heat pump window; marks the charges started by the integration |
+| `TOP100` | Hot water installed | |
+| `TOP10` | Hot water temperature | |
+| `TOP22` | Hot water hysteresis | |
+| `TOP9` | Hot water target | number |
+| `EXT601` | COP hot water | HeishaMon by Lutarym, only used without the heat pump's power values (otherwise heat divided by electricity from TOP40/TOP41); source selectable in the integration under COP source |
+| `TOP58` | Heating element, hot water: allowed | |
+| `SET10` | Boost once | SetForceDHW, switch |
+| `TOP2` | Boost running | |
+| `SET13` | Start legionella cycle | SetForceSterilization, switch |
+| `TOP69` | Legionella cycle running | |
+| `SET44` | Allow heating element, hot water | SetDHWHeaterState, switch |
+| `EXT400` | Circulation pump running | Shelly or own switch |
+| `EXT401` | Circulation switch (clickable) | switch to turn circulation on and off |
+| `EXT500` | Weather forecast | weather, hourly forecast; empty: as in HeishaMon by Lutarym, otherwise automatic. For the best charging time in the window "Monitor hot water" |
+| `EXT402` | Hot water at the warmest time of day | HeishaMon by Lutarym 1.4.0 or newer, switch. Button in the heat pump window; separates days with and without the plan for the tab "Optimisation" in the window "Monitor hot water" |
+| `EXT403` | Planned hot water charge | HeishaMon by Lutarym 1.4.0 or newer, sensor. In the heat pump window and as "Planned charge" in the tab "Day or night" |
+| `EXT404` | Last hot water charge | HeishaMon by Lutarym 1.4.0 or newer, sensor. In the heat pump window; marks the charges started by the integration |
 | **Control** | | |
-| `mode_select` | Switch operating mode | SetOperationMode, select |
+| `SET9` | Switch operating mode | SetOperationMode, select |
 | **Advanced settings** | | |
-| `heating_off_temp` | Heating off above outdoor temp. | TOP77, number |
-| `heater_on_temp` | Heater on below outdoor temp. | TOP78, number |
-| `heat_delta` | Heating spread (ΔT) | TOP23, number |
-| `heating_control` | Heating control | SetHeatingControl, select |
-| `steril_temp` | Legionella temperature | TOP70, number |
-| `steril_time` | Legionella hold time | TOP71, number |
-| `pump_flow_mode` | Pump control | SetPumpFlowrateMode, select |
-| `pump_max_duty` | Max. pump duty | TOP95, number |
-| `quiet_priority` | Quiet mode priority | SetQuietModePriority, select |
-| `holiday_mode` | Holiday mode | SetHolidayMode, switch |
-| `main_schedule` | Weekly schedule | SetMainSchedule, switch |
-| `smart_dhw` | Smart DHW | SetSmartDHW, select |
-| `operating_hours` | Operating hours | TOP11 |
-| `compressor_starts` | Compressor starts | TOP12 |
-| `room_heater_hours` | Heater hours, heating | TOP90 |
-| `dhw_heater_hours` | Heater hours, hot water | TOP91 |
+| `TOP77` | Heating off above outdoor temp. | number |
+| `TOP78` | Heater on below outdoor temp. | number |
+| `TOP23` | Heating spread (ΔT) | number |
+| `SET39` | Heating control | SetHeatingControl, select |
+| `TOP70` | Legionella temperature | number |
+| `TOP71` | Legionella hold time | number |
+| `SET42` | Pump control | SetPumpFlowrateMode, select |
+| `TOP95` | Max. pump duty | number |
+| `SET41` | Quiet mode priority | SetQuietModePriority, select |
+| `SET2` | Holiday mode | SetHolidayMode, switch |
+| `SET24` | Weekly schedule | SetMainSchedule, switch |
+| `SET40` | Smart DHW | SetSmartDHW, select |
+| `TOP11` | Operating hours | |
+| `TOP12` | Compressor starts | |
+| `TOP90` | Heater hours, heating | |
+| `TOP91` | Heater hours, hot water | |
 
 ## Languages
 

@@ -16,38 +16,38 @@ export const demoKarte = {
    */
   _demoAufbauen() {
     const werte = {
-      outside_temp: 8.5, heatpump_state: 1, compressor: 42,
-      fan1_rpm: 640, fan2_rpm: 620,
-      power_now: 1240, energy_today: 8.4,
-      flow_temp: 39.2, return_temp: 33.1, pump_speed: 2400, pump_flow: 18.6,
-      three_way_valve: 0, water_pressure: 1.8, defrost: 0, error: "0",
-      buffer_temp: 38.4, buffer_target: 40, buffer_delta: 2, curve_t_high: 45, curve_t_low: 28, curve_o_high: 15, curve_o_low: -10, curve2_t_high: 38, curve2_t_low: 26, curve2_o_high: 15, curve2_o_low: -10, dhw_heat_delta: -8, room_heater: 0, buffer_installed: 1,
-      hk1_water: 34.2, hk1_water_target: 36, hk1_pump: 1,
-      hk1_setpoint: 36, hk2_water: 30.1, hk2_water_target: 32,
-      hk2_pump: 0, hk2_setpoint: 32, zones_state: 2,
-      dhw_temp: 48.3, dhw_setpoint: 50, dhw_heater: 0, dhw_installed: 1,
-      dhw_force_state: 0, sterilization_state: 0, circulation_pump: 0, circ_switch: "off", pv_power: 3400,
-      sg_k1: "off", sg_k2: "off",
-      dhw_force: "off", force_sterilization: "off", force_defrost: "off",
-      dhw_heater_switch: "off", room_heater_switch: "off", buffer_switch: "on",
-      power_state: "on", hk1_switch: "on", hk2_switch: "off",
-      operating_mode: 4,
-      hk3_water: 32.8, hk3_pump: 1, hk3_switch: "on", hk4_water: 28.4, hk4_pump: 0, hk4_switch: "off",
-      kamin_temp: 72.4, kamin_pump: 1, solar_temp: 41.0, solar_pump: 0,
-      cop_heating: 4.3, cop_dhw: 3.1, heater_internal: 0, heater_external: 0,
-      operating_hours: 1462, compressor_starts: 2381, room_heater_hours: 3, dhw_heater_hours: 11,
-      holiday_mode: "off", main_schedule: "off", dhw_warmest: "on",
-      heating_off_temp: 18, heater_on_temp: -8, heat_delta: 3, steril_temp: 65, steril_time: 10, pump_max_duty: 160,
+      TOP14: 8.5, TOP0: 1, TOP8: 42,
+      TOP62: 640, TOP63: 620,
+      EXT1: 1240, EXT2: 8.4,
+      TOP6: 39.2, TOP5: 33.1, TOP65: 2400, TOP1: 18.6,
+      TOP20: 0, TOP115: 1.8, TOP26: 0, TOP44: "0",
+      TOP46: 38.4, TOP7: 40, TOP113: 2, TOP29: 45, TOP30: 28, TOP31: 15, TOP32: -10, TOP82: 38, TOP83: 26, TOP84: 15, TOP85: -10, TOP22: -8, TOP59: 0, TOP99: 1,
+      TOP36: 34.2, TOP42: 36, TOP124: 1,
+      TOP27: 36, TOP37: 30.1, TOP43: 32,
+      TOP123: 0, TOP34: 32, TOP94: 2,
+      TOP10: 48.3, TOP9: 50, TOP58: 0, TOP100: 1,
+      TOP2: 0, TOP69: 0, EXT400: 0, EXT401: "off", EXT3: 3400,
+      EXT100: "off", EXT101: "off",
+      SET10: "off", SET13: "off", SET12: "off",
+      SET44: "off", SET45: "off", SET28: "on",
+      SET1: "on", EXT200: "on", EXT202: "off",
+      TOP4: 4,
+      EXT204: 32.8, EXT205: 1, EXT206: "on", EXT207: 28.4, EXT208: 0, EXT209: "off",
+      EXT300: 72.4, EXT301: 1, TOP47: 41.0, OPT5: 0,
+      EXT600: 4.3, EXT601: 3.1, TOP60: 0, TOP61: 0,
+      TOP11: 1462, TOP12: 2381, TOP90: 3, TOP91: 11,
+      SET2: "off", SET24: "off", EXT402: "on",
+      TOP77: 18, TOP78: -8, TOP23: 3, TOP70: 65, TOP71: 10, TOP95: 160,
     };
     const states = {};
     Object.keys(werte).forEach((feld) => {
       const attrs = {};
-      if (feld.endsWith("_setpoint")) {
+      if (["TOP27", "TOP34", "TOP9"].includes(feld)) {
         Object.assign(attrs, { min: 15, max: 65, step: 0.5 });
       }
       states[`demo.${feld}`] = { state: String(werte[feld]), attributes: attrs };
     });
-    // Warmwasser zur waermsten Tageszeit (HeishaMon by Lutarym ab 1.4.0):
+    // Warmwasser zur waermsten Tageszeit (EXT402 bis EXT404):
     // vor 15 Uhr fuer heute 14:00 geplant, danach heute erledigt und
     // morgen 13:00 geplant. Erfundene Werte wie alles im Demomodus.
     const jetzt = new Date();
@@ -59,7 +59,7 @@ export const demoKarte = {
     };
     const datum = (z) => `${z.getFullYear()}-${String(z.getMonth() + 1).padStart(2, "0")}-${String(z.getDate()).padStart(2, "0")}`;
     const fertig = jetzt.getHours() >= 15;
-    states["demo.dhw_planned"] = {
+    states["demo.EXT403"] = {
       state: (fertig ? um(1, 13, 0) : um(0, 14, 0)).toISOString(),
       attributes: {
         status: fertig ? "erledigt" : "geplant", hoechsttemperatur: fertig ? 8 : 9,
@@ -67,24 +67,24 @@ export const demoKarte = {
         hoechstdauer_min: 120, wetter_entity: "weather.forecast_home", device_class: "timestamp",
       },
     };
-    states["demo.dhw_last_charge"] = {
+    states["demo.EXT404"] = {
       state: (fertig ? um(0, 14, 2) : um(-1, 13, 2)).toISOString(),
       attributes: { device_class: "timestamp" },
     };
-    // Auswertungen der Integration HeishaMon by Lutarym ab 1.7.0.
+    // Werte fuer die Analyse (TOP, XTOP und EXT ohne Editorfeld).
     demoIntegration(states);
-    states["demo.mode_select"] = {
+    states["demo.SET9"] = {
       state: "mode_4",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3", "mode_4", "mode_5", "mode_6"] },
     };
-    states["demo.powerful_mode"] = {
+    states["demo.SET4"] = {
       state: "mode_0",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3"] },
     };
-    ["heating_control", "pump_flow_mode", "quiet_priority", "smart_dhw"].forEach((feld) => {
+    ["SET39", "SET42", "SET41", "SET40"].forEach((feld) => {
       states[`demo.${feld}`] = { state: "mode_0", attributes: { options: ["mode_0", "mode_1"] } };
     });
-    states["demo.quiet_mode"] = {
+    states["demo.SET3"] = {
       state: "mode_2",
       attributes: { options: ["mode_0", "mode_1", "mode_2", "mode_3"] },
     };
@@ -109,9 +109,7 @@ export const demoKarte = {
         const paar = DEMO_PAARE[feld];
         if (paar && states[`demo.${paar}`]) {
           const an = states[id].state === "on" || parseFloat(states[id].state) > 0;
-          const zielIstSchalter =
-            paar.endsWith("_switch") || paar.startsWith("force_") ||
-            paar === "power_state" || paar === "dhw_force" || paar === "buffer_switch";
+          const zielIstSchalter = paar.startsWith("SET");
           states[`demo.${paar}`].state = zielIstSchalter
             ? an ? "on" : "off"
             : an ? "1" : "0";
@@ -138,8 +136,7 @@ export const demoKarte = {
     const an = wert === "on" || parseFloat(wert) > 0;
     const paar = DEMO_PAARE[feld];
     if (paar) {
-      const zielIstSchalter = paar.endsWith("_switch") || paar.startsWith("force_") ||
-        paar === "power_state" || paar === "dhw_force" || paar === "buffer_switch";
+      const zielIstSchalter = paar.startsWith("SET");
       setze(paar, zielIstSchalter ? (an ? "on" : "off") : an ? 1 : 0);
     }
     this._render();
@@ -164,39 +161,39 @@ export const demoKarte = {
     host.hidden = false;
 
     const schalter = [
-      ["power_state", "Wärmepumpe"],
-      ["hk1_pump", "Pumpe HK1"],
-      ["hk2_pump", "Pumpe HK2"],
-      ["heater_internal", "Heizstab läuft"],
-      ["defrost", "Abtauung"],
-      ["circulation_pump", "Zirkulation Status"],
-      ["dhw_force_state", "Aufheizen"],
-      ["sterilization_state", "Legionellenschutz"],
+      ["SET1", "Wärmepumpe"],
+      ["TOP124", "Pumpe HK1"],
+      ["TOP123", "Pumpe HK2"],
+      ["TOP60", "Heizstab läuft"],
+      ["TOP26", "Abtauung"],
+      ["EXT400", "Zirkulation Status"],
+      ["TOP2", "Aufheizen"],
+      ["TOP69", "Legionellenschutz"],
     ];
     // Kamin und Solarthermie nur, wenn sie im Editor gewaehlt sind.
     const quellen = this._quellen();
     // Heizkreis 3 und 4 nur, wenn so viele Heizkreise eingestellt sind.
     const hk = this._hkAnzahl();
-    if (hk >= 3) schalter.splice(3, 0, ["hk3_pump", "Pumpe HK3"]);
-    if (hk >= 4) schalter.splice(4, 0, ["hk4_pump", "Pumpe HK4"]);
-    if (quellen.includes("kamin")) schalter.push(["kamin_pump", "Pumpe Kamin"]);
-    if (quellen.includes("solar")) schalter.push(["solar_pump", "Pumpe Solarthermie"]);
+    if (hk >= 3) schalter.splice(3, 0, ["EXT205", "Pumpe HK3"]);
+    if (hk >= 4) schalter.splice(4, 0, ["EXT208", "Pumpe HK4"]);
+    if (quellen.includes("kamin")) schalter.push(["EXT301", "Pumpe Kamin"]);
+    if (quellen.includes("solar")) schalter.push(["OPT5", "Pumpe Solarthermie"]);
     const regler = [
-      ["pv_power", "PV Leistung", 0, 12000],
-      ["outside_temp", "Außen", -20, 40],
-      ["flow_temp", "Vorlauf", 15, 70],
-      ["return_temp", "Rücklauf", 15, 70],
-      ["buffer_temp", "Puffer", 15, 70],
-      ["dhw_temp", "Warmwasser", 15, 70],
-      ["hk1_water", "HK1 Wasser", 15, 60],
-      ["hk2_water", "HK2 Wasser", 15, 60],
-      ["compressor", "Verdichter", 0, 90],
-      ["pump_flow", "Durchfluss", 0, 40],
+      ["EXT3", "PV Leistung", 0, 12000],
+      ["TOP14", "Außen", -20, 40],
+      ["TOP6", "Vorlauf", 15, 70],
+      ["TOP5", "Rücklauf", 15, 70],
+      ["TOP46", "Puffer", 15, 70],
+      ["TOP10", "Warmwasser", 15, 70],
+      ["TOP36", "HK1 Wasser", 15, 60],
+      ["TOP37", "HK2 Wasser", 15, 60],
+      ["TOP8", "Verdichter", 0, 90],
+      ["TOP1", "Durchfluss", 0, 40],
     ];
-    if (hk >= 3) regler.splice(8, 0, ["hk3_water", "HK3 Wasser", 15, 60]);
-    if (hk >= 4) regler.splice(9, 0, ["hk4_water", "HK4 Wasser", 15, 60]);
-    if (quellen.includes("kamin")) regler.push(["kamin_temp", "Kamin", 10, 90]);
-    if (quellen.includes("solar")) regler.push(["solar_temp", "Solarthermie", 0, 90]);
+    if (hk >= 3) regler.splice(8, 0, ["EXT204", "HK3 Wasser", 15, 60]);
+    if (hk >= 4) regler.splice(9, 0, ["EXT207", "HK4 Wasser", 15, 60]);
+    if (quellen.includes("kamin")) regler.push(["EXT300", "Kamin", 10, 90]);
+    if (quellen.includes("solar")) regler.push(["TOP47", "Solarthermie", 0, 90]);
 
     host.innerHTML = `
       <div class="lhc-demo-kopf">
@@ -243,52 +240,52 @@ export const demoKarte = {
     // Bereitschaft: die Anlage bleibt eingeschaltet, foerdert aber nichts.
     // Weder Heizung noch Warmwasser werden bedient, die gruene LED bleibt an.
     this.shadowRoot.getElementById("demo-bereitschaft").addEventListener("click", () => {
-      const arbeitetJetzt = parseFloat(this._demoLies("pump_flow")) > 0;
+      const arbeitetJetzt = parseFloat(this._demoLies("TOP1")) > 0;
       if (arbeitetJetzt) {
-        this._demoSetze("compressor", 0);
-        this._demoSetze("fan1_rpm", 0);
-        this._demoSetze("fan2_rpm", 0);
-        this._demoSetze("pump_speed", 0);
-        this._demoSetze("pump_flow", 0);
-        this._demoSetze("power_now", 0);
-        this._demoSetze("hk1_pump", 0);
-        this._demoSetze("hk2_pump", 0);
-        this._demoSetze("hk3_pump", 0);
-        this._demoSetze("hk4_pump", 0);
-        this._demoSetze("circulation_pump", 0);
+        this._demoSetze("TOP8", 0);
+        this._demoSetze("TOP62", 0);
+        this._demoSetze("TOP63", 0);
+        this._demoSetze("TOP65", 0);
+        this._demoSetze("TOP1", 0);
+        this._demoSetze("EXT1", 0);
+        this._demoSetze("TOP124", 0);
+        this._demoSetze("TOP123", 0);
+        this._demoSetze("EXT205", 0);
+        this._demoSetze("EXT208", 0);
+        this._demoSetze("EXT400", 0);
       } else {
-        this._demoSetze("compressor", 42);
-        this._demoSetze("fan1_rpm", 640);
-        this._demoSetze("fan2_rpm", 620);
-        this._demoSetze("pump_speed", 2400);
-        this._demoSetze("pump_flow", 18.6);
-        this._demoSetze("power_now", 1240);
-        this._demoSetze("hk1_pump", 1);
-        this._demoSetze("hk2_pump", 0);
-        this._demoSetze("hk3_pump", 1);
-        this._demoSetze("hk4_pump", 0);
+        this._demoSetze("TOP8", 42);
+        this._demoSetze("TOP62", 640);
+        this._demoSetze("TOP63", 620);
+        this._demoSetze("TOP65", 2400);
+        this._demoSetze("TOP1", 18.6);
+        this._demoSetze("EXT1", 1240);
+        this._demoSetze("TOP124", 1);
+        this._demoSetze("TOP123", 0);
+        this._demoSetze("EXT205", 1);
+        this._demoSetze("EXT208", 0);
       }
       this._syncDemo();
     });
 
     this.shadowRoot.getElementById("demo-ventil").addEventListener("click", () => {
-      this._demoSetze("three_way_valve", this._demoLies("three_way_valve") === "1" ? 0 : 1);
+      this._demoSetze("TOP20", this._demoLies("TOP20") === "1" ? 0 : 1);
       this._syncDemo();
     });
 
     this.shadowRoot.getElementById("demo-sg").addEventListener("click", () => {
-      const k1 = this._demoLies("sg_k1") === "on";
-      const k2 = this._demoLies("sg_k2") === "on";
+      const k1 = this._demoLies("EXT100") === "on";
+      const k2 = this._demoLies("EXT101") === "on";
       const folge = [[false, false], [true, false], [false, true], [true, true]];
       const jetzt = folge.findIndex((f) => f[0] === k1 && f[1] === k2);
       const naechste = folge[(jetzt + 1) % folge.length];
-      this._demoSetze("sg_k1", naechste[0] ? "on" : "off");
-      this._demoSetze("sg_k2", naechste[1] ? "on" : "off");
+      this._demoSetze("EXT100", naechste[0] ? "on" : "off");
+      this._demoSetze("EXT101", naechste[1] ? "on" : "off");
       this._syncDemo();
     });
 
     this.shadowRoot.getElementById("demo-stoerung").addEventListener("click", () => {
-      this._demoSetze("error", this._demoLies("error") === "0" ? "H76" : "0");
+      this._demoSetze("TOP44", this._demoLies("TOP44") === "0" ? "H76" : "0");
       this._syncDemo();
     });
 
@@ -304,8 +301,8 @@ export const demoKarte = {
   /** Haelt die Bedienleiste des Demomodus auf Stand. */
   _syncDemo() {
     if (!this._config.demo || !this._demo) return;
-    const felder = ["pv_power","outside_temp","flow_temp","return_temp","buffer_temp","dhw_temp",
-                    "hk1_water","hk2_water","compressor","pump_flow"];
+    const felder = ["EXT3","TOP14","TOP6","TOP5","TOP46","TOP10",
+                    "TOP36","TOP37","TOP8","TOP1"];
     felder.forEach((feld) => {
       // Die Regler tragen keine id, sondern data-feld. Ebenso die Anzeige.
       const el = this.shadowRoot.querySelector(`input[data-feld="${feld}"]`);
@@ -314,8 +311,8 @@ export const demoKarte = {
       if (el && el.value !== wert) el.value = wert;
       if (anzeige) anzeige.textContent = wert;
     });
-    const schalter = ["power_state","hk1_pump","hk2_pump","heater_internal",
-                      "defrost","circulation_pump","dhw_force_state","sterilization_state"];
+    const schalter = ["SET1","TOP124","TOP123","TOP60",
+                      "TOP26","EXT400","TOP2","TOP69"];
     schalter.forEach((feld, i) => {
       const el = this.shadowRoot.getElementById(`demo-s${i}`);
       if (!el) return;

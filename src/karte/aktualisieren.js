@@ -2,15 +2,17 @@
  * Aktualisiert Werte, Farben und Animationen bei jeder Aenderung.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { animationAn, attr, clamp, fmt, isOn, loadColor, numState, rawState, schreibAttr, schreibStil, schreibText, thermalColor, verdichterWert, warmwasserZustand } from "../hilfsfunktionen.js";
-import { BUBBLE_COUNT, COMP_MAX_HZ, COMP_MIN_HZ, DRUCK_MAX, DRUCK_MIN, MODE_LABELS, NEUTRAL, PUMP_SECONDS, SG_STATES, VALVE_LABELS } from "../konstanten.js";
+import { abtauZustand, animationAn, attr, clamp, drehzahlWert, fmt, inLiterJeMinute, isOn, loadColor, numState, rawState, schreibAttr, schreibStil, schreibText, thermalColor, verdichterWert, warmwasserZustand } from "../hilfsfunktionen.js";
+import { BUBBLE_COUNT, COMP_MAX_HZ, COMP_MIN_HZ, DRUCK_MAX, DRUCK_MIN, LUEFTER_UPM_JE_PROZENT, MODE_LABELS, NEUTRAL, PUMP_SECONDS, SG_STATES, VALVE_LABELS } from "../konstanten.js";
 import { tf, wertText } from "../texte.js";
 import { inKwh, inWatt } from "./netzstrom.js";
+import { HK, QUELLE } from "../namen.js";
+import { AUTO_PROFIL, bereitFuer, profileFehler, profilKennung } from "../profile.js";
 
 export const aktualisierenKarte = {
   _sgMode() {
-    const k1 = this._e("sg_k1");
-    const k2 = this._e("sg_k2");
+    const k1 = this._e("EXT100");
+    const k2 = this._e("EXT101");
     if (!k1 || !k2) return null;
     const unklar = [null, "unknown", "unavailable", ""];
     if (unklar.includes(rawState(this._quelle, k1))) return null;
@@ -62,9 +64,9 @@ export const aktualisierenKarte = {
    * "Nur Warmwasser".
    */
   _ladtWarmwasser(hass) {
-    const v = warmwasserZustand(rawState(hass, this._e("three_way_valve")));
+    const v = warmwasserZustand(rawState(hass, this._e("TOP20")));
     if (v !== null) return v;
-    return numState(hass, this._e("operating_mode")) === 3;
+    return numState(hass, this._e("TOP4")) === 3;
   },
 
   /* -------------------- Aktualisierung -------------------- */
@@ -121,23 +123,28 @@ export const aktualisierenKarte = {
 
     /* Sichtbarer Hinweis, wenn ueberhaupt keine Entitaet gefunden wurde.
        Sonst zeigt die Karte nur Striche und man sucht an der falschen Stelle. */
-    const pflicht = ["outside_temp", "compressor", "flow_temp", "return_temp",
-                     "buffer_temp", "dhw_temp"];
+    const pflicht = ["TOP14", "TOP8", "TOP6", "TOP5", "TOP46", "TOP10"];
     const gefunden = pflicht.filter((k) => {
       const id = this._e(k);
       return id && hass.states[id] !== undefined;
     }).length;
     const hinweis = this._animEl("hinweis");
     if (hinweis) {
-      hinweis.hidden = gefunden > 0 || this._config.demo === true;
-      if (gefunden === 0) {
-        hinweis.textContent =
-          this._t("s_keine_ent");
+      // Solange die Profile laden, gibt es noch keinen Hinweis.
+      const laedt = !bereitFuer(this._config);
+      hinweis.hidden = gefunden > 0 || this._config.demo === true || laedt;
+      if (gefunden === 0 && !laedt) {
+        // Bei "auto" ohne passendes Profil fragt die Karte nach einem Profil.
+        // Konnten die Profile nicht laden, sagt sie das.
+        const ohneVariante = !this._variante();
+        const auto = profilKennung(this._config) === AUTO_PROFIL;
+        const text = ohneVariante && profileFehler(this._config) ? "s_profile_fehler" : ohneVariante && auto ? "s_kein_profil" : "s_keine_ent";
+        hinweis.textContent = this._t(text);
       }
     }
 
     /* Störung */
-    const err = rawState(hass, this._e("error"));
+    const err = rawState(hass, this._e("TOP44"));
     const harmlos = [null, "", "OK", "ok", "0", "No error", "unknown", "unavailable"];
     const stoerung = err !== null && !harmlos.includes(err);
     const alertEl = this._animEl("alert");
@@ -147,7 +154,7 @@ export const aktualisierenKarte = {
     }
 
     /* Außenfühler */
-    const outside = numState(hass, this._e("outside_temp"));
+    const outside = numState(hass, this._e("TOP14"));
     const oMin = Number(this._config.outdoor_min);
     const oMax = Number(this._config.outdoor_max);
     const outColor = thermalColor(outside, oMin, oMax);
@@ -156,7 +163,7 @@ export const aktualisierenKarte = {
     if (aussenEl) schreibStil(aussenEl, "fill", outColor);
 
     /* Außengerät */
-    const vd = verdichterWert(hass, this._e("compressor"));
+    const vd = verdichterWert(hass, this._e("TOP8"), this._einheit("TOP8", "Hz", hass));
     const comp = vd.wert;
     let compText = "--";
     if (comp !== null) {
@@ -183,14 +190,20 @@ export const aktualisierenKarte = {
         if (roh === null || roh === "unknown" || roh === "unavailable") return null;
         return isOn(hass, id);
       };
-      const ausTopic = ausStatus("heatpump_state");
-      return ausTopic !== null ? ausTopic : ausStatus("power_state");
+      const ausTopic = ausStatus("TOP0");
+      return ausTopic !== null ? ausTopic : ausStatus("SET1");
     })();
     const laeuft = anAus !== false;
 
-    this._spin("fan1", numState(hass, this._e("fan1_rpm")), "fan1-rpm", this._t("r_upm"), 0, laeuft);
+    // Drehzahl in U/min oder, je nach Integration, in Prozent (EMS-ESP).
+    // Bei Prozent steht % am Wert, die Bewegung rechnet LUEFTER_UPM_JE_PROZENT.
+    const luefter = (rotor, feld, label) => {
+      const d = drehzahlWert(hass, this._e(feld), this._einheit(feld, "", hass));
+      this._spin(rotor, d.wert, label, d.prozent ? "%" : this._t("r_upm"), 0, laeuft, d.prozent ? LUEFTER_UPM_JE_PROZENT : 1);
+    };
+    luefter("fan1", "TOP62", "fan1-rpm");
     if (this._config.fan_count === 2) {
-      this._spin("fan2", numState(hass, this._e("fan2_rpm")), "fan2-rpm", this._t("r_upm"), 0, laeuft);
+      luefter("fan2", "TOP63", "fan2-rpm");
     }
     const glow = this._animEl("unit-glow");
     if (glow) {
@@ -215,7 +228,7 @@ export const aktualisierenKarte = {
     /* SG Ready */
     const sgGroup = this._animEl("sg-group");
     if (sgGroup) {
-      const konfiguriert = Boolean(this._e("sg_k1")) && Boolean(this._e("sg_k2"));
+      const konfiguriert = Boolean(this._e("EXT100")) && Boolean(this._e("EXT101"));
       schreibAttr(sgGroup, "opacity", konfiguriert ? "1" : "0");
       if (konfiguriert) {
         const sg = this._sgMode();
@@ -246,11 +259,11 @@ export const aktualisierenKarte = {
 
     /* Stromverbrauch, nur sichtbar wenn ein Wert vorliegt */
     // Einheit der Entitaet beachten: Leistung in W oder kW, Energie in Wh, kWh oder MWh.
-    const einheit = (k) => attr(hass, this._e(k), "unit_of_measurement", "");
-    const leistungRoh = numState(hass, this._e("power_now"));
-    const leistung = leistungRoh === null ? null : inWatt(leistungRoh, einheit("power_now"));
-    const energieRoh = numState(hass, this._e("energy_today"));
-    const energie = energieRoh === null ? null : inKwh(energieRoh, einheit("energy_today"));
+    const einheit = (k) => this._einheit(k, "", hass);
+    const leistungRoh = numState(hass, this._e("EXT1"));
+    const leistung = leistungRoh === null ? null : inWatt(leistungRoh, einheit("EXT1"));
+    const energieRoh = numState(hass, this._e("EXT2"));
+    const energie = energieRoh === null ? null : inKwh(energieRoh, einheit("EXT2"));
     zeige("verbrauch-group", leistung !== null || energie !== null);
     set("power-now-v", leistung === null ? "--" : `${fmt(leistung / 1000, 2)} kW`);
     // Tagesverbrauch, sofern der Stand von Mitternacht bekannt ist.
@@ -282,7 +295,7 @@ export const aktualisierenKarte = {
     );
 
     /* Zirkulationspumpe */
-    const zirkId = this._e("circulation_pump");
+    const zirkId = this._e("EXT400");
     const zirkAn = isOn(hass, zirkId) === true;
     zeige("zirkulation-group", this._zeigtZirkulation(hass));
     set("zirk-v", !zirkId ? "--" : wertText(zirkAn ? "läuft" : "aus", this._sp()));
@@ -313,10 +326,10 @@ export const aktualisierenKarte = {
     this._zeigeNetz();
 
     /* Temperaturen und Leitungsfarben */
-    const flow = numState(hass, this._e("flow_temp"));
-    const ret = numState(hass, this._e("return_temp"));
-    const buf = numState(hass, this._e("buffer_temp"));
-    const dhw = numState(hass, this._e("dhw_temp"));
+    const flow = numState(hass, this._e("TOP6"));
+    const ret = numState(hass, this._e("TOP5"));
+    const buf = numState(hass, this._e("TOP46"));
+    const dhw = numState(hass, this._e("TOP10"));
 
     // Beide Temperaturen zusaetzlich als Zahl im Gehaeuse, thermisch gefaerbt.
     set("unit-flow-v", flow === null ? "--" : `${fmt(flow)} °C`);
@@ -334,7 +347,7 @@ export const aktualisierenKarte = {
     // Waehrend der Warmwasserladung gilt TOP7 dem Speicher und springt
     // auf dessen Ladetemperatur. Dann bleibt das zuletzt gueltige
     // Pufferziel stehen, statt eines falschen Wertes oder eines Hinweises.
-    let wpSoll = numState(hass, this._e("buffer_target"));
+    let wpSoll = numState(hass, this._e("TOP7"));
     if (wwLaeuft) {
       wpSoll = this._letztesPufferZiel !== undefined ? this._letztesPufferZiel : null;
     } else if (wpSoll !== null) {
@@ -343,33 +356,33 @@ export const aktualisierenKarte = {
     // Panasonic: Pufferziel = hoechstes Soll der aktiven Heizkreise plus
     // Puffer-Delta-T (TOP113, 0 bis 10 K). Die Waermepumpe selbst faehrt
     // auf TOP7. Ohne TOP113 zeigt "Ziel" wie bisher den zugeordneten Wert.
-    const bDelta = numState(hass, this._e("buffer_delta"));
+    const bDelta = numState(hass, this._e("TOP113"));
     const kreisSoll = this._kreisSoll(hass);
     const pufferZiel = bDelta !== null && kreisSoll !== null ? kreisSoll + bDelta : bDelta === null ? wpSoll : null;
     set("buf-sp", pufferZiel === null ? "" : tf(this._t("s_ziel"), { v: fmt(pufferZiel, 0) }));
     set("buf-delta", bDelta === null || wpSoll === null ? "" : tf(this._t("s_wp_soll"), { v: fmt(wpSoll, 0) }));
     // Der COP steht hinter der Tuer. Abgefragt wird er hier, damit der
     // Wert seit Mitternacht geladen ist, wenn die Tuer aufgeht.
-    this._cop(hass, "cop_heating");
+    this._cop(hass, "EXT600");
     // TOP58 und TOP59 sind nur die Freigabe. Ob ein Heizstab heizt,
     // melden TOP60 (intern) und TOP61 (extern). Das Abzeichen erscheint
     // in dem Speicher, auf den das Dreiwegeventil gerade stellt.
     const heizstabLaeuft =
-      isOn(hass, this._e("heater_internal")) === true ||
-      isOn(hass, this._e("heater_external")) === true;
+      isOn(hass, this._e("TOP60")) === true ||
+      isOn(hass, this._e("TOP61")) === true;
     abzeichen("roomheater-badge", heizstabLaeuft && !wwLaeuft);
 
-    const dhwSp = numState(hass, this._e("dhw_setpoint"));
+    const dhwSp = numState(hass, this._e("TOP9"));
     paint("dhw-top", col(dhw));
     paint("dhw-bottom", col(dhw === null ? null : dhw - 6));
     set("dhw-v", dhw === null ? "--" : `${fmt(dhw)} °C`);
     set("dhw-sp", dhwSp === null ? "" : tf(this._t("s_ziel"), { v: fmt(dhwSp, 0) }));
-    this._cop(hass, "cop_dhw");
+    this._cop(hass, "EXT601");
     this._tuerCopAuffrischen();
     // TOP22 ist negativ und sagt, wie weit das Warmwasser unter den
     // Sollwert fallen darf. Angezeigt wird daraus die Temperatur, ab
     // der nachgeladen wird, das ist die eigentlich nuetzliche Angabe.
-    const wDelta = numState(hass, this._e("dhw_heat_delta"));
+    const wDelta = numState(hass, this._e("TOP22"));
     set(
       "dhw-delta",
       wDelta === null || dhwSp === null
@@ -389,13 +402,17 @@ export const aktualisierenKarte = {
     this._speicherZeilen("buf");
     this._speicherZeilen("dhw");
     // TOP2 meldet das einmalige Aufheizen, TOP69 den Legionellenschutz.
-    abzeichen("dhwforce-badge", isOn(hass, this._e("dhw_force_state")) === true);
-    abzeichen("sterilization-badge", isOn(hass, this._e("sterilization_state")) === true);
+    abzeichen("dhwforce-badge", isOn(hass, this._e("TOP2")) === true);
+    abzeichen("sterilization-badge", isOn(hass, this._e("TOP69")) === true);
 
     /* Primärpumpe und Durchfluss */
-    const pumpRpm = numState(hass, this._e("pump_speed"));
-    const flowRate = numState(hass, this._e("pump_flow"));
-    this._spin("pump-rotor", pumpRpm, "pump-v", this._t("r_upm"), PUMP_SECONDS, laeuft);
+    // Pumpe in U/min oder Prozent (EMS-ESP hpcircspd), Durchfluss in l/min
+    // nach der Einheit der Entitaet (EMS-ESP pc0flow meldet l/h).
+    const pumpe = drehzahlWert(hass, this._e("TOP65"), this._einheit("TOP65", "", hass));
+    const pumpRpm = pumpe.wert;
+    const flowId = this._e("TOP1");
+    const flowRate = inLiterJeMinute(numState(hass, flowId), this._einheit("TOP1", "", hass));
+    this._spin("pump-rotor", pumpRpm, "pump-v", pumpe.prozent ? "%" : this._t("r_upm"), PUMP_SECONDS, laeuft);
     this._blattFarbe("pump-blade", col(flow), laeuft && pumpRpm !== null && pumpRpm > 0);
     set("flow-v", flowRate === null ? "--" : `${fmt(flowRate)} l/min`);
     // Ist der Rohrinnendurchmesser bekannt, laesst sich aus dem
@@ -426,7 +443,7 @@ export const aktualisierenKarte = {
     }
 
     /* Wasserdruck, nur bei vorhandenem Wert */
-    const bar = numState(hass, this._e("water_pressure"));
+    const bar = numState(hass, this._e("TOP115"));
     zeige("press-group", bar !== null);
     if (bar !== null) {
       set("press-v", `${fmt(bar)} bar`);
@@ -459,7 +476,7 @@ export const aktualisierenKarte = {
     }
 
     /* Dreiwegeventil, Klartext statt Room und DHW */
-    const valveEntity = this._e("three_way_valve");
+    const valveEntity = this._e("TOP20");
     const valveRoh = attr(hass, valveEntity, "beschreibung", null);
     // Bekannt ist das Ventil, wenn sein Zustand als Zahl, an/aus oder
     // Text gedeutet werden kann. Manche Integrationen melden nur Text.
@@ -470,8 +487,9 @@ export const aktualisierenKarte = {
     // Stichleitungen gleichzeitig.
     const zuWarmwasser = this._ladtWarmwasser(hass);
     /* Zustandssymbole oben rechts in der Waermepumpe */
-    const abtaut = isOn(hass, this._e("defrost")) === true;
-    const art = numState(hass, this._e("operating_mode"));
+    // Auch als Text, eigene Texte einer Integration setzt das Profil um.
+    const abtaut = abtauZustand(rawState(hass, this._e("TOP26"))) === true;
+    const art = numState(hass, this._e("TOP4"));
     // Welche Betriebsart welche Zustaende umfasst, nach TOP4.
     // Ohne bekannte Betriebsart gelten Heizen und Warmwasser als moeglich.
     const umfasst = {
@@ -548,15 +566,15 @@ export const aktualisierenKarte = {
     /* Welche Kreise sind ueberhaupt aktiviert?
        TOP94 kennt drei Zustaende, TOP99 und TOP100 je zwei.
        Ist nichts zugeordnet, wird nichts abgeblendet. */
-    const zonen = numState(hass, this._e("zones_state"));
+    const zonen = numState(hass, this._e("TOP94"));
     const zone1 = zonen === null ? true : zonen === 0 || zonen === 2;
     const zone2 = zonen === null ? true : zonen === 1 || zonen === 2;
     const pufferDa = (() => {
-      const v = numState(hass, this._e("buffer_installed"));
+      const v = numState(hass, this._e("TOP99"));
       return v === null ? true : v > 0;
     })();
     const wasserDa = (() => {
-      const v = numState(hass, this._e("dhw_installed"));
+      const v = numState(hass, this._e("TOP100"));
       return v === null ? true : v > 0;
     })();
     const blende = (id, aktiv) => {
@@ -683,14 +701,14 @@ export const aktualisierenKarte = {
     let laedt = false;
     ["kamin", "solar"].forEach((art) => {
       if (!this._animEl(`${art}-group`)) return;
-      const temp = numState(hass, this._e(`${art}_temp`));
-      const pumpe = isOn(hass, this._e(`${art}_pump`)) === true;
+      const temp = numState(hass, this._e(QUELLE[art].temp));
+      const pumpe = isOn(hass, this._e(QUELLE[art].pumpe)) === true;
       const tEl = this._animEl(`${art}-v`);
       if (tEl) schreibText(tEl, temp === null ? "--" : `${fmt(temp, 1)} °C`);
       const pEl = this._animEl(`${art}-pump-v`);
       if (pEl) {
         // Wie bei den Heizkreisen nur der Zustand, direkt an der Pumpe.
-        schreibText(pEl, this._e(`${art}_pump`) ? wertText(pumpe ? "läuft" : "aus", this._sp()) : "");
+        schreibText(pEl, this._e(QUELLE[art].pumpe) ? wertText(pumpe ? "läuft" : "aus", this._sp()) : "");
       }
       // Feuer im Kamin und Sonne ueber der Solarthermie haengen an der
       // Temperatur, ab der eingestellten Grenze.
@@ -751,8 +769,8 @@ export const aktualisierenKarte = {
 
   _circuitUpdate(n, col, animate, buf, laeuft) {
     const hass = this._quelle;
-    const water = numState(hass, this._e(`hk${n}_water`));
-    const pumpOn = isOn(hass, this._e(`hk${n}_pump`)) === true;
+    const water = numState(hass, this._e(HK[n].wasser));
+    const pumpOn = isOn(hass, this._e(HK[n].pumpe)) === true;
 
     const set = (id, text) => {
       const el = this._animEl(id);
@@ -794,7 +812,7 @@ export const aktualisierenKarte = {
     // Pumpe. Ohne Puffer nur, wenn die Waermepumpe heizt und der Kreis
     // offen ist. Ist keine Kreispumpe zugeordnet, gilt er als offen.
     const d = this._direkt;
-    const kreisOffen = pumpOn || !this._e(`hk${n}_pump`);
+    const kreisOffen = pumpOn || !this._e(HK[n].pumpe);
     const fluss = d ? d.heizt && kreisOffen : laeuft && pumpOn;
     [`dots-hk${n}`, `dots-hk${n}b`].forEach((id, i) => {
       const el = this._animEl(id);
@@ -834,7 +852,7 @@ export const aktualisierenKarte = {
    * passt zu den Lueftern. Pumpen bekommen eine feste, ruhige Dauer,
    * denn dort soll nur erkennbar sein, dass sie ueberhaupt foerdern.
    */
-  _spin(rotorId, rpm, labelId, unit, festeDauer, erlaubt) {
+  _spin(rotorId, rpm, labelId, unit, festeDauer, erlaubt, jeEinheit = 1) {
     const label = this.shadowRoot.getElementById(labelId);
     if (label) schreibText(label, rpm === null ? "--" : `${fmt(rpm, 0)} ${unit}`);
     const el = this.shadowRoot.getElementById(rotorId);
@@ -846,7 +864,8 @@ export const aktualisierenKarte = {
       return;
     }
     el.classList.remove("is-still");
-    const duration = festeDauer ? festeDauer : clamp(900 / rpm, 0.25, 6);
+    // jeEinheit rechnet einen Wert in Prozent in U/min um (Luefter).
+    const duration = festeDauer ? festeDauer : clamp(900 / (rpm * jeEinheit), 0.25, 6);
     // Nur die Dauer anpassen. Der erreichte Winkel bleibt erhalten,
     // damit der Rotor bei einer neuen Drehzahl weiterdreht statt zu springen.
     const vorhanden = this._animState.get(rotorId);

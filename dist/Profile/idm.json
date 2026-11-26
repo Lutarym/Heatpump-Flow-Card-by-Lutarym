@@ -1,0 +1,44 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "idm",
+  "name": "iDM",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "idm_heatpump",
+      "name": "IDM Heatpump",
+      "geraete": [
+        {
+          "hersteller": ["iDM"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "Xerolux",
+        "adresse": "https://github.com/Xerolux/idm-heatpump-hass",
+        "version": "0.28.7",
+        "aktualisiert": "2026-11-24",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "idm_heatpump",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["heat_sink_flow_rate"],
+        "TOP5": ["hp_return_temp"],
+        "TOP6": ["hp_flow_temp"],
+        "TOP10": ["dhw_temp"],
+        "TOP14": ["outdoor_temp"],
+        "TOP20": ["valve_heat_dhw"],
+        "TOP47": ["solar_collector_temp"],
+        "EXT1": ["power_consumption_hp"],
+        "EXT400": ["circulation_pump"]
+      }
+    }
+  ]
+}

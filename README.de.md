@@ -14,7 +14,7 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 - Heizkurve für Heizkreis 1 und 2 in einem eigenen Fenster, mit Skala, Betriebspunkt und einstellbaren Eckwerten
 - Tür in der Wärmepumpe: Der Knopf unten rechts klappt die Front wie eine Tür nach links auf, dahinter liegen erweiterte Einstellungen (Urlaub, Wochenprogramm, Smart DHW, Heizgrenzen, Spreizung, Legionellenschutz, Pumpe, Leisemodus, COP von heute für Heizen und Warmwasser (Wärme durch Strom seit Mitternacht), Jahresarbeitszahl (JAZ) für Heizen, Warmwasser und gesamt seit 1. Januar, mit Wärme und Strom in kWh, aus den HeishaMon-Werten, Betriebsstunden und Starts); Änderungen werden mit „Übernehmen“ gesendet und die Tür schließt sich
 - Hilfefenster („?“ unten rechts): verständliche Erklärung aller Werte und Befehle, die HeishaMon lesen und schreiben kann, mit Suche und Gruppen; zu jedem TOP-Wert die vollständige Entität, per Klick kopierbar
-- Herstellerprofile für 35 Integrationen von 24 Herstellern (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant und weitere), automatisch erkannt; werden mehrere gefunden, fragt der Editor, welche gelten soll. Außer HeishaMon by Lutarym sind sie ungetestet. Geräteprofile lassen sich außerdem exportieren, anpassen und importieren; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md)
+- Geräteprofile für 35 Integrationen von 24 Herstellern (Viessmann, NIBE, Daikin, Luxtronik, Stiebel Eltron, Vaillant und weitere) als Dateien im Ordner `dist/Profile`, eine Datei je Hersteller mit einer Variante je Integration. Die Karte erkennt die passende Variante selbst; werden mehrere gefunden, fragt der Editor, welche gelten soll, passt keine, fragt er nach einem bestimmten Profil. Außer HeishaMon by Lutarym und HeishaMon (MQTT) sind sie ungetestet. Profile lassen sich exportieren, anpassen, importieren und auf GitHub suchen; siehe [Anleitung Geräteprofile](docs/GERAETEPROFIL.de.md) und [Namensliste](docs/NAMENSLISTE.de.md)
 - Sprachpakete: eine Sprache als Datei exportieren, selbst übersetzen oder anpassen und wieder importieren; siehe [Anleitung Sprachpakete](docs/SPRACHPAKET.de.md)
 - Verbrauchsverlauf der letzten 24 Stunden, gefärbt nach Heizung, Warmwasser und Standby, darunter der SG-Ready-Verlauf
 - Anlagen ohne Heizungspuffer, automatisch erkannt über TOP99 oder fest einstellbar
@@ -41,14 +41,14 @@ Animierte Lovelace-Karte für Home Assistant, die eine Panasonic-Aquarea-Wärmep
 
 ### Manuell
 
-1. `heatpump-flow-card-by-lutarym.js` und `heatpump-flow-card-by-lutarym-hilfe.js` aus dem Ordner `dist` des neuesten Release herunterladen
-2. Beide nach `<config>/www/community/heatpump-flow-card-by-lutarym/` kopieren. Die zweite Datei enthält die Hilfe und wird nur bei Bedarf geladen; als Ressource eingetragen wird nur die erste.
+1. `heatpump-flow-card-by-lutarym.js`, `heatpump-flow-card-by-lutarym-hilfe.js` und den Ordner `Profile` aus dem Ordner `dist` des neuesten Release herunterladen
+2. Alles nach `<config>/www/community/heatpump-flow-card-by-lutarym/` kopieren, den Ordner `Profile` als Unterordner. Die zweite Datei enthält die Hilfe und wird nur bei Bedarf geladen, der Ordner `Profile` die Geräteprofile; als Ressource eingetragen wird nur die erste Datei.
 3. Einstellungen, Dashboards, Menü mit den drei Punkten, Ressourcen, Ressource hinzufügen
 4. URL `/local/community/heatpump-flow-card-by-lutarym/heatpump-flow-card-by-lutarym.js`, Typ **JavaScript-Modul**
 
 ## Konfiguration
 
-Am einfachsten über den grafischen Editor: Karte hinzufügen und **Aus Integration übernehmen** drücken. Die Karte erkennt die Entitäten von HeishaMon by Lutarym selbst. Nicht gefundene Entitäten lassen sich von Hand zuordnen.
+Am einfachsten über den grafischen Editor: Karte hinzufügen und **Aus Integration übernehmen** drücken. Die Karte erkennt die Entitäten über die Geräteprofile selbst, zum Beispiel bei HeishaMon by Lutarym. Passt kein Profil, fragt der Editor nach einem bestimmten Profil. Nicht gefundene Entitäten lassen sich von Hand zuordnen.
 
 ### Beispiel in YAML
 
@@ -58,18 +58,20 @@ layout: quer
 hk_count: 2
 language: auto
 entities:
-  outside_temp: sensor.heishamon_top14
-  flow_temp: sensor.heishamon_top6
-  return_temp: sensor.heishamon_top5
-  compressor: sensor.heishamon_top8
-  three_way_valve: sensor.heishamon_top20
-  buffer_temp: sensor.heishamon_top46
-  dhw_temp: sensor.heishamon_top10
-  hk1_water: sensor.heishamon_top36
-  hk1_water_target: sensor.heishamon_top42
+  TOP14: sensor.heishamon_top14
+  TOP6: sensor.heishamon_top6
+  TOP5: sensor.heishamon_top5
+  TOP8: sensor.heishamon_top8
+  TOP20: sensor.heishamon_top20
+  TOP46: sensor.heishamon_top46
+  TOP10: sensor.heishamon_top10
+  TOP36: sensor.heishamon_top36
+  TOP42: sensor.heishamon_top42
 ```
 
 Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können anders heißen, der Editor ordnet sie selbst zu.
+
+Die Schlüssel sind ab 6.0.0 die Namen der [Namensliste](docs/NAMENSLISTE.de.md). Frühere Feldnamen wie `outside_temp` gelten weiter, die Karte stellt sie selbst um.
 
 ### Optionen
 
@@ -79,7 +81,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `hk_count` | `2` | Anzahl der Heizkreise, 1 bis 4. HK3 und HK4 brauchen eigene Entitäten, die Aquarea regelt nur zwei Zonen |
 | `fan_count` | `2` | Anzahl der Lüfter, 1 oder 2 |
 | `language` | `auto` | `auto`, `de`, `en`, `fr` oder `ja` |
-| `profil` | `auto` | `auto` erkennt die Integration selbst, sonst die Kennung eines Profils wie `heishamon_lutarym`, `heishamon` (MQTT-Namensschema), `vicare`, `luxtronik2`; Liste in der [Anleitung](docs/GERAETEPROFIL.de.md) |
+| `profil` | `auto` | `auto` erkennt die passende Variante selbst, `keins` ohne Profil (nur eingetragene Entitäten), sonst die Kennung einer Variante wie `heishamon_lutarym`, `heishamon` (HeishaMon über MQTT), `vicare`, `luxtronik2`; Liste in der [Anleitung](docs/GERAETEPROFIL.de.md) |
 | `buffer_present` | `auto` | Heizungspuffer: `auto` aus TOP99, `true` oder `false` |
 | `cop_reference` | leer | Datenblatt für den COP-Vergleich: `panasonic_tcap_m_12` (Panasonic Aquarea T-CAP M 12 kW, WH-WXG12ME5/ME8). Nur damit färbt der Reiter COP jeden Lauf: grün ab 92 % des Datenblatts (Toleranz −8 %, HP KEYMARK), gelb darunter, außerhalb der Prüfpunkte nur geschätzt, als Schätzung gekennzeichnet und blass gezeichnet. Leer: COP ohne Bewertung |
 | `dhw_usable_temp` | leer | Speichertemperatur in °C, unter der das Warmwasser als nicht mehr nutzbar gilt. Für die Haltezeit im Fenster „Warmwasser beobachten“ (Knopf im Fenster der Wärmepumpe). Leer: Spalte ohne Wert |
@@ -88,8 +90,8 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `hp_capacity_kw` | leer | Heizleistung der Wärmepumpe in kW laut Datenblatt, bei Norm-Außentemperatur und deiner Vorlauftemperatur; fehlt er, der Wert bei −7 °C. Gilt als gleichbleibend |
 | `hp_capacity_ref` | leer | Wofür `hp_capacity_kw` gilt: leer = Norm-Außentemperatur, `a7` = −7 °C (Herstellerangabe). Der Analysepunkt „Heizleistung, Auslegung“ nutzt den Leistungsanteil (Heizleistung / Norm-Heizlast) aus dem BWP-Leitfaden: unter 50 % (mit dem Wert bei −7 °C unter 70 %) ein Hinweis „zu klein“ mit den fehlenden kW, darüber „in Ordnung“ ohne Hinweis |
 | `heater_share_max` | leer | Deine Vorgabe: höchstens dieser Anteil der Heizwärme im Jahr in % vom Heizstab. Der Analysepunkt „Heizleistung, Auslegung“ zeigt dann einen Hinweis mit den fehlenden kW. Leer: Anteil ohne Bewertung |
-| `hk1_room_target` | leer | Wunsch-Raumtemperatur von HK1 in °C. Die Analyse (Reiter Heizkurve) vergleicht sie mit dem Raumfühler `hk1_room_temp`: innerhalb von ±0,5 K in Ordnung (eigene Festlegung: Schrittweite der Eingabe), sonst leichte Abweichung mit dem Vorgehen nach EnergieSchweiz |
-| `hk2_room_target` | leer | Wie `hk1_room_target`, für HK2 und `hk2_room_temp` |
+| `hk1_room_target` | leer | Wunsch-Raumtemperatur von HK1 in °C. Die Analyse (Reiter Heizkurve) vergleicht sie mit dem Raumfühler `EXT201`: innerhalb von ±0,5 K in Ordnung (eigene Festlegung: Schrittweite der Eingabe), sonst leichte Abweichung mit dem Vorgehen nach EnergieSchweiz |
+| `hk2_room_target` | leer | Wie `hk1_room_target`, für HK2 und `EXT203` |
 | `circulation_present` | `auto` | Zirkulation: `auto` sobald eine Entität zugeordnet ist, `true` oder `false` |
 | `show_history` | `knopf` | Diagramme: `knopf` sechs Knöpfe oben rechts öffnen Verbrauch, SG Ready, Temperaturen, COP, Taktung und Analyse im Fenster (dort zusätzlich der Reiter Abtauen), Zeitraum wählbar von 24 Stunden bis 1 Jahr, `true` Verbrauch dauerhaft in der Karte, `false` aus |
 | `show_target` | `true` | Zeile „Ziel …“ in Puffer und Warmwasser anzeigen |
@@ -97,7 +99,7 @@ Die Entitäts-IDs sind die Standardnamen der Karte. Deine Entitäten können and
 | `show_help` | `true` | Knopf „?“ für die Hilfe unten rechts in der Karte anzeigen; die Hilfe beschreibt HeishaMon und erscheint nur bei HeishaMon-Profilen und im Demomodus |
 | `show_door` | `true` | Knopf für die erweiterten Einstellungen unten rechts an der Wärmepumpe anzeigen |
 | `theme` | `auto` | Farbdarstellung: `auto` (folgt hell/dunkel von Home Assistant), `dunkel`, `hell`, `kontrast` (hoher Kontrast), `nacht` (gedimmt), `ha` (Farben des Home-Assistant-Designs) |
-| `profile_custom` | `[]` | Importierte Geräteprofile (setzt der Editor, siehe [Anleitung](docs/GERAETEPROFIL.de.md)) |
+| `profile_custom` | `[]` | Importierte und von GitHub geladene Geräteprofile (setzt der Editor, siehe [Anleitung](docs/GERAETEPROFIL.de.md)) |
 | `language_custom` | `[]` | Importierte Sprachpakete (setzt der Editor, siehe [Anleitung](docs/SPRACHPAKET.de.md)) |
 | `history_width` | `450` | Breite des Verbrauchsverlaufs, 250 bis 700 |
 | `history_style` | `takte` | Darstellung des Verbrauchs: `takte` (Ring und Taktband), `balken` (Balken je Stunde), `leuchten` (leuchtende Linie mit Taktmarken), `linie` (bisherige Linie) |
@@ -129,113 +131,113 @@ Alle Felder sind optional. Ein Feld ohne Entität wird auf der Karte ausgeblende
 | Schlüssel | Bedeutung | Hinweis |
 |---|---|---|
 | **Außenfühler** | | |
-| `outside_temp` | Außentemperatur | TOP14 |
+| `TOP14` | Außentemperatur | |
 | **Außengerät** | | |
-| `power_state` | Wärmepumpe Status, grüne LED | SetHeatpump oder TOP0 |
-| `compressor` | Verdichterdrehzahl | TOP8 |
-| `fan1_rpm` | Lüfter 1 Drehzahl | TOP62 |
-| `fan2_rpm` | Lüfter 2 Drehzahl | TOP63 |
-| `defrost` | Abtauung läuft | TOP26 |
-| `error` | Fehlercode | TOP44 |
-| `heatpump_state` | Betriebszustand | TOP0 |
-| `force_defrost` | Abtauen erzwingen | SetForceDefrost, switch |
-| `powerful_mode` | Turbomodus | SetPowerfulMode, select |
-| `quiet_mode` | Leisemodus | SetQuietMode, select |
-| `power_now` | Aktuelle Leistungsaufnahme | Shelly PM, Watt |
-| `energy_today` | Energiezähler | Shelly PM, kWh |
+| `SET1` | Wärmepumpe Status, grüne LED | SetHeatpump oder TOP0 |
+| `TOP8` | Verdichterdrehzahl | |
+| `TOP62` | Lüfter 1 Drehzahl | |
+| `TOP63` | Lüfter 2 Drehzahl | |
+| `TOP26` | Abtauung läuft | |
+| `TOP44` | Fehlercode | |
+| `TOP0` | Betriebszustand | |
+| `SET12` | Abtauen erzwingen | SetForceDefrost, switch |
+| `SET4` | Turbomodus | SetPowerfulMode, select |
+| `SET3` | Leisemodus | SetQuietMode, select |
+| `EXT1` | Aktuelle Leistungsaufnahme | Shelly PM, Watt |
+| `EXT2` | Energiezähler | Shelly PM, kWh |
 | **SG Ready** | | |
-| `pv_power` | PV Leistung aktuell | eigene Entität, Watt |
-| `grid_power` | Netzbezug | eigene Entität, Watt, positiv = Bezug. Mit `power_now` rechnet die Karte daraus „Netzstrom heute“, wenn HeishaMon by Lutarym (Option „Netzbezug-Sensor“) den Wert nicht liefert |
-| `sg_k1` | Kontakt K1 Sperre | Shelly, Relais oder Eingang |
-| `sg_k2` | Kontakt K2 Anlauf | Shelly, Relais oder Eingang |
+| `EXT3` | PV Leistung aktuell | eigene Entität, Watt |
+| `EXT4` | Netzbezug | eigene Entität, Watt, positiv = Bezug. Mit `EXT1` rechnet die Karte daraus „Netzstrom heute“, wenn HeishaMon by Lutarym (Option „Netzbezug-Sensor“) den Wert nicht liefert |
+| `EXT100` | Kontakt K1 Sperre | Shelly, Relais oder Eingang |
+| `EXT101` | Kontakt K2 Anlauf | Shelly, Relais oder Eingang |
 | **Primärkreis** | | |
-| `flow_temp` | Vorlauftemperatur | TOP6 |
-| `return_temp` | Rücklauftemperatur | TOP5 |
-| `pump_speed` | Primärpumpe Drehzahl | TOP65 |
-| `pump_flow` | Durchflussmenge | TOP1 |
-| `three_way_valve` | 3-Wege-Umschaltventil | TOP20 |
-| `water_pressure` | Wasserdruck | TOP115 |
-| `heater_internal` | Heizstab intern läuft | TOP60 |
-| `heater_external` | Heizstab extern läuft | TOP61 |
+| `TOP6` | Vorlauftemperatur | |
+| `TOP5` | Rücklauftemperatur | |
+| `TOP65` | Primärpumpe Drehzahl | |
+| `TOP1` | Durchflussmenge | |
+| `TOP20` | 3-Wege-Umschaltventil | |
+| `TOP115` | Wasserdruck | |
+| `TOP60` | Heizstab intern läuft | |
+| `TOP61` | Heizstab extern läuft | |
 | **Heizungspuffer** | | |
-| `buffer_temp` | Puffertemperatur | TOP46 |
-| `buffer_installed` | Puffer vorhanden | TOP99 |
-| `buffer_switch` | Pufferbetrieb ein und aus | SetBuffer, switch |
+| `TOP46` | Puffertemperatur | |
+| `TOP99` | Puffer vorhanden | |
+| `SET28` | Pufferbetrieb ein und aus | SetBuffer, switch |
 | **Heizkurve** | | |
-| `curve_t_high` | HK1 Heizkurve Vorlauf oben | TOP29 |
-| `curve_t_low` | HK1 Heizkurve Vorlauf unten | TOP30 |
-| `curve_o_high` | HK1 Heizkurve Außen oben | TOP31 |
-| `curve_o_low` | HK1 Heizkurve Außen unten | TOP32 |
-| `curve2_t_high` | HK2 Heizkurve Vorlauf oben | TOP82 |
-| `curve2_t_low` | HK2 Heizkurve Vorlauf unten | TOP83 |
-| `curve2_o_high` | HK2 Heizkurve Außen oben | TOP84 |
-| `curve2_o_low` | HK2 Heizkurve Außen unten | TOP85 |
+| `TOP29` | HK1 Heizkurve Vorlauf oben | |
+| `TOP30` | HK1 Heizkurve Vorlauf unten | |
+| `TOP31` | HK1 Heizkurve Außen oben | |
+| `TOP32` | HK1 Heizkurve Außen unten | |
+| `TOP82` | HK2 Heizkurve Vorlauf oben | |
+| `TOP83` | HK2 Heizkurve Vorlauf unten | |
+| `TOP84` | HK2 Heizkurve Außen oben | |
+| `TOP85` | HK2 Heizkurve Außen unten | |
 | **Heizungspuffer** | | |
-| `buffer_delta` | Puffer Überhöhung (ΔT) | TOP113, Pufferziel = Heizkreis-Soll + ΔT |
-| `buffer_target` | Vorlauf-Soll Wärmepumpe | TOP7 |
-| `cop_heating` | COP Heizen | HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt (sonst Wärme durch Strom aus TOP15/TOP16); Quelle in der Integration unter COP Quelle wählbar |
-| `room_heater` | Heizstab Heizung freigegeben | TOP59 |
-| `room_heater_switch` | Heizstab Heizung freigeben | SetRoomHeaterState, switch |
+| `TOP113` | Puffer Überhöhung (ΔT) | Pufferziel = Heizkreis-Soll + ΔT |
+| `TOP7` | Vorlauf-Soll Wärmepumpe | |
+| `EXT600` | COP Heizen | HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt (sonst Wärme durch Strom aus TOP15/TOP16); Quelle in der Integration unter COP Quelle wählbar |
+| `TOP59` | Heizstab Heizung freigegeben | |
+| `SET45` | Heizstab Heizung freigeben | SetRoomHeaterState, switch |
 | **Heizkreis 1** | | |
-| `zones_state` | Aktivierte Zonen | TOP94, gilt für beide |
-| `zones_select` | Zonen umschalten | SetZones, gilt für beide |
-| `hk1_water` | HK1 Wassertemperatur | TOP36 |
-| `hk1_water_target` | HK1 Wasser Sollwert | TOP42 |
-| `hk1_pump` | HK1 Pumpe läuft | TOP124 |
-| `hk1_setpoint` | HK1 Sollwert einstellbar | TOP27, number |
-| `hk1_switch` | HK1 ein und aus | eigener Schalter, optional |
-| `hk1_room_temp` | HK1 Raumtemperatur | Raumfühler, optional |
+| `TOP94` | Aktivierte Zonen | gilt für beide |
+| `SET17` | Zonen umschalten | SetZones, gilt für beide |
+| `TOP36` | HK1 Wassertemperatur | |
+| `TOP42` | HK1 Wasser Sollwert | |
+| `TOP124` | HK1 Pumpe läuft | |
+| `TOP27` | HK1 Sollwert einstellbar | number |
+| `EXT200` | HK1 ein und aus | eigener Schalter, optional |
+| `EXT201` | HK1 Raumtemperatur | Raumfühler, optional |
 | **Heizkreis 2** | | |
-| `hk2_water` | HK2 Wassertemperatur | TOP37 |
-| `hk2_water_target` | HK2 Wasser Sollwert | TOP43 |
-| `hk2_pump` | HK2 Pumpe läuft | TOP123 |
-| `hk2_setpoint` | HK2 Sollwert einstellbar | TOP34, number |
-| `hk2_switch` | HK2 ein und aus | eigener Schalter, optional |
-| `hk2_room_temp` | HK2 Raumtemperatur | Raumfühler, optional |
-| `hk3_water, hk4_water` | Wassertemperatur HK3, HK4 | eigene Entität, °C |
-| `hk3_pump, hk4_pump` | Pumpe HK3, HK4 läuft | eigener Schalter oder Sensor |
-| `hk3_switch, hk4_switch` | HK3, HK4 ein und aus | eigener Schalter, optional |
-| `kamin_temp` | Kamin Temperatur | eigene Entität, °C; Kamin allein: TOP47 |
-| `kamin_pump` | Kamin Pumpe läuft | eigener Schalter oder Sensor; Kamin allein: OPT5 |
-| `solar_temp` | Solarthermie Temperatur | TOP47 |
-| `solar_pump` | Solarthermie Pumpe läuft | OPT5 |
+| `TOP37` | HK2 Wassertemperatur | |
+| `TOP43` | HK2 Wasser Sollwert | |
+| `TOP123` | HK2 Pumpe läuft | |
+| `TOP34` | HK2 Sollwert einstellbar | number |
+| `EXT202` | HK2 ein und aus | eigener Schalter, optional |
+| `EXT203` | HK2 Raumtemperatur | Raumfühler, optional |
+| `EXT204, EXT207` | Wassertemperatur HK3, HK4 | eigene Entität, °C |
+| `EXT205, EXT208` | Pumpe HK3, HK4 läuft | eigener Schalter oder Sensor |
+| `EXT206, EXT209` | HK3, HK4 ein und aus | eigener Schalter, optional |
+| `EXT300` | Kamin Temperatur | eigene Entität, °C; Kamin allein: TOP47 |
+| `EXT301` | Kamin Pumpe läuft | eigener Schalter oder Sensor; Kamin allein: OPT5 |
+| `TOP47` | Solarthermie Temperatur | |
+| `OPT5` | Solarthermie Pumpe läuft | |
 | **Warmwasser** | | |
-| `dhw_installed` | Warmwasser vorhanden | TOP100 |
-| `dhw_temp` | Warmwasser Isttemperatur | TOP10 |
-| `dhw_heat_delta` | Warmwasser Hysterese | TOP22 |
-| `dhw_setpoint` | Warmwasser Sollwert | TOP9, number |
-| `cop_dhw` | COP Warmwasser | HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt (sonst Wärme durch Strom aus TOP40/TOP41); Quelle in der Integration unter COP Quelle wählbar |
-| `dhw_heater` | Heizstab Warmwasser freigegeben | TOP58 |
-| `dhw_force` | Einmalig aufheizen | SetForceDHW, switch |
-| `dhw_force_state` | Aufheizen läuft | TOP2 |
-| `force_sterilization` | Legionellenschutz starten | SetForceSterilization, switch |
-| `sterilization_state` | Legionellenschutz läuft | TOP69 |
-| `dhw_heater_switch` | Heizstab Warmwasser freigeben | SetDHWHeaterState, switch |
-| `circulation_pump` | Zirkulationspumpe läuft | Shelly oder eigener Schalter |
-| `circ_switch` | Zirkulation Schalter (klickbar) | Switch zum Ein/Ausschalten der Zirkulation |
-| `weather` | Wettervorhersage | weather, stündliche Vorhersage; leer: wie HeishaMon by Lutarym, sonst automatisch. Für die beste Ladezeit im Fenster „Warmwasser beobachten“ |
-| `dhw_warmest` | Warmwasser zur wärmsten Tageszeit | HeishaMon by Lutarym ab 1.4.0, switch. Knopf im Fenster der Wärmepumpe; trennt Tage mit und ohne Plan für den Reiter „Optimierung“ im Fenster „Warmwasser beobachten“ |
-| `dhw_planned` | Geplante Warmwasserladung | HeishaMon by Lutarym ab 1.4.0, sensor. Im Fenster der Wärmepumpe und als „Geplante Ladung“ im Reiter „Tag oder Nacht“ |
-| `dhw_last_charge` | Letzte Warmwasserladung | HeishaMon by Lutarym ab 1.4.0, sensor. Im Fenster der Wärmepumpe; kennzeichnet die Ladungen, die die Integration gestartet hat |
+| `TOP100` | Warmwasser vorhanden | |
+| `TOP10` | Warmwasser Isttemperatur | |
+| `TOP22` | Warmwasser Hysterese | |
+| `TOP9` | Warmwasser Sollwert | number |
+| `EXT601` | COP Warmwasser | HeishaMon by Lutarym, nur ohne Leistungswerte der Wärmepumpe genutzt (sonst Wärme durch Strom aus TOP40/TOP41); Quelle in der Integration unter COP Quelle wählbar |
+| `TOP58` | Heizstab Warmwasser freigegeben | |
+| `SET10` | Einmalig aufheizen | SetForceDHW, switch |
+| `TOP2` | Aufheizen läuft | |
+| `SET13` | Legionellenschutz starten | SetForceSterilization, switch |
+| `TOP69` | Legionellenschutz läuft | |
+| `SET44` | Heizstab Warmwasser freigeben | SetDHWHeaterState, switch |
+| `EXT400` | Zirkulationspumpe läuft | Shelly oder eigener Schalter |
+| `EXT401` | Zirkulation Schalter (klickbar) | Switch zum Ein/Ausschalten der Zirkulation |
+| `EXT500` | Wettervorhersage | weather, stündliche Vorhersage; leer: wie HeishaMon by Lutarym, sonst automatisch. Für die beste Ladezeit im Fenster „Warmwasser beobachten“ |
+| `EXT402` | Warmwasser zur wärmsten Tageszeit | HeishaMon by Lutarym ab 1.4.0, switch. Knopf im Fenster der Wärmepumpe; trennt Tage mit und ohne Plan für den Reiter „Optimierung“ im Fenster „Warmwasser beobachten“ |
+| `EXT403` | Geplante Warmwasserladung | HeishaMon by Lutarym ab 1.4.0, sensor. Im Fenster der Wärmepumpe und als „Geplante Ladung“ im Reiter „Tag oder Nacht“ |
+| `EXT404` | Letzte Warmwasserladung | HeishaMon by Lutarym ab 1.4.0, sensor. Im Fenster der Wärmepumpe; kennzeichnet die Ladungen, die die Integration gestartet hat |
 | **Steuerung** | | |
-| `mode_select` | Betriebsart umschalten | SetOperationMode, select |
+| `SET9` | Betriebsart umschalten | SetOperationMode, select |
 | **Erweiterte Einstellungen** | | |
-| `heating_off_temp` | Heizen aus ab Außentemperatur | TOP77, number |
-| `heater_on_temp` | Heizstab ein unter Außentemperatur | TOP78, number |
-| `heat_delta` | Spreizung Heizen | TOP23, number |
-| `heating_control` | Regelung | SetHeatingControl, select |
-| `steril_temp` | Legionellen Temperatur | TOP70, number |
-| `steril_time` | Legionellen Haltezeit | TOP71, number |
-| `pump_flow_mode` | Pumpenregelung | SetPumpFlowrateMode, select |
-| `pump_max_duty` | Max. Pumpenleistung | TOP95, number |
-| `quiet_priority` | Leisemodus Vorrang | SetQuietModePriority, select |
-| `holiday_mode` | Urlaubsmodus | SetHolidayMode, switch |
-| `main_schedule` | Wochenprogramm | SetMainSchedule, switch |
-| `smart_dhw` | Smart DHW Warmwasser | SetSmartDHW, select |
-| `operating_hours` | Betriebsstunden | TOP11 |
-| `compressor_starts` | Verdichterstarts | TOP12 |
-| `room_heater_hours` | Heizstab Heizen Betriebsstunden | TOP90 |
-| `dhw_heater_hours` | Heizstab Warmwasser Betriebsstunden | TOP91 |
+| `TOP77` | Heizen aus ab Außentemperatur | number |
+| `TOP78` | Heizstab ein unter Außentemperatur | number |
+| `TOP23` | Spreizung Heizen | number |
+| `SET39` | Regelung | SetHeatingControl, select |
+| `TOP70` | Legionellen Temperatur | number |
+| `TOP71` | Legionellen Haltezeit | number |
+| `SET42` | Pumpenregelung | SetPumpFlowrateMode, select |
+| `TOP95` | Max. Pumpenleistung | number |
+| `SET41` | Leisemodus Vorrang | SetQuietModePriority, select |
+| `SET2` | Urlaubsmodus | SetHolidayMode, switch |
+| `SET24` | Wochenprogramm | SetMainSchedule, switch |
+| `SET40` | Smart DHW Warmwasser | SetSmartDHW, select |
+| `TOP11` | Betriebsstunden | |
+| `TOP12` | Verdichterstarts | |
+| `TOP90` | Heizstab Heizen Betriebsstunden | |
+| `TOP91` | Heizstab Warmwasser Betriebsstunden | |
 
 ## Sprachen
 

@@ -2,109 +2,200 @@
 
 [English](GERAETEPROFIL.md) · [Deutsch](GERAETEPROFIL.de.md) · [Français](GERAETEPROFIL.fr.md) · **日本語**
 
-デバイスプロファイルは、Home Assistant でヒートポンプのエンティティがどう名付けられているかをカードに伝えます。これによりカードはエンティティを自分で見つけ、各項目に割り当てられます。他メーカーのヒートポンプを接続したり、内蔵の Panasonic プロファイルを調整したりできます。
+デバイスプロファイルは、Home Assistant のどのエンティティがどの値に対応するかをカードに伝えます。値の名前は [名前リスト](NAMENSLISTE.ja.md) のとおりで、たとえば外気温は TOP14 です。プロファイルがあれば、カードはエンティティを自分で見つけます。
 
-プロファイルは JSON 形式の小さなテキストファイルです。書き出し、テキストエディターで変更し、再び読み込めます。
+バージョン 6.0.0 以降、カード自体にはプロファイルが含まれていません。すべてのプロファイルはフォルダー `dist/Profile` 内のファイルで、メーカーごとに 1 ファイルです。各統合またはファームウェアはその中のバリエーションで、Panasonic Aquarea ならたとえば HeishaMon by Lutarym、HeishaMon (MQTT)、kamaradclimber の HeishaMon、Aquarea Smart Cloud です。HACS はこのフォルダーをカードと一緒にインストールします。独自のプロファイルは読み込みで追加します。
 
 ## 場所
 
-カードを編集し、エディターを **詳細** に切り替えます。選択は **統合** セクション、ボタンは **インポート・エクスポートとカスタマイズ** セクションにあります：
+カードを編集します。**統合** セクション：
 
-- **メーカー**：「自動検出」またはメーカー（簡易モードでも表示）
-- **統合 / 機器**：メーカーに複数の統合がある場合に開発者名付きで表示
-- **複数の統合を検出しました**：「自動検出」で複数が一致した場合に表示
-- 「このプロファイルについて」の **GitHub でフィードバック** と **レポートをコピー**：割り当て済み・未検出・手動変更の項目と、統合の未使用エンティティを含むレポートで、プロファイルの改善に役立ちます。エンティティ ID と現在の値を含みます。GitHub で送信前に確認・編集できます。
-- **このプロファイルについて**：統合、出典リンク付きの開発者、バージョン、最終更新、対象範囲、Home Assistant で見つかったもの、カードから操作できるか、ヘルプの有無、検証済みか。バージョンと最終更新はこのカードのバージョン作成時に確認したもので、自動では更新されません。
-- **プロファイルを書き出す**：選択中のプロファイルをファイルとしてダウンロードフォルダに保存
-- **プロファイルを読み込む**：プロファイルファイルを読み込んで選択
-- **独自プロファイルを削除**：独自またはカスタムのプロファイルの場合のみ表示
+- **メーカー**：「自動検出」、Profile フォルダーのメーカー、「独自プロファイル」（ある場合）、または「プロファイルなし（エンティティを自分で入力）」
+- **統合 / 機器**：メーカーに複数のバリエーションがある場合に開発者名付きで表示
+- **複数の統合を検出しました**：「自動検出」で複数のバリエーションが一致した場合に表示
+- **特定のプロファイルを読み込みますか？**：「自動検出」でどのバリエーションも一致しない場合に表示。メーカーと統合を選び、**プロファイルを読み込む** を押します。**いいえ、エンティティを自分で入力します** を押すと「プロファイルなし（エンティティを自分で入力）」になり、エディターにエンティティの項目が表示されます。
+- **統合から取り込む**：見つかったエンティティを項目に固定で記入します
+- **再検索**：「自動検出」に切り替え、すべてのプロファイルを検索し直します。以前にプロファイルを読み込めなかった場合は、読み込み直します。
+- **標準名を入力**（エディターを **詳細** に設定）：プロファイルが正確に、またはパターン `*.name` で示すエンティティ ID を記入します（例：`sensor.heishamon_top14`）
+- **このプロファイルについて**：統合、出典リンク付きの開発者、バージョン、統合の最終更新と確認日、対象範囲、Home Assistant で見つかったもの、カードから操作できるか、ヘルプの有無、検証済みか。バージョンと日付はプロファイルファイルに記載され、自動では変わりません。その下に **GitHub でフィードバック** と **レポートをコピー**：割り当て済み・未検出・手動変更の値と、統合の未使用エンティティを含むレポートで、プロファイルの改善に役立ちます。エンティティ ID と現在の値を含みます。GitHub で送信前に確認・編集できます。
 
-## クイックスタート
+**インポート・エクスポートとカスタマイズ** セクション（エディターを **詳細** に設定）：
 
-1. **Panasonic Aquarea, HeishaMon by Lutarym** を選び、**プロファイルを書き出す** を押します。このファイルをひな形にします。
+- **プロファイルを書き出す**：選択中または検出されたバリエーションをファイルとしてダウンロードフォルダーに保存
+- **プロファイルを読み込む**：プロファイルファイルを読み込み、（最初の）バリエーションを選択
+- **GitHub でプロファイルを検索**：[GitHub からプロファイルを読み込む](#github-からプロファイルを読み込む) を参照
+- **独自プロファイルを削除**：独自、カスタム、または GitHub から読み込んだプロファイルの場合のみ表示
+
+## カードの読み込みと検索
+
+1. カード設定の `profil` にバリエーションの識別子が入ります（例：`heishamon_lutarym`）。5.33.8 までの識別子も引き続き使えます。
+2. バリエーションを選択した場合：カードは `liste.json` と、そのバリエーションのファイルだけを読み込みます。
+3. `auto`（「自動検出」、既定）：カードは `liste.json` とすべてのファイルを 1 回読み込みます。すべてのバリエーションを調べ、一致する値が最も多いものを使います。少なくとも 2 つの値が一致すれば見つかったとみなします。バリエーションがエンティティ ID で検索する場合（統合なし）、登録上ほかのバリエーションの統合に属するエンティティは数えません。
+4. どのバリエーションも一致しない場合：カードは「一致するプロファイルが見つかりません。特定のプロファイルを読み込みますか？カードを編集し、上部でメーカーと統合を選択してください。」と表示します。プロファイルがなければ、カードはメーカーを仮定しません。
+5. `keins`：プロファイルなし。カードは記入したエンティティだけを使います。
+6. ブラウザーはファイルをページごとに 1 回読み込みます。カードは要求にバージョンを付けるので、更新後はブラウザーが新しいファイルを取得します。
+7. プロファイルを読み込めなかった場合、カードは「デバイスプロファイルを読み込めませんでした。ページを再読み込みしてください。」と表示します。
+8. Home Assistant に同じ統合の機器が複数ある場合（たとえばヒートポンプ 2 台）、カードは記入されていない値を、記入済みエンティティの機器で探します。
+
+## クイックスタート：独自プロファイル
+
+1. 合うか似ているバリエーション（例：**Panasonic Aquarea, HeishaMon by Lutarym**）を選び、**プロファイルを書き出す** を押します。このファイルをひな形にします。
 2. Home Assistant でヒートポンプのエンティティを探します：**Developer tools → States**（英語表示のメニュー名）、たとえば機器名で絞り込みます。
-3. テキストエディターでファイルを開きます。`id`、`name`、`hersteller`、`integration`、`namensteil` を変更し、`felder` に自分のエンティティを記入します。存在しない項目は削除してかまいません。
-4. **プロファイルを読み込む** を押してファイルを選びます。カードは、記述された項目数と Home Assistant で見つかった数を表示します。
-5. **統合から取り込む** を押します。ここで初めて、見つかったエンティティが項目に割り当てられます。
+3. テキストエディターでファイルを開きます。識別子（ファイルとバリエーションの `id`）、名前、`suche` を変更し、`werte` に自分のエンティティを記入します。存在しない値は削除してかまいません。
+4. **プロファイルを読み込む** を押してファイルを選びます。カードは、記述された値の数と Home Assistant で見つかった数を表示します。
+5. 見つかったエンティティを項目に固定したい場合は **統合から取り込む** を押します。
 6. エディターで各項目を確認し、必要なら手動で修正します。
 
 ## ファイルの構成
 
-キーはドイツ語で、このとおりに書く必要があります。
-
 ```json
 {
   "format": "lutarym-geraeteprofil",
-  "version": 1,
-  "id": "meine_waermepumpe",
-  "name": "Meine Wärmepumpe",
-  "hersteller": "Beispiel",
-  "integration": "",
-  "namensteil": "waermepumpe",
-  "felder": {
-    "outside_temp": ["sensor.waermepumpe_aussentemperatur"],
-    "flow_temp": ["sensor.*_vorlauf"],
-    "return_temp": ["ruecklauf"],
-    "dhw_temp": ["sensor.waermepumpe_warmwasser_ist"],
-    "dhw_target": ["number.waermepumpe_warmwasser_soll"]
-  }
+  "version": 2,
+  "id": "beispiel",
+  "name": "Beispiel",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "beispiel_wp",
+      "name": "Beispiel WP",
+      "geraete": [{ "hersteller": ["Beispiel"], "reihe": "", "modelle": [], "hinweis": "" }],
+      "quelle": {
+        "entwickler": "jemand",
+        "adresse": "https://github.com/jemand/beispiel-wp",
+        "version": "1.0.0",
+        "aktualisiert": "2026-11-20",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": { "art": "integration", "integration": "beispiel_wp", "namensteil": "" },
+      "werte": {
+        "TOP14": ["outdoor_temperature"],
+        "TOP6": ["sensor.*_vorlauf"],
+        "TOP1": { "suche": ["sensor.*_durchfluss"], "einheit": "l/h" },
+        "TOP26": { "suche": ["sensor.*_betrieb"], "zustaende": { "abtauen": 1, "*": 0 } }
+      }
+    }
+  ]
 }
 ```
 
-| キー | 必須 | 意味 |
+ファイル：
+
+| 項目 | 必須 | 意味 |
 |---|---|---|
-| `format` | はい | 常に `"lutarym-geraeteprofil"` |
-| `version` | はい | 常に `1` |
-| `id` | はい | 識別子。2〜40 文字、小文字 a〜z、数字、`_`、`-` のみ |
-| `name` | いいえ | 選択リストに表示する名前 |
-| `hersteller` | いいえ | メーカー（参考情報） |
-| `integration` | いいえ | Home Assistant の統合名（下記参照） |
-| `namensteil` | いいえ | ヒートポンプのすべてのエンティティ ID に含まれる文字列。例：`"vaillant"` |
-| `felder` | はい | カードの各項目に対する検索ルールのリスト |
+| `format`、`version` | はい | 常に `"lutarym-geraeteprofil"` と `2` |
+| `id` | はい | ファイルの識別子で、`.json` を除いたファイル名と同じ。2〜40 文字、小文字 a〜z、数字、`_`、`-` のみ。`liste` は使用済み。 |
+| `name` | はい | エディターに表示されるメーカー名 |
+| `karte_ab` | はい | このファイルを理解できる最小のカードバージョン（例：`6.0.0`）。カードより新しい場合、カードはファイルを拒否します。 |
+| `varianten` | はい | 1 つ以上のバリエーション |
 
-## 組み込みのメーカープロファイル
+各バリエーション：
 
-カードには次の統合用のプロファイルが含まれています。検索ルールは各統合のソースコードから作成しました。実機で検証済みなのは現在 HeishaMon by Lutarym のみで、ほかはすべて「未検証」と表示されます。フィードバックが改善に役立ちます。
+| 項目 | 必須 | 意味 |
+|---|---|---|
+| `id` | はい | バリエーションの識別子で、すべてのファイルで一意。5.33.8 までの識別子はそのまま。 |
+| `name` | はい | 統合またはファームウェアの名前 |
+| `geraete` | はい | `hersteller`（リスト）、`reihe`、`modelle`（リスト）、`hinweis` を持つリスト |
+| `quelle` | Profile フォルダーでは必須 | `entwickler`、`adresse`（https:// 付き）、`version`、`aktualisiert`（統合の最終更新）、`abgelesen`（確認日） |
+| `suche` | はい | `art`：`integration`、`core`、`firmware`。`integration`：Home Assistant の登録のドメイン。`namensteil`：登録なしで検索する場合のエンティティ ID の一部。 |
+| `heishamon` | いいえ | 値が HeishaMon から来る場合は `true`（[heishamon の指定](#heishamon-の指定)） |
+| `getestet` | いいえ | 実機で確認した場合は `true` |
+| `werte` | はい | 名前リストの名前と、カードがそのエンティティを見つける方法 |
 
-**自動検出**（既定）はすべてのプロファイルを検索します。統合が 1 つだけ見つかればそれを使います。複数見つかった場合は、カードで使う統合をエディターが尋ねます。選択するまでは一致する項目が最も多いものを使います。2 項目以上一致すると統合が見つかったとみなします。
+短い形式の値は検索ルールのリストです（例：`"TOP14": ["outdoor_temperature"]`）。長い形式には換算の指定が加わります：`"TOP1": { "suche": [...], "einheit": "l/h" }`。
 
-| メーカー | 統合 | 開発者 | ドメイン | 項目数 |
-|---|---|---|---|---|
-| Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 76 |
-| Panasonic Aquarea | HeishaMon (MQTT) | | | 76 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
-| Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
-| Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
-| Bosch, Buderus | [EMS-ESP (MQTT)](https://github.com/emsesp/EMS-ESP32) | emsesp | | 24 |
-| Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
-| Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
-| Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
-| Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
-| DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
-| Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
-| Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
-| iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
-| KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
-| Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
-| Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
-| Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
-| Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
-| NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
-| Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
-| Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
-| Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
-| Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
-| Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
-| Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
-| Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
-| Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
-| Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
-| Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
-| Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
-| Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
-| Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
+## 検索ルール
+
+| ルール | 例 | 一致するもの |
+|---|---|---|
+| キー | `"top14"` | この内部キー（translation_key）を持つ統合のエンティティ、または `_top14` で終わるエンティティ ID |
+| ドメインとキー | `"number:top27"` | 上と同じですが、この種類のエンティティのみ |
+| アスタリスク付きパターン | `"sensor.*boiler_fanspd"` | このパターンに合うすべてのエンティティ ID。`*` は任意の文字列 |
+| 正確なエンティティ | `"sensor.outdoor"` | このエンティティのみ |
+
+その他のルール：
+
+- 1 つの名前に 1 つのエンティティ。複数のルールは代替で、カードは 2 つのエンティティの値を組み合わせません。
+- 各名前には使えるエンティティ種別が決まっています（[名前リスト](NAMENSLISTE.ja.md) の「エンティティ種別」列）。種別が合わない場合は記入されません。
+- 読み取り専用と設定可能なエンティティの両方が一致した場合は、カードで値を設定できるよう、設定可能な方が優先されます。
+- 1 つの名前に複数のルールがある場合、最初に見つかったルールが優先されます。完全一致（内部キーまたはエンティティ ID 全体）は末尾一致やパターンより優先されます。
+- パターンと末尾指定では大文字・小文字を区別しません。
+
+## 検索のしかた
+
+- **`integration` あり**：その統合のエンティティだけを検索します。名前は **Settings → Devices & services**（英語表示のメニュー名）で統合を開いたときのアドレスバーの `/integration/` の後ろの部分です。何も見つからない場合、`namensteil` も指定されているときに限り `integration` なしと同じように検索を続けます。これにより `"outdoor_temperature"` のような一般的なキーが無関係なエンティティに一致しません。
+- **`integration` なし**：すべてのエンティティを検索します。`namensteil` を指定すると、エンティティ ID にその文字列を含むものだけが対象です。`namensteil` がないと末尾指定が無関係なエンティティにも一致することがあるため、正確な ID かパターンを使ってください。
+
+## 単位と状態
+
+- `einheit`：HeishaMon の単位でない場合に統合が提供する単位。ルールによって異なる場合は単位をリストで書きます。エンティティ自身が単位を報告する場合はそれが優先されます。そうでない場合はプロファイルの単位が使われますが、プロファイル自身が見つけたエンティティに限り、かつプロファイルが単位を 1 つだけ示す場合に限ります（独自の決定）。
+- `zustaende`：HeishaMon と同じく文字とその値。`"*"` はそれ以外のすべての文字です。数値や on、off などの語は、この指定がなくてもカードが理解します。カードはプロファイル自身が見つけたエンティティに限り、履歴も含めて文字を変換します。指定がなくても、文字に「defrost」または「abtau」を含めば除霜と判断します。EMS-ESP では、除霜を表す語を EMS-ESP の 12 言語すべてでプロファイルに記載しています。
+
+| 名前 | カードの換算先 | プロファイルで指定できるもの |
+|---|---|---|
+| TOP62、TOP63、TOP65（ファン、ポンプ） | rpm | rpm または %。% の場合：0 % は停止、100 % が最速（900 rpm 相当。独自の決定で、動きにのみ使用）。 |
+| TOP11、TOP90、TOP91（運転時間） | h | h、min、s、ms、d |
+| TOP1（流量） | l/min | l/min、l/h、l/s、ml/s、m3/h、gal/min、ft3/min |
+| EXT1、EXT3、EXT4（電力） | W | W、kW、MW |
+| EXT2（電力量） | kWh | Wh、kWh、MWh |
+| TOP8（圧縮機） | Hz | Hz または %。カードは受け取った単位で表示します。 |
+| TOP26 とすべてのオン／オフの値 | 0 と 1 | 数値、オンとオフ、`zustaende` による独自の文字 |
+| TOP20（三方弁） | 0 暖房、1 給湯 | 数値、オンとオフ、給湯を表す語を含む文字、`zustaende` による独自の文字 |
+
+表にない単位はビルドがエラーとして報告します。カードは温度を °C、圧力を bar で前提にしています。
+
+## heishamon の指定
+
+バリエーションに `"heishamon": true` がある場合：
+
+1. HeishaMon の値とコマンドを説明するヘルプウィンドウが使えます。
+2. 値が本来読み取り専用の場合、カードは MQTT でコマンドを HeishaMon に送ります（例：暖房曲線の SET16）。
+3. HeishaMon がデータを送っているのに TOP95、TOP99、TOP100 に値がない場合、カードはグループ「Installer settings」についての案内を表示します。
+4. ソーラー入力の暖炉：暖炉だけを選択している場合、TOP47 と OPT5 は暖炉（EXT300 と EXT301）に属します。
+
+TOP92 による Panasonic のシリーズは、`geraete` のメーカーに従います。
+
+## 組み込みのプロファイル
+
+検索ルールは各統合のソースコードに基づき、`abgelesen` の日に確認しています。実機で検証済みなのは今のところ HeishaMon by Lutarym と HeishaMon (MQTT) だけで、ほかはすべて「未検証」です。フィードバックが改善に役立ちます。機種は今のところ HeishaMon（HeishaMon の HeatPumpType.md）と EMS-ESP（EMS-ESP の device_library.h）にのみ記載しています。
+
+| ファイル | メーカー | バリエーション | 開発者 | ドメイン | 値 |
+|---|---|---|---|---|---|
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
+| `batavia_heat.json` | Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
+| `bosch_buderus.json` | Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
+| `bosch_buderus.json` | Bosch, Buderus | [EMS-ESP (MQTT)](https://github.com/emsesp/EMS-ESP32) | emsesp |  | 41 |
+| `daikin.json` | Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
+| `daikin.json` | Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
+| `daikin.json` | Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
+| `daikin.json` | Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
+| `dewarmte.json` | DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
+| `heliotherm.json` | Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
+| `hitachi.json` | Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
+| `idm.json` | iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
+| `keba.json` | KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
+| `kronoterm.json` | Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
+| `lambda.json` | Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
+| `mitsubishi_electric.json` | Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
+| `mitsubishi_electric.json` | Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
+| `nibe.json` | NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 127 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon (MQTT)](https://github.com/heishamon/HeishaMon) |  |  | 105 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
+| `qube.json` | Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
+| `remeha.json` | Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
+| `solarfocus.json` | Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
+| `stiebel_eltron.json` | Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
+| `stiebel_eltron.json` | Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
+| `thermia.json` | Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
+| `vaillant.json` | Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
+| `viessmann.json` | Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
+| `waterkotte.json` | Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
+| `weishaupt.json` | Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
+| `wolf.json` | Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
 
 EMS-ESP には統合は不要です。ファームウェアが MQTT Discovery で Home Assistant にエンティティを作成します。ルールは EMS-ESP の設定「Entity ID format」の短い名前（単一または複数インスタンス、最新または v3.5）に対応し、「Single instance, long name (v3.4)」には対応しません。
 
@@ -120,213 +211,50 @@ EMS-ESP には統合は不要です。ファームウェアが MQTT Discovery �
 - `midea_heatpump_hws`: 給湯専用ヒートポンプ
 - `dimplex`: 往き・還り・圧縮機などのヒートポンプ値がない
 
-## 検索ルール
+## フォルダーにプロファイルを追加する
 
-各項目にはルールのリストを指定します。ルールが 1 つなら角かっこなしでもかまいません。種類は 4 つです：
+1. ファイル `dist/Profile/<id>.json` を作成します。メーカーごとに 1 ファイルです。メーカーがすでにある場合、新しいバリエーションはそのファイルに入れます。
+2. `npm run build`：ビルドはフォルダー内のすべてのファイルを読み込んで確認し、`dist/Profile/liste.json` を書き出します。プロファイルを追加するには、ファイルを置いてビルドするだけです。
+3. ビルドは次を確認します：`format` と `version`、`id` とファイル名の一致、必須項目、すべての識別子がすべてのファイルで一意か、各名前が名前リストにあるか、検索ルールが空でないか、単位（上の表）、`zustaende`（数値のみ）、`karte_ab` がカードより新しくないか、`quelle` に https のアドレスと確認日があるか。エラーがあると中止し、その箇所を示します。
 
-| ルール | 例 | 一致するもの |
-|---|---|---|
-| ピリオドあり | `"sensor.hp_flow"` | このエンティティのみ |
-| アスタリスク `*` あり | `"sensor.*_flow"` | このパターンに合うすべてのエンティティ ID。`*` は任意の文字列 |
-| ピリオドもアスタリスクもなし | `"flow"` | `_flow` で終わるエンティティ ID、またはこの内部キー（translation_key）を持つ統合のエンティティ |
-| ドメインを前に付ける | `"sensor:flow"` | ピリオドもアスタリスクもなしと同じですが、この種類のエンティティのみ（ここでは `sensor`） |
+## GitHub からプロファイルを読み込む
 
-最も確実なのは正確なエンティティ ID です。パターンや末尾指定は、たとえば IP アドレスが異なる他の人の環境でもプロファイルを使えるようにしたい場合に便利です。
+1. **インポート・エクスポートとカスタマイズ** セクションのボタン **GitHub でプロファイルを検索**。カードが GitHub に問い合わせるのはボタンを押したときだけで、ダッシュボードを開くたびではありません。
+2. カードはカードのリポジトリの main ブランチにあるフォルダー `dist/Profile` の `liste.json` を読み、インストール済みより新しいか新規のバリエーションを表示します。新しいとは、確認日（`abgelesen`）が後、統合の更新（`aktualisiert`）が後、またはバージョンが高いことです。
+3. **読み込む** はファイルを取得し、自分のフォルダーから読み込むときと同じように確認します。`karte_ab` がカードより新しい場合、カードは案内とともに拒否します。
+4. カードはバリエーションを読み込んだプロファイルと同じようにカード設定に保存し、選択します。その後はインターネットなしでも動作します。選択リストでは「（GitHub から）」付きで表示されます。
+5. カードが読み込むのはデータだけで、プログラムコードは読み込みません。
 
-その他のルール：
+## 組み込みのプロファイルを調整する
 
-- 各項目には使えるエンティティ種別が決まっています（項目一覧の「使用できるエンティティ種別」列）。種別が合わない場合は割り当てられません。
-- 読み取り専用と設定可能なエンティティの両方が一致した場合は、カードで値を設定できるよう、設定可能な方が優先されます。
-- 1 つの項目に複数のルールがある場合、最初に見つかったルールが優先されます。完全一致（内部キーまたはエンティティ ID 全体）は末尾一致より優先されます。
-- パターンと末尾指定では大文字・小文字を区別しません。
+1. バリエーションを選び、**プロファイルを書き出す**。
+2. ファイルで変更したい値を書き換えます。バリエーションの `id` はそのままにします。
+3. **プロファイルを読み込む**。選択リストに「（カスタム）」付きでバリエーションが表示されます。
+4. **独自プロファイルを削除** で Profile フォルダーのバリエーションに戻ります。
 
-## 検索のしかた
+新しい `id` を付けると、代わりに「独自プロファイル」に独自プロファイルが追加されます。
 
-- **`integration` あり**：その統合のエンティティだけを検索します。名前は **Settings → Devices & services**（英語表示のメニュー名） で統合を開いたときのアドレスバーの `/integration/` の後ろの部分です。何も見つからない場合、`namensteil` も指定されているときに限り `integration` なしと同じように検索を続けます。これにより `"outdoor_temperature"` のような一般的なキーが無関係なエンティティに一致しません。
-- **`integration` なし**：すべてのエンティティを検索します。`namensteil` を指定すると、エンティティ ID にその文字列を含むものだけが対象です。`namensteil` がないと、`"flow"` のような末尾指定が無関係なエンティティにも一致することがあるため、正確な ID かパターンを使ってください。
+## 独自プロファイルの保存場所
 
-## Panasonic の調整
+読み込んだプロファイルと GitHub から読み込んだプロファイルは、このカードの設定の `profile_custom` に保存され、このカードにだけ適用されます。インポート・エクスポートとカスタマイズ セクションの **ファイルに保存** でプロファイルも一緒に保存され、別のカードで **ファイルから読み込み** で移せます。または各カードでプロファイルファイルを読み込んでください。
 
-1. **Panasonic Aquarea, HeishaMon by Lutarym** を選び、**プロファイルを書き出す**。
-2. ファイルで変更したい項目を書き換えます。`id` は `heishamon_lutarym` のままにします。
-3. **プロファイルを読み込む**。選択リストに「（カスタム）」付きで名前が表示されます。
-4. **独自プロファイルを削除** で内蔵プロファイルに戻ります。
+## 以前のプロファイルファイル
 
-新しい `id` を付けると、代わりに独自プロファイルが追加されます。
-
-## 保存場所
-
-読み込んだプロファイルは、このカードの設定の `profile_custom` に保存され、このカードにだけ適用されます。インポート・エクスポートとカスタマイズ セクションの **ファイルに保存** でプロファイルも一緒に保存され、別のカードで **ファイルから読み込み** で移せます。または各カードでプロファイルファイルを読み込んでください。
+読み込みでは、形式 1（5.33.8 まで、`felder` と以前の項目名）のプロファイルファイルも引き続き読めます。カードは項目名を [名前リスト](NAMENSLISTE.ja.md) に従って変換します。HeishaMon 用のプロファイルは heishamon の指定を保ちます（独自の決定：統合 `heishamon_lutarym`、名前の一部または識別子に `heishamon` を含む場合）。書き出しは常に形式 2 です。
 
 ## プロファイルで変わらないもの
 
-- ヘルプ（「?」）は HeishaMon の値を説明しています。他メーカーには当てはまりません。
-- 扉の奥の年間性能係数は HeishaMon の電力値で計算します。他メーカーでは空欄のままです。
-- カードは HeishaMon と同じ形式の値を前提にしています：温度は °C、電力は W、電力量は kWh、流量は l/min、圧力は bar。
+- ヘルプ（「?」）は HeishaMon の値を説明しています。heishamon の指定があるバリエーションとデモモードでのみ表示されます。
+- 扉の奥の年間性能係数は HeishaMon の電力値（TOP15、TOP16、TOP40、TOP41 または XTOP0、XTOP2、XTOP3、XTOP5）で計算します。プロファイルがそれらを提供しない場合は空欄のままです。
 
 ## 読み込み時のメッセージ
 
 | メッセージ | 原因 |
 |---|---|
-| 有効な JSON ではない | ファイルが JSON ではありません。カンマやかっこの不足がよくある原因です |
-| デバイスプロファイルのファイルではない | `format` がないか誤っています |
-| バージョンに対応していない | `version` が `1` ではありません |
-| 識別子がないか無効 | `id` が上記のルールに反しています |
-| 既知の項目がない | `felder` がないか、不明な項目名だけです |
-| 不明な項目を無視 | カードにない項目名です。残りは取り込まれました |
-
-## 項目一覧
-
-「Panasonic（HeishaMon）」列は内蔵プロファイルのキーで、割り当ての参考になります。
-
-**外気センサー**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `outside_temp` | 外気温 | すべて | `top14` |
-
-**室外機**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `power_state` | ヒートポンプ状態、緑LED | `switch`, `input_boolean`, `binary_sensor`, `sensor` | `setheatpump` |
-| `compressor` | 圧縮機周波数 | すべて | `top8` |
-| `fan1_rpm` | ファン1回転数 | すべて | `top62` |
-| `fan2_rpm` | ファン2回転数 | すべて | `top63` |
-| `defrost` | 除霜中 | すべて | `top26` |
-| `error` | エラーコード | すべて | `top44` |
-| `heatpump_state` | 運転状態 | すべて | `top0` |
-| `force_defrost` | 強制除霜 | `switch`, `input_boolean` | `setforcedefrost` |
-| `powerful_mode` | パワフル運転 | `select`, `input_select` | `setpowerfulmode` |
-| `quiet_mode` | 静音運転 | `select`, `input_select` | `setquietmode` |
-| `power_now` | 現在の消費電力 | すべて | （なし） |
-| `energy_today` | 電力量計 | すべて | （なし） |
-
-**SG Ready**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `pv_power` | 現在の太陽光出力 | すべて | （なし） |
-| `sg_k1` | 接点K1 停止 | `switch`, `input_boolean`, `binary_sensor`, `sensor` | （なし） |
-| `sg_k2` | 接点K2 起動 | `switch`, `input_boolean`, `binary_sensor`, `sensor` | （なし） |
-
-**一次回路**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `flow_temp` | 往き温度 | すべて | `top6` |
-| `return_temp` | 還り温度 | すべて | `top5` |
-| `pump_speed` | 一次ポンプ回転数 | すべて | `top65` |
-| `pump_flow` | 流量 | すべて | `top1` |
-| `three_way_valve` | 三方弁 | すべて | `top20` |
-| `water_pressure` | 水圧 | すべて | `top115` |
-| `heater_internal` | 内部ヒーター運転中 | すべて | `top60` |
-| `heater_external` | 外部ヒーター運転中 | すべて | `top61` |
-
-**暖房バッファー**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `buffer_temp` | バッファー温度 | すべて | `top46` |
-| `buffer_installed` | バッファーあり | すべて | `top99` |
-| `buffer_switch` | バッファー運転の入切 | `switch`, `input_boolean` | `setbuffer` |
-
-**暖房曲線**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `curve_t_high` | 回路1 暖房曲線 往き 高 | すべて | `top29` |
-| `curve_t_low` | 回路1 暖房曲線 往き 低 | すべて | `top30` |
-| `curve_o_high` | 回路1 暖房曲線 外気 高 | すべて | `top31` |
-| `curve_o_low` | 回路1 暖房曲線 外気 低 | すべて | `top32` |
-| `curve2_t_high` | 回路2 暖房曲線 往き 高 | すべて | `top82` |
-| `curve2_t_low` | 回路2 暖房曲線 往き 低 | すべて | `top83` |
-| `curve2_o_high` | 回路2 暖房曲線 外気 高 | すべて | `top84` |
-| `curve2_o_low` | 回路2 暖房曲線 外気 低 | すべて | `top85` |
-
-**暖房バッファー**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `buffer_delta` | バッファー上乗せ温度（ΔT） | すべて | `top113` |
-| `buffer_target` | ヒートポンプ往き目標温度 | すべて | `top7` |
-| `cop_heating` | COP 暖房 | すべて | `cop_heating` |
-| `room_heater` | 暖房ヒーター許可 | すべて | `top59` |
-| `room_heater_switch` | 暖房ヒーター許可の切替 | `switch`, `input_boolean` | `setroomheaterstate` |
-
-**回路1**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `zones_state` | 有効なゾーン | すべて | `top94` |
-| `zones_select` | ゾーン切替 | `select`, `input_select` | `setzones` |
-| `hk1_water` | 回路1 水温 | すべて | `top36` |
-| `hk1_water_target` | 回路1 目標水温 | すべて | `top42` |
-| `hk1_pump` | 回路1 ポンプ運転中 | すべて | `top124` |
-| `hk1_setpoint` | 回路1 設定温度 | `number`, `input_number` | `top27` |
-| `hk1_switch` | 回路1 入切 | `switch`, `input_boolean` | （なし） |
-
-**回路2**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `hk2_water` | 回路2 水温 | すべて | `top37` |
-| `hk2_water_target` | 回路2 目標水温 | すべて | `top43` |
-| `hk2_pump` | 回路2 ポンプ運転中 | すべて | `top123` |
-| `hk2_setpoint` | 回路2 設定温度 | `number`, `input_number` | `top34` |
-| `hk2_switch` | 回路2 入切 | `switch`, `input_boolean` | （なし） |
-
-**給湯**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `dhw_installed` | 給湯あり | すべて | `top100` |
-| `dhw_temp` | 給湯温度 | すべて | `top10` |
-| `dhw_heat_delta` | 給湯のヒステリシス | すべて | `top22` |
-| `dhw_setpoint` | 給湯設定温度 | `number`, `input_number` | `top9` |
-| `cop_dhw` | COP 給湯 | すべて | `cop_dhw` |
-| `dhw_heater` | 給湯ヒーター許可 | すべて | `top58` |
-| `dhw_force` | 一回だけ加熱 | `switch`, `input_boolean` | `setforcedhw` |
-| `dhw_force_state` | 加熱中 | すべて | `top2` |
-| `force_sterilization` | レジオネラ運転を開始 | `switch`, `input_boolean` | `setforcesterilization` |
-| `sterilization_state` | レジオネラ運転中 | すべて | `top69` |
-| `dhw_heater_switch` | 給湯ヒーター許可の切替 | `switch`, `input_boolean` | `setdhwheaterstate` |
-| `circulation_pump` | 循環ポンプ運転中 | `switch`, `input_boolean`, `binary_sensor`, `sensor` | （なし） |
-| `circ_switch` | 循環スイッチ（クリック可） | `switch`, `input_boolean` | （なし） |
-| `weather` | 天気予報 | `weather` | （なし） |
-| `dhw_warmest` | 最も暖かい時間帯に給湯 | `switch`, `input_boolean` | `dhw_warmest_time` |
-| `dhw_planned` | 給湯の予定時刻 | `sensor` | `dhw_planned` |
-| `dhw_last_charge` | 前回の給湯運転 | `sensor` | `dhw_last_charge` |
-
-**制御**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `mode_select` | 運転モード切替 | `select`, `input_select` | `setoperationmode` |
-
-**詳細設定**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `heating_off_temp` | 暖房停止 外気温 | すべて | `top77` |
-| `heater_on_temp` | ヒーター開始 外気温 | すべて | `top78` |
-| `heat_delta` | 暖房温度差 (ΔT) | すべて | `top23` |
-| `heating_control` | 暖房制御 | `select`, `input_select` | `setheatingcontrol` |
-| `steril_temp` | レジオネラ対策温度 | すべて | `top70` |
-| `steril_time` | レジオネラ対策保持時間 | すべて | `top71` |
-| `pump_flow_mode` | ポンプ制御 | `select`, `input_select` | `setpumpflowratemode` |
-| `pump_max_duty` | ポンプ最大出力 | すべて | `top95` |
-| `quiet_priority` | 静音モード優先 | `select`, `input_select` | `setquietmodepriority` |
-| `holiday_mode` | 休暇モード | `switch`, `input_boolean` | `setholidaymode` |
-| `main_schedule` | 週間スケジュール | `switch`, `input_boolean` | `setmainschedule` |
-| `smart_dhw` | スマート給湯 | `select`, `input_select` | `setsmartdhw` |
-| `operating_hours` | 運転時間 | すべて | `top11` |
-| `compressor_starts` | 圧縮機起動回数 | すべて | `top12` |
-| `room_heater_hours` | 暖房ヒーター運転時間 | すべて | `top90` |
-| `dhw_heater_hours` | 給湯ヒーター運転時間 | すべて | `top91` |
-
-**制御**
-
-| 項目 | 意味 | 使用できるエンティティ種別 | Panasonic（HeishaMon） |
-|---|---|---|---|
-| `operating_mode` | 運転モード（表示） | すべて | `top4` |
+| 有効なJSONではありません。書き出したテキストを貼り付けてください。 | ファイルが JSON ではありません。カンマやかっこの不足がよくある原因です |
+| デバイスプロファイルのファイルではありません（format は「lutarym-geraeteprofil」である必要があります）。 | `format` がないか誤っています |
+| このプロファイルのバージョンには対応していません（version 2 または 1 が必要です）。 | `version` が `2` でも `1` でもありません |
+| 識別子（id）がないか無効です：2〜40 文字、a〜z、0〜9、_、- のみ。 | `id` が上記のルールに反しています |
+| プロファイルに既知の値（werte）がありません。 | `werte`（形式 1：`felder`）がないか、不明な名前だけです |
+| 不明な名前を無視しました：… | これらの名前は名前リストにありません。ほかは取り込みました |
+| このプロファイルにはカードのバージョン x.y.z 以降が必要です。先にカードを更新してください。 | `karte_ab` がカードより新しい |

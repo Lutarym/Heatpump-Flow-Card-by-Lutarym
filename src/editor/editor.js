@@ -5,12 +5,14 @@
 import { bedienungEditor } from "./bedienung.js";
 import { stilEditor } from "./stil.js";
 import { werkzeugeEditor } from "./werkzeuge.js";
-import { FIELD_DOMAIN, defaultEntityMap, detectIntegration, profilFuer, quellenZuordnung } from "../erkennung.js";
+import { detectIntegration, feldArten, profilFuer, quellenZuordnung, standardNamen } from "../erkennung.js";
 import { hilfeDaten, ladeHilfe } from "../hilfe-laden.js";
 import { DEFAULT_CONFIG, ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, friendly } from "../hilfsfunktionen.js";
 import { DATENBLAETTER } from "../karte/datenblatt.js";
 import { CARD_VERSION } from "../konstanten.js";
+import { UEBERNEHMEN_OHNE_FELD, istName, migriereEntitaeten } from "../namen.js";
+import { AUTO_PROFIL, KEIN_PROFIL, bereitFuer } from "../profile.js";
 import { EIGENE_SPRACHEN, registriereSprachen, spracheBekannt } from "../sprachen.js";
 import { feldText, gruppenText, hinweisText, t, tf } from "../texte.js";
 
@@ -40,10 +42,11 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
 
   setConfig(config) {
     registriereSprachen(config);
+    // Fruehere Feldnamen (bis 5.33.8) werden zu Namen der Namensliste.
     this._config = {
       ...DEFAULT_CONFIG,
       ...config,
-      entities: { ...(config.entities || {}) },
+      entities: migriereEntitaeten(config.entities),
     };
     if (this._hass) this._render();
   }
@@ -111,21 +114,32 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
       .map((e) => `<option value="${e}">${escapeHtml(friendly(this._hass, e))}</option>`)
       .join("");
 
-    const found = detectIntegration(this._hass, profilFuer(this._config, this._hass));
-
     this.shadowRoot.innerHTML = `
       <style>${this._css()}</style>
       <div class="ed">
-        <div class="ed-group ed-detect ${found.found ? "is-found" : "is-absent"}">
+        <div class="ed-group ed-detect is-absent">
           <h3>${this._t("e_integration")}</h3>
-          <p class="ed-status">${
-            this._erkanntText(found)
-          }</p>
+          <p class="ed-status">${this._t("m_profile_laden")}</p>
+          <div class="ed-breit ed-profilinfo ed-profilfrage" id="ed-profilfrage" hidden>
+            <h5>${this._t("e_frage_titel")}</h5>
+            <p>${this._t("e_frage_text")}</p>
+            <label class="ed-row ed-breit">
+              <span>${this._t("e_profil")}<em>${this._t("e_frage_hersteller_h")}</em></span>
+              <select id="frage-hersteller"></select>
+            </label>
+            <label class="ed-row ed-breit">
+              <span>${this._t("e_geraet")}<em>${this._t("e_frage_geraet_h")}</em></span>
+              <select id="frage-variante"></select>
+            </label>
+            <div class="ed-actions">
+              <button type="button" id="btn-frage-laden" disabled>${this._t("e_frage_laden")}</button>
+              <button type="button" id="btn-frage-nein" class="is-quiet">${this._t("e_frage_nein")}</button>
+            </div>
+          </div>
           <div class="ed-actions">
-            <button type="button" id="btn-adopt" ${
-              found.found ? "" : "disabled"
-            }>${this._t("e_uebernehmen")}</button>
-            <button type="button" id="btn-default" class="nur-erweitert">${this._t("e_standardnamen")}</button>
+            <button type="button" id="btn-adopt" disabled>${this._t("e_uebernehmen")}</button>
+            <button type="button" id="btn-suchen">${this._t("e_suchen")}</button>
+            <button type="button" id="btn-default" class="nur-erweitert" disabled>${this._t("e_standardnamen")}</button>
             <button type="button" id="btn-clear" class="is-quiet nur-erweitert">${this._t("e_alle_leeren")}</button>
           </div>
           <div class="ed-row ed-breit">
@@ -139,13 +153,13 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
             <span>${this._t("e_sprache")}${this._sp() === "en" ? "" : " / Language"}<em>${this._t("e_sprache_h")}</em></span>
             <select id="opt-sprache">${this._sprachOptionen()}</select>
           </label>
-          <label class="ed-row ed-breit">
+          <label class="ed-row ed-breit" id="ed-hersteller-zeile">
             <span>${this._t("e_profil")}<em>${this._t("e_profil_h")}</em></span>
-            <select id="opt-hersteller">${this._herstellerOptionen()}</select>
+            <select id="opt-hersteller"></select>
           </label>
-          <label class="ed-row ed-breit" id="ed-geraet-zeile">
+          <label class="ed-row ed-breit" id="ed-geraet-zeile" hidden>
             <span>${this._t("e_geraet")}<em>${this._t("e_geraet_h")}</em></span>
-            <select id="opt-profil">${this._profilOptionen()}</select>
+            <select id="opt-profil"></select>
           </label>
           <label class="ed-row ed-breit ed-profilwahl" id="ed-profil-wahl" hidden>
             <span>${this._t("e_mehrere")}<em>${this._t("e_mehrere_h")}</em></span>
@@ -475,10 +489,12 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           <div class="ed-buttons">
             <button type="button" id="btn-profil-aus">${this._t("e_p_export")}</button>
             <button type="button" id="btn-profil-ein">${this._t("e_p_import")}</button>
+            <button type="button" id="btn-profil-github">${this._t("e_p_github")}</button>
             <button type="button" id="btn-profil-weg">${this._t("e_p_entfernen")}</button>
           </div>
           <input type="file" id="ed-profil-datei" accept=".json,application/json" hidden>
           <p class="ed-meldung" id="ed-profil-hinweis"></p>
+          <div class="ed-github" id="ed-github" hidden></div>
           <h4>${this._t("e_w_sprache")}</h4>
           <div class="ed-buttons">
             <button type="button" id="btn-sprache-aus">${this._t("e_s_export")}</button>
@@ -518,7 +534,12 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
     bind("opt-hersteller", (el) => {
       // Ein Hersteller mit mehreren Integrationen startet mit der ersten,
       // im zweiten Feld laesst sich dann die passende waehlen.
-      put({ profil: this._erstesProfilVon(el.value) });
+      if (el.value === AUTO_PROFIL || el.value === KEIN_PROFIL) {
+        put({ profil: el.value });
+      } else {
+        const liste = this._variantenVon(el.value);
+        if (liste.length) put({ profil: liste[0].id });
+      }
       this._zeigeProfilAuswahl();
     });
     bind("opt-profil", (el) => {
@@ -666,7 +687,6 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           return;
         }
         const erlaubt = Object.keys(DEFAULT_CONFIG);
-        const felder = ENTITY_FIELDS.map((f) => f.key);
         const uebernommen = {};
         let verworfen = 0;
         Object.keys(gelesen).forEach((k) => {
@@ -678,23 +698,23 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
           }
         });
 
-        // Entitaeten einzeln pruefen: bekanntes Feld, passender Bereich
-        // und in Home Assistant vorhanden.
+        // Entitaeten einzeln pruefen: bekannter Name (fruehere Feldnamen
+        // werden uebersetzt), passender Bereich und in Home Assistant vorhanden.
         const zuordnung = {};
         const unbekannt = [];
         const fehlen = [];
         const falscherBereich = [];
-        const quelle = (gelesen.entities && typeof gelesen.entities === "object")
-          ? gelesen.entities
-          : {};
+        const quelle = migriereEntitaeten(
+          gelesen.entities && typeof gelesen.entities === "object" && !Array.isArray(gelesen.entities) ? gelesen.entities : {}
+        );
         Object.keys(quelle).forEach((feld) => {
           const id = quelle[feld];
-          if (!felder.includes(feld)) {
+          if (!istName(feld)) {
             unbekannt.push(feld);
             return;
           }
           if (typeof id !== "string" || !id.includes(".")) return;
-          const bereich = FIELD_DOMAIN[feld];
+          const bereich = feldArten(feld);
           if (bereich && !bereich.includes(id.split(".")[0])) {
             falscherBereich.push(feld);
             return;
@@ -737,14 +757,25 @@ export class LutarymHeatpumpCardEditor extends HTMLElement {
       });
     }
 
+    // Uebernommen werden wie bis 5.33.8 die Felder des Editors und TOP4
+    // (Betriebsart). Die uebrigen Werte, etwa fuer die Analyse, findet die
+    // Karte weiter selbst.
+    const editorFelder = new Set(ENTITY_FIELDS.map((x) => x.key).concat(UEBERNEHMEN_OHNE_FELD));
+    const nurFelder = (map) => Object.fromEntries(Object.entries(map).filter(([k]) => editorFelder.has(k)));
     this.shadowRoot.getElementById("btn-adopt").addEventListener("click", () => {
-      const profil = profilFuer(this._config, this._hass);
-      const f = detectIntegration(this._hass, profil);
-      if (f.found) applyMap(quellenZuordnung(f.entities, this._config.extra_heat, profil), true);
+      if (!bereitFuer(this._config)) return;
+      const v = profilFuer(this._config, this._hass);
+      const f = detectIntegration(this._hass, v);
+      if (f.found) applyMap(nurFelder(quellenZuordnung(f.entities, this._config.extra_heat, v)), true);
     });
-    this.shadowRoot
-      .getElementById("btn-default")
-      .addEventListener("click", () => applyMap(quellenZuordnung(defaultEntityMap(), this._config.extra_heat), true));
+    // Standardnamen nach dem Profil: genaue Entitaeten und Muster wie
+    // "*.heishamon_top14". Ohne Profil gibt es keine.
+    this.shadowRoot.getElementById("btn-default").addEventListener("click", () => {
+      if (!bereitFuer(this._config)) return;
+      const v = profilFuer(this._config, this._hass);
+      const map = nurFelder(quellenZuordnung(standardNamen(v), this._config.extra_heat, v));
+      if (Object.keys(map).length) applyMap(map, true);
+    });
     this.shadowRoot
       .getElementById("btn-clear")
       .addEventListener("click", () => applyMap({}, false));

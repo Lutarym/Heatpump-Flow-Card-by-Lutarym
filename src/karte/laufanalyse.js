@@ -82,7 +82,7 @@ export const laufanalyseKarte = {
       werte.push([t("la_w_vl_ww"), tf(t("la_w_von_bis"), { a: z(kleinst(d.vorlauf, l.von, l.bis), 0), b: z(hoechst(d.vorlauf, l.von, l.bis), 0) })]);
     }
     const sp = l.vorlauf !== null && l.ruecklauf !== null ? l.vorlauf - l.ruecklauf : null;
-    const dtSoll = this._anWert("heat_delta");
+    const dtSoll = this._anWert("TOP23");
     werte.push([t("la_w_sp"), sp === null ? "--"
       : !l.ww && dtSoll !== null ? tf(t("la_w_sp_soll"), { s: z(sp), e: z(dtSoll, 0) }) : `${z(sp)} K`]);
     if (!l.ww && puffer && (l.kreis1 !== null || l.kreis2 !== null)) {

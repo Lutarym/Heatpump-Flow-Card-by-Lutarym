@@ -1,0 +1,72 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "mitsubishi_electric",
+  "name": "Mitsubishi Electric",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "melcloud",
+      "name": "MELCloud",
+      "geraete": [
+        {
+          "hersteller": ["Mitsubishi Electric"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "Home Assistant Core",
+        "adresse": "https://www.home-assistant.io/integrations/melcloud/",
+        "version": "",
+        "aktualisiert": "",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "core",
+        "integration": "melcloud",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["return_temperature"],
+        "TOP6": ["sensor:flow_temperature"],
+        "TOP10": ["tank_temperature"],
+        "TOP14": ["outside_temperature"]
+      }
+    },
+    {
+      "id": "melcloudhome",
+      "name": "MELCloud Home",
+      "geraete": [
+        {
+          "hersteller": ["Mitsubishi Electric"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "andrew-blake",
+        "adresse": "https://github.com/andrew-blake/melcloudhome",
+        "version": "2.6.4",
+        "aktualisiert": "2026-11-22",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "melcloudhome",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["return_temperature"],
+        "TOP6": ["flow_temperature"],
+        "TOP10": ["tank_temperature"],
+        "TOP14": ["outdoor_temperature"],
+        "TOP36": ["flow_temperature_zone1"],
+        "TOP37": ["flow_temperature_zone2"],
+        "TOP44": ["error_state"]
+      }
+    }
+  ]
+}

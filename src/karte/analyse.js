@@ -80,6 +80,7 @@ import { fmt, indexBis, numState, rawState, stellbar } from "../hilfsfunktionen.
 import { tf } from "../texte.js";
 import { abtauungen, anAbschnitte, copStufe, copSumme, mittel, taktStufe, ventilAbschnitte } from "./auswertung.js";
 import { TOLERANZ } from "./datenblatt.js";
+import { KURVE } from "../namen.js";
 
 export const QUELLEN = {
   spreizung: ["42watt: Spreizung (BWP Leitfaden Hydraulik)", "https://42watt.de/magazin/spreizung-warmepumpe"],
@@ -228,7 +229,7 @@ export const analyseKarte = {
    * nur diese, sonst alle Heizkreise laut Editor.
    */
   _anHeizflaechen() {
-    const z = this._anWert("zones_state");
+    const z = this._anWert("TOP94");
     const n = Math.max(1, Math.min(4, Number(this._config.hk_count) || 1));
     const kreise = z === 0 || z === 1 || z === 2 ? this._anZonen() : Array.from({ length: n }, (_, i) => i + 1);
     const arten = kreise.map((k) => this._anFlaecheVon(k));
@@ -250,7 +251,7 @@ export const analyseKarte = {
   _anMitPuffer() {
     const e = this._config.buffer_present;
     if (e === true || e === false) return e;
-    const id = this._e("buffer_installed");
+    const id = this._e("TOP99");
     const st = id && this._quelle && this._quelle.states && this._quelle.states[id];
     if (!st) return false;
     const s = String(st.state).toLowerCase();
@@ -259,7 +260,7 @@ export const analyseKarte = {
 
   /** Aktive Heizkreise (Zonen) laut TOP94, sonst laut Editor. */
   _anZonen() {
-    const z = this._anWert("zones_state");
+    const z = this._anWert("TOP94");
     if (z === 0) return [1];
     if (z === 1) return [2];
     if (z === 2) return [1, 2];
@@ -276,8 +277,9 @@ export const analyseKarte = {
     if (!id || neu === null || neu === undefined) return null;
     const ist = numState(this._quelle, id);
     if (ist === null || Math.abs(ist - neu) < 0.05) return null;
-    if (!this._config.demo && !stellbar(id) && !befehl) return null;
-    return { feld, id, ist, neu, befehl, einheit, ...extra };
+    const befehlOk = befehl && this._heishaBefehle() ? befehl : null;
+    if (!this._config.demo && !stellbar(id) && !befehlOk) return null;
+    return { feld, id, ist, neu, befehl: befehlOk, einheit, ...extra };
   },
 
   /**
@@ -287,7 +289,7 @@ export const analyseKarte = {
    * eigene Texte.
    */
   _anPumpenModus() {
-    const id = this._e("pump_flow_mode");
+    const id = this._e("SET42");
     const st = id && this._quelle.states ? this._quelle.states[id] : null;
     if (!st) return null;
     const optionen = (st.attributes && st.attributes.options) || [];
@@ -318,8 +320,9 @@ export const analyseKarte = {
     const st = id && this._quelle.states ? this._quelle.states[id] : null;
     if (!st || !option || st.state === option) return null;
     const bereich = id.split(".")[0];
-    if (!this._config.demo && bereich !== "select" && bereich !== "input_select" && !befehl) return null;
-    return { feld, id, ist: istText, neu: neuText, option, auswahl: true, befehl, nutzlast };
+    const befehlOk = befehl && this._heishaBefehle() ? befehl : null;
+    if (!this._config.demo && bereich !== "select" && bereich !== "input_select" && !befehlOk) return null;
+    return { feld, id, ist: istText, neu: neuText, option, auswahl: true, befehl: befehlOk, nutzlast };
   },
 
   /**
@@ -338,7 +341,7 @@ export const analyseKarte = {
     const last = zahl(this._config.heat_load_kw);
     const nat = zahl(this._config.design_outdoor_temp);
     const wp = zahl(this._config.hp_capacity_kw);
-    const grenze = this._anWert("heating_off_temp");
+    const grenze = this._anWert("TOP77");
     const fehlt = [];
     if (!(last > 0)) fehlt.push("an_biv_f_last");
     if (!Number.isFinite(nat)) fehlt.push("an_biv_f_nat");
@@ -353,7 +356,7 @@ export const analyseKarte = {
    * Langzeitstatistik, fuer die Auslegung. Hoechstens einmal je Stunde.
    */
   async _ladeJahrAussen() {
-    const id = this._e("outside_temp");
+    const id = this._e("TOP14");
     const q = this._hass;
     if (!id || this._config.demo || !q || typeof q.callWS !== "function" || this._jahrAussenLaeuft) return;
     const jetzt = Date.now();
@@ -393,15 +396,15 @@ export const analyseKarte = {
    * und das kalte Ende nie unter das warme.
    */
   _anKurvenSchritt(zone, art, untergrenze) {
-    const pre = zone === 2 ? "curve2_" : "curve_";
-    const hoch = this._anWert(`${pre}t_high`);
-    const tief = this._anWert(`${pre}t_low`);
+    const kurve = KURVE[zone === 2 ? 2 : 1];
+    const hoch = this._anWert(kurve.t_high);
+    const tief = this._anWert(kurve.t_low);
     if (hoch === null) return [];
     const neuHoch = Math.max(hoch - 2, untergrenze !== undefined ? Math.min(untergrenze, hoch) : 20, tief !== null ? tief : 20, 20);
     // Rueckfall ohne stellbare Entitaet: HeishaMon SET16 SetCurves.
-    const out = [this._anAenderung(`${pre}t_high`, neuHoch, "SetCurves", "°C", { kurve: zone })];
+    const out = [this._anAenderung(kurve.t_high, neuHoch, "SetCurves", "°C", { kurve: zone })];
     if (art === "parallel" && tief !== null) {
-      out.push(this._anAenderung(`${pre}t_low`, Math.max(20, Math.min(tief - 2, neuHoch)), "SetCurves", "°C", { kurve: zone }));
+      out.push(this._anAenderung(kurve.t_low, Math.max(20, Math.min(tief - 2, neuHoch)), "SetCurves", "°C", { kurve: zone }));
     }
     return out;
   },
@@ -416,10 +419,12 @@ export const analyseKarte = {
    */
   _anPanaSerie() {
     if (this._copReferenz() === "panasonic_tcap_m_12") return "M";
+    // Panasonic laut Hersteller in der Variante des Profils.
+    const v = this._variante();
     const panasonic = Boolean(this._config.demo)
-      || ["heishamon_lutarym", "heishamon", "aquarea_heishamon", "aquarea_cloud"].includes(this._aktivesProfil());
+      || Boolean(v && (v.geraete || []).some((g) => (g.hersteller || []).includes("Panasonic")));
     if (!panasonic) return null;
-    const m = this._int("top92");
+    const m = this._int("TOP92");
     const roh = m && m.roh ? m.roh.trim().toUpperCase() : "";
     if (/^([0-9A-F]{2} ){9}[0-9A-F]{2}$/.test(roh)) return roh.startsWith("12 D7") ? "M" : "andere";
     return "unbekannt";
@@ -432,13 +437,13 @@ export const analyseKarte = {
    * das warme Ende nie ueber das kalte. Leer, wenn nichts mehr geht.
    */
   _anKurvenAnheben(zone, obergrenze) {
-    const pre = zone === 2 ? "curve2_" : "curve_";
-    const hoch = this._anWert(`${pre}t_high`);
-    const tief = this._anWert(`${pre}t_low`);
+    const kurve = KURVE[zone === 2 ? 2 : 1];
+    const hoch = this._anWert(kurve.t_high);
+    const tief = this._anWert(kurve.t_low);
     if (hoch === null || hoch >= obergrenze) return [];
     const neuHoch = Math.min(hoch + 2, obergrenze);
-    const out = [this._anAenderung(`${pre}t_high`, neuHoch, "SetCurves", "°C", { kurve: zone })];
-    if (tief !== null) out.push(this._anAenderung(`${pre}t_low`, Math.min(tief + 2, neuHoch), "SetCurves", "°C", { kurve: zone }));
+    const out = [this._anAenderung(kurve.t_high, neuHoch, "SetCurves", "°C", { kurve: zone })];
+    if (tief !== null) out.push(this._anAenderung(kurve.t_low, Math.min(tief + 2, neuHoch), "SetCurves", "°C", { kurve: zone }));
     return out;
   },
 
@@ -481,7 +486,7 @@ export const analyseKarte = {
     const z = (v, s = 1) => fmt(v, s);
     // Vergleich auf ganze Kelvin wie in _anSpStufe, angezeigt wird die Messung.
     const sp = Math.round(messung);
-    const dtSoll = this._anWert("heat_delta");
+    const dtSoll = this._anWert("TOP23");
     const { spMax, toleranz } = this._anSpGrenzen();
     const richt = t(this._anMitPuffer() ? "an_r_sp_p" : toleranz ? "an_r_sp_hk" : "an_r_sp_fbh");
     let neu = null;
@@ -494,14 +499,14 @@ export const analyseKarte = {
     let ohne = "";
     if (neu !== null) {
       aktion = this._anVorschlag(
-        [this._anAenderung("heat_delta", neu, "SetFloorHeatDelta", "K")],
+        [this._anAenderung("TOP23", neu, "SetFloorHeatDelta", "K")],
         tf(t("an_g_sp"), { m: z(messung), r: richt })
       );
     } else if (sp < 5) {
       const pm = this._anPumpenModus();
       if (pm && pm.modus === "max" && pm.optionDt) {
         aktion = this._anVorschlag(
-          [this._anAuswahl("pump_flow_mode", pm.optionDt, this._anPumpenText(pm.zustand), this._anPumpenText(pm.optionDt),
+          [this._anAuswahl("SET42", pm.optionDt, this._anPumpenText(pm.zustand), this._anPumpenText(pm.optionDt),
             "SetPumpFlowrateMode", "0")],
           tf(t("an_g_pumpe"), { m: z(messung), s: dtSoll !== null ? z(dtSoll, 0) : "--" })
         );
@@ -554,7 +559,7 @@ export const analyseKarte = {
     /* ---------- Heizbetrieb ---------- */
     // Spreizung im Heizbetrieb, je Lauf ab der fuenften Minute. Mit Puffer
     // ist das die Spreizung des Waermepumpenkreises.
-    const dtSoll = this._anWert("heat_delta");
+    const dtSoll = this._anWert("TOP23");
     const { toleranz } = this._anSpGrenzen();
     const mitSpreizung = heizLaeufe.filter((l) => l.vorlauf !== null && l.ruecklauf !== null);
     const richtSp = t(puffer ? "an_r_sp_p" : toleranz ? "an_r_sp_hk" : "an_r_sp_fbh");
@@ -637,9 +642,9 @@ export const analyseKarte = {
 
     // Heizkurve: eingestellter Vorlauf am kalten Ende, je aktivem Heizkreis.
     zonen.forEach((n) => {
-      const pre = n === 2 ? "curve2_" : "curve_";
-      const kurveVl = this._anWert(`${pre}t_high`);
-      const kurveAussen = this._anWert(`${pre}o_low`);
+      const kurve = KURVE[n === 2 ? 2 : 1];
+      const kurveVl = this._anWert(kurve.t_high);
+      const kurveAussen = this._anWert(kurve.o_low);
       if (kurveVl === null) return;
       const art = this._anFlaecheVon(n);
       const gr = GRENZE[art];
@@ -659,7 +664,7 @@ export const analyseKarte = {
 
     // Puffer: wie weit die Waermepumpe ueber dem Heizkreis faehrt. Nur
     // Messwert, denn fuer diesen Abstand nennt keine Quelle eine Grenze.
-    const pufferDt = this._anWert("buffer_delta");
+    const pufferDt = this._anWert("TOP113");
     const mitKreis = heizLaeufe.filter((l) => l.vorlauf !== null && (l.kreis1 !== null || l.kreis2 !== null));
     if (puffer && mitKreis.length) {
       const abstand = gewichtet(mitKreis, (l) => l.vorlauf - Math.max(...[l.kreis1, l.kreis2].filter((v) => v !== null)));
@@ -772,7 +777,7 @@ export const analyseKarte = {
     }
 
     /* ---------- Zusatzheizung und Abtauung ---------- */
-    const stabGrenze = this._anWert("heater_on_temp");
+    const stabGrenze = this._anWert("TOP78");
     const biv = this._anBivalenz();
     const bivDaten = biv.fehlt.length ? null : { b: z(biv.punkt, 1), l: z(biv.last, 1), n: z(biv.nat, 1), w: z(biv.wp, 1), g: z(biv.grenze, 0) };
     const bivFehlt = () => tf(t("an_biv_fehlt"), { f: biv.fehlt.map((k) => t(k)).join(", ") });
@@ -804,7 +809,7 @@ export const analyseKarte = {
       if (!bivDaten) {
         teile.push(tf(t("an_ausl_jahr_fehlt"), { f: biv.fehlt.map((k) => t(k)).join(", ") }));
       } else {
-        const jahr = this._jahrAussen && this._jahrAussen.id === this._e("outside_temp") ? this._jahrAussen.werte : [];
+        const jahr = this._jahrAussen && this._jahrAussen.id === this._e("TOP14") ? this._jahrAussen.werte : [];
         const d3 = { ...bivDaten, h: z(jahr.length, 0), hm: z(JAHR_MIN_STUNDEN, 0), x };
         if (jahr.length >= JAHR_MIN_STUNDEN) {
           mitJahr = true;
@@ -844,7 +849,7 @@ export const analyseKarte = {
           text: `${tf(t(stufe !== "ok" ? (abw > 0 ? "an_biv_hoch" : "an_biv_tief") : rand ? "an_biv_passt_rand" : "an_biv_passt"), d2)} ${tf(t("an_biv_daten"), d2)}`,
           tipp: stufe === "ok" ? "" : tf(t("an_tip_biv"), d2), quelle: ["bivalenz", "bwp_dim"],
           aktion: stufe === "ok" ? null : this._anVorschlag(
-            [this._anAenderung("heater_on_temp", vorschlag, "SetHeaterOnOutdoorTemp", "°C")],
+            [this._anAenderung("TOP78", vorschlag, "SetHeaterOnOutdoorTemp", "°C")],
             tf(t("an_g_biv"), d2), t("an_g_biv_h")),
         });
       } else {
@@ -928,13 +933,13 @@ export const analyseKarte = {
     // Die Legionellenschaltung (TOP70) ersetzt das nicht: Das UBA haelt sie
     // fuer keine sichere Variante, laut DVGW (Abschnitt 5.3) fehlt ein
     // wissenschaftlicher Nachweis, dass sie Legionellen verringert.
-    const wwSoll = this._anWert("dhw_setpoint");
-    const wwDelta = this._anWert("dhw_heat_delta");
-    const steril = this._anWert("steril_temp");
+    const wwSoll = this._anWert("TOP9");
+    const wwDelta = this._anWert("TOP22");
+    const steril = this._anWert("TOP70");
     if (wwSoll !== null) {
       const diff = wwDelta !== null ? Math.abs(wwDelta) : null;
       const tief = diff !== null ? wwSoll - diff : null;
-      const sollId = this._e("dhw_setpoint");
+      const sollId = this._e("TOP9");
       const sollSt = sollId && this._quelle.states ? this._quelle.states[sollId] : null;
       const sollMax = sollSt && sollSt.attributes && Number.isFinite(Number(sollSt.attributes.max)) ? Math.min(Number(sollSt.attributes.max), 65) : 65;
       const lage = wwSoll < 55 ? "unter" : wwSoll > 60 ? "ueber" : "in";
@@ -950,7 +955,7 @@ export const analyseKarte = {
       let aktion = null;
       if (stufe === "hinweis" && sollMax >= 55) {
         // Nur bis zur unteren Empfehlung von 55 °C, nicht hoeher.
-        aktion = this._anVorschlag([this._anAenderung("dhw_setpoint", 55, "SetDHWTemp", "°C")], tf(t("an_g_ww"), { s: z(wwSoll, 0), n: "55" }));
+        aktion = this._anVorschlag([this._anAenderung("TOP9", 55, "SetDHWTemp", "°C")], tf(t("an_g_ww"), { s: z(wwSoll, 0), n: "55" }));
       }
       let kurz;
       if (lage === "unter") kurz = tf(t("an_ku_ww_hinweis"), w);
@@ -967,14 +972,14 @@ export const analyseKarte = {
       let schritt = "";
       if (stufe === "leicht" && unter50 && wwSoll - 50 >= 2) {
         schritt = tf(t("an_sr_ww_tief"), w);
-        aktion = this._anVorschlag([this._anAenderung("dhw_heat_delta", 50 - wwSoll, "SetDHWHeatDelta", "K")],
+        aktion = this._anVorschlag([this._anAenderung("TOP22", 50 - wwSoll, "SetDHWHeatDelta", "K")],
           tf(t("an_g_ww_delta"), w));
       } else if (stufe === "leicht" && !unter50) {
         const mitDiff = diff !== null && 60 - diff < 50;
         schritt = t(mitDiff ? "an_sr_ww_hoch_d" : "an_sr_ww_hoch");
         aktion = this._anVorschlag([
-          this._anAenderung("dhw_setpoint", 60, "SetDHWTemp", "°C"),
-          mitDiff ? this._anAenderung("dhw_heat_delta", -10, "SetDHWHeatDelta", "K") : null,
+          this._anAenderung("TOP9", 60, "SetDHWTemp", "°C"),
+          mitDiff ? this._anAenderung("TOP22", -10, "SetDHWHeatDelta", "K") : null,
         ], tf(t(mitDiff ? "an_g_ww_hoch_d" : "an_g_ww_hoch"), w));
       }
       const teile = [tief !== null ? tf(t("an_w_ww_tief"), { m: z(tief, 0) }) : t("an_w_ww_soll")];
@@ -999,7 +1004,7 @@ export const analyseKarte = {
     //  - andere Hersteller: nur Messwert, kein Bereich hinterlegt.
     // 0 bar heisst: kein Sensor (TOP115 gibt es nicht bei jeder Serie).
     const druckReihe = d && d.druck ? d.druck.filter((p) => Number.isFinite(p.v) && p.v > 0.05) : [];
-    const druckJetzt = this._anWert("water_pressure");
+    const druckJetzt = this._anWert("TOP115");
     if (druckReihe.length || (druckJetzt !== null && druckJetzt > 0.05)) {
       const serie = this._anPanaSerie();
       const MIN = 0.5;
@@ -1038,9 +1043,9 @@ export const analyseKarte = {
         text: t("an_jaz_hinweis"), quelle: "jaz",
       });
     }
-    const err = rawState(this._quelle, this._e("error"));
+    const err = rawState(this._quelle, this._e("TOP44"));
     const harmlos = [null, "", "OK", "ok", "0", "No error", "unknown", "unavailable"];
-    if (this._e("error")) {
+    if (this._e("TOP44")) {
       const stoerung = err !== null && !harmlos.includes(err);
       punkt({
         gruppe: "anlage", id: "stoerung", stufe: stoerung ? "pruefen" : "ok", titel: t("an_t_stoerung"),

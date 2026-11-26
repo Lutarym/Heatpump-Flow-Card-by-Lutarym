@@ -33,6 +33,7 @@ import { AUFFAELLIG, BEWERTET, GRENZE, MIT_KNOPF, QUELLEN, RANG, STUFEN } from "
 import { mittel } from "./auswertung.js";
 import { dauerText } from "./stromreiter.js";
 import { wwLadungen } from "./warmwasser.js";
+import { LADESTART } from "../namen.js";
 
 /** Reiter in ihrer Reihenfolge, ohne den Ueberblick. */
 export const REITER = ["heizkurve", "takten", "pumpe", "warmwasser", "heizstab", "abtauen", "effizienz", "strom", "anlage"];
@@ -108,7 +109,7 @@ export const analyseReiterKarte = {
     const finde = (id) => punkte.find((p) => p.id === id);
 
     /* ---- Takten: 24 h aus der Integration ---- */
-    const st = this._int("compressor_starts_24h");
+    const st = this._int("EXT700");
     const tk = finde("taktung");
     if (k === "24h" && st && st.zahl !== null && st.zahl > 0 && Number.isFinite(st.attr.mittlere_laufzeit_min)) {
       const n = st.zahl;
@@ -125,13 +126,13 @@ export const analyseReiterKarte = {
     }
 
     /* ---- Spreizung: 7 Tage aus der Integration ---- */
-    const spI = this._int("spread_heating");
+    const spI = this._int("EXT701");
     const sp0 = finde("spreizung");
     if (k === "7d" && spI && spI.zahl !== null) {
       const sp = spI.zahl;
       const { stufe, text } = this._anSpStufe(sp);
       const { aktion, ohne } = this._anSpVorschlag(sp);
-      const dtSoll = this._anWert("heat_delta");
+      const dtSoll = this._anWert("TOP23");
       const tipp = Math.round(sp) < 5 ? (puffer ? "an_tip_sp_klein_p" : "an_tip_sp_klein") : puffer ? "an_tip_sp_gross_p" : "an_tip_sp_gross";
       ersetze(sp0, {
         gruppe: "heiz", id: "spreizung", stufe, titel: t("an_t_spreizung"), wert: `${z(sp)} K`,
@@ -145,7 +146,7 @@ export const analyseReiterKarte = {
     }
 
     /* ---- Heizkurve: Vorlauf ueber Soll (Integration, 7 Tage) ---- */
-    const vs = this._int("flow_over_target");
+    const vs = this._int("EXT703");
     if (vs && vs.zahl !== null) {
       const h = Number(vs.attr.heizstunden_7d);
       punkt({
@@ -183,7 +184,7 @@ export const analyseReiterKarte = {
         raumKalt.push(n);
         const grenze = GRENZE[this._anFlaecheVon(n)].toleranz;
         aktion = this._anVorschlag(this._anKurvenAnheben(n, grenze), tf(t("an_g_raum_kalt"), werte));
-        const kurve = this._anWert(n === 2 ? "curve2_t_high" : "curve_t_high");
+        const kurve = this._anWert(n === 2 ? "TOP82" : "TOP29");
         if (!aktion && kurve !== null && kurve >= grenze) schritt = tf(t("an_sr_raum_max"), { ...werte, g: z(grenze, 0) });
       }
       punkt({
@@ -207,8 +208,8 @@ export const analyseReiterKarte = {
     }
 
     /* ---- Warmwasser: Ladezeit gegen TOP159 ---- */
-    const max = this._intZahl("top159");
-    const soll = this._anWert("dhw_setpoint");
+    const max = this._intZahl("TOP159");
+    const soll = this._anWert("TOP9");
     if (d && Number.isFinite(max) && max > 0 && d.wwTemp && d.wwTemp.length) {
       const ladungen = wwLadungen(
         {
@@ -240,7 +241,7 @@ export const analyseReiterKarte = {
     // Mit Netzbezug und Leistung rechnet die Karte ihn fuer den Zeitraum
     // (stromreiter.js), sonst wie bisher fuer heute.
     const sd = typeof this._stromDaten === "function" ? this._stromDaten() : null;
-    const pv = this._int("pv_share_today");
+    const pv = this._int("EXT5");
     const eigen = typeof this._netzHeute === "function" ? this._netzHeute() : null;
     if (sd && sd.mitNetz) {
       const s = sd.summe;
@@ -283,7 +284,7 @@ export const analyseReiterKarte = {
         text: tf(t("an_kosten_text"), werte), kurz: tf(t("an_ku_kosten"), werte), quelle: "integration",
       });
     }
-    const sgAn = this._intZahl("top149");
+    const sgAn = this._intZahl("TOP149");
     if (sgAn !== null) {
       const pz = (x) => {
         const v = this._intZahl(x);
@@ -293,7 +294,7 @@ export const analyseReiterKarte = {
         const v = this._intZahl(x);
         return v === null ? "--" : z(v, 1);
       };
-      const werte = { h1: pz("top154"), w1: pz("top155"), h2: pz("top156"), w2: pz("top157"), ph1: kw("top185"), pw1: kw("top184"), ph2: kw("top188"), pw2: kw("top187") };
+      const werte = { h1: pz("TOP154"), w1: pz("TOP155"), h2: pz("TOP156"), w2: pz("TOP157"), ph1: kw("TOP185"), pw1: kw("TOP184"), ph2: kw("TOP188"), pw2: kw("TOP187") };
       punkt({
         gruppe: "anlage", id: "sgein", stufe: "info", titel: t("an_t_sgein"), wert: t(sgAn > 0 ? "an_sg_ein" : "an_sg_aus"),
         text: sgAn > 0 ? tf(t("an_sgein_text"), werte) : t("an_sgein_aus"), kurz: sgAn > 0 ? tf(t("an_ku_sgein"), werte) : t("an_sgein_aus"),
@@ -302,7 +303,7 @@ export const analyseReiterKarte = {
     }
 
     /* ---- Anlage: Firmware, Fuehlerkorrekturen, fehlende Werte ---- */
-    const fw = this._int("firmware");
+    const fw = this._int("EXT706");
     if (fw && fw.attr.installed_version) {
       const neu = fw.attr.latest_version;
       const aktuell = !neu || neu === fw.attr.installed_version;
@@ -312,7 +313,7 @@ export const analyseReiterKarte = {
         text: tf(t(aktuell ? "an_fw_aktuell" : "an_fw_neu"), werte), kurz: tf(t(aktuell ? "an_fw_aktuell" : "an_fw_neu"), werte), quelle: "hm_firmware",
       });
     }
-    const fuehler = [["top178", "an_f_aussen"], ["top196", "an_f_vorlauf"], ["top193", "an_f_ruecklauf"], ["top195", "an_f_speicher"], ["top177", "an_f_raum"]]
+    const fuehler = [["TOP178", "an_f_aussen"], ["TOP196", "an_f_vorlauf"], ["TOP193", "an_f_ruecklauf"], ["TOP195", "an_f_speicher"], ["TOP177", "an_f_raum"]]
       .map(([top, name]) => ({ name, v: this._intZahl(top) }))
       .filter((f) => f.v !== null);
     if (fuehler.length) {
@@ -357,7 +358,7 @@ export const analyseReiterKarte = {
     if (r === "heizkurve") {
       punkte.forEach((p) => k(p.titel, p.wert === "--" ? null : p.wert, p.id === "vlsoll" ? `${intS}, ${t("an_7t")}` : "", AUFFAELLIG.includes(p.stufe)));
     } else if (r === "takten") {
-      const s = iv("compressor_starts_24h");
+      const s = iv("EXT700");
       if (s && s.zahl !== null) {
         k(t("an_k_starts24"), z(s.zahl, 0), intS);
         if (Number.isFinite(s.attr.mittlere_laufzeit_min)) k(t("an_k_laufzeit"), `${z(s.attr.mittlere_laufzeit_min, 0)} min`, intS);
@@ -367,41 +368,41 @@ export const analyseReiterKarte = {
       } else ausPunkt("taktung");
     } else if (r === "pumpe") {
       ausPunkt("spreizung", t("an_k_sp"));
-      const sh = iv("spread_heating");
+      const sh = iv("EXT701");
       if (sh && sh.zahl !== null) k(t("an_k_sp_h"), `${z(sh.zahl)} K`, `${Number.isFinite(sh.attr.durchfluss_l_min) ? `${z(sh.attr.durchfluss_l_min)} l/min, ` : ""}${t("an_7t")}`);
-      const sw = iv("spread_dhw");
+      const sw = iv("EXT702");
       if (sw && sw.zahl !== null) k(t("an_k_sp_w"), `${z(sw.zahl)} K`, `${Number.isFinite(sw.attr.durchfluss_l_min) ? `${z(sw.attr.durchfluss_l_min)} l/min, ` : ""}${t("an_7t")}`);
       ausPunkt("puffer", t("an_k_puffer"));
-      const ziel = this._intZahl("top169");
+      const ziel = this._intZahl("TOP169");
       if (ziel !== null && this._anMitPuffer()) k(t("an_k_pufferziel"), `${z(ziel, 0)} °C`, "TOP169");
     } else if (r === "warmwasser") {
-      const soll = this._anWert("dhw_setpoint");
-      const delta = this._anWert("dhw_heat_delta");
+      const soll = this._anWert("TOP9");
+      const delta = this._anWert("TOP22");
       // Hervorgehoben wie die Bewertung: nur ein auffaelliges Soll, nicht
       // die leichte Abweichung beim Nachladen.
       const pw = punkte.find((x) => x.id === "warmwasser");
       if (soll !== null) k(t("an_k_soll"), `${z(soll, 0)} °C`, "TOP9", Boolean(pw && AUFFAELLIG.includes(pw.stufe)));
       if (soll !== null && delta !== null) k(t("an_k_nachladen"), `${z(soll - Math.abs(delta), 0)} °C`, tf(t("an_k_nachladen_s"), { d: z(Math.abs(delta), 0) }));
-      const leg = this._anWert("steril_temp");
+      const leg = this._anWert("TOP70");
       if (leg !== null) k(t("an_k_legionellen"), `${z(leg, 0)} °C`, "TOP70");
-      const lad = iv("dhw_charges_24h");
+      const lad = iv("EXT405");
       if (lad && lad.zahl !== null) k(t("an_k_ladungen"), z(lad.zahl, 0), Number.isFinite(lad.attr.erzwungen_24h) ? tf(t("an_k_erzwungen"), { n: lad.attr.erzwungen_24h }) : intS);
-      const cop = iv("dhw_cop_last");
+      const cop = iv("EXT406");
       if (cop && cop.zahl !== null) k(t("an_k_wwcop"), z(cop.zahl), intS);
-      const kost = iv("dhw_cost_per_day");
+      const kost = iv("EXT409");
       if (kost && kost.zahl !== null) k(t("an_k_wwkosten"), `${z(kost.zahl, 2)} €`, `${intS}, ${t("an_7t")}`);
-      const halt = iv("dhw_hold_avg");
+      const halt = iv("EXT410");
       if (halt && halt.zahl !== null) k(t("an_k_halte"), `${z(halt.zahl, 0)} h`, intS);
-      const nach = iv("dhw_reheat_temp");
+      const nach = iv("EXT411");
       if (nach && nach.zahl !== null) k(t("an_k_nachtemp"), `${z(nach.zahl)} °C`, intS);
-      const heute = iv(`dhw_optimal_${WOCHENTAGE[new Date().getDay()]}`);
+      const heute = iv(LADESTART[WOCHENTAGE[new Date().getDay()]]);
       if (heute && heute.roh) k(t("an_k_ladestart"), heute.roh, intS);
-      const max = this._intZahl("top159");
+      const max = this._intZahl("TOP159");
       if (max !== null) k(t("an_k_maxzeit"), `${z(max, 0)} min`, "TOP159");
     } else if (r === "heizstab") {
       ausPunkt("heizstab", t("an_k_stab_zr"));
-      const hs = iv("heater_runtime_today");
-      const kw = this._intZahl("top147");
+      const hs = iv("EXT705");
+      const kw = this._intZahl("TOP147");
       if (hs && hs.zahl !== null) {
         k(t("an_k_stab_heute"), `${z(hs.zahl, 0)} min`, intS);
         const sieben = parseFloat(hs.attr["7d_min"]);
@@ -415,7 +416,7 @@ export const analyseReiterKarte = {
       ausPunkt("auslegung", t("an_k_ausl"));
     } else if (r === "abtauen") {
       ausPunkt("abtauung", t("an_k_abtau_zr"));
-      const ab = iv("defrost_24h");
+      const ab = iv("EXT704");
       if (ab && ab.zahl !== null) {
         k(t("an_k_abtau24"), z(ab.zahl, 0), intS);
         if (Number.isFinite(ab.attr.mittlere_dauer_min)) k(t("an_k_abtau_dauer"), `${z(ab.attr.mittlere_dauer_min, 0)} min`, intS);
@@ -441,7 +442,7 @@ export const analyseReiterKarte = {
         const netz = typeof this._netzHeute === "function" ? this._netzHeute() : null;
         if (netz) k(t("netzstrom_heute"), `${z(netz.netz, 1)} kWh`, netz.quelle === "integration" ? intS : t("an_q_karte"));
         if (netz && netz.quelle === "karte" && Number.isFinite(netz.anteil)) k(t("an_k_pv_heute"), `${z(Math.min(100, Math.max(0, netz.anteil)), 0)} %`, t("an_q_karte"));
-        const pv = iv("pv_share_today");
+        const pv = iv("EXT5");
         if (pv && pv.zahl !== null) {
           k(t("an_k_pv_heute"), `${z(pv.zahl, 0)} %`, intS);
           if (Number.isFinite(parseFloat(pv.attr.pv_anteil_7_tage))) k(t("an_k_pv_7"), `${z(parseFloat(pv.attr.pv_anteil_7_tage), 0)} %`, intS);
@@ -456,7 +457,7 @@ export const analyseReiterKarte = {
           false, SG_STATES[3].farbe);
       } else ausPunkt("sgein", t("an_t_sgein"));
       ausPunkt("kosten", t("an_k_heizkosten"));
-      const kost = iv("dhw_cost_per_day");
+      const kost = iv("EXT409");
       if (kost && kost.zahl !== null) k(t("an_k_wwkosten"), `${z(kost.zahl, 2)} €`, `${intS}, ${t("an_7t")}`);
     } else if (r === "anlage") {
       ausPunkt("druck", t("an_k_druck"));
@@ -475,14 +476,14 @@ export const analyseReiterKarte = {
     let hervor = null;
     let zweite = null;
     if (r === "warmwasser") {
-      const b = this._int("dhw_best_hour");
+      const b = this._int("EXT407");
       const c = b && b.attr.cop_je_startstunde;
       if (!c || typeof c !== "object") return "";
       paare = Object.entries(c).filter(([, v]) => Number.isFinite(Number(v))).map(([s, v]) => [s.slice(0, 2), Number(v), z(Number(v))]);
       hervor = b.roh ? String(b.roh).slice(0, 2) : null;
       titel = t("an_g_wwcop");
     } else if (r === "heizkurve") {
-      const v = this._int("flow_over_target");
+      const v = this._int("EXT703");
       const c = v && v.attr.vorlauf_je_aussentemperatur;
       if (!c || typeof c !== "object") return "";
       paare = Object.entries(c)
@@ -495,7 +496,7 @@ export const analyseReiterKarte = {
       zweite = true;
       titel = t("an_g_vlsoll");
     } else if (r === "abtauen") {
-      const a = this._int("defrost_24h");
+      const a = this._int("EXT704");
       const c = a && a.attr.anzahl_7d_je_aussentemperatur;
       if (!c || typeof c !== "object") return "";
       paare = Object.entries(c).filter(([, v]) => Number.isFinite(Number(v))).map(([s, v]) => [s.replace(" °C", ""), Number(v), z(Number(v), 0)]);
@@ -654,7 +655,7 @@ export const analyseReiterKarte = {
             laeufeKnopf(p, punkte.indexOf(p)) ? `<br>${laeufeKnopf(p, punkte.indexOf(p))}` : ""}${warumNicht}</li>`);
         });
       if (r === "warmwasser") {
-        const b = this._int("dhw_best_hour");
+        const b = this._int("EXT407");
         if (b && b.roh) schritte.push(`<li>${e(tf(t("an_sr_wwstunde"), { h: b.roh }))}</li>`);
       }
       const tun = schritte.length

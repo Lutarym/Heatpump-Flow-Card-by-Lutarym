@@ -1,0 +1,48 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "nibe",
+  "name": "NIBE",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "nibe_heatpump",
+      "name": "Nibe Heat Pump",
+      "geraete": [
+        {
+          "hersteller": ["NIBE"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "Home Assistant Core",
+        "adresse": "https://www.home-assistant.io/integrations/nibe_heatpump/",
+        "version": "",
+        "aktualisiert": "",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "core",
+        "integration": "nibe_heatpump",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["bf1_ep14_flow_40072"],
+        "TOP5": ["eb100_ep14_bt3_return_temp_40012"],
+        "TOP6": ["bt2_supply_temp_s1_40008", "eb100_ep14_bt12_condensor_out_40017"],
+        "TOP8": ["compressor_frequency_actual_43136"],
+        "TOP10": ["bt7_hw_top_40013", "bt6_hw_load_40014"],
+        "TOP11": ["tot_op_time_compr_eb100_ep14_43420"],
+        "TOP12": ["compressor_starts_eb100_ep14_43416"],
+        "TOP14": ["bt1_outdoor_temperature_40004"],
+        "TOP20": ["prio_43086"],
+        "TOP36": ["bt2_supply_temp_s1_40008"],
+        "TOP37": ["ep21_bt2_supply_temp_s2_40007"],
+        "TOP65": ["supply_pump_speed_ep14_43437"],
+        "EXT204": ["ep22_bt2_supply_temp_s3_40006"]
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@
  * Verbrauchsverlauf der letzten 24 Stunden.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { attr, clamp, fmt, groesster, indexBis, kleinster, warmwasserZustand, zustandAn } from "../hilfsfunktionen.js";
+import { clamp, fmt, groesster, indexBis, kleinster, warmwasserZustand, zustandAn, zustandVon } from "../hilfsfunktionen.js";
 import { NEUTRAL, SG_STATES } from "../konstanten.js";
 import { tf } from "../texte.js";
 import { inKwh } from "./netzstrom.js";
@@ -15,7 +15,7 @@ export const verlaufKarte = {
    * Schlaegt die Abfrage fehl, bleibt der Gesamtstand stehen.
    */
   async _ladeTagesstart() {
-    const id = this._e("energy_today");
+    const id = this._e("EXT2");
     if (!id || !this._quelle || !this._quelle.callWS) return;
 
     const jetzt = new Date();
@@ -42,11 +42,11 @@ export const verlaufKarte = {
       const reihe = antwort && antwort[id];
       if (!reihe || !reihe.length) return;
       // Je nach Fassung heisst das Feld "s" oder "state".
-      const roh = reihe[0].s !== undefined ? reihe[0].s : reihe[0].state;
+      const roh = zustandVon(id, reihe[0].s !== undefined ? reihe[0].s : reihe[0].state);
       const wert = parseFloat(roh);
       if (Number.isFinite(wert)) {
         // In kWh wie die Anzeige (aktualisieren.js).
-        this._tagStart = inKwh(wert, attr(this._quelle, id, "unit_of_measurement", ""));
+        this._tagStart = inKwh(wert, this._einheit("EXT2"));
         this._tagStartTag = mitternacht;
         this._render();
       }
@@ -121,11 +121,11 @@ export const verlaufKarte = {
       return;
     }
 
-    const id = this._e("power_now");
-    const vid = this._e("three_way_valve");
-    const k1 = this._e("sg_k1");
-    const k2 = this._e("sg_k2");
-    const vd = this._e("compressor");
+    const id = this._e("EXT1");
+    const vid = this._e("TOP20");
+    const k1 = this._e("EXT100");
+    const k2 = this._e("EXT101");
+    const vd = this._e("TOP8");
     if (!id || !this._hass || typeof this._hass.callWS !== "function") {
       this._verlauf = null;
       this._verlaufStat = null;
@@ -244,7 +244,7 @@ export const verlaufKarte = {
         .map((pkt) => ({
           t: pkt.lu ? pkt.lu * 1000 : Date.parse(pkt.last_changed),
           an: ["on", "true", "1"].includes(
-            String(pkt.s !== undefined ? pkt.s : pkt.state).toLowerCase()
+            String(zustandVon(eid, pkt.s !== undefined ? pkt.s : pkt.state)).toLowerCase()
           ),
         }))
         .filter((pkt) => !Number.isNaN(pkt.t));
@@ -278,7 +278,7 @@ export const verlaufKarte = {
     this._verdichterVerlauf = ((antwort && vd && antwort[vd]) || [])
       .map((pkt) => ({
         t: pkt.lu ? pkt.lu * 1000 : Date.parse(pkt.last_changed),
-        laeuft: zustandAn(pkt.s !== undefined ? pkt.s : pkt.state) === true,
+        laeuft: zustandAn(zustandVon(vd, pkt.s !== undefined ? pkt.s : pkt.state)) === true,
       }))
       .filter((pkt) => !Number.isNaN(pkt.t));
 
@@ -286,7 +286,7 @@ export const verlaufKarte = {
     this._ventilVerlauf = ((antwort && vid && antwort[vid]) || [])
       .map((p) => ({
         t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-        ww: warmwasserZustand(p.s !== undefined ? p.s : p.state) === true,
+        ww: warmwasserZustand(zustandVon(vid, p.s !== undefined ? p.s : p.state)) === true,
       }))
       .filter((p) => !Number.isNaN(p.t));
     if (!id) return;
@@ -294,7 +294,7 @@ export const verlaufKarte = {
     this._verlauf = reihe
       .map((p) => ({
         t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed),
-        v: parseFloat(p.s !== undefined ? p.s : p.state),
+        v: parseFloat(zustandVon(id, p.s !== undefined ? p.s : p.state)),
       }))
       .filter((p) => !Number.isNaN(p.v) && !Number.isNaN(p.t));
   },
@@ -305,7 +305,7 @@ export const verlaufKarte = {
    * kommen wie bei der JAZ in Watt.
    */
   _verlaufAusStatistik(leistung, heiz, ww) {
-    const einheit = String(attr(this._quelle, this._e("power_now"), "unit_of_measurement", "") || "");
+    const einheit = String(this._einheit("EXT1") || "");
     const hoechst = groesster(leistung.map((z) => z.v));
     const faktor = /^w$/i.test(einheit) ? 0.001 : /^kw$/i.test(einheit) ? 1 : hoechst >= 100 ? 0.001 : 1;
     const karte = (reihe) => new Map((reihe || []).map((z) => [z.t0, z.v]));
@@ -477,7 +477,7 @@ export const verlaufKarte = {
     setze("verlauf-flaeche", klassisch ? `${linie}L${rechts.toFixed(1)} ${unten}L${links.toFixed(1)} ${unten}Z` : "");
     // Werte kommen in Watt oder Kilowatt herein, angezeigt wird Kilowatt.
     // Die Einheit der Entitaet entscheidet, sonst die Groesse der Werte.
-    const einheit = String(attr(this._quelle, this._e("power_now"), "unit_of_measurement", "") || "");
+    const einheit = String(this._einheit("EXT1") || "");
     const faktor = /^w$/i.test(einheit) ? 0.001 : /^kw$/i.test(einheit) ? 1 : hoechst >= 100 ? 0.001 : 1;
     const inKW = hoechst * faktor;
     sr.getElementById("verlauf-max").textContent = klassisch ? tf(this._t("s_max"), { v: `${fmt(inKW, 2)} kW` }) : "";

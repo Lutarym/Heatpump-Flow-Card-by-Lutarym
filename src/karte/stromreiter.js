@@ -277,7 +277,7 @@ export const stromReiterKarte = {
   _stromIds() {
     const q = this._hass;
     const sonne = this._config.demo ? "demo.sun" : q && q.states && q.states["sun.sun"] ? "sun.sun" : null;
-    return { wp: this._e("power_now"), netz: this._e("grid_power"), pv: this._e("pv_power"), sonne };
+    return { wp: this._e("EXT1"), netz: this._e("EXT4"), pv: this._e("EXT3"), sonne };
   },
 
   /**
@@ -336,7 +336,8 @@ export const stromReiterKarte = {
         no_attributes: true,
       });
       const st = q.states || {};
-      const einheit = (id) => (st[id] && st[id].attributes ? st[id].attributes.unit_of_measurement : "");
+      const name = { [ids.wp]: "EXT1", [ids.netz]: "EXT4", [ids.pv]: "EXT3" };
+      const einheit = (id) => this._einheit(name[id], "", q, id);
       const watt = (id) => (id ? verlaufsReihe(antwort, id).map((p) => ({ t: p.t, v: inWatt(p.v, einheit(id)) })) : null);
       const sonne = ids.sonne
         ? verlaufsReihe(antwort, ids.sonne).map((p) => ({ t: p.t, oben: p.s === "above_horizon" ? true : p.s === "below_horizon" ? false : null }))
@@ -544,7 +545,7 @@ export const stromReiterKarte = {
 
   /** Strompreis in ct/kWh aus der Integration, sonst null. */
   _stromPreis() {
-    const p = [this._int("dhw_cost_per_day"), this._int("dhw_cost_last")]
+    const p = [this._int("EXT409"), this._int("EXT408")]
       .map((w) => (w ? parseFloat(w.attr.preis_ct_kwh) : NaN))
       .find((x) => Number.isFinite(x) && x > 0);
     return p || null;
@@ -861,7 +862,7 @@ export const stromReiterKarte = {
     const kopf = `<b class="lhc-an-boxkopf">${e(t("sp_sg_titel_heute"))}</b>`;
     const sg = this._stromSg(tagesbeginn(d.t1), d.t1);
     if (!sg) {
-      const an = typeof this._intZahl === "function" ? this._intZahl("top149") : null;
+      const an = typeof this._intZahl === "function" ? this._intZahl("TOP149") : null;
       const zusatz = an === null ? "" : ` ${t(an > 0 ? "sp_sg_top_an" : "sp_sg_top_aus")}`;
       return `<div class="lhc-an-box lhc-sp-box">${kopf}<p class="lhc-sp-hinweis">${e(t("sp_sg_ohne") + zusatz)}</p></div>`;
     }

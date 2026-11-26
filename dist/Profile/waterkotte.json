@@ -1,0 +1,50 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "waterkotte",
+  "name": "Waterkotte",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "waterkotte_heatpump",
+      "name": "Waterkotte Heatpump",
+      "geraete": [
+        {
+          "hersteller": ["Waterkotte"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "marq24",
+        "adresse": "https://github.com/marq24/ha-waterkotte",
+        "version": "2026.11.3",
+        "aktualisiert": "2026-11-26",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "waterkotte_heatpump",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["temperature_return"],
+        "TOP6": ["temperature_flow"],
+        "TOP8": ["percent_compressor", "state_compressor"],
+        "TOP9": ["number:temperature_water_setpoint"],
+        "TOP10": ["temperature_water"],
+        "TOP11": ["operating_hours_compressor_1"],
+        "TOP14": ["temperature_outside"],
+        "TOP20": ["state_water"],
+        "TOP44": ["state_alarm"],
+        "TOP46": ["temperature_buffertank"],
+        "TOP47": ["temperature_solar"],
+        "TOP115": ["pressure_water"],
+        "TOP124": ["state_heating_circulation_pump_d425"],
+        "EXT1": ["power_electric"],
+        "EXT600": ["cop_heating"]
+      }
+    }
+  ]
+}

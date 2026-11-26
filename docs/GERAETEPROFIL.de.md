@@ -2,30 +2,48 @@
 
 [English](GERAETEPROFIL.md) · **Deutsch** · [Français](GERAETEPROFIL.fr.md) · [日本語](GERAETEPROFIL.ja.md)
 
-Ein Geräteprofil sagt der Karte, wie die Entitäten deiner Wärmepumpe in Home Assistant heißen. Damit kann die Karte die Entitäten selbst finden und den Feldern zuordnen. So lassen sich Wärmepumpen anderer Hersteller anbinden, und das eingebaute Panasonic-Profil lässt sich anpassen.
+Ein Geräteprofil sagt der Karte, welche Entität in Home Assistant zu welchem Wert gehört. Die Werte heißen wie in der [Namensliste](NAMENSLISTE.de.md), zum Beispiel TOP14 für die Außentemperatur. Mit dem Profil findet die Karte die Entitäten selbst.
 
-Ein Profil ist eine kleine Textdatei im JSON-Format. Du kannst sie exportieren, mit einem Texteditor ändern und wieder importieren.
+Ab Version 6.0.0 enthält die Karte selbst kein Profil mehr. Alle Profile liegen als Dateien im Ordner `dist/Profile`, eine Datei je Hersteller. Jede Integration oder Firmware ist darin eine Variante, bei Panasonic Aquarea zum Beispiel HeishaMon by Lutarym, HeishaMon (MQTT), HeishaMon von kamaradclimber und Aquarea Smart Cloud. HACS installiert den Ordner mit der Karte. Eigene Profile kommen per Import dazu.
 
 ## Wo du es findest
 
-Karte bearbeiten, Editor auf **Erweitert** stellen. Die Auswahl steht im Abschnitt **Integration**, die Knöpfe im Abschnitt **Import, Export und Anpassungen**:
+Karte bearbeiten. Im Abschnitt **Integration**:
 
-- **Hersteller**: „Automatisch erkennen“ oder ein Hersteller (auch im einfachen Modus sichtbar)
-- **Integration / Gerät**: erscheint, wenn ein Hersteller mehrere Integrationen hat, mit dem Namen des Entwicklers
-- **Mehrere Integrationen erkannt**: erscheint bei „Automatisch erkennen“, wenn mehrere passen
-- **Rückmeldung auf GitHub** und **Bericht kopieren** im Kasten „Über dieses Profil“: Der Bericht enthält zugeordnete, fehlende und von Hand geänderte Felder sowie die ungenutzten Entitäten der Integration. Damit lässt sich ein Profil verbessern. Er enthält Entity-IDs und aktuelle Werte; auf GitHub siehst und änderst du ihn vor dem Absenden.
-- **Über dieses Profil**: Integration, Entwickler mit Link zur Quelle, Version, letzte Änderung, die beschriebenen Bereiche, was in Home Assistant gefunden wurde, ob die Karte steuern kann, ob es die Hilfe gibt und ob das Profil getestet ist. Version und letzte Änderung sind beim Erstellen der Kartenversion abgelesen und aktualisieren sich nicht von selbst.
-- **Profil exportieren**: speichert das gewählte Profil als Datei im Download-Ordner
-- **Profil importieren**: liest eine Profildatei ein und wählt das Profil aus
-- **Eigenes Profil entfernen**: erscheint nur bei einem eigenen oder angepassten Profil
+- **Hersteller**: „Automatisch erkennen“, ein Hersteller aus dem Ordner Profile, „Eigene Profile“ (wenn vorhanden) oder „Kein Profil, Entitäten selbst eintragen“
+- **Integration / Gerät**: erscheint, wenn ein Hersteller mehrere Varianten hat, mit dem Namen des Entwicklers
+- **Mehrere Integrationen erkannt**: erscheint bei „Automatisch erkennen“, wenn mehrere Varianten passen
+- **Möchtest du ein bestimmtes Profil laden?**: erscheint bei „Automatisch erkennen“, wenn keine Variante passt. Dort wählst du Hersteller und Integration und drückst **Profil laden**. Mit **Nein, Entitäten selbst eintragen** stellt die Karte auf „Kein Profil, Entitäten selbst eintragen“ und der Editor zeigt die Felder für die Entitäten.
+- **Aus Integration übernehmen**: trägt die gefundenen Entitäten fest in die Felder ein
+- **Erneut suchen**: stellt auf „Automatisch erkennen“ und sucht alle Profile neu ab. Konnten die Profile vorher nicht geladen werden, lädt die Karte sie erneut.
+- **Standardnamen eintragen** (Editor auf **Erweitert**): trägt Entity-IDs ein, die das Profil genau angibt oder nach dem Muster `*.name` (zum Beispiel `sensor.heishamon_top14`)
+- **Über dieses Profil**: Integration, Entwickler mit Link zur Quelle, Version, letzte Änderung der Integration und Tag der Prüfung, die beschriebenen Bereiche, was in Home Assistant gefunden wurde, ob die Karte steuern kann, ob es die Hilfe gibt und ob das Profil getestet ist. Version und Daten stehen in der Profildatei und ändern sich nicht von selbst. Darunter **Rückmeldung auf GitHub** und **Bericht kopieren**: Der Bericht enthält zugeordnete, fehlende und von Hand geänderte Werte sowie die ungenutzten Entitäten der Integration. Damit lässt sich ein Profil verbessern. Er enthält Entity-IDs und aktuelle Werte; auf GitHub siehst und änderst du ihn vor dem Absenden.
 
-## Schnellstart
+Im Abschnitt **Import, Export und Anpassungen** (Editor auf **Erweitert**):
 
-1. Wähle **Panasonic Aquarea, HeishaMon by Lutarym** und drücke **Profil exportieren**. Die Datei dient als Vorlage.
+- **Profil exportieren**: speichert die gewählte oder erkannte Variante als Datei im Download-Ordner
+- **Profil importieren**: liest eine Profildatei ein und wählt die (erste) Variante aus
+- **Profile auf GitHub suchen**: siehe [Profile von GitHub laden](#profile-von-github-laden)
+- **Eigenes Profil entfernen**: erscheint nur bei einem eigenen, angepassten oder von GitHub geladenen Profil
+
+## Wie die Karte lädt und sucht
+
+1. In der Kartenkonfiguration steht unter `profil` die Kennung der Variante, zum Beispiel `heishamon_lutarym`. Die Kennungen bis 5.33.8 gelten weiter.
+2. Variante gewählt: Die Karte lädt `liste.json` und genau die Datei dieser Variante.
+3. `auto` („Automatisch erkennen“, Standard): Die Karte lädt `liste.json` und einmal alle Dateien. Sie prüft alle Varianten und nimmt die mit den meisten passenden Werten. Eine Variante gilt als gefunden, wenn mindestens zwei Werte passen. Sucht eine Variante über die Entity ID (ohne Integration), zählen dabei keine Entitäten, die laut Register zur Integration einer anderen Variante gehören.
+4. Keine Variante passt: Die Karte zeigt „Kein passendes Profil gefunden. Möchtest du ein bestimmtes Profil laden? Karte bearbeiten und oben Hersteller und Integration wählen.“ Ohne Profil nimmt die Karte keinen Hersteller an.
+5. `keins`: kein Profil, die Karte nutzt nur die eingetragenen Entitäten.
+6. Die Dateien lädt der Browser einmal je Seite. Die Karte hängt ihre Version an den Abruf, nach einem Update holt der Browser die neuen Dateien.
+7. Konnten die Profile nicht geladen werden, zeigt die Karte „Die Geräteprofile konnten nicht geladen werden. Bitte die Seite neu laden.“
+8. Gibt es in Home Assistant mehrere Geräte derselben Integration (zum Beispiel zwei Wärmepumpen), sucht die Karte die nicht eingetragenen Werte beim Gerät ihrer eingetragenen Entitäten.
+
+## Schnellstart: eigenes Profil
+
+1. Wähle eine passende oder ähnliche Variante, zum Beispiel **Panasonic Aquarea, HeishaMon by Lutarym**, und drücke **Profil exportieren**. Die Datei dient als Vorlage.
 2. Suche in Home Assistant die Entitäten deiner Wärmepumpe: **Entwicklerwerkzeuge → Zustände**, Filter zum Beispiel mit dem Gerätenamen.
-3. Öffne die Datei in einem Texteditor. Ändere `id`, `name`, `hersteller`, `integration` und `namensteil` und trage unter `felder` deine Entitäten ein. Felder, die es bei dir nicht gibt, löschst du einfach.
-4. Drücke **Profil importieren** und wähle die Datei. Die Karte meldet, wie viele Felder beschrieben sind und wie viele davon sie in Home Assistant gefunden hat.
-5. Drücke **Aus Integration übernehmen**. Erst dann werden die gefundenen Entitäten den Feldern fest zugeordnet.
+3. Öffne die Datei in einem Texteditor. Ändere die Kennungen (`id` der Datei und der Variante), die Namen und `suche` und trage unter `werte` deine Entitäten ein. Werte, die es bei dir nicht gibt, löschst du einfach.
+4. Drücke **Profil importieren** und wähle die Datei. Die Karte meldet, wie viele Werte beschrieben sind und wie viele davon sie in Home Assistant gefunden hat.
+5. Drücke **Aus Integration übernehmen**, wenn die gefundenen Entitäten fest in den Feldern stehen sollen.
 6. Prüfe im Editor die einzelnen Felder und korrigiere sie bei Bedarf von Hand.
 
 ## Aufbau der Datei
@@ -33,76 +51,151 @@ Karte bearbeiten, Editor auf **Erweitert** stellen. Die Auswahl steht im Abschni
 ```json
 {
   "format": "lutarym-geraeteprofil",
-  "version": 1,
-  "id": "meine_waermepumpe",
-  "name": "Meine Wärmepumpe",
-  "hersteller": "Beispiel",
-  "integration": "",
-  "namensteil": "waermepumpe",
-  "felder": {
-    "outside_temp": ["sensor.waermepumpe_aussentemperatur"],
-    "flow_temp": ["sensor.*_vorlauf"],
-    "return_temp": ["ruecklauf"],
-    "dhw_temp": ["sensor.waermepumpe_warmwasser_ist"],
-    "dhw_target": ["number.waermepumpe_warmwasser_soll"]
-  }
+  "version": 2,
+  "id": "beispiel",
+  "name": "Beispiel",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "beispiel_wp",
+      "name": "Beispiel WP",
+      "geraete": [{ "hersteller": ["Beispiel"], "reihe": "", "modelle": [], "hinweis": "" }],
+      "quelle": {
+        "entwickler": "jemand",
+        "adresse": "https://github.com/jemand/beispiel-wp",
+        "version": "1.0.0",
+        "aktualisiert": "2026-11-20",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": { "art": "integration", "integration": "beispiel_wp", "namensteil": "" },
+      "werte": {
+        "TOP14": ["outdoor_temperature"],
+        "TOP6": ["sensor.*_vorlauf"],
+        "TOP1": { "suche": ["sensor.*_durchfluss"], "einheit": "l/h" },
+        "TOP26": { "suche": ["sensor.*_betrieb"], "zustaende": { "abtauen": 1, "*": 0 } }
+      }
+    }
+  ]
 }
 ```
 
+Die Datei:
+
 | Angabe | Pflicht | Bedeutung |
 |---|---|---|
-| `format` | ja | immer `"lutarym-geraeteprofil"` |
-| `version` | ja | immer `1` |
-| `id` | ja | Kennung, 2 bis 40 Zeichen, nur Kleinbuchstaben a bis z, Ziffern, `_` und `-` |
-| `name` | nein | Name in der Auswahlliste |
-| `hersteller` | nein | nur zur Information |
-| `integration` | nein | Name der Integration in Home Assistant (siehe unten) |
-| `namensteil` | nein | Textteil, den alle Entity-IDs der Wärmepumpe enthalten, zum Beispiel `"vaillant"` |
-| `felder` | ja | je Feld der Karte eine Liste von Suchregeln |
+| `format`, `version` | ja | immer `"lutarym-geraeteprofil"` und `2` |
+| `id` | ja | Kennung der Datei, gleich dem Dateinamen ohne `.json`. 2 bis 40 Zeichen, nur Kleinbuchstaben a bis z, Ziffern, `_` und `-`. `liste` ist vergeben. |
+| `name` | ja | Name des Herstellers, so steht er im Editor |
+| `karte_ab` | ja | kleinste Kartenversion, die die Datei versteht, zum Beispiel `6.0.0`. Ist sie neuer als die Karte, lehnt die Karte die Datei ab. |
+| `varianten` | ja | eine oder mehrere Varianten |
 
-## Eingebaute Herstellerprofile
+Jede Variante:
 
-Die Karte bringt Profile für die folgenden Integrationen mit. Die Suchregeln stammen aus dem Quelltext der jeweiligen Integration. An echten Anlagen getestet ist bisher nur HeishaMon by Lutarym, alle anderen sind als „ungetestet“ markiert. Rückmeldungen helfen, sie zu verbessern.
+| Angabe | Pflicht | Bedeutung |
+|---|---|---|
+| `id` | ja | Kennung der Variante, über alle Dateien eindeutig. Die Kennungen bis 5.33.8 bleiben. |
+| `name` | ja | Name der Integration oder Firmware |
+| `geraete` | ja | Liste mit `hersteller` (Liste), `reihe`, `modelle` (Liste) und `hinweis` |
+| `quelle` | im Ordner Profile ja | `entwickler`, `adresse` (mit https://), `version`, `aktualisiert` (letzte Änderung der Integration), `abgelesen` (Tag der Prüfung) |
+| `suche` | ja | `art`: `integration`, `core` oder `firmware`. `integration`: Domain im Register von Home Assistant. `namensteil`: Teil der Entity ID, wenn ohne Register gesucht wird. |
+| `heishamon` | nein | `true`, wenn die Werte von HeishaMon kommen ([Merkmal heishamon](#merkmal-heishamon)) |
+| `getestet` | nein | `true`, wenn an einer echten Anlage geprüft |
+| `werte` | ja | Name aus der Namensliste und wie die Karte die Entität dazu findet |
 
-**Automatisch erkennen** (Standard) sucht alle Profile ab. Wird genau eine Integration gefunden, gilt sie. Werden mehrere gefunden, fragt der Editor, welche die Karte verwenden soll. Bis dahin gilt die mit den meisten passenden Feldern. Eine Integration gilt als gefunden, wenn mindestens zwei Felder passen.
+Ein Wert in Kurzform ist eine Liste von Suchregeln, zum Beispiel `"TOP14": ["outdoor_temperature"]`. Die Langform hat dazu Angaben zum Umrechnen: `"TOP1": { "suche": [...], "einheit": "l/h" }`.
 
-| Hersteller | Integration | Entwickler | Domain | Felder |
-|---|---|---|---|---|
-| Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 76 |
-| Panasonic Aquarea | HeishaMon (MQTT) | | | 76 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
-| Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
-| Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
-| Bosch, Buderus | [EMS-ESP (MQTT)](https://github.com/emsesp/EMS-ESP32) | emsesp | | 24 |
-| Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
-| Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
-| Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
-| Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
-| DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
-| Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
-| Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
-| iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
-| KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
-| Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
-| Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
-| Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
-| Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
-| NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
-| Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
-| Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
-| Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
-| Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
-| Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
-| Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
-| Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
-| Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
-| Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
-| Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
-| Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
-| Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
-| Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
+## Suchregeln
+
+| Regel | Beispiel | Passt auf |
+|---|---|---|
+| Schlüssel | `"top14"` | Entitäten der Integration mit diesem internen Schlüssel (translation_key) oder Entity-IDs, die auf `_top14` enden |
+| Domain und Schlüssel | `"number:top27"` | wie oben, nur Entitäten dieser Art |
+| Muster mit Stern | `"sensor.*boiler_fanspd"` | jede Entity-ID nach diesem Muster, der Stern steht für beliebigen Text |
+| genaue Entität | `"sensor.aussen"` | genau diese Entität |
+
+Weitere Regeln:
+
+- Ein Name, eine Entität. Mehrere Regeln sind Alternativen, die Karte setzt keine Werte aus zwei Entitäten zusammen.
+- Jeder Name nimmt nur bestimmte Entitätsarten an (Spalte „Entitätsarten“ in der [Namensliste](NAMENSLISTE.de.md)). Passt die Art nicht, wird die Entität nicht eingetragen.
+- Passen auf einen Namen eine nur lesbare und eine stellbare Entität, gewinnt die stellbare, damit sich der Wert in der Karte einstellen lässt.
+- Gibt es zu einem Namen mehrere Regeln, gilt die erste, die etwas findet. Ein genauer Treffer (interner Schlüssel oder ganze Entity-ID) geht vor einem Treffer über die Endung oder ein Muster.
+- Groß- und Kleinschreibung spielt bei Mustern und Endungen keine Rolle.
+
+## Wie gesucht wird
+
+- **Mit `integration`**: Die Karte durchsucht nur die Entitäten dieser Integration. Den Namen siehst du in der Adresszeile, wenn du die Integration unter **Einstellungen → Geräte & Dienste** öffnest: der Teil nach `/integration/`. Findet die Karte dort nichts, sucht sie nur dann wie ohne `integration` weiter, wenn auch `namensteil` gesetzt ist. So treffen allgemeine Schlüssel wie `"outdoor_temperature"` keine fremden Entitäten.
+- **Ohne `integration`**: Die Karte durchsucht alle Entitäten. Mit `namensteil` nur die, deren Entity-ID diesen Text enthält. Ohne `namensteil` kann eine Endung auch fremde Entitäten treffen, dann besser genaue Entity-IDs oder Muster verwenden.
+
+## Einheiten und Zustände
+
+- `einheit`: was die Integration liefert, wenn es nicht die Einheit von HeishaMon ist. Finden die Regeln Verschiedenes, stehen die Einheiten als Liste da. Meldet die Entität selbst eine Einheit, gilt diese. Sonst gilt die aus dem Profil, nur für die Entität, die das Profil selbst findet, und nur, wenn das Profil genau eine Einheit nennt (eigene Festlegung).
+- `zustaende`: Texte und ihr Wert wie bei HeishaMon, `"*"` steht für alle anderen Texte. Zahlen und Wörter wie an, aus, on und off versteht die Karte auch ohne diese Angabe. Die Karte setzt die Texte nur bei der Entität um, die das Profil selbst findet, auch im Verlauf. Ohne Angabe erkennt sie eine Abtauung auch an „defrost“ oder „abtau“ im Text. Bei EMS-ESP stehen die Wörter für das Abtauen in allen 12 Sprachen von EMS-ESP im Profil.
+
+| Namen | Die Karte rechnet in | Das Profil darf angeben |
+|---|---|---|
+| TOP62, TOP63, TOP65 (Lüfter, Pumpe) | U/min | U/min oder %. Bei %: 0 % steht, 100 % dreht am schnellsten (wie 900 U/min, eigene Festlegung, nur für die Bewegung). |
+| TOP11, TOP90, TOP91 (Betriebsstunden) | h | h, min, s, ms, d |
+| TOP1 (Durchfluss) | l/min | l/min, l/h, l/s, ml/s, m3/h, gal/min, ft3/min |
+| EXT1, EXT3, EXT4 (Leistung) | W | W, kW, MW |
+| EXT2 (Energie) | kWh | Wh, kWh, MWh |
+| TOP8 (Verdichter) | Hz | Hz oder %. Die Karte zeigt die gelieferte Einheit. |
+| TOP26 und alle Werte mit an und aus | 0 und 1 | Zahlen, an und aus, eigene Texte über `zustaende` |
+| TOP20 (3-Wege-Ventil) | 0 Heizung, 1 Warmwasser | Zahlen, an und aus, Texte mit Warmwasser-Wörtern, eigene Texte über `zustaende` |
+
+Eine Einheit, die nicht in der Tabelle steht, meldet der Build als Fehler. Temperaturen erwartet die Karte in °C, den Druck in bar.
+
+## Merkmal heishamon
+
+Mit `"heishamon": true` in einer Variante gilt:
+
+1. Das Hilfefenster mit den Werten und Befehlen von HeishaMon steht zur Verfügung.
+2. Ist ein Wert sonst nur lesbar, schickt die Karte den Befehl über MQTT an HeishaMon (zum Beispiel SET16 für die Heizkurve).
+3. Haben TOP95, TOP99 und TOP100 keinen Wert, obwohl HeishaMon Daten liefert, zeigt die Karte den Hinweis auf die Gruppe „Installer settings“.
+4. Kamin am Solareingang: Ist nur ein Kamin gewählt, gehören TOP47 und OPT5 zum Kamin (EXT300 und EXT301).
+
+Die Panasonic-Serie aus TOP92 richtet sich nach dem Hersteller in `geraete`.
+
+## Eingebaute Profile
+
+Die Suchregeln stammen aus dem Quelltext der jeweiligen Integration, geprüft am Tag in `abgelesen`. An echten Anlagen getestet sind bisher nur HeishaMon by Lutarym und HeishaMon (MQTT), alle anderen sind als „ungetestet“ markiert. Rückmeldungen helfen, sie zu verbessern. Modelle stehen bisher nur bei HeishaMon (aus HeatPumpType.md von HeishaMon) und EMS-ESP (aus device_library.h von EMS-ESP).
+
+| Datei | Hersteller | Variante | Entwickler | Domain | Werte |
+|---|---|---|---|---|---|
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
+| `batavia_heat.json` | Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
+| `bosch_buderus.json` | Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
+| `bosch_buderus.json` | Bosch, Buderus | [EMS-ESP (MQTT)](https://github.com/emsesp/EMS-ESP32) | emsesp |  | 41 |
+| `daikin.json` | Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
+| `daikin.json` | Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
+| `daikin.json` | Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
+| `daikin.json` | Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
+| `dewarmte.json` | DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
+| `heliotherm.json` | Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
+| `hitachi.json` | Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
+| `idm.json` | iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
+| `keba.json` | KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
+| `kronoterm.json` | Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
+| `lambda.json` | Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
+| `mitsubishi_electric.json` | Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
+| `mitsubishi_electric.json` | Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
+| `nibe.json` | NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 127 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon (MQTT)](https://github.com/heishamon/HeishaMon) |  |  | 105 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
+| `qube.json` | Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
+| `remeha.json` | Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
+| `solarfocus.json` | Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
+| `stiebel_eltron.json` | Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
+| `stiebel_eltron.json` | Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
+| `thermia.json` | Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
+| `vaillant.json` | Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
+| `viessmann.json` | Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
+| `waterkotte.json` | Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
+| `weishaupt.json` | Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
+| `wolf.json` | Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
 
 EMS-ESP braucht keine Integration: Die Firmware legt ihre Entitäten über MQTT Discovery in Home Assistant an. Die Regeln passen zur EMS-ESP-Einstellung „Entity ID format“ mit Kurznamen (eine oder mehrere Instanzen, aktuell oder v3.5), nicht zu „Single instance, long name (v3.4)“.
 
@@ -118,213 +211,50 @@ Ohne Profil, mit Grund:
 - `midea_heatpump_hws`: nur Warmwasser-Wärmepumpe
 - `dimplex`: liefert keine Wärmepumpenwerte wie Vorlauf, Rücklauf oder Verdichter
 
-## Suchregeln
+## Ein Profil in den Ordner aufnehmen
 
-Zu jedem Feld gehört eine Liste von Regeln. Eine einzelne Regel darf auch ohne eckige Klammern stehen. Es gibt vier Arten:
+1. Datei `dist/Profile/<id>.json` anlegen, eine Datei je Hersteller. Gibt es den Hersteller schon, kommt die neue Variante in seine Datei.
+2. `npm run build`: Der Build liest alle Dateien im Ordner, prüft sie und schreibt `dist/Profile/liste.json`. Wer ein Profil hinzufügt, legt nur die Datei ab und baut.
+3. Der Build prüft `format` und `version`, ob `id` zum Dateinamen passt, die Pflichtangaben, ob alle Kennungen über alle Dateien eindeutig sind, ob jeder Name in der Namensliste steht, ob die Suchregeln nicht leer sind, die Einheiten (Tabelle oben), `zustaende` (nur Zahlen), ob `karte_ab` nicht neuer als die Karte ist und `quelle` mit https-Adresse und Prüfdatum. Bei einem Fehler bricht er ab und nennt die Stelle.
 
-| Regel | Beispiel | Passt auf |
-|---|---|---|
-| mit Punkt | `"sensor.wp_vorlauf"` | genau diese Entität |
-| mit Stern `*` | `"sensor.*_vorlauf"` | jede Entity-ID nach diesem Muster, der Stern steht für beliebigen Text |
-| ohne Punkt und Stern | `"vorlauf"` | Entity-IDs, die auf `_vorlauf` enden, oder Entitäten der Integration mit diesem internen Schlüssel (translation_key) |
-| mit Domain davor | `"sensor:vorlauf"` | wie ohne Punkt und Stern, aber nur Entitäten dieser Art, hier `sensor` |
+## Profile von GitHub laden
 
-Am verlässlichsten ist die genaue Entity-ID. Muster und Endungen sind praktisch, wenn ein Profil auch bei anderen funktionieren soll, deren Entity-IDs zum Beispiel eine andere IP-Adresse enthalten.
+1. Knopf **Profile auf GitHub suchen** im Abschnitt **Import, Export und Anpassungen**. Erst auf Knopfdruck fragt die Karte bei GitHub an, nicht bei jedem Öffnen des Dashboards.
+2. Die Karte liest `liste.json` aus dem Ordner `dist/Profile` im Zweig main des Repositorys der Karte und zeigt Varianten, die neu oder neuer als die installierten sind. Neuer heißt: späteres Prüfdatum (`abgelesen`), spätere Änderung der Integration (`aktualisiert`) oder höhere Version.
+3. **Laden** holt die Datei und prüft sie wie beim Laden aus dem eigenen Ordner. Ist `karte_ab` neuer als die Karte, lehnt die Karte sie mit Hinweis ab.
+4. Die Variante speichert die Karte wie ein importiertes Profil in der Kartenkonfiguration und wählt sie aus. Danach läuft sie auch ohne Internet. In der Auswahl steht sie mit dem Zusatz „(von GitHub)“.
+5. Die Karte lädt nur Daten, keinen Programmcode.
 
-Weitere Regeln:
+## Ein eingebautes Profil anpassen
 
-- Jedes Feld nimmt nur bestimmte Entitätsarten an (Spalte „Erlaubte Entitätsarten“ in der Feldliste). Passt die Art nicht, wird die Entität dort nicht eingetragen.
-- Passen auf ein Feld eine nur lesbare und eine stellbare Entität, gewinnt die stellbare, damit sich der Wert in der Karte einstellen lässt.
-- Gibt es zu einem Feld mehrere Regeln, gilt die erste, die etwas findet. Ein genauer Treffer (interner Schlüssel oder ganze Entity-ID) geht vor einem Treffer über die Endung.
-- Groß- und Kleinschreibung spielt bei Mustern und Endungen keine Rolle.
+1. Variante wählen und **Profil exportieren**.
+2. In der Datei die gewünschten Werte ändern. Die `id` der Variante bleibt gleich.
+3. **Profil importieren**. In der Auswahl steht die Variante jetzt mit dem Zusatz „(angepasst)“.
+4. Mit **Eigenes Profil entfernen** gilt wieder die Variante aus dem Ordner Profile.
 
-## Wie gesucht wird
+Gibst du eine neue `id`, entsteht stattdessen ein zusätzliches eigenes Profil unter „Eigene Profile“.
 
-- **Mit `integration`**: Die Karte durchsucht nur die Entitäten dieser Integration. Den Namen siehst du in der Adresszeile, wenn du die Integration unter **Einstellungen → Geräte & Dienste** öffnest: der Teil nach `/integration/`. Findet die Karte dort nichts, sucht sie nur dann wie ohne `integration` weiter, wenn auch `namensteil` gesetzt ist. So treffen allgemeine Schlüssel wie `"outdoor_temperature"` keine fremden Entitäten.
-- **Ohne `integration`**: Die Karte durchsucht alle Entitäten. Mit `namensteil` nur die, deren Entity-ID diesen Text enthält. Ohne `namensteil` kann eine Endung wie `"vorlauf"` auch fremde Entitäten treffen, dann besser genaue Entity-IDs oder Muster verwenden.
+## Wo eigene Profile gespeichert werden
 
-## Panasonic anpassen
+Importierte und von GitHub geladene Profile stehen in der Konfiguration dieser Karte unter `profile_custom`. Sie gelten nur für diese Karte. Mit **Als Datei speichern** im Abschnitt Import, Export und Anpassungen wird das Profil mitgespeichert, und mit **Aus Datei laden** in einer anderen Karte kommt es dort wieder an. Alternativ importierst du die Profildatei in jeder Karte einzeln.
 
-1. **Panasonic Aquarea, HeishaMon by Lutarym** wählen und **Profil exportieren**.
-2. In der Datei die gewünschten Felder ändern. Die `id` bleibt `heishamon_lutarym`.
-3. **Profil importieren**. In der Auswahl steht jetzt dein Name mit dem Zusatz „(angepasst)“.
-4. Mit **Eigenes Profil entfernen** gilt wieder das eingebaute Profil.
+## Ältere Profildateien
 
-Gibst du eine neue `id`, entsteht stattdessen ein zusätzliches eigenes Profil.
-
-## Wo das Profil gespeichert wird
-
-Importierte Profile stehen in der Konfiguration dieser Karte unter `profile_custom`. Sie gelten nur für diese Karte. Mit **Als Datei speichern** im Abschnitt Import, Export und Anpassungen wird das Profil mitgespeichert, und mit **Aus Datei laden** in einer anderen Karte kommt es dort wieder an. Alternativ importierst du die Profildatei in jeder Karte einzeln.
+Profildateien im Format 1 (bis 5.33.8, mit `felder` und den früheren Feldnamen) liest der Import weiter. Die Karte übersetzt die Feldnamen nach der [Namensliste](NAMENSLISTE.de.md). Ein Profil für HeishaMon behält das Merkmal heishamon (eigene Festlegung: Integration `heishamon_lutarym`, Namensteil oder Kennung mit `heishamon`). Der Export liefert immer Format 2.
 
 ## Was ein Profil nicht ändert
 
-- Die Hilfe („?“) erklärt die Werte von HeishaMon. Bei anderen Herstellern passen diese Erklärungen nicht.
-- Die Jahresarbeitszahl hinter der Tür rechnet mit den Leistungswerten von HeishaMon. Bei anderen Herstellern bleibt sie leer.
-- Die Karte erwartet die Werte so, wie HeishaMon sie liefert: Temperaturen in °C, Leistung in W, Energie in kWh, Durchfluss in l/min und Druck in bar.
+- Die Hilfe („?“) erklärt die Werte von HeishaMon. Sie erscheint nur bei Varianten mit dem Merkmal heishamon und im Demomodus.
+- Die Jahresarbeitszahl hinter der Tür rechnet mit den Leistungswerten von HeishaMon (TOP15, TOP16, TOP40, TOP41 oder XTOP0, XTOP2, XTOP3, XTOP5). Liefert ein Profil sie nicht, bleibt sie leer.
 
 ## Meldungen beim Import
 
 | Meldung | Ursache |
 |---|---|
-| kein gültiges JSON | Die Datei ist kein JSON, oft fehlt ein Komma oder eine Klammer |
-| keine Geräteprofil-Datei | `format` fehlt oder ist falsch |
-| Profilversion nicht unterstützt | `version` ist nicht `1` |
-| Kennung fehlt oder ist ungültig | `id` verletzt die Regeln oben |
-| kein bekanntes Feld | `felder` fehlt oder enthält nur unbekannte Feldnamen |
-| unbekannte Felder ignoriert | Diese Feldnamen gibt es in der Karte nicht, die übrigen wurden übernommen |
-
-## Feldliste
-
-Die Spalte „Panasonic (HeishaMon)“ zeigt die Schlüssel aus dem eingebauten Profil, das hilft beim Zuordnen.
-
-**Außenfühler**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `outside_temp` | Außentemperatur | alle | `top14` |
-
-**Außengerät**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `power_state` | Wärmepumpe Status, grüne LED | `switch`, `input_boolean`, `binary_sensor`, `sensor` | `setheatpump` |
-| `compressor` | Verdichterdrehzahl | alle | `top8` |
-| `fan1_rpm` | Lüfter 1 Drehzahl | alle | `top62` |
-| `fan2_rpm` | Lüfter 2 Drehzahl | alle | `top63` |
-| `defrost` | Abtauung läuft | alle | `top26` |
-| `error` | Fehlercode | alle | `top44` |
-| `heatpump_state` | Betriebszustand | alle | `top0` |
-| `force_defrost` | Abtauen erzwingen | `switch`, `input_boolean` | `setforcedefrost` |
-| `powerful_mode` | Turbomodus | `select`, `input_select` | `setpowerfulmode` |
-| `quiet_mode` | Leisemodus | `select`, `input_select` | `setquietmode` |
-| `power_now` | Aktuelle Leistungsaufnahme | alle | (keins) |
-| `energy_today` | Energiezähler | alle | (keins) |
-
-**SG Ready**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `pv_power` | PV Leistung aktuell | alle | (keins) |
-| `sg_k1` | Kontakt K1 Sperre | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (keins) |
-| `sg_k2` | Kontakt K2 Anlauf | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (keins) |
-
-**Primärkreis**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `flow_temp` | Vorlauftemperatur | alle | `top6` |
-| `return_temp` | Rücklauftemperatur | alle | `top5` |
-| `pump_speed` | Primärpumpe Drehzahl | alle | `top65` |
-| `pump_flow` | Durchflussmenge | alle | `top1` |
-| `three_way_valve` | 3-Wege-Umschaltventil | alle | `top20` |
-| `water_pressure` | Wasserdruck | alle | `top115` |
-| `heater_internal` | Heizstab intern läuft | alle | `top60` |
-| `heater_external` | Heizstab extern läuft | alle | `top61` |
-
-**Heizungspuffer**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `buffer_temp` | Puffertemperatur | alle | `top46` |
-| `buffer_installed` | Puffer vorhanden | alle | `top99` |
-| `buffer_switch` | Pufferbetrieb ein und aus | `switch`, `input_boolean` | `setbuffer` |
-
-**Heizkurve**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `curve_t_high` | HK1 Heizkurve Vorlauf oben | alle | `top29` |
-| `curve_t_low` | HK1 Heizkurve Vorlauf unten | alle | `top30` |
-| `curve_o_high` | HK1 Heizkurve Außen oben | alle | `top31` |
-| `curve_o_low` | HK1 Heizkurve Außen unten | alle | `top32` |
-| `curve2_t_high` | HK2 Heizkurve Vorlauf oben | alle | `top82` |
-| `curve2_t_low` | HK2 Heizkurve Vorlauf unten | alle | `top83` |
-| `curve2_o_high` | HK2 Heizkurve Außen oben | alle | `top84` |
-| `curve2_o_low` | HK2 Heizkurve Außen unten | alle | `top85` |
-
-**Heizungspuffer**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `buffer_delta` | Puffer Überhöhung (ΔT) | alle | `top113` |
-| `buffer_target` | Vorlauf-Soll Wärmepumpe | alle | `top7` |
-| `cop_heating` | COP Heizen | alle | `cop_heating` |
-| `room_heater` | Heizstab Heizung freigegeben | alle | `top59` |
-| `room_heater_switch` | Heizstab Heizung freigeben | `switch`, `input_boolean` | `setroomheaterstate` |
-
-**Heizkreis 1**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `zones_state` | Aktivierte Zonen | alle | `top94` |
-| `zones_select` | Zonen umschalten | `select`, `input_select` | `setzones` |
-| `hk1_water` | HK1 Wassertemperatur | alle | `top36` |
-| `hk1_water_target` | HK1 Wasser Sollwert | alle | `top42` |
-| `hk1_pump` | HK1 Pumpe läuft | alle | `top124` |
-| `hk1_setpoint` | HK1 Sollwert einstellbar | `number`, `input_number` | `top27` |
-| `hk1_switch` | HK1 ein und aus | `switch`, `input_boolean` | (keins) |
-
-**Heizkreis 2**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `hk2_water` | HK2 Wassertemperatur | alle | `top37` |
-| `hk2_water_target` | HK2 Wasser Sollwert | alle | `top43` |
-| `hk2_pump` | HK2 Pumpe läuft | alle | `top123` |
-| `hk2_setpoint` | HK2 Sollwert einstellbar | `number`, `input_number` | `top34` |
-| `hk2_switch` | HK2 ein und aus | `switch`, `input_boolean` | (keins) |
-
-**Warmwasser**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `dhw_installed` | Warmwasser vorhanden | alle | `top100` |
-| `dhw_temp` | Warmwasser Isttemperatur | alle | `top10` |
-| `dhw_heat_delta` | Warmwasser Hysterese | alle | `top22` |
-| `dhw_setpoint` | Warmwasser Sollwert | `number`, `input_number` | `top9` |
-| `cop_dhw` | COP Warmwasser | alle | `cop_dhw` |
-| `dhw_heater` | Heizstab Warmwasser freigegeben | alle | `top58` |
-| `dhw_force` | Einmalig aufheizen | `switch`, `input_boolean` | `setforcedhw` |
-| `dhw_force_state` | Aufheizen läuft | alle | `top2` |
-| `force_sterilization` | Legionellenschutz starten | `switch`, `input_boolean` | `setforcesterilization` |
-| `sterilization_state` | Legionellenschutz läuft | alle | `top69` |
-| `dhw_heater_switch` | Heizstab Warmwasser freigeben | `switch`, `input_boolean` | `setdhwheaterstate` |
-| `circulation_pump` | Zirkulationspumpe läuft | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (keins) |
-| `circ_switch` | Zirkulation Schalter (klickbar) | `switch`, `input_boolean` | (keins) |
-| `weather` | Wettervorhersage | `weather` | (keins) |
-| `dhw_warmest` | Warmwasser zur wärmsten Tageszeit | `switch`, `input_boolean` | `dhw_warmest_time` |
-| `dhw_planned` | Geplante Warmwasserladung | `sensor` | `dhw_planned` |
-| `dhw_last_charge` | Letzte Warmwasserladung | `sensor` | `dhw_last_charge` |
-
-**Steuerung**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `mode_select` | Betriebsart umschalten | `select`, `input_select` | `setoperationmode` |
-
-**Erweiterte Einstellungen**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `heating_off_temp` | Heizen aus ab Außentemperatur | alle | `top77` |
-| `heater_on_temp` | Heizstab ein unter Außentemperatur | alle | `top78` |
-| `heat_delta` | Spreizung Heizen | alle | `top23` |
-| `heating_control` | Regelung | `select`, `input_select` | `setheatingcontrol` |
-| `steril_temp` | Legionellen Temperatur | alle | `top70` |
-| `steril_time` | Legionellen Haltezeit | alle | `top71` |
-| `pump_flow_mode` | Pumpenregelung | `select`, `input_select` | `setpumpflowratemode` |
-| `pump_max_duty` | Max. Pumpenleistung | alle | `top95` |
-| `quiet_priority` | Leisemodus Vorrang | `select`, `input_select` | `setquietmodepriority` |
-| `holiday_mode` | Urlaubsmodus | `switch`, `input_boolean` | `setholidaymode` |
-| `main_schedule` | Wochenprogramm | `switch`, `input_boolean` | `setmainschedule` |
-| `smart_dhw` | Smart DHW Warmwasser | `select`, `input_select` | `setsmartdhw` |
-| `operating_hours` | Betriebsstunden | alle | `top11` |
-| `compressor_starts` | Verdichterstarts | alle | `top12` |
-| `room_heater_hours` | Heizstab Heizen Betriebsstunden | alle | `top90` |
-| `dhw_heater_hours` | Heizstab Warmwasser Betriebsstunden | alle | `top91` |
-
-**Steuerung**
-
-| Feld | Bedeutung | Erlaubte Entitätsarten | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `operating_mode` | Betriebsart (Anzeige) | alle | `top4` |
+| Das ist kein gültiges JSON. Bitte den exportierten Text einfügen. | Die Datei ist kein JSON, oft fehlt ein Komma oder eine Klammer |
+| Das ist keine Geräteprofil-Datei (format muss „lutarym-geraeteprofil“ sein). | `format` fehlt oder ist falsch |
+| Diese Profilversion wird nicht unterstützt (erwartet: version 2 oder 1). | `version` ist nicht `2` oder `1` |
+| Die Kennung (id) fehlt oder ist ungültig: 2 bis 40 Zeichen, nur a bis z, 0 bis 9, _ und -. | `id` verletzt die Regeln oben |
+| Das Profil beschreibt keinen bekannten Wert (werte). | `werte` (Format 1: `felder`) fehlt oder enthält nur unbekannte Namen |
+| unbekannte Namen ignoriert: … | Diese Namen gibt es in der Namensliste nicht, die übrigen wurden übernommen |
+| Dieses Profil braucht die Karte ab Version x.y.z. Bitte zuerst die Karte aktualisieren. | `karte_ab` ist neuer als die Karte |

@@ -5,6 +5,7 @@
 import { hilfeDaten } from "./hilfe-laden.js";
 import { dezimalFuer } from "./hilfsfunktionen.js";
 import { CARD_VERSION } from "./konstanten.js";
+import { BISHER } from "./namen.js";
 import { SPRACHEN, TEXTE, t } from "./texte.js";
 
 /* ------------------------------------------------------------------ *
@@ -30,6 +31,29 @@ export let SPRACH_STAND = 0;
 const SPRACH_VERBOTEN = /[<>"`]/;
 
 /**
+ * Schluessel eines Textes in einem Sprachpaket bis 5.33.8: Beschriftungen
+ * der Felder (fld_) und der Tuer (k_) hiessen nach den frueheren
+ * Feldnamen. Sie gelten weiter fuer den Namen aus der Namensliste.
+ */
+function textSchluessel(k) {
+  const m = /^(fld|k)_([a-z][a-z0-9_]*)$/.exec(k);
+  return m && BISHER[m[2]] ? `${m[1]}_${BISHER[m[2]]}` : k;
+}
+
+/** Texte eines Pakets mit den Schluesseln ab 6.0.0, neue Schluessel gewinnen. */
+function mitNeuenSchluesseln(texte) {
+  const out = {};
+  Object.keys(texte).forEach((k) => {
+    if (textSchluessel(k) === k) out[k] = texte[k];
+  });
+  Object.keys(texte).forEach((k) => {
+    const neu = textSchluessel(k);
+    if (neu !== k && !(neu in out)) out[neu] = texte[k];
+  });
+  return out;
+}
+
+/**
  * Uebernimmt die Pakete einer Kartenkonfiguration in die gemeinsame
  * Ablage. Mehrere Karten teilen sich die Ablage, deshalb wird hier nur
  * ergaenzt; entfernt wird ausdruecklich ueber "entfernen".
@@ -45,8 +69,9 @@ export function registriereSprachen(config, entfernen) {
     if (!p || typeof p.code !== "string" || !p.texte || typeof p.texte !== "object") return;
     if (p.code === entfernen) return;
     const texte = {};
-    Object.keys(p.texte).forEach((k) => {
-      const w = p.texte[k];
+    const roh = mitNeuenSchluesseln(p.texte);
+    Object.keys(roh).forEach((k) => {
+      const w = roh[k];
       if (typeof w === "string" && !SPRACH_VERBOTEN.test(w)) texte[k] = w;
     });
     const sauber = { ...p, texte, hilfe: p.hilfe && typeof p.hilfe === "object" ? p.hilfe : {} };
@@ -125,8 +150,9 @@ export function pruefeSprache(roh) {
   const unbekannt = [];
   const platz = [];
   const zeichen = [];
-  Object.keys(roh.texte).forEach((k) => {
-    const w = roh.texte[k];
+  const rohTexte = mitNeuenSchluesseln(roh.texte);
+  Object.keys(rohTexte).forEach((k) => {
+    const w = rohTexte[k];
     if (!TEXTE[k]) {
       unbekannt.push(k);
       return;

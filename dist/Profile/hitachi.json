@@ -1,0 +1,48 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "hitachi",
+  "name": "Hitachi",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "hitachi_yutaki",
+      "name": "Hitachi Yutaki",
+      "geraete": [
+        {
+          "hersteller": ["Hitachi"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "alepee",
+        "adresse": "https://github.com/alepee/hass-hitachi_yutaki",
+        "version": "2.5.0-beta.2",
+        "aktualisiert": "2026-11-26",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "hitachi_yutaki",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["water_flow"],
+        "TOP5": ["water_inlet_temp"],
+        "TOP6": ["water_outlet_temp"],
+        "TOP8": ["compressor_frequency"],
+        "TOP14": ["outdoor_temp"],
+        "TOP26": ["defrost"],
+        "TOP44": ["alarm"],
+        "TOP65": ["pump_speed"],
+        "TOP123": ["pump2"],
+        "TOP124": ["pump1"],
+        "EXT1": ["electrical_power"],
+        "EXT600": ["cop_heating"],
+        "EXT601": ["cop_dhw"]
+      }
+    }
+  ]
+}

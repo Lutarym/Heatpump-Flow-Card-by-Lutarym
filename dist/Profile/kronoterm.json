@@ -1,0 +1,50 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "kronoterm",
+  "name": "Kronoterm",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "kronoterm",
+      "name": "Kronoterm",
+      "geraete": [
+        {
+          "hersteller": ["Kronoterm"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "Favio25",
+        "adresse": "https://github.com/Favio25/Kronoterm-homeassistant",
+        "version": "1.7.4",
+        "aktualisiert": "2026-11-25",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "kronoterm",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["hp_inlet_temperature"],
+        "TOP6": ["hp_outlet_temperature"],
+        "TOP10": ["dhw_current_temperature"],
+        "TOP11": ["operating_hours_compressor_heating"],
+        "TOP12": ["compressor_activations_heating"],
+        "TOP14": ["temperature_outside"],
+        "TOP26": ["binary_sensor:defrost_status"],
+        "TOP36": ["loop_1_inlet_temperature"],
+        "TOP37": ["loop_2_inlet_temperature"],
+        "TOP44": ["error_status"],
+        "TOP115": ["heating_system_pressure"],
+        "EXT1": ["calculated_current_power"],
+        "EXT204": ["loop_3_inlet_temperature"],
+        "EXT207": ["loop_4_inlet_temperature"],
+        "EXT400": ["dhw_circulation_pump"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "dewarmte",
+  "name": "DeWarmte",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "dewarmte",
+      "name": "DeWarmte",
+      "geraete": [
+        {
+          "hersteller": ["DeWarmte"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "ronald-willems",
+        "adresse": "https://github.com/ronald-willems/dewarmte-homeassistant",
+        "version": "2.4.5",
+        "aktualisiert": "2026-11-14",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "dewarmte",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["water_flow"],
+        "TOP6": ["supply_temperature"],
+        "TOP10": ["top_boiler_temperature", "top_boiler_temp"],
+        "TOP14": ["outdoor_temperature"]
+      }
+    }
+  ]
+}

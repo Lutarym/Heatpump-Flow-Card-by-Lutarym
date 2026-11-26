@@ -4,6 +4,7 @@
  */
 import { clamp, dezimalFuer, escapeHtml, fmt, numState, runderSchritt, setzeDezimal, stellbar } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
+import { KURVE } from "../namen.js";
 
 export const heizkurveKarte = {
   /**
@@ -88,7 +89,7 @@ export const heizkurveKarte = {
           )
           .join("");
         zeilen.forEach((r, i) => {
-          const feld = z === 2 ? `curve2_${r.basis}` : `curve_${r.basis}`;
+          const feld = KURVE[z === 2 ? 2 : 1][r.basis];
           const stelle = (richtung) => {
             const id = this._e(feld);
             if (!id) return;
@@ -98,6 +99,8 @@ export const heizkurveKarte = {
             if (jetzt === null) return;
             const neu = clamp(jetzt + richtung, r.min, r.max);
             if (neu === jetzt) return;
+            // Nur lesbar und ohne HeishaMon: den Befehl SetCurves gibt es nicht.
+            if (!stellbar(id) && !this._heishaBefehle()) return;
             this._halte(id, neu);
             if (stellbar(id)) {
               this._quelle.callService(id.split(".")[0], "set_value", {
@@ -106,7 +109,7 @@ export const heizkurveKarte = {
               });
             } else {
               const w = (b2) => {
-                const wid = this._e(z === 2 ? `curve2_${b2}` : `curve_${b2}`);
+                const wid = this._e(KURVE[z === 2 ? 2 : 1][b2]);
                 const wist = numState(this._quelle, wid);
                 const wgeh = this._gehaltenerWert(wid, wist);
                 return wgeh !== null ? wgeh : wist;
@@ -140,7 +143,7 @@ export const heizkurveKarte = {
         box.dataset.fertig = "1";
       }
       zeilen.forEach((r, i) => {
-        const feld = z === 2 ? `curve2_${r.basis}` : `curve_${r.basis}`;
+        const feld = KURVE[z === 2 ? 2 : 1][r.basis];
         const id = this._e(feld);
         const ist = numState(this._quelle, id);
         const geh = this._gehaltenerWert(id, ist);
@@ -193,10 +196,10 @@ export const heizkurveKarte = {
       for (let v = Math.ceil(min / s) * s; v <= max + 0.001; v += s) raus.push(v);
       return raus;
     };
-    const aussen = numState(this._quelle, this._e("outside_temp"));
+    const aussen = numState(this._quelle, this._e("TOP14"));
 
     [1, 2].forEach((z) => {
-      const feld = (basis) => (z === 2 ? `curve2_${basis}` : `curve_${basis}`);
+      const feld = (basis) => KURVE[z === 2 ? 2 : 1][basis];
       const lies = (basis) => {
         const id = this._e(feld(basis));
         const ist = numState(this._quelle, id);

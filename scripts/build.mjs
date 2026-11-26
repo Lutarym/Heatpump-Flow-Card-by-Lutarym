@@ -1,10 +1,16 @@
 // Baut aus den Modulen in src/ die Dateien, die HACS und Home Assistant laden:
 // die Karte selbst und die Hilfedaten, die erst bei Bedarf nachgeladen werden.
-// HACS laedt alle .js-Dateien aus dist herunter.
+// Vorher prueft er alle Geraeteprofile in dist/Profile und schreibt deren
+// Liste (liste.json). HACS laedt alle Dateien aus dist herunter, auch den
+// Ordner Profile.
 import * as esbuild from "esbuild";
 import fs from "fs";
+import { baueProfilliste } from "./profile.mjs";
 
 const paket = JSON.parse(fs.readFileSync("package.json", "utf8"));
+
+const profile = baueProfilliste(paket.version);
+console.log(`Profile: ${profile.dateien} Dateien, ${profile.varianten} Varianten, liste.json geschrieben`);
 
 const gemeinsam = {
   bundle: true,

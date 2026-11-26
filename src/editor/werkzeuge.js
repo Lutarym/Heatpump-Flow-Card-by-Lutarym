@@ -1,15 +1,24 @@
 /**
- * Import und Export von Sprachen und Geraeteprofilen.
+ * Geraeteprofile im Editor (Auswahl, Frage, Profilinfo, Import, Export,
+ * GitHub) und Sprachpakete.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { FIELD_DOMAIN, detectIntegration, erkenneAlle, profilFuer } from "../erkennung.js";
-import { DEFAULT_CONFIG } from "../felder.js";
+import { detectIntegration, erkenneAlle, erkenneMitProfil, profilFuer, standardNamen } from "../erkennung.js";
+import { ENTITY_FIELDS } from "../felder.js";
 import { escapeHtml, kopiereText, rawState, attr } from "../hilfsfunktionen.js";
 import { CARD_VERSION } from "../konstanten.js";
-import { AUTO_PROFIL, PROFILE, eigeneProfile, eigenesProfil, eingebautesProfil, erkenneMitProfil, profilBereiche, pruefeProfil } from "../profile.js";
-import { PROFIL_STAND } from "../hersteller.js";
+import { ARTEN, UEBERNEHMEN_OHNE_FELD } from "../namen.js";
+import {
+  AUTO_PROFIL, KEIN_PROFIL, alsDatei, bereitFuer, eigeneVarianten, githubDatei, githubListe, ladeFuer, ladeListe,
+  profilBereiche, profileFehler, profileNeuVersuchen, profilKennung, profilListe, pruefeProfil, varianteZu, versionVergleich,
+} from "../profile.js";
 import { SPRACH_NAMEN, pruefeSprache, registriereSprachen, sprachpaketFuer } from "../sprachen.js";
-import { SPRACHEN, t, tf, wertText } from "../texte.js";
+import { SPRACHEN, t, tf } from "../texte.js";
+
+/** Gruppe fuer eigene Profile ohne Datei im Ordner Profile. */
+const EIGENE = "__eigen";
+/** Kennung, die weder im Ordner Profile noch unter den eigenen steht. */
+const UNBEKANNT = "__unbekannt";
 
 export const werkzeugeEditor = {
   /** Auswahlliste der Sprachen: automatisch, eingebaute und eigene. */
@@ -145,114 +154,210 @@ export const werkzeugeEditor = {
     this._zeigeSprachKnoepfe();
   },
 
-  /** Kennung der Gruppe fuer eigene Profile ohne eingebautes Gegenstueck. */
-  _eigeneGruppe() {
-    return "__eigen";
+  /* -------------------- Geraeteprofile -------------------- */
+
+  /** Datei (Eintrag aus liste.json), in der eine Variante steht, sonst null. */
+  _dateiVon(id) {
+    return profilListe().find((d) => d.varianten.some((v) => v.id === id)) || null;
   },
 
-  /** Hersteller zu einer Profilkennung, "auto" bei automatischer Erkennung. */
-  _herstellerVon(id) {
-    if (!id || id === AUTO_PROFIL) return AUTO_PROFIL;
-    const pr = PROFILE.find((x) => x.id === id);
-    if (pr) return pr.hersteller;
-    return eigeneProfile(this._config).some((p) => p.id === id) ? this._eigeneGruppe() : AUTO_PROFIL;
-  },
-
-  /** Alle Profile eines Herstellers, eingebaute und eigene. */
-  _profileVon(hersteller) {
-    if (hersteller === this._eigeneGruppe()) {
-      return eigeneProfile(this._config)
-        .filter((p) => !PROFILE.some((pr) => pr.id === p.id))
-        .map((p) => ({ id: p.id, name: p.name, integrationName: p.name, entwickler: p.entwickler || "", eigen: true }));
-    }
-    return PROFILE.filter((pr) => pr.hersteller === hersteller);
-  },
-
-  /** Erstes Profil eines Herstellers, bei "auto" bleibt es "auto". */
-  _erstesProfilVon(hersteller) {
-    if (hersteller === AUTO_PROFIL) return AUTO_PROFIL;
-    const liste = this._profileVon(hersteller);
-    return liste.length ? liste[0].id : AUTO_PROFIL;
-  },
-
-  /** Erstes Feld: automatisch oder ein Hersteller. */
-  _herstellerOptionen() {
-    const namen = [...new Set(PROFILE.map((pr) => pr.hersteller))].sort((x, y) => x.localeCompare(y));
-    const html = [`<option value="${AUTO_PROFIL}">${escapeHtml(this._t("o_p_auto"))}</option>`];
-    namen.forEach((n) => {
-      const ungetestet = PROFILE.filter((pr) => pr.hersteller === n).every((pr) => !pr.getestet);
-      const zusatz = ungetestet ? ` ${this._t("o_p_ungetestet")}` : "";
-      html.push(`<option value="${escapeHtml(n)}">${escapeHtml(n + zusatz)}</option>`);
-    });
-    if (this._profileVon(this._eigeneGruppe()).length) {
-      html.push(`<option value="${this._eigeneGruppe()}">${escapeHtml(this._t("o_p_eigene_gruppe"))}</option>`);
-    }
-    return html.join("");
-  },
-
-  /** Text eines Profils im zweiten Feld: Integration und Entwickler. */
-  _profilBeschriftung(pr) {
-    const eigene = eigeneProfile(this._config);
-    const ersetzt = !pr.eigen && eigene.find((p) => p.id === pr.id);
-    let text = pr.integrationName || pr.name;
-    if (pr.entwickler) text += ` · ${tf(this._t("o_p_von"), { n: pr.entwickler })}`;
-    if (ersetzt) text += ` ${this._t("o_p_angepasst")}`;
-    else if (pr.eigen) text += ` ${this._t("o_p_eigen")}`;
-    else if (!pr.getestet) text += ` ${this._t("o_p_ungetestet")}`;
-    return text;
-  },
-
-  /** Zweites Feld: die Integrationen des gewaehlten Herstellers. */
-  _profilOptionen() {
-    const hersteller = this._herstellerVon(this._config.profil);
-    if (hersteller === AUTO_PROFIL) return `<option value="${AUTO_PROFIL}">${escapeHtml(this._t("o_p_auto"))}</option>`;
-    return this._profileVon(hersteller)
-      .map((pr) => `<option value="${escapeHtml(pr.id)}">${escapeHtml(this._profilBeschriftung(pr))}</option>`)
-      .join("");
-  },
-
-  /** Name eines Profils fuer Meldungen. */
-  _profilName(id) {
-    const eigen = eigeneProfile(this._config).find((p) => p.id === id);
-    if (eigen) return eigen.name;
-    const pr = PROFILE.find((x) => x.id === id);
-    if (!pr) return id;
-    return pr.entwickler ? `${pr.name} (${pr.entwickler})` : wertText(pr.name, this._sp());
+  /** Eigene Varianten ohne Gegenstueck im Ordner Profile. */
+  _eigeneOhneDatei() {
+    return eigeneVarianten(this._config).filter((v) => !this._dateiVon(v.id));
   },
 
   /**
-   * Zeigt beide Felder passend zur Konfiguration. Bei "auto" und mehreren
-   * erkannten Integrationen erscheint eine Auswahl, welche gelten soll.
+   * Erstes Feld zu einer Kennung: automatisch, kein Profil, eine Datei
+   * (Hersteller), die eigenen Profile oder unbekannt.
+   */
+  _herstellerVon(id) {
+    if (!id || id === AUTO_PROFIL) return AUTO_PROFIL;
+    if (id === KEIN_PROFIL) return KEIN_PROFIL;
+    const d = this._dateiVon(id);
+    if (d) return d.id;
+    return eigeneVarianten(this._config).some((v) => v.id === id) ? EIGENE : UNBEKANNT;
+  },
+
+  /** Varianten eines Herstellers fuer die Auswahl, mit eigenen Anpassungen. */
+  _variantenVon(h) {
+    const eigene = eigeneVarianten(this._config);
+    if (h === EIGENE) {
+      return this._eigeneOhneDatei().map((v) => ({
+        id: v.id, name: v.name, entwickler: v.quelle.entwickler, getestet: v.getestet, eigen: true, herkunft: v.herkunft,
+      }));
+    }
+    const d = profilListe().find((x) => x.id === h);
+    if (!d) return [];
+    return d.varianten.map((v) => {
+      const e = eigene.find((x) => x.id === v.id);
+      return { id: v.id, name: v.name, entwickler: v.entwickler, getestet: v.getestet, ersetzt: Boolean(e), herkunft: e ? e.herkunft : "" };
+    });
+  },
+
+  /** Text einer Variante in der Auswahl: Integration und Entwickler. */
+  _variantenText(v) {
+    let text = v.name;
+    if (v.entwickler) text += ` · ${tf(this._t("o_p_von"), { n: v.entwickler })}`;
+    if (v.herkunft === "github") text += ` ${this._t("o_p_github")}`;
+    else if (v.ersetzt) text += ` ${this._t("o_p_angepasst")}`;
+    else if (v.eigen) text += ` ${this._t("o_p_eigen")}`;
+    else if (!v.getestet) text += ` ${this._t("o_p_ungetestet")}`;
+    return text;
+  },
+
+  /**
+   * Erstes Feld: automatisch, die Hersteller aus dem Ordner Profile, eigene
+   * Profile und kein Profil. In der Frage nur die Hersteller.
+   */
+  _herstellerOptionen(frage, id) {
+    const e = escapeHtml;
+    const html = [frage
+      ? `<option value="">${e(this._t("o_p_bitte"))}</option>`
+      : `<option value="${AUTO_PROFIL}">${e(this._t("o_p_auto"))}</option>`];
+    profilListe()
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((d) => {
+        const ungetestet = d.varianten.every((v) => !v.getestet);
+        html.push(`<option value="${e(d.id)}">${e(d.name + (ungetestet ? ` ${this._t("o_p_ungetestet")}` : ""))}</option>`);
+      });
+    if (frage) return html.join("");
+    if (this._eigeneOhneDatei().length) html.push(`<option value="${EIGENE}">${e(this._t("o_p_eigene_gruppe"))}</option>`);
+    html.push(`<option value="${KEIN_PROFIL}">${e(this._t("o_p_keins"))}</option>`);
+    if (this._herstellerVon(id) === UNBEKANNT) html.push(`<option value="${UNBEKANNT}">${e(id)}</option>`);
+    return html.join("");
+  },
+
+  /** Zweites Feld: die Varianten des gewaehlten Herstellers. */
+  _profilOptionen(h, id) {
+    const e = escapeHtml;
+    if (h === AUTO_PROFIL) return `<option value="${AUTO_PROFIL}">${e(this._t("o_p_auto"))}</option>`;
+    if (h === KEIN_PROFIL) return `<option value="${KEIN_PROFIL}">${e(this._t("o_p_keins"))}</option>`;
+    if (h === UNBEKANNT) return `<option value="${e(id)}">${e(id)}</option>`;
+    return this._variantenVon(h).map((v) => `<option value="${e(v.id)}">${e(this._variantenText(v))}</option>`).join("");
+  },
+
+  /** Name einer Variante fuer Meldungen: Hersteller und Integration. */
+  _varianteName(v) {
+    if (!v) return "";
+    if (v.dateiName && v.dateiName !== v.name) return `${v.dateiName}, ${v.name}`;
+    return v.name;
+  },
+
+  /** Name zu einer Kennung, auch wenn die Datei noch nicht geladen ist. */
+  _nameZu(id) {
+    const v = varianteZu(this._config, id);
+    if (v) return this._varianteName(v);
+    const d = this._dateiVon(id);
+    const lv = d && d.varianten.find((x) => x.id === id);
+    return lv ? `${d.name}, ${lv.name}` : id;
+  },
+
+  /** Stellt ein Profil ein und zeigt alles passend dazu. */
+  _setzeProfil(id) {
+    this._config = { ...this._config, profil: id };
+    this._emit();
+    this._zeigeProfilAuswahl();
+  },
+
+  /**
+   * Laedt die Profile fuer den Editor: immer die Liste fuer die Auswahl,
+   * dazu was die Konfiguration braucht. Danach zeigt er alles neu an.
+   */
+  _ladeProfile() {
+    const fuer = this._config;
+    if (!fuer || this._profileFuer === fuer) return;
+    this._profileFuer = fuer;
+    Promise.all([ladeListe().catch(() => null), ladeFuer(fuer).catch(() => null)]).then(() => {
+      if (this._config !== fuer || !this._built) return;
+      this._zeigeProfilAuswahl();
+    });
+  },
+
+  /** "Erneut suchen": automatisch suchen, Fehlgeschlagenes neu laden. */
+  _erneutSuchen() {
+    profileNeuVersuchen();
+    this._profileFuer = null;
+    this._setzeProfil(AUTO_PROFIL);
+  },
+
+  /**
+   * Zeigt Auswahl, Frage, Profilinfo und Status passend zur Konfiguration.
+   * Bei "auto" und mehreren erkannten Varianten erscheint eine Auswahl,
+   * welche gelten soll. Ohne Treffer fragt der Editor nach einem Profil.
    */
   _zeigeProfilAuswahl() {
     const sr = this.shadowRoot;
-    const id = this._config.profil || AUTO_PROFIL;
-    const hersteller = this._herstellerVon(id);
+    if (!sr || !this._config) return;
+    this._ladeProfile();
+    const id = profilKennung(this._config);
+    const h = this._herstellerVon(id);
     const hWahl = sr.getElementById("opt-hersteller");
     if (hWahl) {
-      hWahl.innerHTML = this._herstellerOptionen();
-      hWahl.value = hersteller;
+      hWahl.innerHTML = this._herstellerOptionen(false, id);
+      hWahl.value = h;
     }
     const pWahl = sr.getElementById("opt-profil");
     if (pWahl) {
-      pWahl.innerHTML = this._profilOptionen();
-      pWahl.value = hersteller === AUTO_PROFIL ? AUTO_PROFIL : id;
+      pWahl.innerHTML = this._profilOptionen(h, id);
+      pWahl.value = h === AUTO_PROFIL || h === KEIN_PROFIL ? h : id;
     }
-    const zeile = sr.getElementById("ed-geraet-zeile");
-    if (zeile) zeile.hidden = hersteller === AUTO_PROFIL || this._profileVon(hersteller).length < 2;
+    const bereit = bereitFuer(this._config);
+    const kandidaten = id === AUTO_PROFIL && bereit && this._hass ? erkenneAlle(this._hass, this._config) : [];
     const wahlBox = sr.getElementById("ed-profil-wahl");
     const wahl = sr.getElementById("opt-profil-wahl");
-    const kandidaten = id === AUTO_PROFIL && this._hass ? erkenneAlle(this._hass) : [];
     if (wahlBox && wahl) {
       wahlBox.hidden = kandidaten.length < 2;
       wahl.innerHTML = [`<option value="">${escapeHtml(this._t("o_p_bitte"))}</option>`]
         .concat(kandidaten.map((k) =>
-          `<option value="${escapeHtml(k.id)}">${escapeHtml(tf(this._t("o_p_kandidat"), { n: this._profilName(k.id), z: k.felder }))}</option>`))
+          `<option value="${escapeHtml(k.id)}">${escapeHtml(tf(this._t("o_p_kandidat"), { n: this._nameZu(k.id), z: k.felder }))}</option>`))
         .join("");
       wahl.value = "";
     }
-    this._zeigeProfilInfo(id === AUTO_PROFIL ? (kandidaten[0] && kandidaten[0].id) || "" : id, id === AUTO_PROFIL);
-    this._zeigeProfilKnoepfe();
+    // Frage nach einem Profil: nur bei "auto", wenn alles geladen ist und
+    // keine Variante passt. Hersteller und Integration stehen dann in der Frage.
+    const frage = id === AUTO_PROFIL && bereit && Boolean(this._hass) && profilListe().length > 0
+      && !profileFehler(this._config) && kandidaten.length === 0;
+    this._zeigeFrage(frage);
+    const hZeile = sr.getElementById("ed-hersteller-zeile");
+    if (hZeile) hZeile.hidden = frage;
+    const zeile = sr.getElementById("ed-geraet-zeile");
+    if (zeile) zeile.hidden = frage || [AUTO_PROFIL, KEIN_PROFIL, UNBEKANNT].includes(h) || this._variantenVon(h).length < 2;
+    let v = null;
+    if (bereit && id === AUTO_PROFIL) v = kandidaten.length ? varianteZu(this._config, kandidaten[0].id) : null;
+    else if (bereit) v = varianteZu(this._config, id);
+    this._zeigeProfilInfo(v, id === AUTO_PROFIL);
+    this._zeigeProfilKnoepfe(kandidaten);
+  },
+
+  /** Kasten mit der Frage nach einem bestimmten Profil. */
+  _zeigeFrage(zeigen) {
+    const sr = this.shadowRoot;
+    const box = sr.getElementById("ed-profilfrage");
+    if (!box) return;
+    box.hidden = !zeigen;
+    if (!zeigen) return;
+    const hSel = sr.getElementById("frage-hersteller");
+    if (!hSel) return;
+    const vorher = hSel.value;
+    hSel.innerHTML = this._herstellerOptionen(true);
+    hSel.value = profilListe().some((d) => d.id === vorher) ? vorher : "";
+    this._frageVarianten();
+  },
+
+  /** Varianten in der Frage zum gewaehlten Hersteller. */
+  _frageVarianten() {
+    const sr = this.shadowRoot;
+    const hSel = sr.getElementById("frage-hersteller");
+    const vSel = sr.getElementById("frage-variante");
+    const laden = sr.getElementById("btn-frage-laden");
+    if (!hSel || !vSel) return;
+    const liste = hSel.value ? this._variantenVon(hSel.value) : [];
+    vSel.innerHTML = [`<option value="">${escapeHtml(this._t("o_p_bitte"))}</option>`]
+      .concat(liste.map((v) => `<option value="${escapeHtml(v.id)}">${escapeHtml(this._variantenText(v))}</option>`))
+      .join("");
+    vSel.value = liste.length === 1 ? liste[0].id : "";
+    if (laden) laden.disabled = !vSel.value;
   },
 
   /** Datum JJJJ-MM-TT in der Schreibweise der Sprache. */
@@ -272,62 +377,62 @@ export const werkzeugeEditor = {
    * letzte Aenderung, beschriebene Bereiche, was in Home Assistant
    * gefunden wurde, Steuerung, Hilfe und ob das Profil getestet ist.
    */
-  _zeigeProfilInfo(id, auto) {
+  _zeigeProfilInfo(v, auto) {
     const box = this.shadowRoot.getElementById("ed-profil-info");
     if (!box) return;
-    if (!id) {
+    if (!v) {
       box.hidden = true;
       box.innerHTML = "";
       return;
     }
     const e = escapeHtml;
-    const eigen = eigeneProfile(this._config).find((p) => p.id === id);
-    const pr = PROFILE.find((x) => x.id === id);
-    const daten = eigen || eingebautesProfil(id);
-    const felder = daten ? Object.keys(daten.felder) : [];
+    const werte = Object.keys(v.werte || {});
+    const quelle = v.quelle || {};
+    const integration = (v.suche && v.suche.integration) || "";
+    const vonGithub = v.herkunft === "github";
+    const eigen = v.eigen && !vonGithub;
     const zeilen = [];
     const zeile = (titel, inhalt) => zeilen.push(`<dt>${e(this._t(titel))}</dt><dd>${inhalt}</dd>`);
     const jaNein = (ja, textJa, textNein) =>
       `<span class="${ja ? "ja" : "nein"}">${e(this._t(ja ? textJa : textNein))}</span>`;
 
     // Integration und Herkunft
-    const integration = (eigen && eigen.integration) || (pr && pr.integration) || "";
-    const name = eigen ? eigen.name : pr ? pr.integrationName || pr.name : id;
-    zeile("pi_integration", `${e(name)}${integration ? ` <span class="grau">(${e(integration)})</span>` : ""}`);
-    const entwickler = (eigen && eigen.entwickler) || (pr && pr.entwickler) || "";
-    const quelle = !eigen && pr && pr.quelle && /^https:\/\//.test(pr.quelle) ? pr.quelle : "";
-    if (entwickler || quelle) {
-      const link = quelle
-        ? `<a href="${e(quelle)}" target="_blank" rel="noopener noreferrer">${e(quelle.replace(/^https:\/\//, ""))}</a>`
+    zeile("pi_integration", `${e(v.name)}${integration ? ` <span class="grau">(${e(integration)})</span>` : ""}`);
+    const adresse = /^https:\/\//.test(String(quelle.adresse || "")) ? quelle.adresse : "";
+    if (quelle.entwickler || adresse) {
+      const link = adresse
+        ? `<a href="${e(adresse)}" target="_blank" rel="noopener noreferrer">${e(adresse.replace(/^https:\/\//, ""))}</a>`
         : "";
-      zeile("pi_entwickler", [e(entwickler), link].filter(Boolean).join(" · "));
+      zeile("pi_entwickler", [e(quelle.entwickler || ""), link].filter(Boolean).join(" · "));
     }
     // Version und letzte Aenderung
     if (eigen) {
       zeile("pi_version", `<span class="grau">${e(this._t("pi_eigen"))}</span>`);
-    } else if (pr && pr.core) {
+    } else if (v.suche && v.suche.art === "core") {
       zeile("pi_version", e(this._t("pi_core")));
-    } else if (pr && pr.mqtt) {
-      zeile("pi_version", e(this._t("pi_mqtt")));
-    } else if (pr) {
-      // Bei Firmware ueber MQTT ist es die Version der Firmware, sonst die der manifest.json.
-      const herkunft = pr.firmware ? this._t("pi_firmware") : "manifest.json";
-      if (pr.version) zeile("pi_version", `${e(pr.version)} <span class="grau">(${e(herkunft)})</span>`);
-      if (pr.aktualisiert) {
-        zeile("pi_aenderung", `${e(this._datum(pr.aktualisiert))} <span class="grau">· ${e(tf(this._t("pi_stand"), { d: this._datum(pr.stand || PROFIL_STAND) }))}</span>`);
-      }
+    } else if (quelle.version) {
+      // Bei Firmware die Version der Firmware, sonst die der manifest.json.
+      const herkunft = v.suche && v.suche.art === "firmware" ? this._t("pi_firmware") : "manifest.json";
+      zeile("pi_version", `${e(quelle.version)} <span class="grau">(${e(herkunft)})</span>`);
     }
-    // Beschriebene Bereiche statt aller Feldnamen
-    const bereiche = profilBereiche(felder);
+    if (!eigen && (quelle.aktualisiert || quelle.abgelesen)) {
+      const teile = [];
+      if (quelle.aktualisiert) teile.push(e(this._datum(quelle.aktualisiert)));
+      if (quelle.abgelesen) teile.push(`<span class="grau">${teile.length ? "· " : ""}${e(tf(this._t("pi_stand"), { d: this._datum(quelle.abgelesen) }))}</span>`);
+      zeile("pi_aenderung", teile.join(" "));
+    }
+    // Beschriebene Bereiche statt aller Namen
     zeile(
       "pi_beschreibt",
-      `${e(tf(this._t("pi_felder"), { z: felder.length }))}<div class="chips">${bereiche
+      `${e(tf(this._t("pi_felder"), { z: werte.length }))}<div class="chips">${profilBereiche(werte)
         .map((b) => `<b>${e(this._t(b))}</b>`)
         .join("")}</div>`
     );
     // Was in Home Assistant gefunden wurde
-    if (this._hass && daten) {
-      const gefunden = detectIntegration(this._hass, eigen || (pr && !pr.mqtt && id !== "heishamon_lutarym") ? daten : id);
+    let gefundenEnt = {};
+    if (this._hass) {
+      const gefunden = detectIntegration(this._hass, v);
+      gefundenEnt = gefunden.entities || {};
       let anzahl = 0;
       if (integration) {
         const reg = this._hass.entities || {};
@@ -335,27 +440,27 @@ export const werkzeugeEditor = {
       } else {
         anzahl = gefunden.count || 0;
       }
-      const zugeordnet = Object.keys(gefunden.entities || {}).filter((f) => felder.includes(f)).length;
+      const zugeordnet = Object.keys(gefundenEnt).filter((n) => werte.includes(n)).length;
       zeile(
         "pi_ha",
         anzahl
-          ? e(tf(this._t("pi_ha_text"), { a: anzahl, b: zugeordnet, c: felder.length }))
+          ? e(tf(this._t("pi_ha_text"), { a: anzahl, b: zugeordnet, c: werte.length }))
           : `<span class="nein">${e(this._t("pi_ha_keine"))}</span>`
       );
     }
-    // Steuern: Felder, die nur stellbare Entitaeten annehmen
+    // Steuern: Namen, die nur stellbare Entitaeten annehmen
     const steuerArten = ["number", "input_number", "switch", "input_boolean", "select", "input_select", "button", "input_button"];
-    const steuerbar = felder.filter((f) => FIELD_DOMAIN[f] && FIELD_DOMAIN[f].every((d) => steuerArten.includes(d))).length;
+    // Ist ein solcher Name nur lesbar zugeordnet, zaehlt er nicht.
+    const steuerbar = werte.filter((n) => ARTEN[n] && ARTEN[n].every((d) => steuerArten.includes(d))
+      && !(gefundenEnt[n] && !steuerArten.includes(gefundenEnt[n].split(".")[0]))).length;
     zeile(
       "pi_steuern",
       steuerbar
         ? `<span class="ja">${e(tf(this._t("pi_steuern_ja"), { z: steuerbar }))}</span>`
         : `<span class="nein">${e(this._t("pi_steuern_nein"))}</span>`
     );
-    const hilfe = Boolean(pr && pr.hilfe);
-    zeile("pi_hilfe", jaNein(hilfe, "pi_ja", "pi_hilfe_nein"));
-    const getestet = Boolean(pr && pr.getestet && !eigen);
-    zeile("pi_getestet", jaNein(getestet, "pi_ja", eigen ? "pi_getestet_eigen" : "pi_getestet_nein"));
+    zeile("pi_hilfe", jaNein(v.heishamon === true, "pi_ja", "pi_hilfe_nein"));
+    zeile("pi_getestet", jaNein(v.getestet === true && !eigen, "pi_ja", eigen ? "pi_getestet_eigen" : "pi_getestet_nein"));
 
     box.innerHTML = `<h5>${e(this._t(auto ? "pi_titel_auto" : "pi_titel"))}</h5><dl>${zeilen.join("")}</dl>
       <div class="ed-bericht">
@@ -366,14 +471,14 @@ export const werkzeugeEditor = {
     box.hidden = false;
     const hinweis = box.querySelector("#ed-bericht-hinweis");
     box.querySelector("#btn-bericht-github").addEventListener("click", () => {
-      const r = this._profilBericht(id, auto);
-      const titel = tf(this._t("pr_titel"), { n: this._profilName(id) });
+      const r = this._profilBericht(v, auto);
+      const titel = tf(this._t("pr_titel"), { n: this._varianteName(v) });
       const { url, gekuerzt } = this._berichtUrl(titel, r);
       window.open(url, "_blank", "noopener,noreferrer");
       if (gekuerzt) hinweis.textContent = this._t("pr_gekuerzt");
     });
     box.querySelector("#btn-bericht-kopie").addEventListener("click", async () => {
-      const ok = await kopiereText(this._berichtText(this._profilBericht(id, auto), Infinity));
+      const ok = await kopiereText(this._berichtText(this._profilBericht(v, auto), Infinity));
       hinweis.textContent = this._t(ok ? "pr_kopiert" : "m_datei_fehler");
     });
   },
@@ -384,29 +489,24 @@ export const werkzeugeEditor = {
    * der Integration ungenutzt sind. Daraus laesst sich das Profil
    * verbessern, ohne die Anlage zu kennen.
    */
-  _profilBericht(id, auto) {
+  _profilBericht(v, auto) {
     const hass = this._hass || {};
-    const eigen = eigeneProfile(this._config).find((p) => p.id === id);
-    const pr = PROFILE.find((x) => x.id === id);
-    const daten = eigen || eingebautesProfil(id);
-    const felder = daten ? Object.keys(daten.felder) : [];
-    const integration = (eigen && eigen.integration) || (pr && pr.integration) || "";
-    const gefunden = daten
-      ? detectIntegration(hass, eigen || (pr && !pr.mqtt && id !== "heishamon_lutarym") ? daten : id).entities || {}
-      : {};
+    const werte = Object.keys(v.werte || {});
+    const integration = (v.suche && v.suche.integration) || "";
+    const gefunden = detectIntegration(hass, v).entities || {};
     const wert = (eid) => {
       const st = rawState(hass, eid);
       return st === null ? "" : String(st).slice(0, 40);
     };
     const einheit = (eid) => String(attr(hass, eid, "unit_of_measurement", "") || "");
-    const zugeordnet = felder
-      .filter((f) => gefunden[f])
-      .map((f) => ({ feld: f, id: gefunden[f], wert: wert(gefunden[f]), einheit: einheit(gefunden[f]) }));
-    const fehlt = felder.filter((f) => !gefunden[f]);
+    const zugeordnet = werte
+      .filter((n) => gefunden[n])
+      .map((n) => ({ feld: n, id: gefunden[n], wert: wert(gefunden[n]), einheit: einheit(gefunden[n]) }));
+    const fehlt = werte.filter((n) => !gefunden[n]);
     const konfig = this._config.entities || {};
     const vonHand = Object.keys(konfig)
-      .filter((f) => konfig[f] && konfig[f] !== gefunden[f])
-      .map((f) => ({ feld: f, id: konfig[f], vorschlag: gefunden[f] || "" }));
+      .filter((n) => konfig[n] && konfig[n] !== gefunden[n])
+      .map((n) => ({ feld: n, id: konfig[n], vorschlag: gefunden[n] || "" }));
     const benutzt = new Set(Object.values(gefunden).concat(Object.values(konfig)));
     const reg = hass.entities || {};
     const uebrig = integration
@@ -419,14 +519,14 @@ export const werkzeugeEditor = {
       karte: CARD_VERSION,
       ha: (hass.config && hass.config.version) || "",
       sprache: this._sp(),
-      id,
-      name: this._profilName(id),
+      id: v.id,
+      name: this._varianteName(v),
       integration,
-      getestet: Boolean(pr && pr.getestet && !eigen),
-      eigen: Boolean(eigen),
+      getestet: v.getestet === true && !v.eigen,
+      eigen: Boolean(v.eigen),
       auto,
       anzahl: integration ? Object.keys(reg).filter((k) => reg[k] && reg[k].platform === integration).length : 0,
-      felder: felder.length,
+      felder: werte.length,
       zugeordnet,
       fehlt,
       vonHand,
@@ -450,9 +550,9 @@ export const werkzeugeEditor = {
       `- Profile: \`${r.id}\` (${z(r.name)})${r.eigen ? ", own profile" : ""}`,
       `- Selected: ${r.auto ? "automatically" : "manually"}`,
       `- Tested: ${r.getestet ? "yes" : "no"}`,
-      `- Integration: ${r.integration ? `\`${r.integration}\`, ${r.anzahl} entities` : "none (MQTT naming)"}`,
+      `- Integration: ${r.integration ? `\`${r.integration}\`, ${r.anzahl} entities` : "none (search by entity ID)"}`,
       "",
-      `### Assigned fields (${r.zugeordnet.length} of ${r.felder})`,
+      `### Assigned values (${r.zugeordnet.length} of ${r.felder})`,
       "",
     ];
     if (!r.zugeordnet.length) {
@@ -462,12 +562,12 @@ export const werkzeugeEditor = {
     } else if (stufe === 1) {
       r.zugeordnet.forEach((a) => teile.push(`- ${a.feld}: ${z(a.id)}`));
     } else {
-      teile.push("| Field | Entity | State | Unit |", "|---|---|---|---|");
+      teile.push("| Name | Entity | State | Unit |", "|---|---|---|---|");
       r.zugeordnet.forEach((a) => teile.push(`| ${a.feld} | ${z(a.id)} | ${z(a.wert)} | ${z(a.einheit)} |`));
     }
-    teile.push("", "### Fields not found", "", r.fehlt.length ? r.fehlt.join(", ") : "none");
+    teile.push("", "### Values not found", "", r.fehlt.length ? r.fehlt.join(", ") : "none");
     if (r.vonHand.length) {
-      teile.push("", "### Changed by hand in the card", "", "| Field | Entity set by user | Profile suggestion |", "|---|---|---|");
+      teile.push("", "### Changed by hand in the card", "", "| Name | Entity set by user | Profile suggestion |", "|---|---|---|");
       r.vonHand.forEach((a) => teile.push(`| ${a.feld} | ${z(a.id)} | ${z(a.vorschlag || "-")} |`));
     }
     if (r.uebrig.length) {
@@ -483,7 +583,7 @@ export const werkzeugeEditor = {
       "",
       "### What is wrong or missing?",
       "",
-      "<!-- Which values are wrong, missing or assigned to the wrong field? Which heat pump model? -->",
+      "<!-- Which values are wrong, missing or assigned to the wrong name? Which heat pump model? -->",
       ""
     );
     return teile.join("\n");
@@ -516,44 +616,63 @@ export const werkzeugeEditor = {
     return { url, gekuerzt: grenze < r.uebrig.length || stufe > 0 };
   },
 
-  /** Bedienung von Export, Import und Entfernen der Geraeteprofile. */
+  /** Speichert Varianten in der Kartenkonfiguration und waehlt die erste. */
+  _speichereVarianten(varianten, dateiName, herkunft) {
+    const ids = new Set(varianten.map((v) => v.id));
+    const bisher = (Array.isArray(this._config.profile_custom) ? this._config.profile_custom : [])
+      .filter((p) => p && !ids.has(p.id));
+    const neu = varianten.map((v) => ({ ...alsDatei(v).varianten[0], dateiName, herkunft }));
+    this._config = { ...this._config, profile_custom: bisher.concat(neu), profil: varianten[0].id };
+    this._emit();
+    this._zeigeProfilAuswahl();
+  },
+
+  /** Bedienung von Frage, Erneut suchen, Export, Import, GitHub und Entfernen. */
   _bindeProfile() {
     const sr = this.shadowRoot;
     const sagen = (text) => {
       const el = sr.getElementById("ed-profil-hinweis");
       if (el) el.textContent = text;
     };
-    const aktuell = () => {
-      const id = this._config.profil || DEFAULT_CONFIG.profil;
-      if (id !== AUTO_PROFIL) return id;
-      // Bei "auto" gilt fuer den Export das gerade erkannte Profil.
-      const gefunden = erkenneAlle(this._hass);
-      return gefunden.length ? gefunden[0].id : "heishamon_lutarym";
-    };
-    const speichern = (liste, profilId) => {
-      this._config = { ...this._config, profile_custom: liste, profil: profilId };
-      this._emit();
-      this._zeigeProfilAuswahl();
-    };
+
+    // Frage nach einem bestimmten Profil
+    const fHersteller = sr.getElementById("frage-hersteller");
+    if (fHersteller) fHersteller.addEventListener("change", () => this._frageVarianten());
+    const fVariante = sr.getElementById("frage-variante");
+    const fLaden = sr.getElementById("btn-frage-laden");
+    if (fVariante && fLaden) fVariante.addEventListener("change", () => { fLaden.disabled = !fVariante.value; });
+    if (fLaden) fLaden.addEventListener("click", () => { if (fVariante && fVariante.value) this._setzeProfil(fVariante.value); });
+    const fNein = sr.getElementById("btn-frage-nein");
+    if (fNein) {
+      fNein.addEventListener("click", () => {
+        // Die Felder fuer die Entitaeten stehen im erweiterten Editor.
+        this._editorModus = "erweitert";
+        this._merke("modus", "erweitert");
+        this._zeigeModus();
+        this._setzeProfil(KEIN_PROFIL);
+      });
+    }
+    const suchen = sr.getElementById("btn-suchen");
+    if (suchen) suchen.addEventListener("click", () => this._erneutSuchen());
 
     const aus = sr.getElementById("btn-profil-aus");
     if (aus) {
       aus.addEventListener("click", () => {
-        const id = aktuell();
-        const daten = eigenesProfil(this._config) || eingebautesProfil(id);
-        if (!daten) {
+        const v = bereitFuer(this._config) && this._hass ? profilFuer(this._config, this._hass) : null;
+        if (!v) {
           sagen(this._t("m_p_leer"));
           return;
         }
+        const daten = alsDatei(v);
         const text = JSON.stringify(daten, null, 2);
         try {
           const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
           const link = document.createElement("a");
           link.href = url;
-          link.download = `geraeteprofil-${daten.id}.json`;
+          link.download = `geraeteprofil-${v.id}.json`;
           link.click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
-          sagen(tf(this._t("m_p_export_ok"), { n: daten.name }));
+          sagen(tf(this._t("m_p_export_ok"), { n: this._varianteName(v) }));
         } catch {
           sagen(this._t("m_datei_fehler"));
         }
@@ -581,17 +700,20 @@ export const werkzeugeEditor = {
             sagen(this._t(ergebnis.fehler));
             return;
           }
-          const neu = ergebnis.profil;
-          const liste = eigeneProfile(this._config).filter((p) => p.id !== neu.id);
-          liste.push(neu);
-          speichern(liste, neu.id);
-          const erkannt = erkenneMitProfil(this._hass, neu);
+          if (ergebnis.karte_ab && versionVergleich(ergebnis.karte_ab, CARD_VERSION) > 0) {
+            sagen(tf(this._t("m_p_zu_neu"), { v: ergebnis.karte_ab }));
+            return;
+          }
+          const neu = ergebnis.varianten[0];
+          this._speichereVarianten(ergebnis.varianten, ergebnis.name, "import");
+          const erkannt = this._hass ? erkenneMitProfil(this._hass, neu) : { entities: {} };
           const teile = [
-            tf(this._t("m_p_import_ok"), { n: neu.name, z: Object.keys(neu.felder).length }),
+            tf(this._t("m_p_import_ok"), { n: neu.name, z: Object.keys(neu.werte).length }),
             tf(this._t("m_p_gefunden"), { z: Object.keys(erkannt.entities).length }),
           ];
+          if (ergebnis.varianten.length > 1) teile.push(tf(this._t("m_p_varianten"), { z: ergebnis.varianten.length }));
           if (ergebnis.unbekannt.length) {
-            teile.push(tf(this._t("m_p_unbekannt"), { liste: ergebnis.unbekannt.slice(0, 5).join(", ") }));
+            teile.push(tf(this._t("m_p_unbekannt"), { liste: [...new Set(ergebnis.unbekannt)].slice(0, 5).join(", ") }));
           }
           sagen(teile.join(". ") + ".");
         };
@@ -601,58 +723,149 @@ export const werkzeugeEditor = {
       });
     }
 
+    const github = sr.getElementById("btn-profil-github");
+    if (github) github.addEventListener("click", () => this._sucheAufGithub(sagen));
+
     const weg = sr.getElementById("btn-profil-weg");
     if (weg) {
       weg.addEventListener("click", () => {
-        const id = aktuell();
-        const liste = eigeneProfile(this._config).filter((p) => p.id !== id);
-        const eingebaut = PROFILE.find((pr) => pr.id === id && pr.fertig);
-        speichern(liste, eingebaut ? id : DEFAULT_CONFIG.profil);
+        const id = profilKennung(this._config);
+        const liste = (Array.isArray(this._config.profile_custom) ? this._config.profile_custom : [])
+          .filter((p) => p && p.id !== id);
+        // Gibt es die Variante im Ordner Profile, gilt sie wieder.
+        const eingebaut = Boolean(this._dateiVon(id));
+        this._config = { ...this._config, profile_custom: liste, profil: eingebaut ? id : AUTO_PROFIL };
+        this._emit();
+        this._zeigeProfilAuswahl();
         sagen(this._t(eingebaut ? "m_p_zurueck" : "m_p_entfernt"));
       });
     }
-    this._zeigeProfilKnoepfe();
   },
 
-  /** Statuszeile der Erkennung, bei eigenem Profil mit dessen Namen. */
-  _erkanntText(found) {
-    if (!found.found) return this._t("m_nicht_erkannt");
-    const werte = { a: found.count, b: Object.keys(found.entities).length };
-    let id = this._config.profil || AUTO_PROFIL;
-    let auto = false;
-    if (id === AUTO_PROFIL) {
-      const gefunden = erkenneAlle(this._hass);
-      id = gefunden.length ? gefunden[0].id : "heishamon_lutarym";
-      auto = true;
-      if (gefunden.length > 1) {
-        return tf(this._t("m_erkannt_mehrere"), { z: gefunden.length, n: this._profilName(id) });
-      }
+  /**
+   * Sucht im Ordner Profile auf GitHub nach Varianten, die neu oder neuer
+   * als die installierten sind. Neuer heisst: spaeteres Pruefdatum
+   * (abgelesen), spaetere Aenderung der Integration (aktualisiert) oder
+   * hoehere Version.
+   */
+  async _sucheAufGithub(sagen) {
+    const box = this.shadowRoot.getElementById("ed-github");
+    if (box) {
+      box.hidden = true;
+      box.innerHTML = "";
     }
-    if (id === "heishamon_lutarym" && !eigenesProfil(this._config)) {
-      return (auto ? `${this._t("m_auto")} ` : "") + tf(this._t("m_erkannt"), werte);
+    sagen(this._t("m_gh_sucht"));
+    let fern;
+    try {
+      fern = await githubListe();
+    } catch {
+      sagen(this._t("m_gh_fehler"));
+      return;
     }
-    const text = tf(this._t("m_erkannt_p"), { ...werte, n: this._profilName(id) });
-    return (auto ? `${this._t("m_auto")} ` : "") + text;
+    const lokal = {};
+    profilListe().forEach((d) => d.varianten.forEach((v) => { lokal[v.id] = v; }));
+    eigeneVarianten(this._config).forEach((v) => {
+      if (v.herkunft === "github") lokal[v.id] = { version: v.quelle.version, aktualisiert: v.quelle.aktualisiert, abgelesen: v.quelle.abgelesen };
+    });
+    const neuer = (a, b) => (a.abgelesen || "") > (b.abgelesen || "") || (a.aktualisiert || "") > (b.aktualisiert || "")
+      || versionVergleich(a.version, b.version) > 0;
+    const treffer = [];
+    fern.forEach((d) => d.varianten.forEach((v) => {
+      const da = lokal[v.id];
+      if (!da || neuer(v, da)) treffer.push({ d, v, art: da ? "o_gh_neuer" : "o_gh_neu" });
+    }));
+    if (!treffer.length) {
+      sagen(this._t("m_gh_nichts"));
+      return;
+    }
+    sagen(tf(this._t("m_gh_gefunden"), { z: treffer.length }));
+    if (!box) return;
+    const e = escapeHtml;
+    box.innerHTML = treffer.map((x, i) => {
+      const info = [this._t(x.art), x.v.version, x.v.abgelesen ? tf(this._t("o_gh_stand"), { d: this._datum(x.v.abgelesen) }) : ""]
+        .filter(Boolean).join(" · ");
+      return `<div class="ed-gh-zeile"><span>${e(`${x.d.name}, ${this._variantenText(x.v)}`)}<em>${e(info)}</em></span>
+        <button type="button" data-gh="${i}">${e(this._t("e_gh_laden"))}</button></div>`;
+    }).join("");
+    box.hidden = false;
+    box.querySelectorAll("button[data-gh]").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const x = treffer[Number(b.dataset.gh)];
+        b.disabled = true;
+        let erg;
+        try {
+          erg = await githubDatei(x.d.datei);
+        } catch {
+          b.disabled = false;
+          sagen(this._t("m_gh_fehler"));
+          return;
+        }
+        if (erg.fehler) {
+          b.disabled = false;
+          sagen(this._t(erg.fehler));
+          return;
+        }
+        if (versionVergleich(erg.datei.karte_ab, CARD_VERSION) > 0) {
+          b.disabled = false;
+          sagen(tf(this._t("m_p_zu_neu"), { v: erg.datei.karte_ab }));
+          return;
+        }
+        const v = erg.datei.varianten.find((y) => y.id === x.v.id);
+        if (!v) {
+          b.disabled = false;
+          sagen(this._t("m_p_felder"));
+          return;
+        }
+        this._speichereVarianten([v], erg.datei.name, "github");
+        box.hidden = true;
+        box.innerHTML = "";
+        sagen(tf(this._t("m_gh_geladen"), { n: `${erg.datei.name}, ${v.name}` }));
+      });
+    });
   },
 
-  /** "Entfernen" nur, wenn das gewaehlte Profil ein eigenes ist. */
-  _zeigeProfilKnoepfe() {
+  /**
+   * Statuszeile der Erkennung, Rahmenfarbe und die Knoepfe "Aus Integration
+   * uebernehmen", "Standardnamen eintragen" und "Eigenes Profil entfernen".
+   */
+  _zeigeProfilKnoepfe(kandidaten) {
     const sr = this.shadowRoot;
     const weg = sr.getElementById("btn-profil-weg");
-    if (weg) weg.hidden = !eigenesProfil(this._config);
-    // Erkennung nach dem gewaehlten Profil neu anzeigen.
+    const id = profilKennung(this._config);
+    if (weg) weg.hidden = !eigeneVarianten(this._config).some((v) => v.id === id);
     if (!this._hass) return;
-    const found = detectIntegration(this._hass, profilFuer(this._config, this._hass));
+    const s = this._status(kandidaten || []);
     const gruppe = sr.querySelector(".ed-detect");
     if (gruppe) {
-      gruppe.classList.toggle("is-found", found.found);
-      gruppe.classList.toggle("is-absent", !found.found);
+      gruppe.classList.toggle("is-found", s.found);
+      gruppe.classList.toggle("is-absent", !s.found);
     }
     const status = sr.querySelector(".ed-detect .ed-status");
-    if (status) {
-      status.textContent = this._erkanntText(found);
-    }
+    if (status) status.textContent = s.text;
     const adopt = sr.getElementById("btn-adopt");
-    if (adopt) adopt.disabled = !found.found;
+    if (adopt) adopt.disabled = !s.found;
+    const standard = sr.getElementById("btn-default");
+    if (standard) standard.disabled = !(s.v && Object.keys(standardNamen(s.v)).some((n) => ENTITY_FIELDS.some((f) => f.key === n) || UEBERNEHMEN_OHNE_FELD.includes(n)));
+  },
+
+  /** Text der Statuszeile und ob Entitaeten gefunden wurden. */
+  _status(kandidaten) {
+    const id = profilKennung(this._config);
+    if (id === KEIN_PROFIL) return { text: this._t("m_keins_gewaehlt"), found: false, v: null };
+    if (!bereitFuer(this._config)) return { text: this._t("m_profile_laden"), found: false, v: null };
+    const auto = id === AUTO_PROFIL;
+    const v = profilFuer(this._config, this._hass);
+    if (!v) {
+      if (profileFehler(this._config)) return { text: this._t("m_profile_fehler"), found: false, v: null };
+      return { text: auto ? this._t("m_kein_profil") : tf(this._t("m_profil_fehlt"), { n: id }), found: false, v: null };
+    }
+    const name = this._varianteName(v);
+    const f = detectIntegration(this._hass, v);
+    if (!f.found) return { text: tf(this._t("m_nicht_gefunden"), { n: name }), found: false, v };
+    if (auto && kandidaten.length > 1) {
+      return { text: tf(this._t("m_erkannt_mehrere"), { z: kandidaten.length, n: name }), found: true, v };
+    }
+    const text = tf(this._t("m_erkannt_p"), { n: name, a: f.count, b: Object.keys(f.entities).length });
+    return { text: (auto ? `${this._t("m_auto")} ` : "") + text, found: true, v };
   },
 };

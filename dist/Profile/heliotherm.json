@@ -1,0 +1,45 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "heliotherm",
+  "name": "Heliotherm",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "ha_heliotherm",
+      "name": "Heliotherm",
+      "geraete": [
+        {
+          "hersteller": ["Heliotherm"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "mbuchber",
+        "adresse": "https://github.com/mbuchber/ha_heliotherm",
+        "version": "v1.0.43",
+        "aktualisiert": "2025-09-07",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "ha_heliotherm",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["wmz_durchfluss"],
+        "TOP5": ["temp_rucklauf", "temp_ruecklauf"],
+        "TOP6": ["temp_vorlauf"],
+        "TOP8": ["on_off_verdichter"],
+        "TOP10": ["temp_brauchwasser"],
+        "TOP14": ["temp_aussen"],
+        "TOP44": ["on_off_stoerung"],
+        "TOP46": ["temp_pufferspeicher"],
+        "TOP124": ["on_off_heizkreispumpe"],
+        "EXT1": ["stromz_leistung"]
+      }
+    }
+  ]
+}

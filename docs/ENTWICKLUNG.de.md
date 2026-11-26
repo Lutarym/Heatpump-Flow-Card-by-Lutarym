@@ -2,7 +2,7 @@
 
 **Deutsch** · [English](ENTWICKLUNG.md) · [Français](ENTWICKLUNG.fr.md) · [日本語](ENTWICKLUNG.ja.md)
 
-Für die Installation über HACS ist nichts davon nötig. HACS lädt nur die fertigen Dateien aus `dist`: `heatpump-flow-card-by-lutarym.js` und die Hilfe `heatpump-flow-card-by-lutarym-hilfe.js`, die die Karte bei Bedarf nachlädt.
+Für die Installation über HACS ist nichts davon nötig. HACS lädt nur die fertigen Dateien aus `dist`: `heatpump-flow-card-by-lutarym.js`, die Hilfe `heatpump-flow-card-by-lutarym-hilfe.js`, die die Karte bei Bedarf nachlädt, und den Ordner `Profile` mit den Geräteprofilen.
 
 ## Aufbau
 
@@ -16,8 +16,9 @@ Der Code liegt in Modulen unter `src/`. Daraus wird die eine Datei in `dist/` ge
 | `src/sprachen.js` | Eigene Sprachpakete |
 | `src/hilfe-daten.js` | Inhalt des Hilfefensters |
 | `src/hilfsfunktionen.js` | Zustände lesen, Zahlen formatieren, Farben |
-| `src/erkennung.js` | Erkennung von HeishaMon by Lutarym |
-| `src/profile.js` | Geräteprofile |
+| `src/namen.js` | Namensliste (TOP, XTOP, OPT, SET, EXT), erlaubte Entitätsarten, Einheiten, Umstellung der früheren Feldnamen |
+| `src/erkennung.js` | Erkennung der Entitäten über die Geräteprofile |
+| `src/profile.js` | Laden und Prüfen der Geräteprofile, eigene Profile, Profile von GitHub |
 | `src/felder.js` | Felder der Karte und Standardkonfiguration |
 | `src/karte/` | Die Karte, aufgeteilt nach Bereichen (Grafik, Tür, Dialoge, Hilfe, Verlauf, Diagramme, Heizkurve, Demo, Stil) |
 | `src/editor/` | Der Editor (Bedienung, Import und Export, Stil) |
@@ -33,7 +34,9 @@ npm run build
 
 `npm run watch` baut bei jeder Änderung neu.
 
+Vor dem Bauen prüft `scripts/profile.mjs` alle Dateien in `dist/Profile` und schreibt `dist/Profile/liste.json`. Bei einem fehlerhaften Profil bricht der Build ab, siehe [Geräteprofile](GERAETEPROFIL.de.md#ein-profil-in-den-ordner-aufnehmen).
+
 ## Wichtig
 
-- Nach jeder Änderung in `src/` neu bauen und die Datei in `dist/` mit hochladen. HACS liest nur `dist/`.
+- Nach jeder Änderung in `src/` oder `dist/Profile` neu bauen und `dist/` mit hochladen, auch `dist/Profile/liste.json`. HACS liest nur `dist/`.
 - Die Versionsnummer steht in `src/konstanten.js` und in `package.json`.

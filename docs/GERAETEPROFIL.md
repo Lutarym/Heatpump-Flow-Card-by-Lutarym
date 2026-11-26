@@ -2,109 +2,200 @@
 
 **English** · [Deutsch](GERAETEPROFIL.de.md) · [Français](GERAETEPROFIL.fr.md) · [日本語](GERAETEPROFIL.ja.md)
 
-A device profile tells the card what the entities of your heat pump are called in Home Assistant. The card can then find the entities itself and assign them to its fields. This lets you connect heat pumps from other manufacturers and customise the built-in Panasonic profile.
+A device profile tells the card which entity in Home Assistant belongs to which value. The values are named as in the [name list](NAMENSLISTE.md), for example TOP14 for the outdoor temperature. With the profile the card finds the entities itself.
 
-A profile is a small text file in JSON format. You can export it, change it with a text editor and import it again.
+From version 6.0.0 the card no longer contains a profile itself. All profiles are files in the folder `dist/Profile`, one file per manufacturer. Each integration or firmware is a variant in it, for Panasonic Aquarea for example HeishaMon by Lutarym, HeishaMon (MQTT), HeishaMon by kamaradclimber and Aquarea Smart Cloud. HACS installs the folder together with the card. Own profiles are added by import.
 
 ## Where to find it
 
-Edit the card and switch the editor to **Advanced**. The selection is in the section **Integration**, the buttons in the section **Import, export and customisation**:
+Edit the card. In the section **Integration**:
 
-- **Manufacturer**: “Detect automatically” or a manufacturer (also visible in simple mode)
-- **Integration / device**: appears when a manufacturer has several integrations, with the developer name
-- **Several integrations detected**: appears with “Detect automatically” when several match
-- **Feedback on GitHub** and **Copy report** in the box “About this profile”: the report contains assigned, missing and hand-changed fields and the unused entities of the integration. This helps to improve a profile. It contains entity IDs and current values; on GitHub you see and edit it before submitting.
-- **About this profile**: integration, developer with a link to the source, version, last change, the areas covered, what was found in Home Assistant, whether the card can control, whether help exists and whether the profile is tested. Version and last change were read when this card version was built and do not update by themselves.
-- **Export profile**: saves the selected profile as a file in your downloads folder
-- **Import profile**: reads a profile file and selects the profile
-- **Remove own profile**: only appears for an own or customised profile
+- **Manufacturer**: “Detect automatically”, a manufacturer from the Profile folder, “Own profiles” (if any) or “No profile, enter entities myself”
+- **Integration / device**: appears when a manufacturer has several variants, with the developer name
+- **Several integrations detected**: appears with “Detect automatically” when several variants match
+- **Would you like to load a specific profile?**: appears with “Detect automatically” when no variant matches. Choose manufacturer and integration there and press **Load profile**. With **No, enter entities myself** the card switches to “No profile, enter entities myself” and the editor shows the fields for the entities.
+- **Take over from integration**: enters the found entities into the fields permanently
+- **Search again**: switches to “Detect automatically” and searches all profiles again. If the profiles could not be loaded before, the card loads them again.
+- **Fill in default names** (editor set to **Advanced**): enters entity IDs that the profile states exactly or with the pattern `*.name` (for example `sensor.heishamon_top14`)
+- **About this profile**: integration, developer with a link to the source, version, last change of the integration and day of the check, the areas covered, what was found in Home Assistant, whether the card can control, whether help exists and whether the profile is tested. Version and dates are stored in the profile file and do not change by themselves. Below it **Feedback on GitHub** and **Copy report**: the report contains assigned, missing and hand-changed values and the unused entities of the integration. This helps to improve a profile. It contains entity IDs and current values; on GitHub you see and edit it before submitting.
 
-## Quick start
+In the section **Import, export and customisation** (editor set to **Advanced**):
 
-1. Select **Panasonic Aquarea, HeishaMon by Lutarym** and press **Export profile**. The file serves as a template.
+- **Export profile**: saves the selected or detected variant as a file in your downloads folder
+- **Import profile**: reads a profile file and selects the (first) variant
+- **Search profiles on GitHub**: see [Loading profiles from GitHub](#loading-profiles-from-github)
+- **Remove own profile**: only appears for an own, customised or GitHub-loaded profile
+
+## How the card loads and searches
+
+1. The card configuration holds the identifier of the variant under `profil`, for example `heishamon_lutarym`. The identifiers up to 5.33.8 keep working.
+2. Variant selected: the card loads `liste.json` and exactly the file of this variant.
+3. `auto` (“Detect automatically”, default): the card loads `liste.json` and all files once. It checks all variants and takes the one with the most matching values. A variant counts as found when at least two values match. When a variant searches by entity ID (without integration), entities that belong to the integration of another variant according to the registry do not count.
+4. No variant matches: the card shows “No matching profile found. Would you like to load a specific profile? Edit the card and choose manufacturer and integration at the top.” Without a profile the card assumes no manufacturer.
+5. `keins`: no profile, the card only uses the entities you entered.
+6. The browser loads the files once per page. The card appends its version to the request, after an update the browser fetches the new files.
+7. If the profiles could not be loaded, the card shows “The device profiles could not be loaded. Please reload the page.”
+8. If Home Assistant has several devices of the same integration (for example two heat pumps), the card looks for the values not entered at the device of its entered entities.
+
+## Quick start: own profile
+
+1. Select a fitting or similar variant, for example **Panasonic Aquarea, HeishaMon by Lutarym**, and press **Export profile**. The file serves as a template.
 2. Find the entities of your heat pump in Home Assistant: **Developer tools → States**, filter for example by the device name.
-3. Open the file in a text editor. Change `id`, `name`, `hersteller`, `integration` and `namensteil` and enter your entities under `felder`. Simply delete fields you do not have.
-4. Press **Import profile** and choose the file. The card reports how many fields are described and how many of them it found in Home Assistant.
-5. Press **Take over from integration**. Only then are the found entities assigned to the fields.
+3. Open the file in a text editor. Change the identifiers (`id` of the file and of the variant), the names and `suche` and enter your entities under `werte`. Simply delete values you do not have.
+4. Press **Import profile** and choose the file. The card reports how many values are described and how many of them it found in Home Assistant.
+5. Press **Take over from integration** if the found entities should be entered into the fields permanently.
 6. Check the individual fields in the editor and correct them by hand if needed.
 
 ## File structure
 
-The keys are German and must stay exactly as shown.
-
 ```json
 {
   "format": "lutarym-geraeteprofil",
-  "version": 1,
-  "id": "meine_waermepumpe",
-  "name": "Meine Wärmepumpe",
-  "hersteller": "Beispiel",
-  "integration": "",
-  "namensteil": "waermepumpe",
-  "felder": {
-    "outside_temp": ["sensor.waermepumpe_aussentemperatur"],
-    "flow_temp": ["sensor.*_vorlauf"],
-    "return_temp": ["ruecklauf"],
-    "dhw_temp": ["sensor.waermepumpe_warmwasser_ist"],
-    "dhw_target": ["number.waermepumpe_warmwasser_soll"]
-  }
+  "version": 2,
+  "id": "beispiel",
+  "name": "Beispiel",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "beispiel_wp",
+      "name": "Beispiel WP",
+      "geraete": [{ "hersteller": ["Beispiel"], "reihe": "", "modelle": [], "hinweis": "" }],
+      "quelle": {
+        "entwickler": "jemand",
+        "adresse": "https://github.com/jemand/beispiel-wp",
+        "version": "1.0.0",
+        "aktualisiert": "2026-11-20",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": { "art": "integration", "integration": "beispiel_wp", "namensteil": "" },
+      "werte": {
+        "TOP14": ["outdoor_temperature"],
+        "TOP6": ["sensor.*_vorlauf"],
+        "TOP1": { "suche": ["sensor.*_durchfluss"], "einheit": "l/h" },
+        "TOP26": { "suche": ["sensor.*_betrieb"], "zustaende": { "abtauen": 1, "*": 0 } }
+      }
+    }
+  ]
 }
 ```
 
-| Key | Required | Meaning |
+The file:
+
+| Entry | Required | Meaning |
 |---|---|---|
-| `format` | yes | always `"lutarym-geraeteprofil"` |
-| `version` | yes | always `1` |
-| `id` | yes | identifier, 2 to 40 characters, only lower-case letters a to z, digits, `_` and `-` |
-| `name` | no | name in the selection list |
-| `hersteller` | no | manufacturer, for information only |
-| `integration` | no | name of the integration in Home Assistant (see below) |
-| `namensteil` | no | text that all entity IDs of the heat pump contain, for example `"vaillant"` |
-| `felder` | yes | for each field of the card a list of search rules |
+| `format`, `version` | yes | always `"lutarym-geraeteprofil"` and `2` |
+| `id` | yes | identifier of the file, equal to the file name without `.json`. 2 to 40 characters, only lower case a to z, digits, `_` and `-`. `liste` is taken. |
+| `name` | yes | name of the manufacturer as shown in the editor |
+| `karte_ab` | yes | lowest card version that understands the file, for example `6.0.0`. If it is newer than the card, the card rejects the file. |
+| `varianten` | yes | one or more variants |
 
-## Built-in manufacturer profiles
+Each variant:
 
-The card ships profiles for the following integrations. The search rules come from the source code of each integration. So far only HeishaMon by Lutarym has been tested on real systems; all others are marked “untested”. Feedback helps to improve them.
+| Entry | Required | Meaning |
+|---|---|---|
+| `id` | yes | identifier of the variant, unique across all files. The identifiers up to 5.33.8 stay. |
+| `name` | yes | name of the integration or firmware |
+| `geraete` | yes | list with `hersteller` (list), `reihe`, `modelle` (list) and `hinweis` |
+| `quelle` | yes in the Profile folder | `entwickler`, `adresse` (with https://), `version`, `aktualisiert` (last change of the integration), `abgelesen` (day of the check) |
+| `suche` | yes | `art`: `integration`, `core` or `firmware`. `integration`: domain in the Home Assistant registry. `namensteil`: part of the entity ID when searching without the registry. |
+| `heishamon` | no | `true` if the values come from HeishaMon ([heishamon flag](#heishamon-flag)) |
+| `getestet` | no | `true` if checked on a real system |
+| `werte` | yes | name from the name list and how the card finds the entity for it |
 
-**Detect automatically** (default) searches all profiles. If exactly one integration is found, it is used. If several are found, the editor asks which one the card should use. Until then the one with the most matching fields is used. An integration counts as found when at least two fields match.
+A value in short form is a list of search rules, for example `"TOP14": ["outdoor_temperature"]`. The long form adds conversion details: `"TOP1": { "suche": [...], "einheit": "l/h" }`.
 
-| Manufacturer | Integration | Developer | Domain | Fields |
-|---|---|---|---|---|
-| Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 76 |
-| Panasonic Aquarea | HeishaMon (MQTT) | | | 76 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
-| Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
-| Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
-| Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
-| Bosch, Buderus | [EMS-ESP (MQTT)](https://github.com/emsesp/EMS-ESP32) | emsesp | | 24 |
-| Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
-| Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
-| Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
-| Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
-| DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
-| Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
-| Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
-| iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
-| KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
-| Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
-| Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
-| Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
-| Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
-| NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
-| Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
-| Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
-| Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
-| Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
-| Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
-| Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
-| Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
-| Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
-| Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
-| Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
-| Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
-| Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
-| Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
+## Search rules
+
+| Rule | Example | Matches |
+|---|---|---|
+| key | `"top14"` | entities of the integration with this internal key (translation_key) or entity IDs ending in `_top14` |
+| domain and key | `"number:top27"` | as above, only entities of this kind |
+| pattern with star | `"sensor.*boiler_fanspd"` | every entity ID following this pattern, the star stands for any text |
+| exact entity | `"sensor.outdoor"` | exactly this entity |
+
+Further rules:
+
+- One name, one entity. Several rules are alternatives, the card does not combine values from two entities.
+- Each name only accepts certain entity types (column “Entity types” in the [name list](NAMENSLISTE.md)). If the type does not fit, the entity is not entered.
+- If a read-only and a settable entity both match a name, the settable one wins so that the value can be set in the card.
+- If a name has several rules, the first one that finds something wins. An exact hit (internal key or full entity ID) beats a hit by ending or pattern.
+- Upper and lower case do not matter for patterns and endings.
+
+## How the search works
+
+- **With `integration`**: the card only searches the entities of this integration. You see the name in the address bar when you open the integration under **Settings → Devices & services**: the part after `/integration/`. If nothing is found there, the card only continues as without `integration` when `namensteil` is set as well. This way general keys such as `"outdoor_temperature"` do not hit unrelated entities.
+- **Without `integration`**: the card searches all entities. With `namensteil` only those whose entity ID contains this text. Without `namensteil` an ending can also hit unrelated entities; use exact entity IDs or patterns instead.
+
+## Units and states
+
+- `einheit`: what the integration delivers if it is not the HeishaMon unit. If the rules find different things, the units are given as a list. If the entity reports a unit itself, that one applies. Otherwise the one from the profile applies, only for the entity the profile finds itself and only if the profile names exactly one unit (my own decision).
+- `zustaende`: texts and their value as with HeishaMon, `"*"` stands for all other texts. The card understands numbers and words such as on and off even without it. The card converts the texts only for the entity the profile finds itself, also in the history. Without it the card also recognises defrost from “defrost” or “abtau” in the text. For EMS-ESP the profile holds the defrost words in all 12 EMS-ESP languages.
+
+| Names | The card converts to | The profile may state |
+|---|---|---|
+| TOP62, TOP63, TOP65 (fan, pump) | rpm | rpm or %. With %: 0 % stands still, 100 % turns fastest (like 900 rpm, my own decision, only for the motion). |
+| TOP11, TOP90, TOP91 (operating hours) | h | h, min, s, ms, d |
+| TOP1 (flow) | l/min | l/min, l/h, l/s, ml/s, m3/h, gal/min, ft3/min |
+| EXT1, EXT3, EXT4 (power) | W | W, kW, MW |
+| EXT2 (energy) | kWh | Wh, kWh, MWh |
+| TOP8 (compressor) | Hz | Hz or %. The card shows the unit it receives. |
+| TOP26 and all on/off values | 0 and 1 | numbers, on and off, own texts via `zustaende` |
+| TOP20 (3-way valve) | 0 heating, 1 hot water | numbers, on and off, texts with hot water words, own texts via `zustaende` |
+
+The build reports a unit that is not in the table as an error. The card expects temperatures in °C and pressure in bar.
+
+## heishamon flag
+
+With `"heishamon": true` in a variant:
+
+1. The help window with the HeishaMon values and commands is available.
+2. If a value is otherwise read-only, the card sends the command to HeishaMon via MQTT (for example SET16 for the heating curve).
+3. If TOP95, TOP99 and TOP100 have no value although HeishaMon delivers data, the card shows the hint about the group “Installer settings”.
+4. Stove at the solar input: if only a stove is selected, TOP47 and OPT5 belong to the stove (EXT300 and EXT301).
+
+The Panasonic series from TOP92 follows the manufacturer in `geraete`.
+
+## Built-in profiles
+
+The search rules come from the source code of each integration, checked on the day in `abgelesen`. Only HeishaMon by Lutarym and HeishaMon (MQTT) have been tested on real systems so far, all others are marked “untested”. Feedback helps to improve them. Models are listed so far only for HeishaMon (from HeatPumpType.md of HeishaMon) and EMS-ESP (from device_library.h of EMS-ESP).
+
+| File | Manufacturer | Variant | Developer | Domain | Values |
+|---|---|---|---|---|---|
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/BenPru/luxtronik) | BenPru | `luxtronik2` | 22 |
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik](https://github.com/Bouni/luxtronik) | Bouni | `luxtronik` | 13 |
+| `alpha_innotec_novelan.json` | Alpha Innotec, Novelan (Luxtronik) | [Luxtronik 2](https://github.com/notDIRK/luxtronik2-hass) | notDIRK | `luxtronik2_hass` | 11 |
+| `batavia_heat.json` | Batavia Heat | [Batavia Heat](https://github.com/RSloot2000/BataviaHeat-Heat-Pump) | RSloot2000 | `batavia_heat` | 8 |
+| `bosch_buderus.json` | Bosch, Buderus | [Bosch Buderus Heating](https://github.com/SoftwareSchmied/ha-bosch-buderus-heating) | SoftwareSchmied | `bosch_buderus_heating` | 7 |
+| `bosch_buderus.json` | Bosch, Buderus | [EMS-ESP (MQTT)](https://github.com/emsesp/EMS-ESP32) | emsesp |  | 41 |
+| `daikin.json` | Daikin | [Daikin Onecta](https://github.com/jwillemsen/daikin_onecta) | jwillemsen | `daikin_onecta` | 4 |
+| `daikin.json` | Daikin | [Altherma 4 Modbus](https://github.com/joklee/ha_daikin_altherma4_modbus) | joklee | `ha_daikin_altherma4_modbus` | 10 |
+| `daikin.json` | Daikin | [Altherma EKRHH Modbus](https://github.com/gerione/daikin-ha-ekrhh-modbus) | gerione | `daikin_ha_ekrhh_modbus` | 9 |
+| `daikin.json` | Daikin | [Daikin Altherma](https://github.com/tadasdanielius/daikin_altherma) | tadasdanielius | `daikin_altherma` | 2 |
+| `dewarmte.json` | DeWarmte | [DeWarmte](https://github.com/ronald-willems/dewarmte-homeassistant) | ronald-willems | `dewarmte` | 4 |
+| `heliotherm.json` | Heliotherm | [Heliotherm](https://github.com/mbuchber/ha_heliotherm) | mbuchber | `ha_heliotherm` | 10 |
+| `hitachi.json` | Hitachi | [Hitachi Yutaki](https://github.com/alepee/hass-hitachi_yutaki) | alepee | `hitachi_yutaki` | 13 |
+| `idm.json` | iDM | [IDM Heatpump](https://github.com/Xerolux/idm-heatpump-hass) | Xerolux | `idm_heatpump` | 9 |
+| `keba.json` | KEBA | [KEBA Heat Pump Modbus](https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration) | johannesWen | `keba_heat_pump_modbus` | 5 |
+| `kronoterm.json` | Kronoterm | [Kronoterm](https://github.com/Favio25/Kronoterm-homeassistant) | Favio25 | `kronoterm` | 15 |
+| `lambda.json` | Lambda | [Lambda Heat Pumps](https://github.com/GuidoJeuken-6512/lambda_heat_pumps) | GuidoJeuken-6512 | `lambda_heat_pumps` | 15 |
+| `mitsubishi_electric.json` | Mitsubishi Electric | [MELCloud](https://www.home-assistant.io/integrations/melcloud/) | Home Assistant Core | `melcloud` | 4 |
+| `mitsubishi_electric.json` | Mitsubishi Electric | [MELCloud Home](https://github.com/andrew-blake/melcloudhome) | andrew-blake | `melcloudhome` | 7 |
+| `nibe.json` | NIBE | [Nibe Heat Pump](https://www.home-assistant.io/integrations/nibe_heatpump/) | Home Assistant Core | `nibe_heatpump` | 13 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon by Lutarym](https://github.com/Lutarym/Heishamon-by-Lutarym) | Lutarym | `heishamon_lutarym` | 127 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon (MQTT)](https://github.com/heishamon/HeishaMon) |  |  | 105 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [HeishaMon](https://github.com/kamaradclimber/heishamon-homeassistant) | kamaradclimber | `aquarea` | 30 |
+| `panasonic_aquarea.json` | Panasonic Aquarea | [Aquarea Smart Cloud](https://github.com/wpatrik14/home-assistant-aquarea) | wpatrik14 | `aquarea` | 5 |
+| `qube.json` | Qube | [Qube Heat Pump](https://github.com/MattieGit/qube_heatpump) | MattieGit | `qube_heatpump` | 9 |
+| `remeha.json` | Remeha | [Remeha Modbus](https://github.com/houthacker/remeha-modbus) | houthacker | `remeha_modbus` | 10 |
+| `solarfocus.json` | Solarfocus | [Solarfocus](https://github.com/LavermanJJ/home-assistant-solarfocus) | LavermanJJ | `solarfocus` | 13 |
+| `stiebel_eltron.json` | Stiebel Eltron | [Stiebel Eltron ISG](https://github.com/pail23/stiebel_eltron_isg_component) | pail23 | `stiebel_eltron_isg` | 19 |
+| `stiebel_eltron.json` | Stiebel Eltron | [Stiebel Eltron ISG (HTTP)](https://github.com/pmq/stiebel-eltron-http) | pmq | `stiebel_eltron_http` | 6 |
+| `thermia.json` | Thermia | [Thermia Heat Pump](https://github.com/klejejs/ha-thermia-heat-pump-integration) | klejejs | `thermia` | 6 |
+| `vaillant.json` | Vaillant | [myPyllant](https://github.com/signalkraft/mypyllant-component) | signalkraft | `mypyllant` | 7 |
+| `viessmann.json` | Viessmann | [ViCare](https://www.home-assistant.io/integrations/vicare/) | Home Assistant Core | `vicare` | 21 |
+| `waterkotte.json` | Waterkotte | [Waterkotte Heatpump](https://github.com/marq24/ha-waterkotte) | marq24 | `waterkotte_heatpump` | 15 |
+| `weishaupt.json` | Weishaupt | [Weishaupt Modbus](https://github.com/OStrama/weishaupt_modbus) | OStrama | `weishaupt_modbus` | 12 |
+| `wolf.json` | Wolf | [Wolf ISM8](https://github.com/marcschmiedchen/home-assistant-wolf_ism8) | marcschmiedchen | `wolf` | 8 |
 
 EMS-ESP needs no integration: the firmware creates its entities in Home Assistant via MQTT Discovery. The rules fit the EMS-ESP setting “Entity ID format” with short names (single or multiple instances, latest or v3.5), not “Single instance, long name (v3.4)”.
 
@@ -120,213 +211,50 @@ No profile, with reason:
 - `midea_heatpump_hws`: hot water heat pump only
 - `dimplex`: provides no heat pump values such as flow, return or compressor
 
-## Search rules
+## Adding a profile to the folder
 
-Each field has a list of rules. A single rule may also be written without square brackets. There are four kinds:
+1. Create the file `dist/Profile/<id>.json`, one file per manufacturer. If the manufacturer exists already, the new variant goes into its file.
+2. `npm run build`: the build reads all files in the folder, checks them and writes `dist/Profile/liste.json`. To add a profile, just place the file and build.
+3. The build checks `format` and `version`, whether `id` matches the file name, the required entries, whether all identifiers are unique across all files, whether every name is in the name list, whether the search rules are not empty, the units (table above), `zustaende` (numbers only), whether `karte_ab` is not newer than the card and `quelle` with an https address and check date. On an error it stops and names the place.
 
-| Rule | Example | Matches |
-|---|---|---|
-| with a dot | `"sensor.hp_flow"` | exactly this entity |
-| with a star `*` | `"sensor.*_flow"` | every entity ID following this pattern, the star stands for any text |
-| without dot or star | `"flow"` | entity IDs ending in `_flow`, or entities of the integration with this internal key (translation_key) |
-| with a domain in front | `"sensor:flow"` | like without dot or star, but only entities of this kind, here `sensor` |
+## Loading profiles from GitHub
 
-The exact entity ID is the most reliable. Patterns and endings are useful when a profile should also work for others whose entity IDs contain, for example, a different IP address.
+1. Button **Search profiles on GitHub** in the section **Import, export and customisation**. The card only asks GitHub when you press the button, not every time the dashboard opens.
+2. The card reads `liste.json` from the folder `dist/Profile` in the branch main of the card's repository and shows variants that are new or newer than the installed ones. Newer means: later check date (`abgelesen`), later change of the integration (`aktualisiert`) or higher version.
+3. **Load** fetches the file and checks it as when loading from its own folder. If `karte_ab` is newer than the card, the card rejects it with a hint.
+4. The card stores the variant like an imported profile in the card configuration and selects it. After that it also works without internet. In the selection it is shown with “(from GitHub)”.
+5. The card only loads data, no program code.
 
-Further rules:
+## Customising a built-in profile
 
-- Each field only accepts certain entity types (column "Allowed entity types" in the field list). If the type does not fit, the entity is not entered there.
-- If a read-only and a settable entity both match a field, the settable one wins so that the value can be set in the card.
-- If a field has several rules, the first one that finds something wins. An exact hit (internal key or full entity ID) beats a hit by ending.
-- Upper and lower case do not matter for patterns and endings.
+1. Select the variant and **Export profile**.
+2. Change the desired values in the file. The `id` of the variant stays the same.
+3. **Import profile**. The selection now shows the variant with “(customised)”.
+4. **Remove own profile** brings back the variant from the Profile folder.
 
-## How the search works
+If you give a new `id`, an additional own profile is created instead under “Own profiles”.
 
-- **With `integration`**: the card only searches the entities of this integration. You see the name in the address bar when you open the integration under **Settings → Devices & services**: the part after `/integration/`. If nothing is found there, the card only continues as without `integration` when `namensteil` is set as well. This way general keys such as `"outdoor_temperature"` do not hit unrelated entities.
-- **Without `integration`**: the card searches all entities. With `namensteil` only those whose entity ID contains this text. Without `namensteil` an ending such as `"flow"` can also hit unrelated entities; use exact entity IDs or patterns instead.
+## Where own profiles are stored
 
-## Customising Panasonic
+Imported and GitHub-loaded profiles are stored in the configuration of this card under `profile_custom`. They apply to this card only. **Save as file** in the section Import, export and customisation includes the profile, and **Load from file** in another card brings it there. Alternatively, import the profile file in each card.
 
-1. Select **Panasonic Aquarea, HeishaMon by Lutarym** and **Export profile**.
-2. Change the desired fields in the file. The `id` stays `heishamon_lutarym`.
-3. **Import profile**. The selection now shows your name with "(customised)".
-4. **Remove own profile** brings back the built-in profile.
+## Older profile files
 
-If you give a new `id`, an additional own profile is created instead.
-
-## Where the profile is stored
-
-Imported profiles are stored in the configuration of this card under `profile_custom`. They apply to this card only. **Save as file** in the section Import, export and customisation includes the profile, and **Load from file** in another card brings it there. Alternatively, import the profile file in each card.
+The import still reads profile files in format 1 (up to 5.33.8, with `felder` and the former field names). The card translates the field names according to the [name list](NAMENSLISTE.md). A profile for HeishaMon keeps the heishamon flag (my own decision: integration `heishamon_lutarym`, name part or identifier with `heishamon`). The export always delivers format 2.
 
 ## What a profile does not change
 
-- The help ("?") explains the values of HeishaMon. For other manufacturers these explanations do not fit.
-- The seasonal performance factor behind the door uses the power values of HeishaMon. For other manufacturers it stays empty.
-- The card expects values as HeishaMon delivers them: temperatures in °C, power in W, energy in kWh, flow in l/min and pressure in bar.
+- The help (“?”) explains the values of HeishaMon. It only appears for variants with the heishamon flag and in demo mode.
+- The seasonal performance factor behind the door uses the HeishaMon power values (TOP15, TOP16, TOP40, TOP41 or XTOP0, XTOP2, XTOP3, XTOP5). If a profile does not provide them, it stays empty.
 
 ## Messages when importing
 
 | Message | Cause |
 |---|---|
-| not valid JSON | the file is not JSON, often a comma or bracket is missing |
-| not a device profile file | `format` is missing or wrong |
-| profile version not supported | `version` is not `1` |
-| identifier missing or invalid | `id` breaks the rules above |
-| no known field | `felder` is missing or only contains unknown field names |
-| unknown fields ignored | these field names do not exist in the card, the rest was taken over |
-
-## Field list
-
-The column "Panasonic (HeishaMon)" shows the keys of the built-in profile, which helps with the assignment.
-
-**Outdoor sensor**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `outside_temp` | Outdoor temperature | any | `top14` |
-
-**Outdoor unit**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `power_state` | Heat pump status, green LED | `switch`, `input_boolean`, `binary_sensor`, `sensor` | `setheatpump` |
-| `compressor` | Compressor frequency | any | `top8` |
-| `fan1_rpm` | Fan 1 speed | any | `top62` |
-| `fan2_rpm` | Fan 2 speed | any | `top63` |
-| `defrost` | Defrost running | any | `top26` |
-| `error` | Error code | any | `top44` |
-| `heatpump_state` | Operating state | any | `top0` |
-| `force_defrost` | Force defrost | `switch`, `input_boolean` | `setforcedefrost` |
-| `powerful_mode` | Powerful mode | `select`, `input_select` | `setpowerfulmode` |
-| `quiet_mode` | Quiet mode | `select`, `input_select` | `setquietmode` |
-| `power_now` | Current power draw | any | (none) |
-| `energy_today` | Energy meter | any | (none) |
-
-**SG Ready**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `pv_power` | Current PV power | any | (none) |
-| `sg_k1` | Contact K1, block | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (none) |
-| `sg_k2` | Contact K2, start | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (none) |
-
-**Primary circuit**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `flow_temp` | Flow temperature | any | `top6` |
-| `return_temp` | Return temperature | any | `top5` |
-| `pump_speed` | Primary pump speed | any | `top65` |
-| `pump_flow` | Flow rate | any | `top1` |
-| `three_way_valve` | Three-way diverter valve | any | `top20` |
-| `water_pressure` | Water pressure | any | `top115` |
-| `heater_internal` | Internal heater running | any | `top60` |
-| `heater_external` | External heater running | any | `top61` |
-
-**Heating buffer**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `buffer_temp` | Buffer temperature | any | `top46` |
-| `buffer_installed` | Buffer installed | any | `top99` |
-| `buffer_switch` | Buffer mode on and off | `switch`, `input_boolean` | `setbuffer` |
-
-**Heat curve**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `curve_t_high` | Circuit 1 heat curve, flow high | any | `top29` |
-| `curve_t_low` | Circuit 1 heat curve, flow low | any | `top30` |
-| `curve_o_high` | Circuit 1 heat curve, outdoor high | any | `top31` |
-| `curve_o_low` | Circuit 1 heat curve, outdoor low | any | `top32` |
-| `curve2_t_high` | Circuit 2 heat curve, flow high | any | `top82` |
-| `curve2_t_low` | Circuit 2 heat curve, flow low | any | `top83` |
-| `curve2_o_high` | Circuit 2 heat curve, outdoor high | any | `top84` |
-| `curve2_o_low` | Circuit 2 heat curve, outdoor low | any | `top85` |
-
-**Heating buffer**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `buffer_delta` | Buffer offset (ΔT) | any | `top113` |
-| `buffer_target` | Heat pump flow target | any | `top7` |
-| `cop_heating` | COP heating | any | `cop_heating` |
-| `room_heater` | Heating element, heating: allowed | any | `top59` |
-| `room_heater_switch` | Allow heating element, heating | `switch`, `input_boolean` | `setroomheaterstate` |
-
-**Circuit 1**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `zones_state` | Active zones | any | `top94` |
-| `zones_select` | Switch zones | `select`, `input_select` | `setzones` |
-| `hk1_water` | Circuit 1 water temperature | any | `top36` |
-| `hk1_water_target` | Circuit 1 water target | any | `top42` |
-| `hk1_pump` | Circuit 1 pump running | any | `top124` |
-| `hk1_setpoint` | Circuit 1 adjustable target | `number`, `input_number` | `top27` |
-| `hk1_switch` | Circuit 1 on and off | `switch`, `input_boolean` | (none) |
-
-**Circuit 2**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `hk2_water` | Circuit 2 water temperature | any | `top37` |
-| `hk2_water_target` | Circuit 2 water target | any | `top43` |
-| `hk2_pump` | Circuit 2 pump running | any | `top123` |
-| `hk2_setpoint` | Circuit 2 adjustable target | `number`, `input_number` | `top34` |
-| `hk2_switch` | Circuit 2 on and off | `switch`, `input_boolean` | (none) |
-
-**Hot water**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `dhw_installed` | Hot water installed | any | `top100` |
-| `dhw_temp` | Hot water temperature | any | `top10` |
-| `dhw_heat_delta` | Hot water hysteresis | any | `top22` |
-| `dhw_setpoint` | Hot water target | `number`, `input_number` | `top9` |
-| `cop_dhw` | COP hot water | any | `cop_dhw` |
-| `dhw_heater` | Heating element, hot water: allowed | any | `top58` |
-| `dhw_force` | Boost once | `switch`, `input_boolean` | `setforcedhw` |
-| `dhw_force_state` | Boost running | any | `top2` |
-| `force_sterilization` | Start legionella cycle | `switch`, `input_boolean` | `setforcesterilization` |
-| `sterilization_state` | Legionella cycle running | any | `top69` |
-| `dhw_heater_switch` | Allow heating element, hot water | `switch`, `input_boolean` | `setdhwheaterstate` |
-| `circulation_pump` | Circulation pump running | `switch`, `input_boolean`, `binary_sensor`, `sensor` | (none) |
-| `circ_switch` | Circulation switch (clickable) | `switch`, `input_boolean` | (none) |
-| `weather` | Weather forecast | `weather` | (none) |
-| `dhw_warmest` | Hot water at the warmest time of day | `switch`, `input_boolean` | `dhw_warmest_time` |
-| `dhw_planned` | Planned hot water charge | `sensor` | `dhw_planned` |
-| `dhw_last_charge` | Last hot water charge | `sensor` | `dhw_last_charge` |
-
-**Control**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `mode_select` | Switch operating mode | `select`, `input_select` | `setoperationmode` |
-
-**Advanced settings**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `heating_off_temp` | Heating off above outdoor temp. | any | `top77` |
-| `heater_on_temp` | Heater on below outdoor temp. | any | `top78` |
-| `heat_delta` | Heating spread (ΔT) | any | `top23` |
-| `heating_control` | Heating control | `select`, `input_select` | `setheatingcontrol` |
-| `steril_temp` | Legionella temperature | any | `top70` |
-| `steril_time` | Legionella hold time | any | `top71` |
-| `pump_flow_mode` | Pump control | `select`, `input_select` | `setpumpflowratemode` |
-| `pump_max_duty` | Max. pump duty | any | `top95` |
-| `quiet_priority` | Quiet mode priority | `select`, `input_select` | `setquietmodepriority` |
-| `holiday_mode` | Holiday mode | `switch`, `input_boolean` | `setholidaymode` |
-| `main_schedule` | Weekly schedule | `switch`, `input_boolean` | `setmainschedule` |
-| `smart_dhw` | Smart DHW | `select`, `input_select` | `setsmartdhw` |
-| `operating_hours` | Operating hours | any | `top11` |
-| `compressor_starts` | Compressor starts | any | `top12` |
-| `room_heater_hours` | Heater hours, heating | any | `top90` |
-| `dhw_heater_hours` | Heater hours, hot water | any | `top91` |
-
-**Control**
-
-| Field | Meaning | Allowed entity types | Panasonic (HeishaMon) |
-|---|---|---|---|
-| `operating_mode` | Operating mode (display) | any | `top4` |
+| This is not valid JSON. Please paste the exported text. | the file is not JSON, often a comma or bracket is missing |
+| This is not a device profile file (format must be “lutarym-geraeteprofil”). | `format` is missing or wrong |
+| This profile version is not supported (expected: version 2 or 1). | `version` is not `2` or `1` |
+| The identifier (id) is missing or invalid: 2 to 40 characters, only a to z, 0 to 9, _ and -. | `id` breaks the rules above |
+| The profile does not describe any known value (werte). | `werte` (format 1: `felder`) is missing or only contains unknown names |
+| unknown names ignored: … | these names are not in the name list, the others were taken over |
+| This profile requires card version x.y.z or later. Please update the card first. | `karte_ab` is newer than the card |

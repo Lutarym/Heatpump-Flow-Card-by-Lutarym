@@ -1,0 +1,40 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "keba",
+  "name": "KEBA",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "keba_heat_pump_modbus",
+      "name": "KEBA Heat Pump Modbus",
+      "geraete": [
+        {
+          "hersteller": ["KEBA"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "johannesWen",
+        "adresse": "https://github.com/johannesWen/KEBA-Heat-Pump-Modbus-Integration",
+        "version": "1.5.0",
+        "aktualisiert": "2026-10-09",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "keba_heat_pump_modbus",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["flow_rate"],
+        "TOP5": ["reflux_temperature"],
+        "TOP6": ["flow_temperature"],
+        "TOP10": ["top_temperature"],
+        "EXT1": ["heat_power_consumption"]
+      }
+    }
+  ]
+}

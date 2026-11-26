@@ -2,7 +2,7 @@
  * Hilfefenster mit Suche, Gruppen und kopierbaren Entitaeten.
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
-import { INTEGRATION_DOMAIN } from "../erkennung.js";
+import { SET_BEFEHL, istName } from "../namen.js";
 import { hilfeDaten, ladeHilfe } from "../hilfe-laden.js";
 import { escapeHtml, kopiereText } from "../hilfsfunktionen.js";
 import { hilfeText } from "../sprachen.js";
@@ -117,10 +117,22 @@ export const hilfeKarte = {
       if (!index[k]) index[k] = [];
       if (!index[k].includes(id)) index[k].push(id);
     };
+    // Zuerst die Entitaeten, die das Profil oder die Konfiguration den
+    // Namen zuordnet (TOP, XTOP und OPT ueber den Namen, SET ueber den Befehl).
+    if (!(this._config && this._config.demo)) {
+      Object.keys(Object.assign({}, this._auto || {}, (this._config && this._config.entities) || {})).forEach((name) => {
+        if (!istName(name) || name.startsWith("EXT")) return;
+        const id = this._e(name);
+        if (!id) return;
+        dazu(name.startsWith("SET") ? SET_BEFEHL[name] : name, id);
+      });
+    }
+    const v = typeof this._variante === "function" ? this._variante() : null;
+    const integration = v && v.suche ? v.suche.integration : "";
     const reg = q.entities || {};
     Object.keys(reg).forEach((id) => {
       const e = reg[id];
-      if (!e || e.platform !== INTEGRATION_DOMAIN) return;
+      if (!e || !integration || e.platform !== integration) return;
       if (e.translation_key) dazu(e.translation_key, id);
       if (/_1wire_[^.]+$/.test(id)) dazu("1-wire", id);
       if (/^s0_/.test(e.translation_key || "")) dazu("s0", id);

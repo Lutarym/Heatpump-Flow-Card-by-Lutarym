@@ -1,0 +1,43 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "batavia_heat",
+  "name": "Batavia Heat",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "batavia_heat",
+      "name": "Batavia Heat",
+      "geraete": [
+        {
+          "hersteller": ["Batavia Heat"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "RSloot2000",
+        "adresse": "https://github.com/RSloot2000/BataviaHeat-Heat-Pump",
+        "version": "0.6.0",
+        "aktualisiert": "2026-11-25",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "batavia_heat",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["pump_flow_rate"],
+        "TOP5": ["plate_hx_water_inlet_temperature"],
+        "TOP6": ["total_water_outlet_temperature", "water_outlet_temperature"],
+        "TOP8": ["compressor_speed", "compressor_running"],
+        "TOP9": ["number:hot_water_setpoint"],
+        "TOP10": ["hot_water_tank_temperature"],
+        "TOP14": ["ambient_temperature"],
+        "TOP46": ["buffer_top_temperature"]
+      }
+    }
+  ]
+}

@@ -29,7 +29,7 @@
  *    06.11.2026). Ersparnis nur mit 95 %-Bereich; Mindestzahl und die
  *    Grenze "kaum" sind eigene Festlegungen.
  */
-import { escapeHtml, fmt, indexBis, zustandAn } from "../hilfsfunktionen.js";
+import { abtauReihe, escapeHtml, fmt, indexBis, zustandAn, zustandVon } from "../hilfsfunktionen.js";
 import { tf } from "../texte.js";
 import { energie, lueckenhaft, mittel, ventilAbschnitte, verdichterLaeufe, verdichterZustand } from "./auswertung.js";
 import { datenblattSchaetzung, TOLERANZ } from "./datenblatt.js";
@@ -688,28 +688,28 @@ export const warmwasserKarte = {
     this._wwDaten = null;
     this._wwFehlt = [];
     const q = this._hass;
-    const pflicht = { dhw_temp: "TOP10", three_way_valve: "TOP20", compressor: "TOP8" };
+    const pflicht = { TOP10: "TOP10", TOP20: "TOP20", TOP8: "TOP8" };
     this._wwFehlt = Object.entries(pflicht).filter(([f]) => !this._e(f)).map(([, t]) => t);
     if (this._wwFehlt.length || !q || typeof q.callWS !== "function") return;
     const quellen = (typeof this._jazQuellen === "function" && this._jazQuellen()) || {};
     const ww = quellen.ww || null;
     const felder = {
-      temp: this._e("dhw_temp"),
-      ventil: this._e("three_way_valve"),
-      vd: this._e("compressor"),
-      aussen: this._e("outside_temp"),
-      vorlauf: this._e("flow_temp"),
-      abtau: this._e("defrost"),
-      stabI: this._e("heater_internal"),
-      stabE: this._e("heater_external"),
-      steril: this._e("sterilization_state"),
-      sg1: this._e("sg_k1"),
-      sg2: this._e("sg_k2"),
-      cop: this._e("cop_dhw"),
-      pv: this._e("pv_power"),
+      temp: this._e("TOP10"),
+      ventil: this._e("TOP20"),
+      vd: this._e("TOP8"),
+      aussen: this._e("TOP14"),
+      vorlauf: this._e("TOP6"),
+      abtau: this._e("TOP26"),
+      stabI: this._e("TOP60"),
+      stabE: this._e("TOP61"),
+      steril: this._e("TOP69"),
+      sg1: this._e("EXT100"),
+      sg2: this._e("EXT101"),
+      cop: this._e("EXT601"),
+      pv: this._e("EXT3"),
       sonne: q.states && q.states["sun.sun"] ? "sun.sun" : null,
-      plan: this._e("dhw_last_charge"),
-      schalter: this._e("dhw_warmest"),
+      plan: this._e("EXT404"),
+      schalter: this._e("EXT402"),
       w: ww ? ww.w : null,
       e: ww ? ww.e : null,
     };
@@ -728,13 +728,15 @@ export const warmwasserKarte = {
       });
       const reihe = (id) =>
         ((antwort && id && antwort[id]) || [])
-          .map((p) => ({ t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed), s: p.s !== undefined ? p.s : p.state }))
+          .map((p) => ({ t: p.lu ? p.lu * 1000 : Date.parse(p.last_changed), s: zustandVon(id, p.s !== undefined ? p.s : p.state) }))
           .filter((p) => !Number.isNaN(p.t))
           .map((p) => ({ ...p, v: parseFloat(p.s) }));
       const d = { t1: jetzt, xtop: Boolean(ww && /xtop/i.test(ww.w || "")) };
       Object.entries(felder).forEach(([k, id]) => {
         d[k] = reihe(id);
       });
+      // Abtauung als Text wird zu 1 und 0, eigene Texte setzt das Profil um.
+      d.abtau = abtauReihe(d.abtau);
       // Der Verlauf reicht so weit zurueck, wie der Recorder speichert.
       d.t0 = d.temp.length ? Math.max(t0, d.temp[0].t) : jetzt;
       // SG Ready nur mit beiden Kontakten erkennbar.
@@ -758,11 +760,11 @@ export const warmwasserKarte = {
   _wwWetter() {
     const q = this._hass;
     if (!q || !q.states) return null;
-    const eigen = this._e("weather");
+    const eigen = this._e("EXT500");
     if (eigen) return q.states[eigen] ? eigen : null;
     // Ohne Eintrag dieselbe wie HeishaMon by Lutarym (Warmwasser zur
     // waermsten Tageszeit), damit Karte und Integration gleich rechnen.
-    const plan = q.states[this._e("dhw_planned")];
+    const plan = q.states[this._e("EXT403")];
     const integ = plan && plan.attributes ? plan.attributes.wetter_entity : null;
     if (integ && q.states[integ]) return integ;
     return Object.keys(q.states).filter((id) => id.startsWith("weather.")).sort()
@@ -778,16 +780,16 @@ export const warmwasserKarte = {
    */
   _wwPlan() {
     const q = this._quelle;
-    const st = q && q.states ? q.states[this._e("dhw_planned")] : null;
+    const st = q && q.states ? q.states[this._e("EXT403")] : null;
     if (!st) return null;
     const a = st.attributes || {};
-    const schalter = q.states[this._e("dhw_warmest")];
+    const schalter = q.states[this._e("EXT402")];
     const zeit = (v) => {
       const t = typeof v === "string" ? Date.parse(v) : NaN;
       return Number.isFinite(t) ? t : null;
     };
     const zahl = (v) => (v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v));
-    const letzte = q.states[this._e("dhw_last_charge")];
+    const letzte = q.states[this._e("EXT404")];
     const wetter = a.wetter_entity ? q.states[a.wetter_entity] : null;
     // Unbekannter Schalter: dann zaehlt der Status der Integration.
     const zustand = schalter ? verdichterZustand(schalter.state) : null;
@@ -918,8 +920,8 @@ export const warmwasserKarte = {
         ? tf(t("ww_anzahl_sg"), { n: laden.length, s: laden.filter((l) => l.sg).length })
         : tf(t("ww_anzahl"), { n: laden.length }),
     ];
-    const soll = this._config.demo ? 58 : parseFloat((this._quelle.states[this._e("dhw_setpoint")] || {}).state);
-    const delta = this._config.demo ? -5 : parseFloat((this._quelle.states[this._e("dhw_heat_delta")] || {}).state);
+    const soll = this._config.demo ? 58 : parseFloat((this._quelle.states[this._e("TOP9")] || {}).state);
+    const delta = this._config.demo ? -5 : parseFloat((this._quelle.states[this._e("TOP22")] || {}).state);
     if (Number.isFinite(soll)) {
       sub.push(Number.isFinite(delta)
         ? tf(t("ww_soll_delta"), { s: fmt(soll, 0), d: fmt(Math.abs(delta), 0) })

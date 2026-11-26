@@ -1,0 +1,138 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "daikin",
+  "name": "Daikin",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "daikin_onecta",
+      "name": "Daikin Onecta",
+      "geraete": [
+        {
+          "hersteller": ["Daikin"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "jwillemsen",
+        "adresse": "https://github.com/jwillemsen/daikin_onecta",
+        "version": "5.0.4",
+        "aktualisiert": "2026-11-24",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "daikin_onecta",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP6": ["leavingwatertemperature"],
+        "TOP10": ["tanktemperature"],
+        "TOP14": ["outdoortemperature"],
+        "TOP44": ["isinerrorstate"]
+      }
+    },
+    {
+      "id": "ha_daikin_altherma4_modbus",
+      "name": "Altherma 4 Modbus",
+      "geraete": [
+        {
+          "hersteller": ["Daikin"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "joklee",
+        "adresse": "https://github.com/joklee/ha_daikin_altherma4_modbus",
+        "version": "0.7.4",
+        "aktualisiert": "2026-11-12",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "ha_daikin_altherma4_modbus",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["input_49"],
+        "TOP5": ["input_42"],
+        "TOP6": ["input_40"],
+        "TOP8": ["input_31"],
+        "TOP10": ["input_43"],
+        "TOP14": ["input_44"],
+        "TOP20": ["input_37"],
+        "TOP26": ["input_35"],
+        "TOP115": ["input_79"],
+        "EXT1": ["input_51"]
+      }
+    },
+    {
+      "id": "daikin_ha_ekrhh_modbus",
+      "name": "Altherma EKRHH Modbus",
+      "geraete": [
+        {
+          "hersteller": ["Daikin"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "gerione",
+        "adresse": "https://github.com/gerione/daikin-ha-ekrhh-modbus",
+        "version": "1.1.0",
+        "aktualisiert": "2026-11-17",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "daikin_ha_ekrhh_modbus",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP1": ["flow_rate"],
+        "TOP5": ["return_water_temperature"],
+        "TOP6": ["leaving_water_temperature_phe", "leaving_water_temperature_pre_phe"],
+        "TOP8": ["compressor_run", "compressor_running"],
+        "TOP10": ["domestic_hot_water_temperature"],
+        "TOP14": ["outside_air_temperature"],
+        "TOP20": ["3_way_valve"],
+        "TOP26": ["defrost_startup", "defrost"],
+        "EXT1": ["heat_pump_power_consumption"]
+      }
+    },
+    {
+      "id": "daikin_altherma",
+      "name": "Daikin Altherma",
+      "geraete": [
+        {
+          "hersteller": ["Daikin"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "tadasdanielius",
+        "adresse": "https://github.com/tadasdanielius/daikin_altherma",
+        "version": "1.6.0-alpha.1",
+        "aktualisiert": "2026-11-23",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "daikin_altherma",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP6": ["leaving_water_temperature"],
+        "TOP14": ["outdoor_temperature"]
+      }
+    }
+  ]
+}

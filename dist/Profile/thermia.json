@@ -1,0 +1,41 @@
+{
+  "format": "lutarym-geraeteprofil",
+  "version": 2,
+  "id": "thermia",
+  "name": "Thermia",
+  "karte_ab": "6.0.0",
+  "varianten": [
+    {
+      "id": "thermia",
+      "name": "Thermia Heat Pump",
+      "geraete": [
+        {
+          "hersteller": ["Thermia"],
+          "modelle": []
+        }
+      ],
+      "quelle": {
+        "entwickler": "klejejs",
+        "adresse": "https://github.com/klejejs/ha-thermia-heat-pump-integration",
+        "version": "1.0",
+        "aktualisiert": "2025-12-04",
+        "abgelesen": "2026-11-26"
+      },
+      "suche": {
+        "art": "integration",
+        "integration": "thermia",
+        "namensteil": ""
+      },
+      "heishamon": false,
+      "getestet": false,
+      "werte": {
+        "TOP5": ["return_line_temperature"],
+        "TOP6": ["supply_line_temperature"],
+        "TOP10": ["hot_water_temperature"],
+        "TOP11": ["compressor_operational_time"],
+        "TOP14": ["outdoor_temperature"],
+        "TOP46": ["buffer_tank_temperature"]
+      }
+    }
+  ]
+}

@@ -14,7 +14,7 @@ Panasonic Aquarea ヒートポンプを HeishaMon 経由で接続し、動くシ
 - 回路1と回路2の暖房曲線を専用ウィンドウに表示。目盛り、運転点、調整可能な基準点つき
 - ヒートポンプの扉：右下のボタンで前面が扉のように左へ開き、その奥に詳細設定（休暇、週間スケジュール、スマート給湯、暖房の外気温限界、温度差、レジオネラ対策、ポンプ、静音モード、暖房と給湯の今日の COP（0時からの熱量÷電力量）、暖房・給湯・合計の 1 月 1 日からの年間性能係数（JAZ、熱量と電力 kWh 付き、HeishaMon の値から算出）、運転時間と起動回数）があります。「適用」で変更を送信し、扉が閉じます
 - ヘルプ画面（右下の「?」）：HeishaMon が読み書きできるすべての値と命令を分かりやすく説明。検索とグループ付き。各 TOP 値に対応するエンティティ ID 全体を表示し、クリックでコピー可能
-- 24 メーカー・35 統合のメーカープロファイル（Viessmann、NIBE、Daikin、Luxtronik、Stiebel Eltron、Vaillant など）を自動検出。複数見つかった場合はエディターがどれを使うか尋ねます。HeishaMon by Lutarym 以外は未検証です。デバイスプロファイルの書き出し・調整・読み込みも可能です。[デバイスプロファイルの説明](docs/GERAETEPROFIL.ja.md) を参照
+- 24 メーカー・35 統合のデバイスプロファイル（Viessmann、NIBE、Daikin、Luxtronik、Stiebel Eltron、Vaillant など）をフォルダー `dist/Profile` のファイルとして同梱。メーカーごとに 1 ファイルで、統合ごとにバリエーションがあります。カードが合うバリエーションを自動で検出し、複数見つかった場合はエディターがどれを使うか尋ね、合うものがない場合は特定のプロファイルを読み込むか尋ねます。HeishaMon by Lutarym と HeishaMon (MQTT) 以外は未検証です。プロファイルの書き出し・調整・読み込みと GitHub での検索が可能です。[デバイスプロファイルの説明](docs/GERAETEPROFIL.ja.md) と [名前リスト](docs/NAMENSLISTE.ja.md) を参照
 - 言語パック：言語をファイルに書き出し、自分で翻訳・調整して再び読み込めます。[言語パックの説明](docs/SPRACHPAKET.ja.md) を参照
 - 過去24時間の使用量グラフ。暖房、給湯、待機で色分けし、その下に SG Ready の履歴
 - 暖房バッファーのないシステムに対応。TOP99 で自動検出、または手動設定
@@ -41,14 +41,14 @@ Panasonic Aquarea ヒートポンプを HeishaMon 経由で接続し、動くシ
 
 ### 手動
 
-1. 最新リリースの `dist` フォルダから `heatpump-flow-card-by-lutarym.js` と `heatpump-flow-card-by-lutarym-hilfe.js` をダウンロード
-2. 両方を `<config>/www/community/heatpump-flow-card-by-lutarym/` にコピー。2 つ目のファイルはヘルプを含み、必要なときだけ読み込まれます。リソースとして登録するのは 1 つ目だけです。
+1. 最新リリースの `dist` フォルダから `heatpump-flow-card-by-lutarym.js`、`heatpump-flow-card-by-lutarym-hilfe.js` とフォルダー `Profile` をダウンロード
+2. すべてを `<config>/www/community/heatpump-flow-card-by-lutarym/` にコピーし、フォルダー `Profile` はサブフォルダーにします。2 つ目のファイルはヘルプを含み、必要なときだけ読み込まれます。フォルダー `Profile` にはデバイスプロファイルが入っています。リソースとして登録するのは 1 つ目のファイルだけです。
 3. 設定、ダッシュボード、三点メニュー、リソース、リソースを追加
 4. URL `/local/community/heatpump-flow-card-by-lutarym/heatpump-flow-card-by-lutarym.js`、種類 **JavaScript モジュール**
 
 ## 設定
 
-ビジュアルエディターを使うのが最も簡単です。カードを追加し、**統合から取り込む** を押してください。カードが HeishaMon by Lutarym のエンティティを自動で検出します。見つからないエンティティは手動で割り当てられます。
+ビジュアルエディターを使うのが最も簡単です。カードを追加し、**統合から取り込む** を押してください。カードはデバイスプロファイルを使ってエンティティを自動で検出します（例：HeishaMon by Lutarym）。合うプロファイルがない場合、エディターが特定のプロファイルを読み込むか尋ねます。見つからないエンティティは手動で割り当てられます。
 
 ### YAML の例
 
@@ -58,18 +58,20 @@ layout: quer
 hk_count: 2
 language: auto
 entities:
-  outside_temp: sensor.heishamon_top14
-  flow_temp: sensor.heishamon_top6
-  return_temp: sensor.heishamon_top5
-  compressor: sensor.heishamon_top8
-  three_way_valve: sensor.heishamon_top20
-  buffer_temp: sensor.heishamon_top46
-  dhw_temp: sensor.heishamon_top10
-  hk1_water: sensor.heishamon_top36
-  hk1_water_target: sensor.heishamon_top42
+  TOP14: sensor.heishamon_top14
+  TOP6: sensor.heishamon_top6
+  TOP5: sensor.heishamon_top5
+  TOP8: sensor.heishamon_top8
+  TOP20: sensor.heishamon_top20
+  TOP46: sensor.heishamon_top46
+  TOP10: sensor.heishamon_top10
+  TOP36: sensor.heishamon_top36
+  TOP42: sensor.heishamon_top42
 ```
 
 エンティティ ID はカードの標準名です。実際の名前は異なる場合がありますが、エディターが自動で割り当てます。
+
+6.0.0 以降、キーは [名前リスト](docs/NAMENSLISTE.ja.md) の名前です。`outside_temp` のような以前の項目名も引き続き使え、カードが自動で変換します。
 
 ### オプション
 
@@ -79,7 +81,7 @@ entities:
 | `hk_count` | `2` | 暖房回路の数、1 から 4。回路 3 と 4 は独自エンティティが必要（Aquarea が制御するのは 2 ゾーンのみ） |
 | `fan_count` | `2` | ファンの数、1 または 2 |
 | `language` | `auto` | `auto`、`de`、`en`、`fr`、`ja` |
-| `profil` | `auto` | `auto` は統合を自動検出します。または `heishamon_lutarym`、`heishamon`（MQTT 命名規則）、`vicare`、`luxtronik2` などのプロファイル ID。一覧は[説明](docs/GERAETEPROFIL.ja.md)を参照 |
+| `profil` | `auto` | `auto` は合うバリエーションを自動検出します。`keins` はプロファイルなし（記入したエンティティのみ）。または `heishamon_lutarym`、`heishamon`（MQTT 経由の HeishaMon）、`vicare`、`luxtronik2` などのバリエーション ID。一覧は[説明](docs/GERAETEPROFIL.ja.md)を参照 |
 | `buffer_present` | `auto` | 暖房バッファー：`auto` は TOP99 に従う、`true` または `false` |
 | `cop_reference` | 空 | COP 比較用データシート：`panasonic_tcap_m_12`（Panasonic Aquarea T-CAP M 12 kW、WH-WXG12ME5/ME8）。指定したときだけ COP タブで運転ごとに色分けします：データシートの92 %以上は緑（許容差 −8 %、HP KEYMARK）、未満は黄、試験点の範囲外は推定のみ（推定と表示）で淡色表示。空：COP は評価なし |
 | `dhw_usable_temp` | 空 | 給湯が使えなくなるとみなすタンク温度（°C）。「給湯を観察」ウィンドウ（ヒートポンプのウィンドウのボタン）の保持時間に使います。空：値なし |
@@ -88,8 +90,8 @@ entities:
 | `hp_capacity_kw` | 空 | データシートのヒートポンプ暖房能力（kW）。設計外気温度とお使いの送水温度での値、ない場合は −7 °C の値。一定とみなします |
 | `hp_capacity_ref` | 空 | `hp_capacity_kw` の条件：空＝設計外気温度、`a7`＝−7 °C（メーカー値）。分析項目「暖房能力の設計」で BWP ガイドラインの能力比（暖房能力 ÷ 設計暖房負荷）を使います：50 % 未満（−7 °C の値では 70 % 未満）なら不足 kW 付きで「小さすぎ」、それ以上は注意なしで「良好」 |
 | `heater_share_max` | 空 | 目標値：年間暖房熱量のうち補助ヒーターが供給する上限（%）。分析項目「暖房能力の設計」で不足 kW を示します。空欄：評価なしで割合のみ |
-| `hk1_room_target` | 空 | 回路1の希望室温（°C）。分析（タブ「暖房カーブ」）で室内センサー `hk1_room_temp` と比較します：±0.5 K 以内は良好（独自の設定：入力の刻み幅）、それ以外は EnergieSchweiz の手順付きで軽いずれ |
-| `hk2_room_target` | 空 | `hk1_room_target` と同様、回路2と `hk2_room_temp` 用 |
+| `hk1_room_target` | 空 | 回路1の希望室温（°C）。分析（タブ「暖房カーブ」）で室内センサー `EXT201` と比較します：±0.5 K 以内は良好（独自の設定：入力の刻み幅）、それ以外は EnergieSchweiz の手順付きで軽いずれ |
+| `hk2_room_target` | 空 | `hk1_room_target` と同様、回路2と `EXT203` 用 |
 | `circulation_present` | `auto` | 循環：`auto` はエンティティ割り当て時に表示、`true` または `false` |
 | `show_history` | `knopf` | グラフ：`knopf` 右上の6つのボタンで使用量・SG Ready・温度・COP・運転サイクル・分析をウィンドウ表示し、ウィンドウには霜取りタブもあります（期間は24時間から1年まで選択可）、`true` 使用量を常にカードに表示、`false` オフ |
 | `show_target` | `true` | バッファーと給湯に「目標 …」の行を表示 |
@@ -97,7 +99,7 @@ entities:
 | `show_help` | `true` | カード右下にヘルプの「?」ボタンを表示。ヘルプは HeishaMon の説明のため、HeishaMon のプロファイルとデモモードでのみ表示 |
 | `show_door` | `true` | ヒートポンプ右下に詳細設定のボタンを表示 |
 | `theme` | `auto` | 配色：`auto`（Home Assistant のライト／ダークに従う）、`dunkel`（ダーク）、`hell`（ライト）、`kontrast`（ハイコントラスト）、`nacht`（夜間・減光）、`ha`（Home Assistant テーマの色） |
-| `profile_custom` | `[]` | 読み込んだデバイスプロファイル（エディターが設定、[説明](docs/GERAETEPROFIL.ja.md) 参照） |
+| `profile_custom` | `[]` | 読み込んだデバイスプロファイルと GitHub から読み込んだデバイスプロファイル（エディターが設定、[説明](docs/GERAETEPROFIL.ja.md) 参照） |
 | `language_custom` | `[]` | 読み込んだ言語パック（エディターが設定、[説明](docs/SPRACHPAKET.ja.md) 参照） |
 | `history_width` | `450` | 使用量グラフの幅、250〜700 |
 | `history_style` | `takte` | 使用量グラフの表示：`takte`（リングとサイクル帯）、`balken`（1時間ごとの棒グラフ）、`leuchten`（光る線とサイクル表示）、`linie`（従来の線） |
@@ -129,113 +131,113 @@ entities:
 | キー | 内容 | 備考 |
 |---|---|---|
 | **外気センサー** | | |
-| `outside_temp` | 外気温 | TOP14 |
+| `TOP14` | 外気温 | |
 | **室外機** | | |
-| `power_state` | ヒートポンプ状態、緑LED | SetHeatpump または TOP0 |
-| `compressor` | 圧縮機周波数 | TOP8 |
-| `fan1_rpm` | ファン1回転数 | TOP62 |
-| `fan2_rpm` | ファン2回転数 | TOP63 |
-| `defrost` | 除霜中 | TOP26 |
-| `error` | エラーコード | TOP44 |
-| `heatpump_state` | 運転状態 | TOP0 |
-| `force_defrost` | 強制除霜 | SetForceDefrost, switch |
-| `powerful_mode` | パワフル運転 | SetPowerfulMode, select |
-| `quiet_mode` | 静音運転 | SetQuietMode, select |
-| `power_now` | 現在の消費電力 | Shelly PM, Watt |
-| `energy_today` | 電力量計 | Shelly PM, kWh |
+| `SET1` | ヒートポンプ状態、緑LED | SetHeatpump または TOP0 |
+| `TOP8` | 圧縮機周波数 | |
+| `TOP62` | ファン1回転数 | |
+| `TOP63` | ファン2回転数 | |
+| `TOP26` | 除霜中 | |
+| `TOP44` | エラーコード | |
+| `TOP0` | 運転状態 | |
+| `SET12` | 強制除霜 | SetForceDefrost, switch |
+| `SET4` | パワフル運転 | SetPowerfulMode, select |
+| `SET3` | 静音運転 | SetQuietMode, select |
+| `EXT1` | 現在の消費電力 | Shelly PM, Watt |
+| `EXT2` | 電力量計 | Shelly PM, kWh |
 | **SG Ready** | | |
-| `pv_power` | 現在の太陽光出力 | 独自エンティティ、ワット |
-| `grid_power` | 系統受電 | 独自エンティティ、ワット、正 = 受電。HeishaMon by Lutarym（オプション「系統受電センサー」）が値を出さない場合、`power_now` と合わせてカードが「今日の系統電力」を計算 |
-| `sg_k1` | 接点K1 停止 | Shelly、リレーまたは入力 |
-| `sg_k2` | 接点K2 起動 | Shelly、リレーまたは入力 |
+| `EXT3` | 現在の太陽光出力 | 独自エンティティ、ワット |
+| `EXT4` | 系統受電 | 独自エンティティ、ワット、正 = 受電。HeishaMon by Lutarym（オプション「系統受電センサー」）が値を出さない場合、`EXT1` と合わせてカードが「今日の系統電力」を計算 |
+| `EXT100` | 接点K1 停止 | Shelly、リレーまたは入力 |
+| `EXT101` | 接点K2 起動 | Shelly、リレーまたは入力 |
 | **一次回路** | | |
-| `flow_temp` | 往き温度 | TOP6 |
-| `return_temp` | 還り温度 | TOP5 |
-| `pump_speed` | 一次ポンプ回転数 | TOP65 |
-| `pump_flow` | 流量 | TOP1 |
-| `three_way_valve` | 三方弁 | TOP20 |
-| `water_pressure` | 水圧 | TOP115 |
-| `heater_internal` | 内部ヒーター運転中 | TOP60 |
-| `heater_external` | 外部ヒーター運転中 | TOP61 |
+| `TOP6` | 往き温度 | |
+| `TOP5` | 還り温度 | |
+| `TOP65` | 一次ポンプ回転数 | |
+| `TOP1` | 流量 | |
+| `TOP20` | 三方弁 | |
+| `TOP115` | 水圧 | |
+| `TOP60` | 内部ヒーター運転中 | |
+| `TOP61` | 外部ヒーター運転中 | |
 | **暖房バッファー** | | |
-| `buffer_temp` | バッファー温度 | TOP46 |
-| `buffer_installed` | バッファーあり | TOP99 |
-| `buffer_switch` | バッファー運転の入切 | SetBuffer, switch |
+| `TOP46` | バッファー温度 | |
+| `TOP99` | バッファーあり | |
+| `SET28` | バッファー運転の入切 | SetBuffer, switch |
 | **暖房曲線** | | |
-| `curve_t_high` | 回路1 暖房曲線 往き 高 | TOP29 |
-| `curve_t_low` | 回路1 暖房曲線 往き 低 | TOP30 |
-| `curve_o_high` | 回路1 暖房曲線 外気 高 | TOP31 |
-| `curve_o_low` | 回路1 暖房曲線 外気 低 | TOP32 |
-| `curve2_t_high` | 回路2 暖房曲線 往き 高 | TOP82 |
-| `curve2_t_low` | 回路2 暖房曲線 往き 低 | TOP83 |
-| `curve2_o_high` | 回路2 暖房曲線 外気 高 | TOP84 |
-| `curve2_o_low` | 回路2 暖房曲線 外気 低 | TOP85 |
+| `TOP29` | 回路1 暖房曲線 往き 高 | |
+| `TOP30` | 回路1 暖房曲線 往き 低 | |
+| `TOP31` | 回路1 暖房曲線 外気 高 | |
+| `TOP32` | 回路1 暖房曲線 外気 低 | |
+| `TOP82` | 回路2 暖房曲線 往き 高 | |
+| `TOP83` | 回路2 暖房曲線 往き 低 | |
+| `TOP84` | 回路2 暖房曲線 外気 高 | |
+| `TOP85` | 回路2 暖房曲線 外気 低 | |
 | **暖房バッファー** | | |
-| `buffer_delta` | バッファー上乗せ温度（ΔT） | TOP113、バッファー目標 = 回路目標 + ΔT |
-| `buffer_target` | ヒートポンプ往き目標温度 | TOP7 |
-| `cop_heating` | COP 暖房 | HeishaMon by Lutarym、ヒートポンプの電力値がない場合のみ使用（ある場合は TOP15/TOP16 から熱量÷電力量）。ソースは統合の COP ソースで選択 |
-| `room_heater` | 暖房ヒーター許可 | TOP59 |
-| `room_heater_switch` | 暖房ヒーター許可の切替 | SetRoomHeaterState, switch |
+| `TOP113` | バッファー上乗せ温度（ΔT） | TOP113、バッファー目標 = 回路目標 + ΔT |
+| `TOP7` | ヒートポンプ往き目標温度 | |
+| `EXT600` | COP 暖房 | HeishaMon by Lutarym、ヒートポンプの電力値がない場合のみ使用（ある場合は TOP15/TOP16 から熱量÷電力量）。ソースは統合の COP ソースで選択 |
+| `TOP59` | 暖房ヒーター許可 | |
+| `SET45` | 暖房ヒーター許可の切替 | SetRoomHeaterState, switch |
 | **回路1** | | |
-| `zones_state` | 有効なゾーン | TOP94, 両方に適用 |
-| `zones_select` | ゾーン切替 | SetZones, 両方に適用 |
-| `hk1_water` | 回路1 水温 | TOP36 |
-| `hk1_water_target` | 回路1 目標水温 | TOP42 |
-| `hk1_pump` | 回路1 ポンプ運転中 | TOP124 |
-| `hk1_setpoint` | 回路1 設定温度 | TOP27, number |
-| `hk1_switch` | 回路1 入切 | 独自スイッチ、任意 |
-| `hk1_room_temp` | 回路1 室温 | 室内センサー、任意 |
+| `TOP94` | 有効なゾーン | 両方に適用 |
+| `SET17` | ゾーン切替 | SetZones, 両方に適用 |
+| `TOP36` | 回路1 水温 | |
+| `TOP42` | 回路1 目標水温 | |
+| `TOP124` | 回路1 ポンプ運転中 | |
+| `TOP27` | 回路1 設定温度 | number |
+| `EXT200` | 回路1 入切 | 独自スイッチ、任意 |
+| `EXT201` | 回路1 室温 | 室内センサー、任意 |
 | **回路2** | | |
-| `hk2_water` | 回路2 水温 | TOP37 |
-| `hk2_water_target` | 回路2 目標水温 | TOP43 |
-| `hk2_pump` | 回路2 ポンプ運転中 | TOP123 |
-| `hk2_setpoint` | 回路2 設定温度 | TOP34, number |
-| `hk2_switch` | 回路2 入切 | 独自スイッチ、任意 |
-| `hk2_room_temp` | 回路2 室温 | 室内センサー、任意 |
-| `hk3_water, hk4_water` | 回路3、4 水温 | 独自エンティティ、°C |
-| `hk3_pump, hk4_pump` | 回路3、4 ポンプ運転中 | 独自のスイッチまたはセンサー |
-| `hk3_switch, hk4_switch` | 回路3、4 入切 | 独自スイッチ、任意 |
-| `kamin_temp` | 薪ストーブ温度 | 独自エンティティ、°C。薪ストーブのみ：TOP47 |
-| `kamin_pump` | 薪ストーブ ポンプ運転中 | 独自のスイッチまたはセンサー。薪ストーブのみ：OPT5 |
-| `solar_temp` | 太陽熱温度 | TOP47 |
-| `solar_pump` | 太陽熱ポンプ運転中 | OPT5 |
+| `TOP37` | 回路2 水温 | |
+| `TOP43` | 回路2 目標水温 | |
+| `TOP123` | 回路2 ポンプ運転中 | |
+| `TOP34` | 回路2 設定温度 | number |
+| `EXT202` | 回路2 入切 | 独自スイッチ、任意 |
+| `EXT203` | 回路2 室温 | 室内センサー、任意 |
+| `EXT204, EXT207` | 回路3、4 水温 | 独自エンティティ、°C |
+| `EXT205, EXT208` | 回路3、4 ポンプ運転中 | 独自のスイッチまたはセンサー |
+| `EXT206, EXT209` | 回路3、4 入切 | 独自スイッチ、任意 |
+| `EXT300` | 薪ストーブ温度 | 独自エンティティ、°C。薪ストーブのみ：TOP47 |
+| `EXT301` | 薪ストーブ ポンプ運転中 | 独自のスイッチまたはセンサー。薪ストーブのみ：OPT5 |
+| `TOP47` | 太陽熱温度 | |
+| `OPT5` | 太陽熱ポンプ運転中 | |
 | **給湯** | | |
-| `dhw_installed` | 給湯あり | TOP100 |
-| `dhw_temp` | 給湯温度 | TOP10 |
-| `dhw_heat_delta` | 給湯のヒステリシス | TOP22 |
-| `dhw_setpoint` | 給湯設定温度 | TOP9, number |
-| `cop_dhw` | COP 給湯 | HeishaMon by Lutarym、ヒートポンプの電力値がない場合のみ使用（ある場合は TOP40/TOP41 から熱量÷電力量）。ソースは統合の COP ソースで選択 |
-| `dhw_heater` | 給湯ヒーター許可 | TOP58 |
-| `dhw_force` | 一回だけ加熱 | SetForceDHW, switch |
-| `dhw_force_state` | 加熱中 | TOP2 |
-| `force_sterilization` | レジオネラ運転を開始 | SetForceSterilization, switch |
-| `sterilization_state` | レジオネラ運転中 | TOP69 |
-| `dhw_heater_switch` | 給湯ヒーター許可の切替 | SetDHWHeaterState, switch |
-| `circulation_pump` | 循環ポンプ運転中 | Shellyまたは独自スイッチ |
-| `circ_switch` | 循環スイッチ（クリック可） | 循環の入切スイッチ |
-| `weather` | 天気予報 | weather、1時間ごとの予報。空欄：HeishaMon by Lutarym と同じ、なければ自動。「給湯を観察」ウィンドウの最適な沸き上げ時刻に使用 |
-| `dhw_warmest` | 最も暖かい時間帯に給湯 | HeishaMon by Lutarym 1.4.0 以降、switch。ヒートポンプのウィンドウのボタン。「給湯を観察」ウィンドウの「最適化」タブで予定ありの日と予定なしの日を分けます |
-| `dhw_planned` | 給湯の予定時刻 | HeishaMon by Lutarym 1.4.0 以降、sensor。ヒートポンプのウィンドウと、「昼か夜か」タブの「予定の給湯」に表示 |
-| `dhw_last_charge` | 前回の給湯運転 | HeishaMon by Lutarym 1.4.0 以降、sensor。ヒートポンプのウィンドウに表示。統合が開始した沸き上げに印を付けます |
+| `TOP100` | 給湯あり | |
+| `TOP10` | 給湯温度 | |
+| `TOP22` | 給湯のヒステリシス | |
+| `TOP9` | 給湯設定温度 | number |
+| `EXT601` | COP 給湯 | HeishaMon by Lutarym、ヒートポンプの電力値がない場合のみ使用（ある場合は TOP40/TOP41 から熱量÷電力量）。ソースは統合の COP ソースで選択 |
+| `TOP58` | 給湯ヒーター許可 | |
+| `SET10` | 一回だけ加熱 | SetForceDHW, switch |
+| `TOP2` | 加熱中 | |
+| `SET13` | レジオネラ運転を開始 | SetForceSterilization, switch |
+| `TOP69` | レジオネラ運転中 | |
+| `SET44` | 給湯ヒーター許可の切替 | SetDHWHeaterState, switch |
+| `EXT400` | 循環ポンプ運転中 | Shellyまたは独自スイッチ |
+| `EXT401` | 循環スイッチ（クリック可） | 循環の入切スイッチ |
+| `EXT500` | 天気予報 | weather、1時間ごとの予報。空欄：HeishaMon by Lutarym と同じ、なければ自動。「給湯を観察」ウィンドウの最適な沸き上げ時刻に使用 |
+| `EXT402` | 最も暖かい時間帯に給湯 | HeishaMon by Lutarym 1.4.0 以降、switch。ヒートポンプのウィンドウのボタン。「給湯を観察」ウィンドウの「最適化」タブで予定ありの日と予定なしの日を分けます |
+| `EXT403` | 給湯の予定時刻 | HeishaMon by Lutarym 1.4.0 以降、sensor。ヒートポンプのウィンドウと、「昼か夜か」タブの「予定の給湯」に表示 |
+| `EXT404` | 前回の給湯運転 | HeishaMon by Lutarym 1.4.0 以降、sensor。ヒートポンプのウィンドウに表示。統合が開始した沸き上げに印を付けます |
 | **制御** | | |
-| `mode_select` | 運転モード切替 | SetOperationMode, select |
+| `SET9` | 運転モード切替 | SetOperationMode, select |
 | **詳細設定** | | |
-| `heating_off_temp` | 暖房停止 外気温 | TOP77, number |
-| `heater_on_temp` | ヒーター開始 外気温 | TOP78, number |
-| `heat_delta` | 暖房温度差 (ΔT) | TOP23, number |
-| `heating_control` | 暖房制御 | SetHeatingControl, select |
-| `steril_temp` | レジオネラ対策温度 | TOP70, number |
-| `steril_time` | レジオネラ対策保持時間 | TOP71, number |
-| `pump_flow_mode` | ポンプ制御 | SetPumpFlowrateMode, select |
-| `pump_max_duty` | ポンプ最大出力 | TOP95, number |
-| `quiet_priority` | 静音モード優先 | SetQuietModePriority, select |
-| `holiday_mode` | 休暇モード | SetHolidayMode, switch |
-| `main_schedule` | 週間スケジュール | SetMainSchedule, switch |
-| `smart_dhw` | スマート給湯 | SetSmartDHW, select |
-| `operating_hours` | 運転時間 | TOP11 |
-| `compressor_starts` | 圧縮機起動回数 | TOP12 |
-| `room_heater_hours` | 暖房ヒーター運転時間 | TOP90 |
-| `dhw_heater_hours` | 給湯ヒーター運転時間 | TOP91 |
+| `TOP77` | 暖房停止 外気温 | number |
+| `TOP78` | ヒーター開始 外気温 | number |
+| `TOP23` | 暖房温度差 (ΔT) | number |
+| `SET39` | 暖房制御 | SetHeatingControl, select |
+| `TOP70` | レジオネラ対策温度 | number |
+| `TOP71` | レジオネラ対策保持時間 | number |
+| `SET42` | ポンプ制御 | SetPumpFlowrateMode, select |
+| `TOP95` | ポンプ最大出力 | number |
+| `SET41` | 静音モード優先 | SetQuietModePriority, select |
+| `SET2` | 休暇モード | SetHolidayMode, switch |
+| `SET24` | 週間スケジュール | SetMainSchedule, switch |
+| `SET40` | スマート給湯 | SetSmartDHW, select |
+| `TOP11` | 運転時間 | |
+| `TOP12` | 圧縮機起動回数 | |
+| `TOP90` | 暖房ヒーター運転時間 | |
+| `TOP91` | 給湯ヒーター運転時間 | |
 
 ## 言語
 

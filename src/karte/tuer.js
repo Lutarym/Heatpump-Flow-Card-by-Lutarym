@@ -3,7 +3,7 @@
  * Teil der Heatpump Flow Card by Lutarym. Gebaut wird mit "npm run build".
  */
 import { TUER_FELDER } from "../felder.js";
-import { clamp, escapeHtml, fmt, rawState, stellbar } from "../hilfsfunktionen.js";
+import { clamp, escapeHtml, fmt, inStunden, rawState, stellbar } from "../hilfsfunktionen.js";
 import { feldText, tf } from "../texte.js";
 
 export const tuerKarte = {
@@ -258,7 +258,7 @@ export const tuerKarte = {
         const kann = demo || bereich === "button" || bereich === "input_button";
         // Daneben der aktuelle Fehlercode aus TOP44, damit klar ist, was
         // quittiert wird.
-        const code = rawState(q, this._e("error"));
+        const code = rawState(q, this._e("TOP44"));
         html += `<div class="lhc-tuer-zeile" title="${lang}"><span>${titel}${
           code && code !== "unknown" && code !== "unavailable" ? ` <em>${escapeHtml(code)}</em>` : ""
         }</span>
@@ -364,7 +364,9 @@ export const tuerKarte = {
       return;
     }
     if (f.info) {
-      el.textContent = wert === null ? "--" : `${fmt(wert, 0)}${f.einheit ? ` ${f.einheit}` : ""}`;
+      // Stunden nach der Einheit der Entitaet, EMS-ESP meldet Minuten.
+      const w = f.einheit === "h" ? inStunden(wert, this._einheit(f.key, "", this._quelle, f.id)) : wert;
+      el.textContent = w === null ? "--" : `${fmt(w, 0)}${f.einheit ? ` ${f.einheit}` : ""}`;
       return;
     }
     if (f.auswahl || f.schalter) {
