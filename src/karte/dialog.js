@@ -8,6 +8,20 @@ import { MODE_LABELS, POWERFUL_LABELS, QUIET_LABELS } from "../konstanten.js";
 import { feldText, tf, wertText } from "../texte.js";
 import { HK } from "../namen.js";
 
+/**
+ * Optionen eines Auswahlfelds, das wie ein Schalter genau zwei Optionen
+ * hat, sonst null. Position 0 heisst aus, 1 heisst an. EMS-ESP legt
+ * Befehle wie "Abtauen erzwingen" so an (enum_modetype5: off, on); die
+ * Texte haengen von dessen Sprache ab oder sind die Zahlen 0 und 1.
+ */
+function zweiOptionen(hass, id) {
+  const bereich = String(id || "").split(".")[0];
+  if (bereich !== "select" && bereich !== "input_select") return null;
+  const st = hass && hass.states ? hass.states[id] : null;
+  const optionen = st && st.attributes && Array.isArray(st.attributes.options) ? st.attributes.options : [];
+  return optionen.length === 2 ? optionen.map(String) : null;
+}
+
 export const dialogKarte = {
   _buildDialog() {
     const sr = this.shadowRoot;
@@ -295,6 +309,8 @@ export const dialogKarte = {
       if (!id) return null;
       const roh = rawState(this._quelle, id);
       if (roh === null || roh === "unknown" || roh === "unavailable") return null;
+      const optionen = zweiOptionen(this._quelle, id);
+      if (optionen && optionen.includes(String(roh))) return optionen.indexOf(String(roh)) === 1;
       return isOn(this._quelle, id);
     };
     // Nur gelesene Werte, nichts wird angenommen.
@@ -490,6 +506,18 @@ export const dialogKarte = {
         el.addEventListener("click", () => {
           const id = this._e(a.feld);
           const an = this._zustand(a);
+          // Auswahlfeld mit zwei Optionen: ueber die Position schalten,
+          // nicht ueber feste Texte wie "on".
+          const bereich = String(id || "").split(".")[0];
+          if (bereich === "select" || bereich === "input_select") {
+            const optionen = zweiOptionen(this._quelle, id);
+            if (!optionen) return;
+            this._quelle.callService(bereich, "select_option", {
+              entity_id: id,
+              option: optionen[an === true ? 0 : 1],
+            });
+            return;
+          }
           this._quelle.callService("homeassistant", an === true ? "turn_off" : "turn_on", {
             entity_id: id,
           });

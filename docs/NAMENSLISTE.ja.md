@@ -117,7 +117,7 @@ HeishaMon の名前（TOP、XTOP、OPT、SET）は、リポジトリ heishamon/H
 | SET4 | パワフル運転 | SetPowerfulMode | TOP17 | `select`, `input_select` | `powerful_mode` |
 | SET9 | 運転モード切替 | SetOperationMode | TOP4 | `select`, `input_select` | `mode_select` |
 | SET10 | 一回だけ加熱 | SetForceDHW | TOP2 | `switch`, `input_boolean` | `dhw_force` |
-| SET12 | 強制除霜 | SetForceDefrost | なし（トリガーのみ）。状態：TOP26 | `switch`, `input_boolean` | `force_defrost` |
+| SET12 | 強制除霜 | SetForceDefrost | なし（トリガーのみ）。状態：TOP26 | `switch`, `input_boolean`, `select` | `force_defrost` |
 | SET13 | レジオネラ運転を開始 | SetForceSterilization | なし（トリガーのみ）。状態：TOP69 | `switch`, `input_boolean` | `force_sterilization` |
 | SET17 | ゾーン切替 | SetZones | TOP94 | `select`, `input_select` | `zones_select` |
 | SET24 | 週間スケジュール | SetMainSchedule | TOP13 | `switch`, `input_boolean` | `main_schedule` |

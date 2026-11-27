@@ -117,7 +117,7 @@ If the heat pump reports the extra block, TOP15, TOP16, TOP40 and TOP41 are inva
 | SET4 | Powerful mode | SetPowerfulMode | TOP17 | `select`, `input_select` | `powerful_mode` |
 | SET9 | Switch operating mode | SetOperationMode | TOP4 | `select`, `input_select` | `mode_select` |
 | SET10 | Boost once | SetForceDHW | TOP2 | `switch`, `input_boolean` | `dhw_force` |
-| SET12 | Force defrost | SetForceDefrost | none, trigger only. State: TOP26 | `switch`, `input_boolean` | `force_defrost` |
+| SET12 | Force defrost | SetForceDefrost | none, trigger only. State: TOP26 | `switch`, `input_boolean`, `select` | `force_defrost` |
 | SET13 | Start legionella cycle | SetForceSterilization | none, trigger only. State: TOP69 | `switch`, `input_boolean` | `force_sterilization` |
 | SET17 | Switch zones | SetZones | TOP94 | `select`, `input_select` | `zones_select` |
 | SET24 | Weekly schedule | SetMainSchedule | TOP13 | `switch`, `input_boolean` | `main_schedule` |

@@ -117,7 +117,7 @@ Si la pompe à chaleur fournit le bloc supplémentaire, TOP15, TOP16, TOP40 et T
 | SET4 | Mode puissance | SetPowerfulMode | TOP17 | `select`, `input_select` | `powerful_mode` |
 | SET9 | Changer de mode | SetOperationMode | TOP4 | `select`, `input_select` | `mode_select` |
 | SET10 | Chauffe unique | SetForceDHW | TOP2 | `switch`, `input_boolean` | `dhw_force` |
-| SET12 | Forcer le dégivrage | SetForceDefrost | aucun, déclencheur seulement. État : TOP26 | `switch`, `input_boolean` | `force_defrost` |
+| SET12 | Forcer le dégivrage | SetForceDefrost | aucun, déclencheur seulement. État : TOP26 | `switch`, `input_boolean`, `select` | `force_defrost` |
 | SET13 | Démarrer le cycle légionelles | SetForceSterilization | aucun, déclencheur seulement. État : TOP69 | `switch`, `input_boolean` | `force_sterilization` |
 | SET17 | Changer de zones | SetZones | TOP94 | `select`, `input_select` | `zones_select` |
 | SET24 | Programme hebdomadaire | SetMainSchedule | TOP13 | `switch`, `input_boolean` | `main_schedule` |

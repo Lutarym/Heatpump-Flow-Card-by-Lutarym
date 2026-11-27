@@ -65,7 +65,7 @@ export const ARTEN = {
   TOP34: ["number", "input_number"], SET1: ["switch", "input_boolean", "binary_sensor", "sensor"],
   SET2: ["switch", "input_boolean"], SET3: ["select", "input_select"],
   SET4: ["select", "input_select"], SET9: ["select", "input_select"],
-  SET10: ["switch", "input_boolean"], SET12: ["switch", "input_boolean"],
+  SET10: ["switch", "input_boolean"], SET12: ["switch", "input_boolean", "select"],
   SET13: ["switch", "input_boolean"], SET17: ["select", "input_select"],
   SET24: ["switch", "input_boolean"], SET28: ["switch", "input_boolean"],
   SET39: ["select", "input_select"], SET40: ["select", "input_select"],

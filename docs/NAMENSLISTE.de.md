@@ -117,7 +117,7 @@ Meldet die Wärmepumpe den Zusatzblock, sind TOP15, TOP16, TOP40 und TOP41 laut 
 | SET4 | Turbomodus | SetPowerfulMode | TOP17 | `select`, `input_select` | `powerful_mode` |
 | SET9 | Betriebsart umschalten | SetOperationMode | TOP4 | `select`, `input_select` | `mode_select` |
 | SET10 | Einmalig aufheizen | SetForceDHW | TOP2 | `switch`, `input_boolean` | `dhw_force` |
-| SET12 | Abtauen erzwingen | SetForceDefrost | keine, nur Auslöser. Zustand: TOP26 | `switch`, `input_boolean` | `force_defrost` |
+| SET12 | Abtauen erzwingen | SetForceDefrost | keine, nur Auslöser. Zustand: TOP26 | `switch`, `input_boolean`, `select` | `force_defrost` |
 | SET13 | Legionellenschutz starten | SetForceSterilization | keine, nur Auslöser. Zustand: TOP69 | `switch`, `input_boolean` | `force_sterilization` |
 | SET17 | Zonen umschalten | SetZones | TOP94 | `select`, `input_select` | `zones_select` |
 | SET24 | Wochenprogramm | SetMainSchedule | TOP13 | `switch`, `input_boolean` | `main_schedule` |

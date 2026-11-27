@@ -56,7 +56,7 @@
         "adresse": "https://github.com/emsesp/EMS-ESP32",
         "version": "3.9.1",
         "aktualisiert": "2026-11-16",
-        "abgelesen": "2026-11-26"
+        "abgelesen": "2026-11-27"
       },
       "suche": {
         "art": "firmware",
@@ -67,7 +67,7 @@
       "getestet": false,
       "werte": {
         "TOP1": {"suche": ["sensor.*boiler_pc0lpm", "sensor.*boiler_pc0flow"], "einheit": ["l/min", "l/h"]},
-        "TOP2": ["*boiler_dhw_onetime", "*boiler_wwonetime"],
+        "TOP2": ["switch.*boiler_dhw_onetime", "binary_sensor.*boiler_dhw_onetime", "switch.*boiler_wwonetime", "binary_sensor.*boiler_wwonetime"],
         "TOP5": ["sensor.*boiler_hptc0", "sensor.*boiler_rettemp"],
         "TOP6": ["sensor.*boiler_hptc1", "sensor.*boiler_curflowtemp"],
         "TOP8": {"suche": ["sensor.*boiler_hpcompspd", "sensor.*heatpump_hpcompspd"], "einheit": "%"},
@@ -90,25 +90,26 @@
         "TOP60": ["sensor.*boiler_auxheaterlevel"],
         "TOP62": {"suche": ["sensor.*boiler_fanspd"], "einheit": "%"},
         "TOP65": {"suche": ["sensor.*boiler_hpcircspd", "sensor.*boiler_heatingpumpmod"], "einheit": "%"},
-        "TOP69": ["*boiler_dhw_disinfecting", "*boiler_wwdisinfecting"],
+        "TOP69": ["switch.*boiler_dhw_disinfecting", "binary_sensor.*boiler_dhw_disinfecting", "switch.*boiler_wwdisinfecting", "binary_sensor.*boiler_wwdisinfecting"],
         "TOP70": ["number.*boiler_dhw_disinfectiontemp", "number.*boiler_wwdisinfectiontemp"],
         "TOP77": ["number.*thermostat_hc1_summertemp"],
         "TOP115": ["sensor.*boiler_syspress"],
-        "TOP123": ["*mixer_hc2_pumpstatus"],
-        "TOP124": ["*mixer_hc1_pumpstatus"],
+        "TOP123": ["switch.*mixer_hc2_pumpstatus", "binary_sensor.*mixer_hc2_pumpstatus"],
+        "TOP124": ["switch.*mixer_hc1_pumpstatus", "binary_sensor.*mixer_hc1_pumpstatus"],
         "OPT5": ["binary_sensor.*solar_solarpump"],
         "SET3": ["select.*boiler_silentmode"],
         "SET10": ["switch.*boiler_dhw_onetime", "switch.*boiler_wwonetime"],
+        "SET12": ["select.*boiler_mandefrost"],
         "SET13": ["switch.*boiler_dhw_disinfecting", "switch.*boiler_wwdisinfecting"],
         "EXT1": ["sensor.*boiler_hpcurrpower", "sensor.*heatpump_hpcurrpower"],
         "EXT2": ["sensor.*boiler_metertotal", "sensor.*boiler_nrgconstotal"],
         "EXT201": ["sensor.*thermostat_hc1_currtemp"],
         "EXT203": ["sensor.*thermostat_hc2_currtemp"],
         "EXT204": ["sensor.*mixer_hc3_flowtemphc"],
-        "EXT205": ["*mixer_hc3_pumpstatus"],
+        "EXT205": ["switch.*mixer_hc3_pumpstatus", "binary_sensor.*mixer_hc3_pumpstatus"],
         "EXT207": ["sensor.*mixer_hc4_flowtemphc"],
-        "EXT208": ["*mixer_hc4_pumpstatus"],
-        "EXT400": ["*boiler_dhw_circ", "*boiler_wwcirc"],
+        "EXT208": ["switch.*mixer_hc4_pumpstatus", "binary_sensor.*mixer_hc4_pumpstatus"],
+        "EXT400": ["switch.*boiler_dhw_circ", "binary_sensor.*boiler_dhw_circ", "switch.*boiler_wwcirc", "binary_sensor.*boiler_wwcirc"],
         "EXT401": ["switch.*boiler_dhw_circ", "switch.*boiler_wwcirc"]
       }
     }
